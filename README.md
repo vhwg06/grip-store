@@ -1,77 +1,173 @@
-# LDC Shop (Next.js + Workers)
+# LDC Shop (Docker Edition)
 
-[English](./README_EN.md)
+基于 **Next.js 16**、**SQLite** 和 **Shadcn UI** 构建的虚拟商品商店 Docker 版本。
+
+本版本基于 `_workers_next`（Cloudflare Workers 版）改造，将数据库从 Cloudflare D1 替换为本地 SQLite（`better-sqlite3`），适用于 VPS / 自托管部署。
+
+## 技术架构
+
+- **核心框架**: Next.js 16 (App Router) + TypeScript
+- **数据库**: SQLite（better-sqlite3），数据文件持久化到 Docker volume
+- **ORM**: Drizzle ORM
+- **认证**: NextAuth（Linux DO Connect + GitHub OAuth）
+- **支付**: EPay
+- **UI**: Tailwind CSS + Shadcn UI + Framer Motion
 
 ---
 
-基于 **Next.js 16**、**Cloudflare Workers**（OpenNext）、**D1 Database** 和 **Shadcn UI** 构建的无服务器虚拟商品商店。
+## 部署方式一：拉取预构建镜像（推荐）
 
-> [!IMPORTANT]
-> **⚠️ Vercel 版本已停止更新，请使用 Cloudflare Workers 版本或 Docker 版！**
-> 
-> Workers 版本是当前持续维护的版本，包含所有最新功能。Docker 版可能会滞后更新。
+无需克隆代码，直接使用已发布的 Docker 镜像。
 
-> 🚀 **推荐部署方式：Cloudflare Workers 或 Docker 自托管**
-> 
-> | 对比项 | Cloudflare Workers | Docker 自托管 | Vercel |
-> |--------|-------------------|--------------|--------|
-> | 维护状态 | **✅ 持续更新** | ✅ 同步更新 | ⚠️ 停止更新 |
-> | 免费请求 | **10 万次/天** | 无限制 | 有限制 |
-> | 数据库 | **D1 免费 5GB** | SQLite 无限制 | Postgres 有限额 |
-> | 冷启动 | **几乎无延迟** | 无冷启动 | 有冷启动 |
-> | 部署要求 | 无需服务器 | 需要 VPS | 无需服务器 |
-> | 全球边缘 | ✅ 全球节点 | 单节点 | 部分地区 |
-> 
-> 👉 **[Workers 完整功能与部署指南 → `_workers_next/README.md`](./_workers_next/README.md)**
-> 
-> 👉 **[Docker 部署指南 → `_docker/README.md`](./_docker/README.md)**
+### 一键脚本
 
-## 📢 登录状态公告（2026-03-04）
+```bash
+mkdir ldc-shop && cd ldc-shop
+curl -fsSL https://raw.githubusercontent.com/chatgptuk/ldc-shop/main/_docker/pull-setup.sh -o setup.sh
+chmod +x setup.sh
+./setup.sh
+```
 
-`Linux DO Connect` OAuth 登录已恢复正常，当前可正常完成授权并登录。
+脚本会交互式引导你输入所有配置项（站点 URL、OAuth、支付、GitHub 登录等），自动生成 `.env` 和 `docker-compose.yml`，拉取镜像并启动。
 
-项目保留 **GitHub 登录** 作为备用方式（配置见 `_workers_next/README.md` 中的 GitHub OAuth 说明）。如有变化将在本公告更新。
+### 更新镜像
 
-## ✨ 特性概览
+```bash
+docker compose pull && docker compose up -d
+```
 
-当前 **Workers 版本** 主要特性如下（完整列表见 [_workers_next/README.md](./_workers_next/README.md)）：
+---
 
-- **技术栈**: Next.js 16 (App Router)、Tailwind CSS、TypeScript；边缘部署为 **Cloudflare Workers + D1**。
-- **Linux DO 集成**: OIDC 登录、EasyPay 支付；可选 GitHub 登录。
-- **商城**: 搜索与分类、独立搜索页、心愿单与投票、公告栏、Markdown 描述、购买前提醒、**商品可见级别**（按信任等级）、热门与折扣、评分评论、库存/已售、共享卡密、限购、数量选择、自定义商店名称、**商品规格（多规格）** 等。
-- **订单**: 支付回调验签、自动发货卡密、多卡密分发、默认收件邮箱、库存锁定、超时取消、订单中心（含规格标签）、待支付提醒、退款申请与自动退款、收款码。
-- **管理后台**: 销售统计、库存预警、商品管理（含可见范围与规格）、分类管理、卡密管理、订单管理、订单清理、评价管理、数据导出/导入、公告、顾客管理、消息管理、退款设置、导航设置、店铺与主题（名称/描述/Logo/Favicon/主题色/字体/页脚/noindex）、签到设置、更新检查。
-- **积分**: 每日签到（可配置开关与奖励）、积分抵扣、积分全额支付。
-- **多语言与主题**: 中英切换、浅色/深色/跟随系统。
-- **通知**: Resend 发货邮件、Telegram 与 **Bark** 新订单/退款/用户消息推送、站内收件箱与桌面通知、联系管理员、LDC 导航（含商店数目）。
+## 部署方式二：自行构建镜像
 
-## 🚀 部署指南
+适合需要修改源码或自定义构建的场景。
 
-> 详细步骤与环境变量说明请查看：**[_workers_next/README.md](./_workers_next/README.md)**。
+### 方法 A：一键脚本（交互式）
 
-### ⭐ 推荐：Cloudflare Workers 部署
+```bash
+git clone https://github.com/chatgptuk/ldc-shop.git
+cd ldc-shop/_docker
+chmod +x setup.sh
+./setup.sh
+```
 
-免费额度高、全球访问快、无冷启动。
+脚本会引导你输入必要的配置项，自动生成 `.env` 和 `docker-compose.yml`，并构建启动容器。
 
-👉 **[完整部署指南 → _workers_next/README.md](./_workers_next/README.md)**
+### 方法 B：手动构建
 
-### 备选：Docker 自托管
+```bash
+git clone https://github.com/chatgptuk/ldc-shop.git
+cd ldc-shop/_docker
+```
 
-适用于 VPS/自有服务器，本地 SQLite，不依赖第三方云库。
+编辑 `.env` 文件（参考上方"拉取镜像"部分的 `.env` 模板），然后：
 
-👉 **[Docker 部署指南 → _docker/README.md](./_docker/README.md)**
+```bash
+mkdir -p data && chmod 777 data
+docker compose up -d --build
+```
 
-### 备选：Vercel 部署（已停止更新）
+---
 
-Vercel 版本已停止维护，仅建议作为历史参考。新部署请使用 Workers 或 Docker。若需 Vercel 自动同步上游，可参考仓库内 `.github/workflows/sync.yml` 并开启 Actions 写入权限。
+## 反向代理配置
 
-## 💡 建议：绑定自定义域名
+容器监听 `3000` 端口，生产环境建议用 Nginx / Caddy 反向代理并配置 HTTPS。
 
-为获得最佳体验（即时支付状态更新），建议绑定自定义域名（如 `store.yourdomain.com`）。共享域名可能被支付平台或防火墙拦截，影响回调。
+**Nginx 示例：**
 
-## ⚙️ 配置与本地开发
+```nginx
+server {
+    listen 443 ssl;
+    server_name your-domain.com;
 
-Workers 版所需的环境变量、OIDC/EPay 配置及本地开发步骤，请直接查看：**[_workers_next/README.md](./_workers_next/README.md)**。
+    ssl_certificate     /path/to/cert.pem;
+    ssl_certificate_key /path/to/key.pem;
 
-## 📄 许可证
-MIT
+    location / {
+        proxy_pass http://127.0.0.1:3000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-Host $host;
+    }
+}
+```
+
+**Caddy 示例（自动 HTTPS）：**
+
+```
+your-domain.com {
+    reverse_proxy localhost:3000
+}
+```
+
+---
+
+## 环境变量说明
+
+| 变量 | 必填 | 说明 |
+|------|------|------|
+| `APP_URL` | 是 | 站点外部访问地址，如 `https://your-domain.com` |
+| `NEXT_PUBLIC_APP_URL` | 是 | 同 `APP_URL`，值保持一致 |
+| `AUTH_TRUST_HOST` | 是 | 设为 `true`，信任反代传递的 Host 头 |
+| `AUTH_SECRET` | 是 | 随机字符串，用于加密 session |
+| `OAUTH_CLIENT_ID` | 是 | Linux DO Connect OAuth Client ID |
+| `OAUTH_CLIENT_SECRET` | 是 | Linux DO Connect OAuth Client Secret |
+| `MERCHANT_ID` | 是 | EPay 商户 ID |
+| `MERCHANT_KEY` | 是 | EPay 商户密钥 |
+| `PAY_URL` | 否 | 支付接口地址，默认 Linux DO Credit |
+| `ADMIN_USERS` | 是 | 管理员用户名，多个用逗号分隔 |
+| `DATABASE_PATH` | 否 | SQLite 路径，默认 `/app/data/ldc-shop.sqlite` |
+| `GITHUB_ID` | 否 | GitHub OAuth Client ID |
+| `GITHUB_SECRET` | 否 | GitHub OAuth Client Secret |
+
+> Telegram 通知、Bark 推送、邮件通知等可选功能在管理后台中配置，无需设置环境变量。
+
+---
+
+## GitHub OAuth App 创建方法
+
+如需启用 GitHub 登录（作为 Linux DO Connect 的备用登录方式），按以下步骤创建 OAuth App：
+
+1. 访问 [GitHub Developer Settings](https://github.com/settings/developers)
+2. 点击 **New OAuth App**
+3. 填写信息：
+   - **Application name**: `LDC Shop`（任意名称）
+   - **Homepage URL**: `https://your-domain.com`（你的站点地址）
+   - **Authorization callback URL**: `https://your-domain.com/api/auth/callback/github`
+4. 点击 **Register application**
+5. 记录 **Client ID**，点击 **Generate a new client secret** 获取 **Client Secret**
+6. 将两个值填入 `.env` 文件的 `GITHUB_ID` 和 `GITHUB_SECRET`
+7. 重启容器生效：`docker compose down && docker compose up -d`
+
+---
+
+## 数据持久化与备份
+
+SQLite 数据库文件存储在 `./data/ldc-shop.sqlite`，通过 Docker volume 挂载持久化。
+
+```bash
+# 备份
+cp -r ./data ./data-backup-$(date +%Y%m%d)
+
+# 恢复
+cp -r ./data-backup-20260304 ./data
+docker restart ldc-shop
+```
+
+## 定时任务
+
+容器内置 cron 定时任务（每分钟执行），自动处理：
+- 超时未支付订单的清理
+- 过期卡密预留的释放
+
+## 修改环境变量后生效方式
+
+```bash
+# 修改 .env 后需要重建容器（不是 docker restart）
+docker compose down && docker compose up -d
+
+# 如果修改了源码，需要重新构建
+docker compose up -d --build
+```

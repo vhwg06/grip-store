@@ -1,73 +1,73 @@
 FROM node:20-alpine AS base
+RUN npm install -g npm@11
 
-# Install dependencies only when needed
+# --- Dependencies ---
 FROM base AS deps
-# Check https://github.com/nodejs/docker-node/tree/b4117f9333da4138b03a546ec926ef50a31506c3#nodealpine to understand why libc6-compat might be needed.
 RUN apk add --no-cache libc6-compat python3 make g++
 WORKDIR /app
 
-# Install dependencies based on the preferred package manager
-COPY package.json yarn.lock* package-lock.json* pnpm-lock.yaml* ./
+COPY package.json package-lock.json* ./
 RUN \
-  if [ -f yarn.lock ]; then yarn --frozen-lockfile; \
-  elif [ -f package-lock.json ]; then npm ci; \
-  elif [ -f pnpm-lock.yaml ]; then yarn global add pnpm && pnpm i --frozen-lockfile; \
-  else echo "Lockfile not found." && exit 1; \
+  if [ -f package-lock.json ]; then npm ci; \
+  else npm install; \
   fi
 
-
-# Rebuild the source code only when needed
+# --- Builder ---
 FROM base AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# Next.js collects completely anonymous telemetry data about general usage.
-# Learn more here: https://nextjs.org/telemetry
-# Uncomment the following line in case you want to disable telemetry during the build.
-ENV NEXT_TELEMETRY_DISABLED 1
-
-# If using npm comment out above and use below instead
+ENV NEXT_TELEMETRY_DISABLED=1
+ARG NEXT_PUBLIC_DEV_ADMIN_BYPASS=false
+ENV NEXT_PUBLIC_DEV_ADMIN_BYPASS=$NEXT_PUBLIC_DEV_ADMIN_BYPASS
 RUN npm run build
 
-# Production image, copy all the files and run next
+# --- Runner ---
 FROM base AS runner
 WORKDIR /app
 
-ENV NODE_ENV production
-ENV NEXT_TELEMETRY_DISABLED 1
+RUN apk add --no-cache curl
+
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
 
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
-# Set the correct permission for prerender cache
-RUN mkdir .next
-RUN chown nextjs:nodejs .next
-
-# Automatically leverage output traces to reduce image size
-# https://nextjs.org/docs/advanced-features/output-file-tracing
+# Standalone output
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --from=builder --chown=nextjs:nodejs /app/public ./public
+
+# Drizzle schema + config for migrations
 COPY --from=builder --chown=nextjs:nodejs /app/src/lib/db/schema.ts ./src/lib/db/schema.ts
-COPY --from=builder --chown=nextjs:nodejs /app/src/lib/db/index.ts ./src/lib/db/index.ts
 COPY --from=builder --chown=nextjs:nodejs /app/drizzle.config.ts ./drizzle.config.ts
 
-# Copy migrations folder if it exists, or just ensure we have what we need for drizzle-kit
-# We need drizzle-kit to run migrations
-COPY --from=deps /app/node_modules ./node_modules
-COPY --from=builder /app/package.json ./package.json
+# node_modules needed for better-sqlite3 native addon + drizzle-kit
+COPY --from=deps --chown=nextjs:nodejs /app/node_modules ./node_modules
+COPY --from=builder --chown=nextjs:nodejs /app/package.json ./package.json
+
+# Cron script
+COPY --from=builder --chown=nextjs:nodejs /app/cron.mjs ./cron.mjs
+
+# Data directory for SQLite
+RUN mkdir -p /app/data && chown -R nextjs:nodejs /app/data && chmod 777 /app/data
+
+# Pre-create .next directory
+RUN mkdir -p .next && chown nextjs:nodejs .next
+
+# Entrypoint
+COPY entrypoint.sh ./entrypoint.sh
+RUN chmod +x ./entrypoint.sh
 
 USER nextjs
 
 EXPOSE 3000
+ENV PORT=3000
+ENV HOSTNAME="0.0.0.0"
+ENV DATABASE_PATH="/app/data/ldc-shop.sqlite"
 
-ENV PORT 3000
-# set hostname to localhost
-ENV HOSTNAME "0.0.0.0"
-
-# Use entrypoint script to handle migrations
-COPY --chown=nextjs:nodejs entrypoint.sh ./entrypoint.sh
-RUN chmod +x ./entrypoint.sh
+VOLUME ["/app/data"]
 
 ENTRYPOINT ["./entrypoint.sh"]

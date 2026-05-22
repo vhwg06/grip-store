@@ -1,9 +1,10 @@
 'use server'
 
 import { setSetting, getSetting } from "@/lib/db/queries"
-import { revalidatePath } from "next/cache"
+import { revalidatePath, updateTag } from "next/cache"
 import { db } from "@/lib/db"
 import { sql } from "drizzle-orm"
+import { checkAdmin } from "@/actions/admin"
 
 export type AnnouncementConfig = {
     content: string
@@ -30,6 +31,8 @@ function parseAnnouncement(raw: string | null): AnnouncementConfig | null {
 }
 
 export async function saveAnnouncement(config: AnnouncementConfig) {
+    await checkAdmin()
+
     const content = String(config.content || '')
     const startAt = config.startAt ? String(config.startAt) : null
     const endAt = config.endAt ? String(config.endAt) : null
@@ -39,17 +42,18 @@ export async function saveAnnouncement(config: AnnouncementConfig) {
         await setSetting('announcement', payload)
     } catch (error: any) {
         // If settings table doesn't exist, create it
-        if (error.message?.includes('does not exist') ||
+        const msg = error.message || ''
+        if (msg.includes('does not exist') ||
+            msg.includes('no such table') ||
             error.code === '42P01' ||
             JSON.stringify(error).includes('42P01')) {
-            await db.execute(sql`
+            await db.run(sql`
                 CREATE TABLE IF NOT EXISTS settings (
                     key TEXT PRIMARY KEY,
                     value TEXT,
-                    updated_at TIMESTAMP DEFAULT NOW()
+                    updated_at INTEGER DEFAULT (unixepoch() * 1000)
                 )
             `)
-            // Retry the insert
             await setSetting('announcement', payload)
         } else {
             throw error
@@ -57,6 +61,7 @@ export async function saveAnnouncement(config: AnnouncementConfig) {
     }
     revalidatePath('/')
     revalidatePath('/admin/announcement')
+    updateTag('home:announcement')
     return { success: true }
 }
 

@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from "react"
+import { useMemo, useRef, useState } from "react"
 import { useI18n } from "@/lib/i18n/context"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge"
 import { ClientDate } from "@/components/client-date"
 import { deleteReview } from "@/actions/admin"
 import { toast } from "sonner"
+import { getDisplayUsername, getExternalProfileUrl } from "@/lib/user-profile-link"
 
 interface ReviewRow {
   id: number
@@ -26,6 +27,8 @@ export function AdminReviewsContent({ reviews }: { reviews: ReviewRow[] }) {
   const { t } = useI18n()
   const [items, setItems] = useState(reviews)
   const [query, setQuery] = useState("")
+  const [deletingId, setDeletingId] = useState<number | null>(null)
+  const deletingRef = useRef<number | null>(null)
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
@@ -46,13 +49,19 @@ export function AdminReviewsContent({ reviews }: { reviews: ReviewRow[] }) {
   }, [items, query])
 
   const handleDelete = async (id: number) => {
+    if (deletingRef.current === id) return
     if (!confirm(t('common.confirm') + '?')) return
     try {
+      deletingRef.current = id
+      setDeletingId(id)
       await deleteReview(id)
       setItems((prev) => prev.filter((r) => r.id !== id))
       toast.success(t('common.success'))
     } catch (e: any) {
       toast.error(e.message)
+    } finally {
+      setDeletingId(null)
+      deletingRef.current = null
     }
   }
 
@@ -89,12 +98,12 @@ export function AdminReviewsContent({ reviews }: { reviews: ReviewRow[] }) {
                 </TableCell>
                 <TableCell className="max-w-[240px]">
                   <a
-                    href={`https://linux.do/u/${r.username}`}
+                    href={getExternalProfileUrl(r.username, r.userId) || "#"}
                     target="_blank"
                     rel="noreferrer"
                     className="font-medium text-sm hover:underline text-primary"
                   >
-                    {r.username}
+                    {getDisplayUsername(r.username, r.userId)}
                   </a>
                   <div className="text-xs text-muted-foreground font-mono">{r.userId}</div>
                 </TableCell>
@@ -109,7 +118,7 @@ export function AdminReviewsContent({ reviews }: { reviews: ReviewRow[] }) {
                   <ClientDate value={r.createdAt} format="dateTime" />
                 </TableCell>
                 <TableCell className="text-right">
-                  <Button variant="destructive" size="sm" onClick={() => handleDelete(r.id)}>
+                  <Button variant="destructive" size="sm" onClick={() => handleDelete(r.id)} disabled={deletingId === r.id}>
                     {t('common.delete')}
                   </Button>
                 </TableCell>

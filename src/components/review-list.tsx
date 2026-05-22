@@ -4,13 +4,15 @@ import { useI18n } from '@/lib/i18n/context'
 import { StarRating } from '@/components/star-rating'
 import { Card, CardContent } from '@/components/ui/card'
 import { ClientDate } from '@/components/client-date'
+import { getDisplayUsername, getExternalProfileUrl } from '@/lib/user-profile-link'
 
 interface Review {
     id: number
     username: string
+    userId?: string | null
     rating: number
     comment: string | null
-    createdAt: Date | string
+    createdAt: Date | string | null
 }
 
 interface ReviewListProps {
@@ -53,7 +55,18 @@ export function ReviewList({ reviews, averageRating, totalCount }: ReviewListPro
                             <div className="flex items-start justify-between gap-4">
                                 <div className="space-y-1">
                                     <div className="flex items-center gap-2">
-                                        <span className="font-medium text-sm">{review.username}</span>
+                                        {getExternalProfileUrl(review.username, review.userId) ? (
+                                            <a
+                                                href={getExternalProfileUrl(review.username, review.userId) || "#"}
+                                                target="_blank"
+                                                rel="noreferrer"
+                                                className="font-medium text-sm hover:underline text-primary"
+                                            >
+                                                {getDisplayUsername(review.username, review.userId) || review.username}
+                                            </a>
+                                        ) : (
+                                            <span className="font-medium text-sm">{review.username}</span>
+                                        )}
                                         <StarRating rating={review.rating} size="sm" />
                                     </div>
                                     {review.comment && (

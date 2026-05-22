@@ -2,20 +2,22 @@ import { db } from "@/lib/db"
 import { orders, refundRequests } from "@/lib/db/schema"
 import { desc, eq } from "drizzle-orm"
 import { AdminRefundsContent } from "@/components/admin/refunds-content"
-
-export const dynamic = 'force-dynamic';
+import { unstable_noStore } from "next/cache"
 
 function isMissingTable(error: any) {
+  const msg = (error?.message || '') + (error?.cause?.message || '')
   const errorString = JSON.stringify(error)
   return (
-    error?.message?.includes('does not exist') ||
-    error?.cause?.message?.includes('does not exist') ||
+    msg.includes('does not exist') ||
+    msg.includes('no such table') ||
     errorString.includes('42P01') ||
+    errorString.includes('no such table') ||
     (errorString.includes('relation') && errorString.includes('does not exist'))
   )
 }
 
 export default async function AdminRefundsPage() {
+  unstable_noStore()
   let rows: any[] = []
   try {
     rows = await db

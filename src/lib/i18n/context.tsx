@@ -3,8 +3,8 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react'
 import en from '@/locales/en.json'
 import zh from '@/locales/zh.json'
+import { isLocale, type Locale } from './shared'
 
-type Locale = 'en' | 'zh'
 type Translations = typeof en
 
 const translations: Record<Locale, Translations> = { en, zh }
@@ -28,40 +28,30 @@ function interpolate(text: string, params?: Record<string, string | number>): st
     }, text)
 }
 
-export function I18nProvider({ children }: { children: ReactNode }) {
-    const [locale, setLocaleState] = useState<Locale>('en')
-    const [mounted, setMounted] = useState(false)
+export function I18nProvider({ children, initialLocale = 'en' }: { children: ReactNode; initialLocale?: Locale }) {
+    const [locale, setLocaleState] = useState<Locale>(initialLocale)
 
     useEffect(() => {
-        setMounted(true)
-        // Check localStorage first
-        const saved = localStorage.getItem('ldc-locale') as Locale | null
-        if (saved && translations[saved]) {
-            setLocaleState(saved)
+        const saved = localStorage.getItem('ldc-locale')
+        const resolved = isLocale(saved) ? saved : initialLocale
+
+        if (resolved !== locale) {
+            setLocaleState(resolved)
             return
         }
-        // Detect from browser
-        const browserLang = navigator.language.toLowerCase()
-        if (browserLang.startsWith('zh')) {
-            setLocaleState('zh')
-        } else {
-            setLocaleState('en')
-        }
-    }, [])
+        localStorage.setItem('ldc-locale', resolved)
+        document.cookie = `ldc-locale=${resolved}; path=/; max-age=31536000`
+    }, [initialLocale, locale])
 
     const setLocale = (newLocale: Locale) => {
         setLocaleState(newLocale)
         localStorage.setItem('ldc-locale', newLocale)
+        document.cookie = `ldc-locale=${newLocale}; path=/; max-age=31536000`
     }
 
     const t = (key: string, params?: Record<string, string | number>): string => {
         const text = getNestedValue(translations[locale], key)
         return interpolate(text, params)
-    }
-
-    // Prevent hydration mismatch
-    if (!mounted) {
-        return <>{children}</>
     }
 
     return (

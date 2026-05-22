@@ -5,18 +5,11 @@ import { and, desc, eq } from "drizzle-orm"
 import { notFound } from "next/navigation"
 import { cookies } from "next/headers"
 import { OrderContent } from "@/components/order-content"
-import { cancelExpiredOrders } from "@/lib/db/queries"
 
 export default async function OrderPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = await params
     const session = await auth()
     const user = session?.user
-
-    try {
-        await cancelExpiredOrders({ orderId: id })
-    } catch {
-        // Best effort cleanup
-    }
 
     const order = await db.query.orders.findFirst({
         where: eq(orders.orderId, id)

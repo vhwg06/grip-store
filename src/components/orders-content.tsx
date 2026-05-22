@@ -5,7 +5,7 @@ import { useI18n } from "@/lib/i18n/context"
 import Link from "next/link"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { CreditCard, Package, Search } from "lucide-react"
+import { CreditCard, Package, Search, Star } from "lucide-react"
 import { ClientDate } from "@/components/client-date"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -18,6 +18,7 @@ interface Order {
     amount: string
     status: string | null
     createdAt: Date | null
+    canReview?: boolean
 }
 
 export function OrdersContent({ orders }: { orders: Order[] }) {
@@ -100,9 +101,9 @@ export function OrdersContent({ orders }: { orders: Order[] }) {
             <div className="grid gap-4">
                 {filtered.length > 0 ? (
                     filtered.map(order => (
-                        <Link href={`/order/${order.orderId}`} key={order.orderId}>
-                            <Card className="hover:border-primary/50 transition-colors">
-                                <div className="flex items-center p-6 gap-4">
+                        <Card key={order.orderId} className="hover:border-primary/50 transition-colors">
+                            <Link href={`/order/${order.orderId}`}>
+                                <div className="flex flex-col gap-4 p-6 sm:flex-row sm:items-center">
                                     <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center shrink-0">
                                         {isPaymentOrder(order.productId) ? (
                                             <CreditCard className="h-6 w-6 text-muted-foreground" />
@@ -111,21 +112,35 @@ export function OrdersContent({ orders }: { orders: Order[] }) {
                                         )}
                                     </div>
                                     <div className="flex-1 min-w-0">
-                                        <div className="flex items-center justify-between mb-1">
+                                        <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
                                             <h3 className="font-semibold truncate">{getOrderName(order)}</h3>
-                                            <span className="font-bold">{Number(order.amount)} {t('common.credits')}</span>
+                                            <span className="font-bold shrink-0">{Number(order.amount)} {t('common.credits')}</span>
                                         </div>
-                                        <div className="flex items-center justify-between text-sm text-muted-foreground">
-                                            <span className="font-mono">{order.orderId}</span>
+                                        <div className="flex flex-col gap-1 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+                                            <span className="font-mono truncate">{order.orderId}</span>
                                             <ClientDate value={order.createdAt} />
                                         </div>
+                                        <div className="mt-2 flex flex-wrap items-center gap-2 sm:justify-end">
+                                            {order.canReview && !isPaymentOrder(order.productId) && (
+                                                <Link
+                                                    href={`/buy/${order.productId}#reviews`}
+                                                    onClick={(e) => e.stopPropagation()}
+                                                    className="shrink-0"
+                                                >
+                                                    <Button size="sm" variant="outline" className="gap-1">
+                                                        <Star className="h-3 w-3" />
+                                                        {t('orders.writeReview')}
+                                                    </Button>
+                                                </Link>
+                                            )}
+                                            <Badge variant={getStatusBadgeVariant(order.status)} className="capitalize shrink-0">
+                                                {getStatusText(order.status)}
+                                            </Badge>
+                                        </div>
                                     </div>
-                                    <Badge variant={getStatusBadgeVariant(order.status)} className="ml-2 capitalize">
-                                        {getStatusText(order.status)}
-                                    </Badge>
                                 </div>
-                            </Card>
-                        </Link>
+                            </Link>
+                        </Card>
                     ))
                 ) : (
                     <div className="text-center py-20 rounded-lg border border-dashed">
