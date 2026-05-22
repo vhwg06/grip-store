@@ -1,163 +1,77 @@
-# Angular-10 - ShoppingCart + MDBootstrap + Firebase (Realtime Database) + i18n
+# LDC Shop (Next.js + Workers)
 
-[![HitCount](http://hits.dwyl.io/ikismail/Angular-ShoppingCart.svg)](http://hits.dwyl.io/ikismail/Angular-ShoppingCart)
-[![GitHub forks](https://img.shields.io/github/forks/ikismail/Angular-ShoppingCart.svg)](https://github.com/ikismail/Angular-ShoppingCart/network) [![GitHub stars](https://img.shields.io/github/stars/ikismail/Angular-ShoppingCart.svg)](https://github.com/ikismail/Angular-ShoppingCart/stargazers)
-[![GitHub issues](https://img.shields.io/github/issues/ikismail/Angular-ShoppingCart.svg)](https://github.com/ikismail/Angular-ShoppingCart/issues)
-[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://github.com/ikismail/Angular-ShoppingCart/blob/master/LICENSE)
-[![npm](https://img.shields.io/badge/demo-online-brightgreen.svg)](https://angular-shoppingcart.firebaseapp.com/)
-[![Twitter](https://img.shields.io/twitter/url/https/github.com/ikismail/Angular-ShoppingCart.svg?style=social)](https://twitter.com/intent/tweet?text=Wow:&url=https%3A%2F%2Fgithub.com%2Fikismail%2FAngular-ShoppingCart)
+[English](./README_EN.md)
 
-<!-- [![Github Dependencies](https://david-dm.org/ikismail/Angular-ShoppingCart.svg)](https://david-dm.org/ikismail/Angular-ShoppingCart.svg) -->
-<!-- [![Build Status](https://travis-ci.org/ikismail/Angular-ShoppingCart.svg?branch=master)](https://travis-ci.org/ikismail/Angular-ShoppingCart) -->
+---
 
-Developing a **ShoppingCart (Ecommerce) Application using Angular-10**.
+基于 **Next.js 16**、**Cloudflare Workers**（OpenNext）、**D1 Database** 和 **Shadcn UI** 构建的无服务器虚拟商品商店。
 
-**Live Demo** : [Angular-shopping-cart](https://angular-shoppingcart.firebaseapp.com/)
+> [!IMPORTANT]
+> **⚠️ Vercel 版本已停止更新，请使用 Cloudflare Workers 版本或 Docker 版！**
+> 
+> Workers 版本是当前持续维护的版本，包含所有最新功能。Docker 版可能会滞后更新。
 
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 10.0.1.
+> 🚀 **推荐部署方式：Cloudflare Workers 或 Docker 自托管**
+> 
+> | 对比项 | Cloudflare Workers | Docker 自托管 | Vercel |
+> |--------|-------------------|--------------|--------|
+> | 维护状态 | **✅ 持续更新** | ✅ 同步更新 | ⚠️ 停止更新 |
+> | 免费请求 | **10 万次/天** | 无限制 | 有限制 |
+> | 数据库 | **D1 免费 5GB** | SQLite 无限制 | Postgres 有限额 |
+> | 冷启动 | **几乎无延迟** | 无冷启动 | 有冷启动 |
+> | 部署要求 | 无需服务器 | 需要 VPS | 无需服务器 |
+> | 全球边缘 | ✅ 全球节点 | 单节点 | 部分地区 |
+> 
+> 👉 **[Workers 完整功能与部署指南 → `_workers_next/README.md`](./_workers_next/README.md)**
+> 
+> 👉 **[Docker 部署指南 → `_docker/README.md`](./_docker/README.md)**
 
-## Functionalities
+## 📢 登录状态公告（2026-03-04）
 
-1.  User Registration using Firebase Authentication (using Email/Password | Google Authentication )
-2.  CRUD Operations like
+`Linux DO Connect` OAuth 登录已恢复正常，当前可正常完成授权并登录。
 
-- User can add product to his cart.
-- Admin can add product to the product list
-- Admin can edit/delete the product.
+项目保留 **GitHub 登录** 作为备用方式（配置见 `_workers_next/README.md` 中的 GitHub OAuth 说明）。如有变化将在本公告更新。
 
-3. Drag and Drop `Angular Drag & Drop`
+## ✨ 特性概览
 
-- Implemented [Angular Drag and Drop CDK](https://material.angular.io/cdk/drag-drop/overview)
+当前 **Workers 版本** 主要特性如下（完整列表见 [_workers_next/README.md](./_workers_next/README.md)）：
 
-1.  Security
+- **技术栈**: Next.js 16 (App Router)、Tailwind CSS、TypeScript；边缘部署为 **Cloudflare Workers + D1**。
+- **Linux DO 集成**: OIDC 登录、EasyPay 支付；可选 GitHub 登录。
+- **商城**: 搜索与分类、独立搜索页、心愿单与投票、公告栏、Markdown 描述、购买前提醒、**商品可见级别**（按信任等级）、热门与折扣、评分评论、库存/已售、共享卡密、限购、数量选择、自定义商店名称、**商品规格（多规格）** 等。
+- **订单**: 支付回调验签、自动发货卡密、多卡密分发、默认收件邮箱、库存锁定、超时取消、订单中心（含规格标签）、待支付提醒、退款申请与自动退款、收款码。
+- **管理后台**: 销售统计、库存预警、商品管理（含可见范围与规格）、分类管理、卡密管理、订单管理、订单清理、评价管理、数据导出/导入、公告、顾客管理、消息管理、退款设置、导航设置、店铺与主题（名称/描述/Logo/Favicon/主题色/字体/页脚/noindex）、签到设置、更新检查。
+- **积分**: 每日签到（可配置开关与奖励）、积分抵扣、积分全额支付。
+- **多语言与主题**: 中英切换、浅色/深色/跟随系统。
+- **通知**: Resend 发货邮件、Telegram 与 **Bark** 新订单/退款/用户消息推送、站内收件箱与桌面通知、联系管理员、LDC 导航（含商店数目）。
 
-- Implmented Authentication and Authorization
+## 🚀 部署指南
 
-## Tools and Technologies
+> 详细步骤与环境变量说明请查看：**[_workers_next/README.md](./_workers_next/README.md)**。
 
-- Technology: HTML, MDBootstrap, CSS, Angular-10, Firebase, i18n, Drag & Drop, Progressive Web Application, jsPDF (to download Receipt as PDF).
-- Database : Angular Firebase (Realtime Database).
+### ⭐ 推荐：Cloudflare Workers 部署
 
-#### This Projects covers all fundamentals of Angular
+免费额度高、全球访问快、无冷启动。
 
-- Multiple Modules
-- Components, Template and DataBinding
-- Form Validation
-- HttpClient
-- Animations
-- Dependency Injection
-- Routing & Navigation
-- Service Workers
-- Pipes
-- Gaurds etc..
+👉 **[完整部署指南 → _workers_next/README.md](./_workers_next/README.md)**
 
-# Installation
+### 备选：Docker 自托管
 
-1.  Angular CLI
-    - [Download Angular CLI](https://cli.angular.io/)
-2.  NodeJs
-    - [Download Nodejs](https://nodejs.org/en/download/)
-3.  Package Manager - NPM / Yarn
-4.  Clone the repository and run `npm install` if you use **npm** as package manager or `yarn install` if you use **yarn** as package manager.
-5.  Angular + Firebase Tutorial - [Angular + Firebase + Typescript — Step by step tutorial](https://medium.com/factory-mind/angular-firebase-typescript-step-by-step-tutorial-2ef887fc7d71)
-6.  Activate Firebase Authentication Providers
+适用于 VPS/自有服务器，本地 SQLite，不依赖第三方云库。
 
-    `Authentication -> Sign-in-method -> Enable Email/Password & Google provider`
+👉 **[Docker 部署指南 → _docker/README.md](./_docker/README.md)**
 
-7.  Update the Firebase _(Realtime Database)_ Rules
+### 备选：Vercel 部署（已停止更新）
 
-    `Database -> Rules`
+Vercel 版本已停止维护，仅建议作为历史参考。新部署请使用 Workers 或 Docker。若需 Vercel 自动同步上游，可参考仓库内 `.github/workflows/sync.yml` 并开启 Actions 写入权限。
 
-    ```
-    {
-    "rules": {
-        ".read":true,
-        ".write": true
-    }
-    }
-    ```
+## 💡 建议：绑定自定义域名
 
-8.  Configure your firebase configuration `src/environments/firebaseConfig.ts`
+为获得最佳体验（即时支付状态更新），建议绑定自定义域名（如 `store.yourdomain.com`）。共享域名可能被支付平台或防火墙拦截，影响回调。
 
-    ```
-    export const FireBaseConfig = {
-        apiKey: "YOUR_API_KEY",
-        authDomain: "YOUR_AUTH_DOMAIN",
-        databaseURL: "YOUR_DATABASE_URL",
-        projectId: "YOUR_PROJECT_ID",
-        storageBucket: "YOUR_STORAGE_BUCKET",
-        messagingSenderId: "YOUR_SENDER_ID"
-    };
-    ```
+## ⚙️ 配置与本地开发
 
-<!-- 9.  For Admin Role `Register or SignIn with Google Auth`
+Workers 版所需的环境变量、OIDC/EPay 配置及本地开发步骤，请直接查看：**[_workers_next/README.md](./_workers_next/README.md)**。
 
-    your registered data will be saved inside the firebase **clients** table.
-
-    ```
-        -clients
-            -LRSkWxGAKQAFZmyfsx6
-                -createdOn: "1542046725"
-                -email: "<<YOUR_REGISTERED_EMAIL_ID>>"
-                -isAdmin: false      <--- Change this to true
-                ...
-    ```
-
-    Now you can able to access the Admin Privileges like `Creating Product, Removing Product, etc..` -->
-
-9. Import Products json to realtime database [Products JSON](https://github.com/ikismail/Angular-ShoppingCart/blob/master/products.json)
-
-![alt text](https://github.com/ikismail/Angular-ShoppingCart/blob/master/screenshots/image.png "Products JSON Structure")
-
-10. Run the Server.
-
-## How can I support the developer ?
-
-- Star my Github repo ⭐
-- Create pull requests, submit bugs, suggest new features or documentation updates 🛠
-
-## Screenshots:
-
-### Home Page:
-
-![Alt text](https://github.com/ikismail/Angular-ShoppingCart/blob/master/screenshots/home.PNG "Home Page")
-
-### Products Page:
-
-![Alt text](https://github.com/ikismail/Angular-ShoppingCart/blob/master/screenshots/products.PNG "Home Page")
-
-### Work Board Page:
-
-![Alt text](https://github.com/ikismail/Angular-ShoppingCart/blob/master/screenshots/drag&drop.PNG "Home Page")
-
-## Development server
-
-Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The app will automatically reload if you change any of the source files.
-
-## Code scaffolding
-
-Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.
-
-## Build
-
-Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory. Use the `-prod` flag for a production build.
-
-## Running unit tests
-
-Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
-
-## Running end-to-end tests
-
-Run `ng e2e` to execute the end-to-end tests via [Protractor](http://www.protractortest.org/).
-
-## Further help
-
-To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI README](https://github.com/angular/angular-cli/blob/master/README.md).
-
-## Somethings wrong!!
-
-- If you find that something's wrong with this package, you can let me know by raising an issue on the GitHub issue tracker
-
-## License
-
-This project is licensed under the MIT License - see the [MIT license](https://github.com/ikismail/Angular-ShoppingCart/blob/master/LICENSE) file for details
+## 📄 许可证
+MIT
