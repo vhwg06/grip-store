@@ -396,8 +396,8 @@ This document defines the backend contract required by the frontend migration in
 - `DELETE /api/wishlist/:id`
 
 ### Reviews
-- `GET /api/reviews?productId=:id`
-- `POST /api/reviews`
+- `GET /api/products/:id/reviews`
+- `POST /api/products/:id/reviews`
 - `DELETE /api/admin/reviews/:id`
 
 Review create request:
@@ -424,6 +424,10 @@ Review create request:
 - `GET /api/admin/messages`
 - `POST /api/admin/messages`
 - `DELETE /api/admin/messages/:id`
+- `GET /api/admin/user-messages/unread-count`
+- `POST /api/admin/user-messages/:id/read`
+- `DELETE /api/admin/user-messages/:id`
+- `POST /api/admin/user-messages/clear`
 
 ## Admin
 

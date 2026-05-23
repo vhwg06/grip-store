@@ -9,7 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
 import { toast } from "sonner"
-import { saveUserPoints, toggleBlock } from "@/actions/admin-users"
+import { saveUserPoints, toggleBlock } from "@/adapters/api/admin.api"
 import { Loader2, Search, ArrowLeft, ArrowRight, Edit, Ban, CheckCircle } from "lucide-react"
 import { getDisplayUsername, getExternalProfileUrl } from "@/lib/user-profile-link"
 

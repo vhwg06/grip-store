@@ -9,7 +9,7 @@ import { Card } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { Plus, Eye, EyeOff, ArrowUp, ArrowDown } from "lucide-react"
-import { deleteProduct, toggleProductStatus, reorderProduct } from "@/actions/admin"
+import { deleteProduct, toggleProductStatus, reorderProduct } from "@/adapters/api/admin.api"
 import { toast } from "sonner"
 
 interface Product {

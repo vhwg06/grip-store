@@ -1,8 +1,7 @@
 'use client'
 
 import { Button } from "@/components/ui/button"
-import { markOrderRefunded, proxyRefund } from "@/actions/refund"
-import { verifyOrderRefundStatus } from "@/actions/admin-orders"
+import { markOrderRefunded, proxyRefund, verifyOrderRefundStatus } from "@/adapters/api/admin.api"
 import { useState } from "react"
 import { toast } from "sonner"
 import { Loader2, ExternalLink, CheckCircle, RefreshCcw } from "lucide-react"

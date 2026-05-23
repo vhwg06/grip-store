@@ -12,7 +12,7 @@ import { ClientDate } from "@/components/client-date"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { AdminOrderActions } from "@/components/admin/order-actions"
-import { deleteOrders } from "@/actions/admin-orders"
+import { deleteOrders } from "@/adapters/api/admin.api"
 import { toast } from "sonner"
 import { getDisplayUsername, getExternalProfileUrl } from "@/lib/user-profile-link"
 

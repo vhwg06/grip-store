@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Download, Upload, FileUp, AlertCircle, CheckCircle2 } from "lucide-react"
-import { importData, repairDataAction } from "@/actions/data"
+import { importData, repairDataAction } from "@/adapters/api/admin.api"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 

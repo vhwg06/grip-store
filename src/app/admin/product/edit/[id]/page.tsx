@@ -1,21 +1,27 @@
+"use client"
+
+import { useParams } from "next/navigation"
 import ProductForm from "@/components/admin/product-form"
-import { getCategories, getProductForAdmin } from "@/lib/db/queries"
-import { notFound } from "next/navigation"
-import { unstable_noStore } from "next/cache"
 import { RefreshOnMount } from "@/components/refresh-on-mount"
+import { useAdminProductForm } from "@/application/hooks/useAdmin"
 
-export default async function EditProductPage({ params }: { params: Promise<{ id: string }> }) {
-    unstable_noStore()
-    const { id } = await params
-    const product = await getProductForAdmin(id)
-    const categories = await getCategories()
+export default function EditProductPage() {
+    const params = useParams<{ id: string }>()
+    const id = typeof params?.id === "string" ? params.id : ""
+    const { data, isLoading } = useAdminProductForm(id)
 
-    if (!product) return notFound()
+    if (isLoading) {
+        return <div className="h-96 w-full rounded-xl bg-muted/40 animate-pulse" />
+    }
+
+    if (!data?.product) {
+        return <div className="text-sm text-muted-foreground">Product not found.</div>
+    }
 
     return (
         <>
             <RefreshOnMount />
-            <ProductForm product={product} categories={categories} />
+            <ProductForm product={data.product} categories={data.categories ?? []} />
         </>
     )
 }

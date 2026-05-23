@@ -15,8 +15,7 @@ import { toast } from "sonner"
 import { useProfile } from "@/application/hooks/useProfile"
 import { useEffect, useRef, useState } from "react"
 import { CheckInButton } from "@/components/checkin-button"
-import { clearMyNotifications, getMyNotifications, markAllNotificationsRead, markNotificationRead } from "@/actions/user-notifications"
-import { sendUserMessage } from "@/actions/user-messages"
+import { useNotifications } from "@/application/hooks/useNotifications"
 import { cn } from "@/lib/utils"
 
 interface ProfileContentProps {
@@ -51,6 +50,13 @@ export function ProfileContent({ user, points, checkinEnabled, orderStats, notif
     const { t } = useI18n()
     const { logout } = useAuth()
     const { updateProfileEmail, updateDesktopNotifications, refresh: refreshProfile } = useProfile()
+    const {
+        clearMyNotifications,
+        getMyNotifications,
+        markAllNotificationsRead,
+        markNotificationRead,
+        sendUserMessage,
+    } = useNotifications()
     const [email, setEmail] = useState(user.email || '')
     const [savingEmail, setSavingEmail] = useState(false)
     const [pointsValue, setPointsValue] = useState(points)

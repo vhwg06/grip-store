@@ -13,7 +13,7 @@ import { CopyButton } from "@/components/copy-button"
 import { ClientDate } from "@/components/client-date"
 import { RefundButton } from "@/components/admin/refund-button"
 import { toast } from "sonner"
-import { markOrderDelivered, markOrderPaid, cancelOrder, updateOrderEmail, deleteOrder } from "@/actions/admin-orders"
+import { markOrderDelivered, markOrderPaid, cancelOrder, updateOrderEmail, deleteOrder } from "@/adapters/api/admin.api"
 import { getDisplayUsername, getExternalProfileUrl } from "@/lib/user-profile-link"
 
 function statusVariant(status: string | null) {

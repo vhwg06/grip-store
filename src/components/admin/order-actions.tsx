@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { useRef, useState } from "react"
 import { Button } from "@/components/ui/button"
-import { markOrderDelivered, markOrderPaid, cancelOrder } from "@/actions/admin-orders"
+import { markOrderDelivered, markOrderPaid, cancelOrder } from "@/adapters/api/admin.api"
 import { toast } from "sonner"
 import { useI18n } from "@/lib/i18n/context"
 import { CheckCircle, Truck, XCircle, ExternalLink } from "lucide-react"

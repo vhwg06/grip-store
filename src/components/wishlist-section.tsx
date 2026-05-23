@@ -60,7 +60,8 @@ export function WishlistSection({
         try {
             const res = await submitWishlistItem(cleanTitle, cleanDesc)
             if (res?.success && res.item) {
-                setItems((prev) => [res.item, ...prev])
+                const item = res.item
+                setItems((prev) => [item, ...prev])
                 void refresh()
                 setTitle("")
                 setDesc("")

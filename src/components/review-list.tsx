@@ -5,15 +5,9 @@ import { StarRating } from '@/components/star-rating'
 import { Card, CardContent } from '@/components/ui/card'
 import { ClientDate } from '@/components/client-date'
 import { getDisplayUsername, getExternalProfileUrl } from '@/lib/user-profile-link'
+import type { ProductReview } from '@/domain/wishlist'
 
-interface Review {
-    id: number
-    username: string
-    userId?: string | null
-    rating: number
-    comment: string | null
-    createdAt: Date | string | null
-}
+type Review = ProductReview
 
 interface ReviewListProps {
     reviews: Review[]

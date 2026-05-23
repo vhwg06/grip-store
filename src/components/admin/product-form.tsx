@@ -1,6 +1,6 @@
 'use client'
 
-import { getProductForAdminAction, saveProduct } from "@/actions/admin"
+import { getProductForAdminAction, saveProduct } from "@/adapters/api/admin.api"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"

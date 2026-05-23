@@ -133,35 +133,35 @@
 - [x] **[DELETE]** `src/actions/points.ts`
 
 ### Phase 7 – Wishlist / Reviews Module (M6)
-- [ ] **[NEW]** `src/domain/wishlist.ts`
-- [ ] **[NEW]** `src/adapters/api/wishlist.api.ts`
-  - [ ] `getWishlistItems(limit?)` → `GET /api/wishlist`
-  - [ ] `submitWishlistItem(title, desc?)` → `POST /api/wishlist`
-  - [ ] `toggleWishlistVote(id)` → `POST /api/wishlist/:id/vote`
-  - [ ] `deleteWishlistItem(id)` → `DELETE /api/wishlist/:id`
-  - [ ] `getProductReviews(productId)` → `GET /api/products/:id/reviews`
-  - [ ] `submitReview(productId, input)` → `POST /api/products/:id/reviews`
-- [ ] **[NEW]** `src/application/hooks/useWishlist.ts`, `useReviews.ts`
-- [ ] **[MODIFY]** `src/components/wishlist-section.tsx`
-- [ ] **[MODIFY]** `src/components/review-form.tsx`
-- [ ] **[MODIFY]** `src/components/review-list.tsx`
-- [ ] **[MODIFY]** `src/app/wishlist/page.tsx` – `'use client'`
-- [ ] **[DELETE]** `src/actions/wishlist.ts`
-- [ ] **[DELETE]** `src/actions/reviews.ts`
+- [x] **[NEW]** `src/domain/wishlist.ts`
+- [x] **[NEW]** `src/adapters/api/wishlist.api.ts`
+  - [x] `getWishlistItems(limit?)` → `GET /api/wishlist`
+  - [x] `submitWishlistItem(title, desc?)` → `POST /api/wishlist`
+  - [x] `toggleWishlistVote(id)` → `POST /api/wishlist/:id/vote`
+  - [x] `deleteWishlistItem(id)` → `DELETE /api/wishlist/:id`
+  - [x] `getProductReviews(productId)` → `GET /api/products/:id/reviews`
+  - [x] `submitReview(productId, input)` → `POST /api/products/:id/reviews`
+- [x] **[NEW]** `src/application/hooks/useWishlist.ts`, `useReviews.ts`
+- [x] **[MODIFY]** `src/components/wishlist-section.tsx`
+- [x] **[MODIFY]** `src/components/review-form.tsx`
+- [x] **[MODIFY]** `src/components/review-list.tsx`
+- [x] **[MODIFY]** `src/app/wishlist/page.tsx` – `'use client'`
+- [x] **[DELETE]** `src/actions/wishlist.ts`
+- [x] **[DELETE]** `src/actions/reviews.ts`
 
 ### Phase 8 – Notifications Module (M7)
-- [ ] **[NEW]** `src/domain/notifications.ts`
-- [ ] **[NEW]** `src/adapters/api/notifications.api.ts`
-  - [ ] `getMyNotifications()` → `GET /api/notifications`
-  - [ ] `getUnreadCount()` → `GET /api/notifications/unread-count`
-  - [ ] `markNotificationRead(id)` → `POST /api/notifications/:id/read`
-  - [ ] `markAllNotificationsRead()` → `POST /api/notifications/read-all`
-  - [ ] `clearMyNotifications()` → `POST /api/notifications/clear`
-- [ ] **[NEW]** `src/application/hooks/useNotifications.ts`
-- [ ] **[MODIFY]** `src/components/header-client-parts.tsx` – unread badge
-- [ ] **[MODIFY]** `src/components/profile-content.tsx` – notifications tab
-- [ ] **[DELETE]** `src/actions/user-notifications.ts`
-- [ ] **[DELETE]** `src/actions/user-messages.ts`
+- [x] **[NEW]** `src/domain/notifications.ts`
+- [x] **[NEW]** `src/adapters/api/notifications.api.ts`
+  - [x] `getMyNotifications()` → `GET /api/notifications`
+  - [x] `getUnreadCount()` → `GET /api/notifications/unread-count`
+  - [x] `markNotificationRead(id)` → `POST /api/notifications/:id/read`
+  - [x] `markAllNotificationsRead()` → `POST /api/notifications/read-all`
+  - [x] `clearMyNotifications()` → `POST /api/notifications/clear`
+- [x] **[NEW]** `src/application/hooks/useNotifications.ts`
+- [x] **[MODIFY]** `src/components/header-client-parts.tsx` – unread badge
+- [x] **[MODIFY]** `src/components/profile-content.tsx` – notifications tab
+- [x] **[DELETE]** `src/actions/user-notifications.ts`
+- [x] **[DELETE]** `src/actions/user-messages.ts`
 
 ### Phase 9 – Admin Module (M8)
 - [ ] **[NEW]** `src/domain/admin.ts`

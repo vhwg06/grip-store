@@ -25,6 +25,7 @@ import { toast } from "sonner"
 import Image from "next/image"
 import { INFINITE_STOCK } from "@/lib/constants"
 import { getBuyPageMeta } from "@/adapters/api/checkout.api"
+import type { BuyMetaReview } from "@/domain/checkout"
 
 interface Product {
     id: string
@@ -39,14 +40,7 @@ interface Product {
     isHot?: boolean | null
 }
 
-interface Review {
-    id: number
-    username: string
-    userId?: string | null
-    rating: number
-    comment: string | null
-    createdAt: Date | string | null
-}
+type Review = BuyMetaReview
 
 interface BuyContentProps {
     product: Product

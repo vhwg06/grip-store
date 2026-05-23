@@ -1,33 +1,21 @@
-import { notFound } from "next/navigation"
-import { db } from "@/lib/db"
-import { orders } from "@/lib/db/schema"
-import { eq } from "drizzle-orm"
+"use client"
+
+import { useParams } from "next/navigation"
 import { AdminOrderDetailContent } from "@/components/admin/order-detail-content"
-import { unstable_noStore } from "next/cache"
+import { useAdminOrder } from "@/application/hooks/useAdmin"
 
-export default async function AdminOrderDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  unstable_noStore()
-  const { id } = await params
-  const order = await db.query.orders.findFirst({ where: eq(orders.orderId, id) })
-  if (!order) return notFound()
+export default function AdminOrderDetailPage() {
+  const params = useParams<{ id: string }>()
+  const id = typeof params?.id === "string" ? params.id : ""
+  const { data: order, isLoading } = useAdminOrder(id)
 
-  return (
-    <AdminOrderDetailContent
-      order={{
-        orderId: order.orderId,
-        username: order.username,
-        userId: order.userId,
-        email: order.email,
-        productId: order.productId,
-        productName: order.productName,
-        amount: order.amount,
-        status: order.status,
-        tradeNo: order.tradeNo,
-        cardKey: order.cardKey,
-        createdAt: order.createdAt,
-        paidAt: order.paidAt,
-        deliveredAt: order.deliveredAt,
-      }}
-    />
-  )
+  if (isLoading) {
+    return <div className="h-64 w-full rounded-xl bg-muted/40 animate-pulse" />
+  }
+
+  if (!order) {
+    return <div className="text-sm text-muted-foreground">Order not found.</div>
+  }
+
+  return <AdminOrderDetailContent order={order} />
 }

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react"
 import { useI18n } from "@/lib/i18n/context"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
-import { joinRegistry, dismissRegistryPrompt } from "@/actions/registry"
+import { joinRegistry, dismissRegistryPrompt } from "@/adapters/api/admin.api"
 import { toast } from "sonner"
 
 interface RegistryPromptProps {

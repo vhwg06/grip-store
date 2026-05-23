@@ -8,8 +8,8 @@ import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger, SheetClose } from "@/components/ui/sheet"
 import { Package, CreditCard, Megaphone, Star, Download, Tags, RotateCcw, Users, Settings, QrCode, Bell, Menu, MessageSquare } from "lucide-react"
 import { useI18n } from "@/lib/i18n/context"
-import { getPendingRefundRequestCount } from "@/actions/refund-requests"
-import { getUnreadUserMessageCount } from "@/actions/user-messages"
+import { getPendingRefundRequestCount } from "@/adapters/api/admin.api"
+import { useAdminUserMessageUnreadCount } from "@/application/hooks/useNotifications"
 
 interface NavLinkProps {
     href: string
@@ -53,7 +53,7 @@ interface SidebarContentProps {
 function SidebarContent({ closeOnNavigate = false, showTitle = true, username, t }: SidebarContentProps) {
     const pathname = usePathname()
     const [pendingRefunds, setPendingRefunds] = useState(0)
-    const [unreadMessages, setUnreadMessages] = useState(0)
+    const { count: unreadMessages, refresh: refreshUnreadMessages } = useAdminUserMessageUnreadCount()
 
     useEffect(() => {
         let active = true
@@ -63,10 +63,7 @@ function SidebarContent({ closeOnNavigate = false, showTitle = true, username, t
                 if (active && res?.success) {
                     setPendingRefunds(res.count || 0)
                 }
-                const msgRes = await getUnreadUserMessageCount()
-                if (active && msgRes?.success) {
-                    setUnreadMessages(msgRes.count || 0)
-                }
+                void refreshUnreadMessages()
             } catch {
                 // ignore
             }
@@ -75,7 +72,7 @@ function SidebarContent({ closeOnNavigate = false, showTitle = true, username, t
         return () => {
             active = false
         }
-    }, [pathname])
+    }, [pathname, refreshUnreadMessages])
 
     useEffect(() => {
         const handler = () => {
@@ -85,10 +82,7 @@ function SidebarContent({ closeOnNavigate = false, showTitle = true, username, t
                     if (res?.success) {
                         setPendingRefunds(res.count || 0)
                     }
-                    const msgRes = await getUnreadUserMessageCount()
-                    if (msgRes?.success) {
-                        setUnreadMessages(msgRes.count || 0)
-                    }
+                    void refreshUnreadMessages()
                 } catch {
                     // ignore
                 }
@@ -104,7 +98,7 @@ function SidebarContent({ closeOnNavigate = false, showTitle = true, username, t
                 window.removeEventListener("ldc:user-messages-updated", handler)
             }
         }
-    }, [])
+    }, [refreshUnreadMessages])
 
     const refundBadge = pendingRefunds > 0 ? (
         <span className="ml-2 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-medium text-white">

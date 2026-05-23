@@ -8,7 +8,7 @@ import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/com
 import { Label } from "@/components/ui/label"
 import { toast } from "sonner"
 import type { FormEvent } from "react"
-import { saveNotificationSettings, testBarkNotification, testEmailNotification, testNotification } from "@/actions/admin"
+import { saveNotificationSettings, testBarkNotification, testEmailNotification, testNotification } from "@/adapters/api/admin.api"
 import { Bell, CreditCard, RotateCcw, MessageSquare, ExternalLink, Mail, Smartphone } from "lucide-react"
 
 interface NotificationsContentProps {

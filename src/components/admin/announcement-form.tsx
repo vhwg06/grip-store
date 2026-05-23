@@ -7,7 +7,8 @@ import { Textarea } from "@/components/ui/textarea"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { AnnouncementConfig, saveAnnouncement } from "@/actions/settings"
+import { saveAnnouncement } from "@/adapters/api/admin.api"
+import type { AnnouncementConfig } from "@/domain/admin"
 
 interface AnnouncementFormProps {
     initialConfig: AnnouncementConfig | null

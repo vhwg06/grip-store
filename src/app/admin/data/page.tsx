@@ -1,14 +1,14 @@
-import { getSetting } from "@/lib/db/queries"
-import { AdminDataContent } from "@/components/admin/export-content"
+"use client"
 
-export default async function AdminDataPage() {
-  let shopName: string | null = null
-  try {
-    shopName = await getSetting("shop_name")
-  } catch {
-    shopName = null
+import { AdminDataContent } from "@/components/admin/export-content"
+import { useAdminData } from "@/application/hooks/useAdmin"
+
+export default function AdminDataPage() {
+  const { data, isLoading } = useAdminData()
+
+  if (isLoading) {
+    return <div className="h-64 w-full rounded-xl bg-muted/40 animate-pulse" />
   }
 
-  return <AdminDataContent shopName={shopName} />
+  return <AdminDataContent shopName={data?.shopName ?? null} />
 }
-
