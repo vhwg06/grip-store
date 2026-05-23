@@ -29,9 +29,9 @@ export function FloatingButtons() {
         </a>
       )}
       
-      {config?.contactPhone && (
+      {config?.contactHotline && (
         <a 
-          href={`tel:${config.contactPhone}`}
+          href={`tel:${config.contactHotline}`}
           className="w-12 h-12 bg-green-500 text-white rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform"
         >
           <Phone className="w-6 h-6" />

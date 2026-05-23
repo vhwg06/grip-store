@@ -128,12 +128,12 @@
 
 **Independent Test**: Navigate to product detail page → browse image gallery → switch tabs → fill and submit consultation form → verify success confirmation.
 
-- [ ] T056 [P] [US2] Create `src/components/product/product-gallery.tsx` — main image display with thumbnail strip, click to select, zoom-on-hover, Next.js Image optimization
-- [ ] T057 [P] [US2] Create `src/components/product/product-tabs.tsx` — Radix Tabs for "Chi tiết sản phẩm", "Hướng dẫn sử dụng", "Đánh giá" (review count badge) content areas
-- [ ] T058 [P] [US2] Create `src/components/product/consultation-form.tsx` — form with name, phone, email, message fields; submits via `useLeads()` hook; success toast notification
-- [ ] T059 [P] [US2] Create `src/components/layout/breadcrumbs.tsx` — breadcrumb wrapper component (Home > Category > Product Name)
-- [ ] T060 [US2] Create `src/app/products/[id]/page.tsx` — product detail page composing: breadcrumbs, gallery, product info (name, brand, SKU, price, discount badge, savings, bundled gifts), tabs, consultation form, related products
-- [ ] T061 [US2] Update `src/application/hooks/useProduct.ts` — extend to fetch full product detail including gallery images, usage guide, reviews
+- [x] T056 [P] [US2] Create `src/components/product/product-gallery.tsx` — main image display with thumbnail strip, click to select, zoom-on-hover, Next.js Image optimization
+- [x] T057 [P] [US2] Create `src/components/product/product-tabs.tsx` — Radix Tabs for "Chi tiết sản phẩm", "Hướng dẫn sử dụng", "Đánh giá" (review count badge) content areas
+- [x] T058 [P] [US2] Create `src/components/product/consultation-form.tsx` — form with name, phone, email, message fields; submits via `useLeads()` hook; success toast notification
+- [x] T059 [P] [US2] Create `src/components/layout/breadcrumbs.tsx` — breadcrumb wrapper component (Home > Category > Product Name)
+- [x] T060 [US2] Create `src/app/products/[id]/page.tsx` — product detail page composing: breadcrumbs, gallery, product info (name, brand, SKU, price, discount badge, savings, bundled gifts), tabs, consultation form, related products
+- [x] T061 [US2] Update `src/application/hooks/useProduct.ts` — extend to fetch full product detail including gallery images, usage guide, reviews
 
 **Checkpoint**: Full product detail page operational with gallery, tabs, and consultation form.
 
@@ -145,13 +145,13 @@
 
 **Independent Test**: Add products from homepage + listing + detail page → view cart → change quantities/remove items → submit order → verify confirmation.
 
-- [ ] T062 [P] [US3] Create `src/components/cart/add-to-cart-button.tsx` — button component with quantity selector, adds item to CartContext, shows toast confirmation
-- [ ] T063 [P] [US3] Create `src/components/cart/cart-item.tsx` — cart item row with image, name, price, quantity selector (±), remove button, line total
-- [ ] T064 [P] [US3] Create `src/components/cart/cart-summary.tsx` — cart totals display (subtotal, item count), checkout/submit order button (disabled when cart empty)
-- [ ] T065 [US3] Create `src/components/cart/cart-drawer.tsx` — Radix Sheet slide-out panel triggered from navbar cart icon, composing cart-item list + cart-summary
-- [ ] T066 [US3] Create `src/app/cart/page.tsx` — full cart page with item list, quantity editing, remove, totals, and "Gửi đơn hàng" (submit order) CTA
-- [ ] T067 [US3] Integrate add-to-cart button into `src/components/product/product-card.tsx` and `src/app/products/[id]/page.tsx`
-- [ ] T068 [US3] Integrate cart icon with item count badge into `src/components/layout/navbar.tsx`
+- [x] T062 [P] [US3] Create `src/components/cart/add-to-cart-button.tsx` — button component with quantity selector, adds item to CartContext, shows toast confirmation
+- [x] T063 [P] [US3] Create `src/components/cart/cart-item.tsx` — cart item row with image, name, price, quantity selector (±), remove button, line total
+- [x] T064 [P] [US3] Create `src/components/cart/cart-summary.tsx` — cart totals display (subtotal, item count), checkout/submit order button (disabled when cart empty)
+- [x] T065 [US3] Create `src/components/cart/cart-drawer.tsx` — Radix Sheet slide-out panel triggered from navbar cart icon, composing cart-item list + cart-summary
+- [x] T066 [US3] Create `src/app/cart/page.tsx` — full cart page with item list, quantity editing, remove, totals, and "Gửi đơn hàng" (submit order) CTA
+- [x] T067 [US3] Integrate add-to-cart button into `src/components/product/product-card.tsx` and `src/app/products/[id]/page.tsx`
+- [x] T068 [US3] Integrate cart icon with item count badge into `src/components/layout/navbar.tsx`
 
 **Checkpoint**: Full cart flow operational. Add-to-cart from any product surface, cart management, order submission.
 

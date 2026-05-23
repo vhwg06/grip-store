@@ -12,8 +12,8 @@ export function CTABanner() {
           <p className="text-primary-foreground/90">Đội ngũ chuyên gia của GRIP luôn sẵn sàng hỗ trợ bạn.</p>
         </div>
         <div className="flex gap-4">
-          <a href={`tel:${config?.contactPhone}`} className="bg-white text-primary px-8 py-3 rounded-full font-bold hover:bg-neutral-100 transition-colors shadow-sm">
-            Gọi ngay: {config?.contactPhone || "1900 xxxx"}
+          <a href={`tel:${config?.contactHotline}`} className="bg-white text-primary px-8 py-3 rounded-full font-bold hover:bg-neutral-100 transition-colors shadow-sm">
+            Gọi ngay: {config?.contactHotline || "1900 xxxx"}
           </a>
           {config?.socialLinks?.zalo && (
             <a href={config.socialLinks.zalo} target="_blank" rel="noreferrer" className="bg-transparent border-2 border-white px-8 py-3 rounded-full font-bold hover:bg-white hover:text-primary transition-colors">

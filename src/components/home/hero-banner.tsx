@@ -21,15 +21,15 @@ export function HeroBanner() {
             <CarouselItem key={slide.id}>
               <div className="relative w-full h-[400px] md:h-[668px]">
                 {slide.imageUrl ? (
-                  <Image src={slide.imageUrl} alt={slide.title} fill className="object-cover" priority />
+                  <Image src={slide.imageUrl} alt={slide.title || "Banner"} fill className="object-cover" priority />
                 ) : (
                   <div className="w-full h-full bg-neutral-800" />
                 )}
                 <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center text-center px-4">
                   <h2 className="text-white text-3xl md:text-5xl font-bold mb-4">{slide.title}</h2>
                   {slide.subtitle && <p className="text-white/90 text-lg md:text-xl mb-8 max-w-2xl">{slide.subtitle}</p>}
-                  {slide.link && slide.ctaText && (
-                    <Link href={slide.link} className="bg-primary text-primary-foreground px-8 py-3 rounded-full font-semibold hover:bg-primary/90 transition-colors">
+                  {slide.ctaUrl && slide.ctaText && (
+                    <Link href={slide.ctaUrl} className="bg-primary text-primary-foreground px-8 py-3 rounded-full font-semibold hover:bg-primary/90 transition-colors">
                       {slide.ctaText}
                     </Link>
                   )}

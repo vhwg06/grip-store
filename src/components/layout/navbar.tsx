@@ -1,12 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { Search, ShoppingCart, User } from "lucide-react";
-import { useCart } from "@/application/hooks/useCart";
+import { Search, User } from "lucide-react";
+import { CartDrawer } from "@/components/cart/cart-drawer";
 import { Input } from "@/components/ui/input";
 
 export function Navbar() {
-  const { cart } = useCart();
 
   return (
     <nav className="border-b bg-background sticky top-0 z-40">
@@ -35,14 +34,7 @@ export function Navbar() {
             />
           </div>
           
-          <Link href="/cart" className="relative p-2 hover:bg-muted rounded-full transition-colors">
-            <ShoppingCart className="w-5 h-5" />
-            {cart.totalQuantity > 0 && (
-              <span className="absolute top-0 right-0 w-4 h-4 bg-primary text-primary-foreground text-[10px] font-bold flex items-center justify-center rounded-full">
-                {cart.totalQuantity}
-              </span>
-            )}
-          </Link>
+          <CartDrawer />
           
           <button className="p-2 hover:bg-muted rounded-full transition-colors">
             <User className="w-5 h-5" />

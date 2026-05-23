@@ -14,8 +14,8 @@ export function MegaFooter() {
           <div>
             <h3 className="text-white font-bold text-xl mb-4">GRIP</h3>
             <p className="mb-4 text-neutral-400 font-semibold">TỔNG KHO TAY NẮM VIỆT NAM</p>
-            <p className="mb-2">{config?.footer?.address || "Hà Nội, Việt Nam"}</p>
-            <p className="mb-2">Hotline: {config?.contactPhone || "1900 xxxx"}</p>
+            <p className="mb-2">{config?.contactAddress || "Hà Nội, Việt Nam"}</p>
+            <p className="mb-2">Hotline: {config?.contactHotline || "1900 xxxx"}</p>
             <p>Email: {config?.contactEmail || "contact@grip.vn"}</p>
           </div>
 

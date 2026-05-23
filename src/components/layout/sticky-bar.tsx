@@ -11,11 +11,11 @@ export function StickyBar() {
       <div className="container mx-auto flex justify-between items-center max-w-[1190px]">
         <div className="flex items-center gap-2">
           <MapPin className="w-3.5 h-3.5" />
-          <span>{config?.footer?.address || "Hà Nội, Việt Nam"}</span>
+          <span>{config?.contactAddress || "Hà Nội, Việt Nam"}</span>
         </div>
         <div className="flex items-center gap-2">
           <Phone className="w-3.5 h-3.5" />
-          <span>Hotline: {config?.contactPhone || "1900 xxxx"}</span>
+          <span>Hotline: {config?.contactHotline || "1900 xxxx"}</span>
         </div>
       </div>
     </div>
