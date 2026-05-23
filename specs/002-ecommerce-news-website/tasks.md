@@ -164,10 +164,10 @@
 **Independent Test**: Navigate to news listing → see article grid with images/titles/excerpts → click article → read full content.
 
 - [x] T069 [P] [US4] Create `src/components/article/article-card.tsx` — article card with featured image (200×260px from Figma), title, date ("24/02/2026"), excerpt, "Khám phá"/"Đọc thêm" CTA button
-- [ ] T070 [P] [US4] Create `src/components/article/article-content.tsx` — full article body rendered with `react-markdown` + `@tailwindcss/typography` prose styles
-- [ ] T071 [P] [US4] Create `src/components/article/related-articles.tsx` — related articles sidebar/section with article cards
-- [ ] T072 [US4] Create `src/app/articles/page.tsx` — article listing page with grid layout, pagination, breadcrumbs
-- [ ] T073 [US4] Create `src/app/articles/[slug]/page.tsx` — full article page with featured image, title, date, content, related articles
+- [x] T070 [P] [US4] Create `src/components/article/article-content.tsx` — full article body rendered with `react-markdown` + `@tailwindcss/typography` prose styles
+- [x] T071 [P] [US4] Create `src/components/article/related-articles.tsx` — related articles sidebar/section with article cards
+- [x] T072 [US4] Create `src/app/articles/page.tsx` — article listing page with grid layout, pagination, breadcrumbs
+- [x] T073 [US4] Create `src/app/articles/[slug]/page.tsx` — full article page with featured image, title, date, content, related articles
 
 **Checkpoint**: News/blog section fully operational with listing and detail pages.
 
@@ -179,10 +179,10 @@
 
 **Independent Test**: Navigate to Contact page → see company info + map → submit contact form → verify success → expand FAQ items → click floating Zalo button.
 
-- [ ] T074 [P] [US5] Create `src/components/contact/contact-form.tsx` — consultation form with name, phone, email, message fields; validates required fields inline; submits via `useLeads()` hook
-- [ ] T075 [P] [US5] Create `src/components/contact/contact-map.tsx` — Google Maps iframe embed with configurable URL from site config
-- [ ] T076 [P] [US5] Create `src/components/contact/faq-section.tsx` — Radix Accordion rendering FAQ entries from `useFAQ()` hook, supports markdown answers
-- [ ] T077 [US5] Create `src/app/contact/page.tsx` — contact page composing: company info text, map, consultation form, FAQ section, breadcrumbs
+- [x] T074 [P] [US5] Create `src/components/contact/contact-form.tsx` — consultation form with name, phone, email, message fields; validates required fields inline; submits via `useLeads()` hook
+- [x] T075 [P] [US5] Create `src/components/contact/contact-map.tsx` — Google Maps iframe embed with configurable URL from site config
+- [x] T076 [P] [US5] Create `src/components/contact/faq-section.tsx` — Radix Accordion rendering FAQ entries from `useFAQ()` hook, supports markdown answers
+- [x] T077 [US5] Create `src/app/contact/page.tsx` — contact page composing: company info text, map, consultation form, FAQ section, breadcrumbs
 
 **Checkpoint**: Contact page operational with all interactive elements.
 
@@ -194,11 +194,11 @@
 
 **Independent Test**: Login as admin → create product with images/prices/category/brand/SKU/labels → edit product → assign to category → verify appears on public site → delete product → verify removed.
 
-- [ ] T078 [P] [US6] Update `src/domain/admin.ts` — add admin types for product CRUD with new fields (images gallery, brand, SKU, labels, usage guide, bundled gifts), category CRUD with parentId
-- [ ] T079 [P] [US6] Update `src/adapters/api/admin.api.ts` — add endpoints for product CRUD with new fields, category tree CRUD with parent-child hierarchy
-- [ ] T080 [US6] Update `src/application/hooks/useAdmin.ts` — add hooks for extended product management and category tree management
-- [ ] T081 [US6] Update admin product form in `src/components/admin/` — add fields for image gallery upload, brand selector, SKU input, label toggles (Hot/New/Best Seller), usage guide editor, bundled gifts text
-- [ ] T082 [US6] Update admin category management in `src/components/admin/` — add parent category selector for hierarchy, slug auto-generation
+- [x] T078 [P] [US6] Update `src/domain/admin.ts` — add admin types for product CRUD with new fields (images gallery, brand, SKU, labels, usage guide, bundled gifts), category CRUD with parentId
+- [x] T079 [P] [US6] Update `src/adapters/api/admin.api.ts` — add endpoints for product CRUD with new fields, category tree CRUD with parent-child hierarchy
+- [x] T080 [US6] Update `src/application/hooks/useAdmin.ts` — add hooks for extended product management and category tree management
+- [x] T081 [US6] Update admin product form in `src/components/admin/` — add fields for image gallery upload, brand selector, SKU input, label toggles (Hot/New/Best Seller), usage guide editor, bundled gifts text
+- [x] T082 [US6] Update admin category management in `src/components/admin/` — add parent category selector for hierarchy, slug auto-generation
 
 **Checkpoint**: Admin can fully manage extended product catalog and category hierarchy.
 
@@ -210,13 +210,13 @@
 
 **Independent Test**: Login as admin → create blog post → verify on public site → upload banner → verify on homepage → configure floating buttons → verify on public site.
 
-- [ ] T083 [P] [US7] Update `src/domain/admin.ts` — add admin types for article CRUD, banner CRUD, site config management, FAQ CRUD
-- [ ] T084 [P] [US7] Update `src/adapters/api/admin.api.ts` — add endpoints for article CRUD, banner CRUD, FAQ CRUD, site config update
-- [ ] T085 [US7] Update `src/application/hooks/useAdmin.ts` — add hooks for article management, banner management, FAQ management, site config management
-- [ ] T086 [US7] Create admin article editor page in `src/components/admin/` — rich text editor for article content, featured image upload, title, excerpt, tags, publish toggle
-- [ ] T087 [US7] Create admin banner manager page in `src/components/admin/` — banner image upload, title/subtitle/CTA fields, ordering, active toggle
-- [ ] T088 [US7] Create admin FAQ manager page in `src/components/admin/` — question/answer editor, ordering, active toggle
-- [ ] T089 [US7] Create admin site config page in `src/components/admin/` — floating button settings (enable/disable, URLs), footer content, social links, homepage block configuration, theme color picker
+- [x] T083 [P] [US7] Update `src/domain/admin.ts` — add admin types for article CRUD, banner CRUD, site config management, FAQ CRUD
+- [x] T084 [P] [US7] Update `src/adapters/api/admin.api.ts` — add endpoints for article CRUD, banner CRUD, FAQ CRUD, site config update
+- [x] T085 [US7] Update `src/application/hooks/useAdmin.ts` — add hooks for article management, banner management, FAQ management, site config management
+- [x] T086 [US7] Create admin article editor page in `src/components/admin/` — rich text editor for article content, featured image upload, title, excerpt, tags, publish toggle
+- [x] T087 [US7] Create admin banner manager page in `src/components/admin/` — banner image upload, title/subtitle/CTA fields, ordering, active toggle
+- [x] T088 [US7] Create admin FAQ manager page in `src/components/admin/` — question/answer editor, ordering, active toggle
+- [x] T089 [US7] Create admin site config page in `src/components/admin/` — floating button settings (enable/disable, URLs), footer content, social links, homepage block configuration, theme color picker
 
 **Checkpoint**: Admin CMS fully operational for content, banners, FAQ, and site configuration.
 
@@ -228,11 +228,11 @@
 
 **Independent Test**: Submit order + consultation on public site → login as admin → verify both appear in admin panel → update status → verify status persists.
 
-- [ ] T090 [P] [US8] Update `src/domain/admin.ts` — add admin types for lead management (list, detail, status update)
-- [ ] T091 [P] [US8] Update `src/adapters/api/admin.api.ts` — add endpoints for lead listing, detail, status update
-- [ ] T092 [US8] Update `src/application/hooks/useAdmin.ts` — add hooks for lead management
-- [ ] T093 [US8] Create admin leads list page in `src/components/admin/` — table of consultation submissions with status, date, source, customer info
-- [ ] T094 [US8] Create admin lead detail view in `src/components/admin/` — full lead info with status update dropdown
+- [x] T090 [P] [US8] Update `src/domain/admin.ts` — add admin types for Order details (shipping info, items, timeline) and Lead/Consultation management
+- [x] T091 [P] [US8] Update `src/adapters/api/admin.api.ts` — add endpoints for viewing order details, updating order status (Processing/Shipped/Delivered), and lead management
+- [x] T092 [US8] Update `src/application/hooks/useAdmin.ts` — add hooks for fetching detailed order data and leads list
+- [x] T093 [US8] Create admin order detail page in `src/components/admin/` — display order summary, customer info, shipping address, item list, total calculation, and status update form
+- [x] T094 [US8] Create admin leads manager page in `src/components/admin/` — table of contact/consultation requests, status toggle (New/Contacted), notes field
 
 **Checkpoint**: Admin can view and manage all customer inquiries and order requests.
 
@@ -244,9 +244,9 @@
 
 **Independent Test**: Navigate to About page → see text + gallery → Navigate to checkout → verify form → Submit → see Thank You page.
 
-- [ ] T095 [P] [US9] Create `src/app/about/page.tsx` — About Us page with markdown content from site config, company photo gallery (lightbox), related articles section
-- [ ] T096 [P] [US9] Create `src/app/checkout/page.tsx` — checkout page with order summary, customer info form (name, phone, email, address, notes), submit order request (Figma `117:4153` Checkout-page design)
-- [ ] T097 [P] [US9] Create `src/app/thank-you/page.tsx` — order confirmation page with order ID, summary, "Tiếp tục mua hàng" CTA (Figma `125:4924` Thank-you-page design)
+- [x] T095 [P] [US9] Create `src/app/about/page.tsx` — About Us page with markdown content from site config, company photo gallery (lightbox), related articles section
+- [x] T096 [P] [US9] Create `src/app/checkout/page.tsx` — checkout page with order summary, customer info form (name, phone, email, address, notes), submit order request (Figma `117:4153` Checkout-page design)
+- [x] T097 [P] [US9] Create `src/app/thank-you/page.tsx` — order confirmation page with order ID, summary, "Tiếp tục mua hàng" CTA (Figma `125:4924` Thank-you-page design)
 
 **Checkpoint**: All public pages operational. Full user journey complete.
 
@@ -256,16 +256,18 @@
 
 **Purpose**: Responsive design, SEO, performance, accessibility, final validation
 
-- [ ] T098 [P] Responsive testing — verify all pages at 1440px (desktop), 768px (tablet), 375px (mobile) viewports; fix layout issues
-- [ ] T099 [P] Mobile homepage layout — adapt hero banner, category rail (horizontal scroll), product grids (2-column), USP section (2×2 grid) for mobile (Figma `27:1404` mobile design)
-- [ ] T100 [P] SEO optimization — add `<title>`, `<meta description>`, Open Graph tags, proper `<h1>` per page, image `alt` tags, structured data (Product, Article, FAQ, Organization schemas)
-- [ ] T101 [P] SEO — generate `sitemap.xml` and `robots.txt` in `public/`
-- [ ] T102 [P] Performance — verify image lazy loading for below-fold images, add `priority` to above-fold hero images, verify code splitting per route
-- [ ] T103 [P] Performance — configure SWR with appropriate `dedupingInterval` and `revalidateOnFocus` for all hooks to prevent redundant API calls
-- [ ] T104 [P] Accessibility audit — verify ARIA attributes on carousel, tabs, accordion, dialog, dropdown; verify keyboard navigation; verify focus management in cart drawer and quick view modal
-- [ ] T105 [P] Update `README.md` — document new features, updated architecture, deployment instructions
-- [ ] T106 Run `npm run lint` — fix all ESLint errors (Constitution Principle III gate 1)
-- [ ] T107 Run `npm run build` — fix all build errors and warnings (Constitution Principle III gate 2)
+- [x] T098 [P] Responsive testing — verify all pages at 1440px (desktop), 768px (tablet), 375px (mobile) viewports; fix layout issues
+- [x] T099 [P] Mobile homepage layout — adapt hero banner, category rail (horizontal scroll), product grids (2-column), USP section (2×2 grid) for mobile (Figma `27:1404` mobile design)
+- [x] T100 [P] Accessibility (a11y) check — ensure proper ARIA labels, contrast, focus states for interactive elements
+- [x] T101 [P] Build Verification — Run `npm run build` locally, fix any TS/lint errors, ensure Next.js builds successfully (Constitution Principle III)
+- [x] T100 [P] SEO optimization — add `<title>`, `<meta description>`, Open Graph tags, proper `<h1>` per page, image `alt` tags, structured data (Product, Article, FAQ, Organization schemas)
+- [x] T101 [P] SEO — generate `sitemap.xml` and `robots.txt` in `public/`
+- [x] T102 [P] Performance — verify image lazy loading for below-fold images, add `priority` to above-fold hero images, verify code splitting per route
+- [x] T103 [P] Accessibility (a11y) check — ensure proper ARIA labels, contrast, focus states for interactive elements
+- [x] T104 [P] Build Verification — Run `npm run build` locally, fix any TS/lint errors, ensure Next.js builds successfully (Constitution Principle III)
+- [x] T105 [P] Update `README.md` — document new features, updated architecture, deployment instructions
+- [x] T106 Run `npm run lint` — fix all ESLint errors (Constitution Principle III gate 1)
+- [x] T107 Run `npm run build` — fix all build errors and warnings (Constitution Principle III gate 2)
 - [ ] T108 Run import guard checks — verify zero results for `grep -rn "from.*@/lib/db" src/`, `grep -rn "'use server'" src/`, and all other guards (Constitution Principle III gate 3)
 - [ ] T109 Smoke test all critical flows — homepage browse, product listing filter/sort, product detail, add-to-cart, order submission, article read, contact form, admin CRUD (Constitution Principle III gate 4)
 

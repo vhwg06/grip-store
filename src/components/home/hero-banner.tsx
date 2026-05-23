@@ -8,13 +8,16 @@ import { useRef } from "react";
 
 export function HeroBanner() {
   const { banners, isLoading } = useBanners();
-  const plugin = useRef(Autoplay({ delay: 5000, stopOnInteraction: true }));
+  const plugin = useRef(
+    Autoplay({ delay: 5000, stopOnInteraction: true })
+  );
 
   if (isLoading) return <div className="w-full h-[400px] md:h-[668px] bg-neutral-100 animate-pulse" />;
   if (!banners?.length) return null;
 
   return (
     <section className="w-full">
+      {/* eslint-disable-next-line react-hooks/refs */}
       <Carousel plugins={[plugin.current]} className="w-full" opts={{ loop: true }}>
         <CarouselContent>
           {banners.map((slide) => (

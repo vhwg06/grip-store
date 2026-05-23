@@ -48,7 +48,6 @@ export default function RootLayout({
       </head>
       <body className={cn("min-h-screen bg-background font-sans antialiased flex flex-col", inter.variable)}>
         <Providers themeColor={null} initialLocale="en">
-          <StickyBar />
           <Navbar />
           <div className="flex-1 pb-16 md:pb-0">{children}</div>
           <MegaFooter />

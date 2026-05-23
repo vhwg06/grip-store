@@ -10,6 +10,14 @@ import type {
   AdminProductsPayload,
   AdminTargetType,
   AnnouncementConfig,
+  AdminProduct,
+  AdminProductForm,
+  AdminCategory,
+  AdminArticle,
+  AdminBanner,
+  AdminFAQ,
+  AdminLead,
+  AdminOrderDetails
 } from "@/domain/admin"
 
 function qs(params: Record<string, string | number | boolean | null | undefined>) {
@@ -75,18 +83,18 @@ export async function getAdminProducts(): Promise<AdminProductsPayload> {
 }
 
 export async function getAdminProduct(id: string) {
-  return apiFetch<any>(`/api/admin/products/${encodeURIComponent(id)}`)
+  return apiFetch<AdminProduct>(`/api/admin/products/${encodeURIComponent(id)}`)
 }
 
 export async function getAdminProductForm(id?: string) {
   const path = id
     ? `/api/admin/products/${encodeURIComponent(id)}/form`
     : "/api/admin/products/new"
-  return apiFetch<{ product?: any; categories: any[] }>(path)
+  return apiFetch<{ product?: AdminProductForm; categories: AdminCategory[] }>(path)
 }
 
 export async function getAdminCategories() {
-  const payload = await apiFetch<{ categories?: any[] } | any[]>("/api/admin/categories")
+  const payload = await apiFetch<{ categories?: AdminCategory[] } | AdminCategory[]>("/api/admin/categories")
   return Array.isArray(payload) ? payload : payload.categories ?? []
 }
 
@@ -355,4 +363,73 @@ export async function deleteCategory(id: number) {
 
 export async function deleteReview(reviewId: number) {
   return deleteJson(`/api/admin/reviews/${encodeURIComponent(String(reviewId))}`)
+}
+
+export async function getAdminArticles() {
+  const payload = await apiFetch<{ articles?: AdminArticle[] } | AdminArticle[]>("/api/admin/articles")
+  return Array.isArray(payload) ? payload : payload.articles ?? []
+}
+
+export async function getAdminArticle(id: string) {
+  return apiFetch<AdminArticle>(`/api/admin/articles/${encodeURIComponent(id)}`)
+}
+
+export async function saveArticle(formData: FormData) {
+  return apiFetch<unknown>("/api/admin/articles", {
+    method: "POST",
+    body: formData,
+  }).then(normalizeActionResult)
+}
+
+export async function deleteArticle(id: string) {
+  return deleteJson(`/api/admin/articles/${encodeURIComponent(id)}`)
+}
+
+export async function getAdminBanners() {
+  const payload = await apiFetch<{ banners?: AdminBanner[] } | AdminBanner[]>("/api/admin/banners")
+  return Array.isArray(payload) ? payload : payload.banners ?? []
+}
+
+export async function saveBanner(formData: FormData) {
+  return apiFetch<unknown>("/api/admin/banners", {
+    method: "POST",
+    body: formData,
+  }).then(normalizeActionResult)
+}
+
+export async function deleteBanner(id: number) {
+  return deleteJson(`/api/admin/banners/${encodeURIComponent(String(id))}`)
+}
+
+export async function getAdminFAQs() {
+  const payload = await apiFetch<{ faqs?: AdminFAQ[] } | AdminFAQ[]>("/api/admin/faqs")
+  return Array.isArray(payload) ? payload : payload.faqs ?? []
+}
+
+export async function saveFAQ(formData: FormData) {
+  return apiFetch<unknown>("/api/admin/faqs", {
+    method: "POST",
+    body: formData,
+  }).then(normalizeActionResult)
+}
+
+export async function deleteFAQ(id: number) {
+  return deleteJson(`/api/admin/faqs/${encodeURIComponent(String(id))}`)
+}
+
+export async function getAdminLeads() {
+  const payload = await apiFetch<{ leads?: AdminLead[] } | AdminLead[]>("/api/admin/leads")
+  return Array.isArray(payload) ? payload : payload.leads ?? []
+}
+
+export async function updateAdminLead(id: string, updates: Partial<AdminLead>) {
+  return patchJson(`/api/admin/leads/${encodeURIComponent(id)}`, updates)
+}
+
+export async function getAdminOrderDetails(id: string) {
+  return apiFetch<AdminOrderDetails>(`/api/admin/orders/${encodeURIComponent(id)}/details`)
+}
+
+export async function updateAdminOrderStatus(id: string, status: string, note?: string) {
+  return patchJson(`/api/admin/orders/${encodeURIComponent(id)}/status`, { status, note })
 }

@@ -150,58 +150,30 @@ export default function ProductForm({ product, categories = [] }: { product?: an
                         <p className="text-xs text-muted-foreground">{t('admin.productForm.visibilityHint')}</p>
                     </div>
 
-                    <div className="flex items-center space-x-2">
-                        <Checkbox
-                            id="isShared"
-                            name="isShared"
-                            defaultChecked={currentProduct?.isShared ?? false}
-                            className="h-4 w-4 accent-primary"
-                        />
-                        <div className="flex flex-col">
-                            <Label htmlFor="isShared" className="cursor-pointer font-medium">{t('admin.productForm.isSharedLabel')}</Label>
-                            <span className="text-xs text-muted-foreground">{t('admin.productForm.isSharedHint')}</span>
-                        </div>
-                    </div>
-
-                    <div className="flex items-center space-x-2">
-                        <Checkbox
-                            id="isHot"
-                            name="isHot"
-                            defaultChecked={!!currentProduct?.isHot}
-                            className="h-4 w-4 accent-primary"
-                        />
-                        <Label htmlFor="isHot" className="cursor-pointer">{t('admin.productForm.isHotLabel')}</Label>
-                    </div>
-
-                    <div className="space-y-2 p-3 border rounded-md bg-muted/30">
-                        <div className="flex items-center gap-2">
-                            <input
-                                id="showWarning"
-                                type="checkbox"
-                                checked={showWarning}
-                                onChange={(e) => setShowWarning(e.target.checked)}
-                                className="h-4 w-4 accent-primary"
-                            />
-                            <Label htmlFor="showWarning" className="cursor-pointer">{t('admin.productForm.purchaseWarningLabel')}</Label>
-                        </div>
-                        {showWarning && (
-                            <div className="grid gap-2">
-                                <Label htmlFor="purchaseWarning">{t('admin.productForm.purchaseWarningLabel')}</Label>
-                                <Textarea
-                                    id="purchaseWarning"
-                                    name="purchaseWarning"
-                                    defaultValue={currentProduct?.purchaseWarning || ''}
-                                    placeholder={t('admin.productForm.purchaseWarningPlaceholder')}
-                                    className="min-h-[60px]"
-                                />
-                                <p className="text-xs text-muted-foreground">{t('admin.productForm.purchaseWarningHint')}</p>
-                            </div>
-                        )}
-                    </div>
-
                     <div className="grid gap-2">
                         <Label htmlFor="image">{t('admin.productForm.imageLabel')}</Label>
                         <Input id="image" name="image" defaultValue={currentProduct?.image} placeholder={t('admin.productForm.imagePlaceholder')} />
+                    </div>
+
+                    <div className="grid gap-2">
+                        <Label htmlFor="images">Thư viện ảnh (Mỗi link một dòng)</Label>
+                        <Textarea
+                            id="images"
+                            name="images"
+                            defaultValue={currentProduct?.images?.join('\n')}
+                            placeholder="https://...&#10;https://..."
+                            className="min-h-[80px]"
+                        />
+                    </div>
+
+                    <div className="grid gap-2">
+                        <Label htmlFor="sku">Mã sản phẩm (SKU)</Label>
+                        <Input id="sku" name="sku" defaultValue={currentProduct?.sku} placeholder="VD: GRIP-123" />
+                    </div>
+
+                    <div className="grid gap-2">
+                        <Label htmlFor="brandId">Thương hiệu (ID)</Label>
+                        <Input id="brandId" name="brandId" type="number" defaultValue={currentProduct?.brandId} placeholder="ID của thương hiệu" />
                     </div>
 
                     <div className="grid gap-2">
@@ -213,6 +185,67 @@ export default function ProductForm({ product, categories = [] }: { product?: an
                             placeholder={t('admin.productForm.descPlaceholder')}
                             className="min-h-[80px]"
                         />
+                    </div>
+
+                    <div className="grid gap-2">
+                        <Label htmlFor="usageGuide">Hướng dẫn sử dụng</Label>
+                        <Textarea
+                            id="usageGuide"
+                            name="usageGuide"
+                            defaultValue={currentProduct?.usageGuide}
+                            placeholder="Nhập hướng dẫn sử dụng (Hỗ trợ Markdown)..."
+                            className="min-h-[80px]"
+                        />
+                    </div>
+
+                    <div className="grid gap-2">
+                        <Label htmlFor="bundledGifts">Quà tặng kèm</Label>
+                        <Textarea
+                            id="bundledGifts"
+                            name="bundledGifts"
+                            defaultValue={currentProduct?.bundledGifts}
+                            placeholder="Nhập thông tin quà tặng kèm..."
+                            className="min-h-[60px]"
+                        />
+                    </div>
+
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
+                        <div className="flex items-center space-x-2">
+                            <Checkbox
+                                id="isHot"
+                                name="isHot"
+                                defaultChecked={!!currentProduct?.isHot}
+                                className="h-4 w-4 accent-primary"
+                            />
+                            <Label htmlFor="isHot" className="cursor-pointer">{t('admin.productForm.isHotLabel')}</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                            <Checkbox
+                                id="isNew"
+                                name="isNew"
+                                defaultChecked={!!currentProduct?.isNew}
+                                className="h-4 w-4 accent-primary"
+                            />
+                            <Label htmlFor="isNew" className="cursor-pointer">Mới (New)</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                            <Checkbox
+                                id="isBestSeller"
+                                name="isBestSeller"
+                                defaultChecked={!!currentProduct?.isBestSeller}
+                                className="h-4 w-4 accent-primary"
+                            />
+                            <Label htmlFor="isBestSeller" className="cursor-pointer">Bán chạy</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                            <Checkbox
+                                id="isShared"
+                                name="isShared"
+                                defaultChecked={currentProduct?.isShared ?? false}
+                                className="h-4 w-4 accent-primary"
+                            />
+                            <Label htmlFor="isShared" className="cursor-pointer">{t('admin.productForm.isSharedLabel')}</Label>
+                        </div>
                     </div>
 
                     <div className="pt-4 flex justify-end gap-2">

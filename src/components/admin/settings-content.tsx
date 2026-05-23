@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { TrendingUp, ShoppingCart, CreditCard, Package, Users } from "lucide-react"
-import { saveShopName, saveShopDescription, saveShopLogo, saveShopFooter, saveThemeColor, saveLowStockThreshold, saveCheckinReward, saveCheckinEnabled, saveWishlistEnabled, saveNoIndex, saveRefundReclaimCards, saveRegistryHideNav, joinRegistry, leaveRegistry } from "@/adapters/api/admin.api"
+import { saveShopName, saveShopDescription, saveShopLogo, saveShopFooter, saveThemeColor, saveLowStockThreshold, saveCheckinReward, saveCheckinEnabled, saveWishlistEnabled, saveNoIndex, saveRefundReclaimCards, saveRegistryHideNav, joinRegistry, leaveRegistry, saveSetting } from "@/adapters/api/admin.api"
 import { checkForUpdatesClient, type ClientUpdateCheckResult } from "@/lib/update-check-client"
 import { toast } from "sonner"
 
@@ -38,6 +38,10 @@ interface AdminSettingsContentProps {
     registryOptIn: boolean
     registryEnabled: boolean
     currentVersion: string
+    floatingButtonEnabled: boolean
+    floatingButtonUrl: string
+    socialLinks: string
+    homepageBlocks: string
 }
 
 type UpdateInfo = ClientUpdateCheckResult
@@ -58,7 +62,7 @@ const THEME_COLORS = [
     { value: 'pink', hue: 330 },
 ]
 
-export function AdminSettingsContent({ stats, shopName, shopDescription, shopLogo, shopFooter, themeColor, visitorCount, lowStockThreshold, checkinReward, checkinEnabled, wishlistEnabled, noIndexEnabled, refundReclaimCards, registryHideNav, registryOptIn, registryEnabled, currentVersion }: AdminSettingsContentProps) {
+export function AdminSettingsContent({ stats, shopName, shopDescription, shopLogo, shopFooter, themeColor, visitorCount, lowStockThreshold, checkinReward, checkinEnabled, wishlistEnabled, noIndexEnabled, refundReclaimCards, registryHideNav, registryOptIn, registryEnabled, currentVersion, floatingButtonEnabled, floatingButtonUrl, socialLinks, homepageBlocks }: AdminSettingsContentProps) {
     const { t } = useI18n()
 
     // State
@@ -91,6 +95,65 @@ export function AdminSettingsContent({ stats, shopName, shopDescription, shopLog
     const [registryJoined, setRegistryJoined] = useState(registryOptIn)
     const [hideRegistryNav, setHideRegistryNav] = useState(registryHideNav)
     const [savingRegistryNav, setSavingRegistryNav] = useState(false)
+
+    // New configs
+    const [fbEnabled, setFbEnabled] = useState(floatingButtonEnabled)
+    const [savingFbEnabled, setSavingFbEnabled] = useState(false)
+    const [fbUrl, setFbUrl] = useState(floatingButtonUrl)
+    const [savingFbUrl, setSavingFbUrl] = useState(false)
+    const [socials, setSocials] = useState(socialLinks)
+    const [savingSocials, setSavingSocials] = useState(false)
+    const [blocks, setBlocks] = useState(homepageBlocks)
+    const [savingBlocks, setSavingBlocks] = useState(false)
+
+    const handleSaveFbEnabled = async (checked: boolean) => {
+        setSavingFbEnabled(true)
+        try {
+            await saveSetting('floating_button_enabled', checked ? 'true' : 'false')
+            setFbEnabled(checked)
+            toast.success(t('common.success'))
+        } catch (e: any) {
+            toast.error(e.message)
+        } finally {
+            setSavingFbEnabled(false)
+        }
+    }
+
+    const handleSaveFbUrl = async () => {
+        setSavingFbUrl(true)
+        try {
+            await saveSetting('floating_button_url', fbUrl)
+            toast.success(t('common.success'))
+        } catch (e: any) {
+            toast.error(e.message)
+        } finally {
+            setSavingFbUrl(false)
+        }
+    }
+
+    const handleSaveSocials = async () => {
+        setSavingSocials(true)
+        try {
+            await saveSetting('social_links', socials)
+            toast.success(t('common.success'))
+        } catch (e: any) {
+            toast.error(e.message)
+        } finally {
+            setSavingSocials(false)
+        }
+    }
+
+    const handleSaveBlocks = async () => {
+        setSavingBlocks(true)
+        try {
+            await saveSetting('homepage_blocks', blocks)
+            toast.success(t('common.success'))
+        } catch (e: any) {
+            toast.error(e.message)
+        } finally {
+            setSavingBlocks(false)
+        }
+    }
 
     const handleSaveShopName = async () => {
         const trimmed = shopNameValue.trim()
@@ -504,6 +567,96 @@ export function AdminSettingsContent({ stats, shopName, shopDescription, shopLog
                         </Button>
                     </div>
                     <p className="text-xs text-muted-foreground">{t('admin.settings.refund.reclaimHint')}</p>
+                </CardContent>
+            </Card>
+
+            {/* Social Links */}
+            <Card>
+                <CardHeader>
+                    <CardTitle>Mạng xã hội</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    <div className="grid gap-2 md:max-w-xl">
+                        <div className="flex gap-2">
+                            <Textarea
+                                id="social-links"
+                                value={socials}
+                                onChange={(e) => setSocials(e.target.value)}
+                                placeholder='Ví dụ: [{"platform": "facebook", "url": "..."}]'
+                                rows={3}
+                                className="font-mono text-sm"
+                            />
+                            <Button variant="outline" onClick={handleSaveSocials} disabled={savingSocials}>
+                                {savingSocials ? t('common.processing') : t('common.save')}
+                            </Button>
+                        </div>
+                        <p className="text-xs text-muted-foreground">Nhập chuỗi JSON cấu hình mạng xã hội.</p>
+                    </div>
+                </CardContent>
+            </Card>
+
+            {/* Homepage Blocks */}
+            <Card>
+                <CardHeader>
+                    <CardTitle>Cấu hình khối trang chủ</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    <div className="grid gap-2 md:max-w-xl">
+                        <div className="flex gap-2">
+                            <Textarea
+                                id="homepage-blocks"
+                                value={blocks}
+                                onChange={(e) => setBlocks(e.target.value)}
+                                placeholder='Ví dụ: hero,categories,products,banners'
+                                rows={3}
+                                className="font-mono text-sm"
+                            />
+                            <Button variant="outline" onClick={handleSaveBlocks} disabled={savingBlocks}>
+                                {savingBlocks ? t('common.processing') : t('common.save')}
+                            </Button>
+                        </div>
+                        <p className="text-xs text-muted-foreground">Danh sách các khối hiển thị ở trang chủ, cách nhau bởi dấu phẩy.</p>
+                    </div>
+                </CardContent>
+            </Card>
+
+            {/* Floating Button Settings */}
+            <Card>
+                <CardHeader>
+                    <CardTitle>Nút Liên Hệ Nổi (Floating Button)</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    <div className="flex items-center gap-4">
+                        <Label htmlFor="fb-enable" className="cursor-pointer">Trạng thái nút nổi</Label>
+                        <Button
+                            id="fb-enable"
+                            variant={fbEnabled ? "default" : "outline"}
+                            size="sm"
+                            onClick={() => handleSaveFbEnabled(!fbEnabled)}
+                            disabled={savingFbEnabled}
+                            className={fbEnabled ? "bg-green-600 hover:bg-green-700" : ""}
+                        >
+                            {fbEnabled ? "Bật" : "Tắt"}
+                        </Button>
+                    </div>
+                    {fbEnabled && (
+                        <div className="grid gap-2 md:max-w-xl">
+                            <div className="flex gap-2">
+                                <div className="floating-field flex-1 min-w-0">
+                                    <Input
+                                        id="fb-url"
+                                        value={fbUrl}
+                                        onChange={(e) => setFbUrl(e.target.value)}
+                                        placeholder=" "
+                                    />
+                                    <Label htmlFor="fb-url" className="floating-label">Link chuyển hướng (Zalo/Messenger...)</Label>
+                                </div>
+                                <Button variant="outline" onClick={handleSaveFbUrl} disabled={savingFbUrl}>
+                                    {savingFbUrl ? t('common.processing') : t('common.save')}
+                                </Button>
+                            </div>
+                        </div>
+                    )}
                 </CardContent>
             </Card>
 

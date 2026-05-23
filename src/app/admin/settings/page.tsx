@@ -45,6 +45,10 @@ export default function AdminSettingsPage() {
             registryHideNav={settingsMap['registry_hide_nav'] === 'true'}
             registryEnabled={Boolean(data.registryEnabled)}
             currentVersion={APP_VERSION}
+            floatingButtonEnabled={settingsMap['floating_button_enabled'] === 'true'}
+            floatingButtonUrl={settingsMap['floating_button_url'] || ''}
+            socialLinks={settingsMap['social_links'] || ''}
+            homepageBlocks={settingsMap['homepage_blocks'] || ''}
         />
     )
 }

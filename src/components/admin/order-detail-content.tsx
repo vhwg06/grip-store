@@ -13,7 +13,7 @@ import { CopyButton } from "@/components/copy-button"
 import { ClientDate } from "@/components/client-date"
 import { RefundButton } from "@/components/admin/refund-button"
 import { toast } from "sonner"
-import { markOrderDelivered, markOrderPaid, cancelOrder, updateOrderEmail, deleteOrder } from "@/adapters/api/admin.api"
+import { deleteOrder, updateAdminOrderStatus } from "@/adapters/api/admin.api"
 import { getDisplayUsername, getExternalProfileUrl } from "@/lib/user-profile-link"
 
 function statusVariant(status: string | null) {
@@ -29,39 +29,22 @@ function statusVariant(status: string | null) {
 export function AdminOrderDetailContent({ order }: { order: any }) {
   const { t } = useI18n()
   const router = useRouter()
-  const [email, setEmail] = useState(order.email || '')
-  const [savingEmail, setSavingEmail] = useState(false)
   const [actionLoading, setActionLoading] = useState(false)
+  const [updateNote, setUpdateNote] = useState("")
   const actionLock = useRef(false)
 
-  const status = order.status || 'pending'
-  const canMarkPaid = status === 'pending'
-  const canMarkDelivered = status === 'paid' && !!order.cardKey
-  const canCancel = status === 'pending'
-  const canDelete = true
-
-  const handleStatus = async (action: 'paid' | 'delivered' | 'cancel') => {
+  const handleStatus = async (newStatus: string) => {
     if (actionLock.current) return
+    if (!confirm(`Bạn có chắc muốn chuyển trạng thái thành ${newStatus}?`)) return
     try {
       actionLock.current = true
       setActionLoading(true)
-      if (action === 'paid') {
-        if (!confirm(t('admin.orders.confirmMarkPaid'))) return
-        await markOrderPaid(order.orderId)
-        toast.success(t('common.success'))
-        return
-      }
-      if (action === 'delivered') {
-        if (!confirm(t('admin.orders.confirmMarkDelivered'))) return
-        await markOrderDelivered(order.orderId)
-        toast.success(t('common.success'))
-        return
-      }
-      if (action === 'cancel') {
-        if (!confirm(t('admin.orders.confirmCancel'))) return
-        await cancelOrder(order.orderId)
-        toast.success(t('common.success'))
-      }
+      await updateAdminOrderStatus(order.id, newStatus, updateNote || undefined)
+      toast.success(t('common.success'))
+      setUpdateNote("")
+      // Typically we might want to mutate here if we used SWR correctly, 
+      // but since data is passed as prop we might just reload or router.refresh
+      window.location.reload()
     } catch (e: any) {
       toast.error(e.message)
     } finally {
@@ -70,26 +53,31 @@ export function AdminOrderDetailContent({ order }: { order: any }) {
     }
   }
 
-  const handleSaveEmail = async () => {
-    setSavingEmail(true)
+  const handleDelete = async () => {
+    if (actionLock.current) return
+    if (!confirm(t('admin.orders.confirmDelete'))) return
+    actionLock.current = true
+    setActionLoading(true)
     try {
-      await updateOrderEmail(order.orderId, email)
+      await deleteOrder(order.id)
       toast.success(t('common.success'))
+      router.push('/admin/orders')
     } catch (e: any) {
       toast.error(e.message)
     } finally {
-      setSavingEmail(false)
+      setActionLoading(false)
+      actionLock.current = false
     }
   }
 
   return (
-    <div className="space-y-6 max-w-4xl">
+    <div className="space-y-6 max-w-5xl">
       <div className="flex items-center justify-between gap-3">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">{t('admin.orders.detailTitle')}</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Chi tiết đơn hàng {order.orderNumber || order.id}</h1>
           <div className="mt-2 flex items-center gap-2">
-            <span className="font-mono text-xs text-muted-foreground">{order.orderId}</span>
-            <Badge variant={statusVariant(order.status)} className="uppercase text-xs">{t(`order.status.${status}`)}</Badge>
+            <Badge variant={statusVariant(order.status)} className="uppercase text-xs">{order.status}</Badge>
+            <span className="text-sm text-muted-foreground"><ClientDate value={order.createdAt} format="dateTime" /></span>
           </div>
         </div>
         <Button asChild variant="outline">
@@ -97,118 +85,127 @@ export function AdminOrderDetailContent({ order }: { order: any }) {
         </Button>
       </div>
 
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>{t('admin.orders.detail')}</CardTitle>
-          <div className="flex items-center gap-2">
-            {canMarkPaid && (
-              <Button variant="outline" onClick={() => handleStatus('paid')} disabled={actionLoading}>{t('admin.orders.markPaid')}</Button>
-            )}
-            {canMarkDelivered && (
-              <Button variant="outline" onClick={() => handleStatus('delivered')} disabled={actionLoading}>{t('admin.orders.markDelivered')}</Button>
-            )}
-            {canCancel && (
-              <Button variant="destructive" onClick={() => handleStatus('cancel')} disabled={actionLoading}>{t('admin.orders.cancel')}</Button>
-            )}
-            {canDelete && (
-              <Button
-                variant="destructive"
-                onClick={async () => {
-                  if (actionLock.current) return
-                  if (!confirm(t('admin.orders.confirmDelete'))) return
-                  actionLock.current = true
-                  setActionLoading(true)
-                  try {
-                    await deleteOrder(order.orderId)
-                    toast.success(t('common.success'))
-                    router.push('/admin/orders')
-                  } catch (e: any) {
-                    toast.error(e.message)
-                  } finally {
-                    setActionLoading(false)
-                    actionLock.current = false
-                  }
-                }}
-                disabled={actionLoading}
-              >
-                {t('admin.orders.delete')}
-              </Button>
-            )}
-            <RefundButton order={order} />
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="grid gap-4 md:grid-cols-2">
-            <div className="space-y-1">
-              <div className="text-sm text-muted-foreground">{t('admin.orders.product')}</div>
-              <div className="font-medium">{order.productName}</div>
-              <div className="text-xs text-muted-foreground font-mono">{order.productId}</div>
-            </div>
+      <div className="grid gap-6 md:grid-cols-3">
+        <div className="space-y-6 md:col-span-2">
+            <Card>
+                <CardHeader>
+                    <CardTitle>Sản phẩm ({order.items?.length || 0})</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <div className="space-y-4">
+                        {order.items?.map((item: any, idx: number) => (
+                            <div key={idx} className="flex justify-between items-center py-2 border-b last:border-0">
+                                <div>
+                                    <div className="font-medium">{item.productName}</div>
+                                    <div className="text-sm text-muted-foreground">SKU: {item.sku || '-'}</div>
+                                </div>
+                                <div className="text-right">
+                                    <div className="font-medium">{item.price.toLocaleString('vi-VN')} ₫ x {item.quantity}</div>
+                                    <div className="font-bold">{(item.price * item.quantity).toLocaleString('vi-VN')} ₫</div>
+                                </div>
+                            </div>
+                        ))}
+                        <div className="flex justify-between items-center pt-4 text-lg">
+                            <span className="font-bold">Tổng cộng:</span>
+                            <span className="font-bold text-primary">{Number(order.totalAmount || 0).toLocaleString('vi-VN')} ₫</span>
+                        </div>
+                    </div>
+                </CardContent>
+            </Card>
 
-            <div className="space-y-1">
-              <div className="text-sm text-muted-foreground">{t('admin.orders.amount')}</div>
-              <div className="font-medium">{Number(order.amount)} {t('common.credits')}</div>
-            </div>
+            <Card>
+                <CardHeader>
+                    <CardTitle>Cập nhật trạng thái</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    <div className="grid gap-2">
+                        <Label>Ghi chú trạng thái (Tùy chọn)</Label>
+                        <Input 
+                            value={updateNote} 
+                            onChange={(e) => setUpdateNote(e.target.value)} 
+                            placeholder="Mã vận đơn, lý do hủy..." 
+                        />
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                        {order.status === 'PENDING' && (
+                            <Button onClick={() => handleStatus('PROCESSING')} disabled={actionLoading}>Xác nhận & Xử lý</Button>
+                        )}
+                        {(order.status === 'PENDING' || order.status === 'PROCESSING') && (
+                            <Button onClick={() => handleStatus('SHIPPED')} variant="secondary" disabled={actionLoading}>Đã giao cho ĐVVC</Button>
+                        )}
+                        {order.status === 'SHIPPED' && (
+                            <Button onClick={() => handleStatus('DELIVERED')} variant="default" className="bg-green-600 hover:bg-green-700" disabled={actionLoading}>Giao hàng thành công</Button>
+                        )}
+                        {order.status !== 'CANCELLED' && order.status !== 'DELIVERED' && (
+                            <Button variant="destructive" onClick={() => handleStatus('CANCELLED')} disabled={actionLoading}>Hủy đơn</Button>
+                        )}
+                    </div>
+                </CardContent>
+            </Card>
 
-            <div className="space-y-1">
-              <div className="text-sm text-muted-foreground">{t('admin.orders.user')}</div>
-              {order.username ? (
-                <a
-                  href={getExternalProfileUrl(order.username, order.userId) || "#"}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="font-medium text-sm hover:underline text-primary"
-                >
-                  {getDisplayUsername(order.username, order.userId)}
-                </a>
-              ) : (
-                <div className="font-medium text-sm text-muted-foreground">Guest</div>
-              )}
-              {order.userId && <div className="text-xs text-muted-foreground font-mono">{order.userId}</div>}
-            </div>
+            <Card>
+                <CardHeader>
+                    <CardTitle>Lịch sử đơn hàng</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <div className="space-y-4 border-l-2 border-muted ml-3 pl-4">
+                        {order.timeline?.map((event: any, idx: number) => (
+                            <div key={idx} className="relative">
+                                <div className="absolute -left-[23px] top-1 w-3 h-3 rounded-full bg-primary" />
+                                <div className="font-medium">{event.status}</div>
+                                <div className="text-xs text-muted-foreground"><ClientDate value={event.timestamp} format="dateTime" /></div>
+                                {event.note && <div className="text-sm mt-1 bg-muted p-2 rounded-md">{event.note}</div>}
+                            </div>
+                        ))}
+                    </div>
+                </CardContent>
+            </Card>
+        </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="order-email">{t('admin.orders.email')}</Label>
-              <div className="flex gap-2">
-                <Input
-                  id="order-email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder={t('admin.orders.emailPlaceholder')}
-                />
-                <Button variant="outline" onClick={handleSaveEmail} disabled={savingEmail}>
-                  {savingEmail ? t('common.processing') : t('common.save')}
-                </Button>
-              </div>
-            </div>
+        <div className="space-y-6">
+            <Card>
+                <CardHeader>
+                    <CardTitle>Thông tin khách hàng</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    <div>
+                        <div className="text-sm text-muted-foreground">Tên</div>
+                        <div className="font-medium">{order.customerName}</div>
+                    </div>
+                    <div>
+                        <div className="text-sm text-muted-foreground">Số điện thoại</div>
+                        <div className="font-medium">{order.customerPhone}</div>
+                    </div>
+                    <div>
+                        <div className="text-sm text-muted-foreground">Email</div>
+                        <div className="font-medium">{order.customerEmail || '-'}</div>
+                    </div>
+                </CardContent>
+            </Card>
 
-            <div className="space-y-1">
-              <div className="text-sm text-muted-foreground">{t('admin.orders.tradeNo')}</div>
-              {order.tradeNo ? <CopyButton text={order.tradeNo} /> : <div className="text-muted-foreground">-</div>}
-            </div>
+            <Card>
+                <CardHeader>
+                    <CardTitle>Giao hàng & Thanh toán</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    <div>
+                        <div className="text-sm text-muted-foreground">Địa chỉ giao hàng</div>
+                        <div className="font-medium leading-relaxed">{order.shippingAddress}</div>
+                    </div>
+                    <div>
+                        <div className="text-sm text-muted-foreground">Phương thức thanh toán</div>
+                        <div className="font-medium">{order.paymentMethod}</div>
+                    </div>
+                </CardContent>
+            </Card>
 
-            <div className="space-y-1">
-              <div className="text-sm text-muted-foreground">{t('admin.orders.cardKey')}</div>
-              {order.cardKey ? <CopyButton text={order.cardKey} /> : <div className="text-muted-foreground">-</div>}
+            <div className="flex justify-end">
+                 <Button variant="destructive" onClick={handleDelete} disabled={actionLoading}>
+                    {t('admin.orders.delete')}
+                 </Button>
             </div>
-
-            <div className="space-y-1">
-              <div className="text-sm text-muted-foreground">{t('admin.orders.createdAt')}</div>
-              <div className="text-sm"><ClientDate value={order.createdAt} format="dateTime" /></div>
-            </div>
-
-            <div className="space-y-1">
-              <div className="text-sm text-muted-foreground">{t('admin.orders.paidAt')}</div>
-              <div className="text-sm"><ClientDate value={order.paidAt} format="dateTime" /></div>
-            </div>
-
-            <div className="space-y-1">
-              <div className="text-sm text-muted-foreground">{t('admin.orders.deliveredAt')}</div>
-              <div className="text-sm"><ClientDate value={order.deliveredAt} format="dateTime" /></div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   )
 }

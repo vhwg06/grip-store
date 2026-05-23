@@ -38,7 +38,13 @@ export async function createOrder(input: CheckoutOrderInput) {
     body: JSON.stringify({
       productId: input.productId,
       quantity: input.quantity,
+      items: input.items,
       email: input.email,
+      name: input.name,
+      phone: input.phone,
+      address: input.address,
+      notes: input.notes,
+      paymentMethod: input.paymentMethod,
       usePoints: Boolean(input.usePoints),
     }),
   })

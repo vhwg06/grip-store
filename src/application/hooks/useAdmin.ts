@@ -16,6 +16,12 @@ import {
   getAdminRefunds,
   getAdminReviews,
   getAdminUsers,
+  getAdminArticles,
+  getAdminArticle,
+  getAdminBanners,
+  getAdminFAQs,
+  getAdminLeads,
+  getAdminOrderDetails,
 } from "@/adapters/api/admin.api"
 
 export const useAdminDashboard = () => useSWR("admin-dashboard", getAdminDashboard)
@@ -32,3 +38,9 @@ export const useAdminMessages = () => useSWR("admin-messages", getAdminMessages)
 export const useAdminData = () => useSWR("admin-data", getAdminData)
 export const useAdminCollect = () => useSWR("admin-collect", getAdminCollect)
 export const useAdminNotificationSettings = () => useSWR("admin-notification-settings", getAdminNotificationSettings)
+export const useAdminArticles = () => useSWR("admin-articles", getAdminArticles)
+export const useAdminArticle = (id?: string) => useSWR(id ? ["admin-article", id] : null, () => getAdminArticle(id as string))
+export const useAdminBanners = () => useSWR("admin-banners", getAdminBanners)
+export const useAdminFAQs = () => useSWR("admin-faqs", getAdminFAQs)
+export const useAdminLeads = () => useSWR("admin-leads", getAdminLeads)
+export const useAdminOrderDetails = (id: string) => useSWR(id ? ["admin-order-details", id] : null, () => getAdminOrderDetails(id))

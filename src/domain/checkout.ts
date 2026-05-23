@@ -1,7 +1,18 @@
-export interface CheckoutOrderInput {
+export interface CartItemInput {
   productId: string
   quantity: number
+}
+
+export interface CheckoutOrderInput {
+  productId?: string // for single item checkout backward compatibility
+  quantity?: number
+  items?: CartItemInput[] // for cart checkout
   email?: string
+  name?: string
+  phone?: string
+  address?: string
+  notes?: string
+  paymentMethod?: 'COD' | 'BANK_TRANSFER'
   usePoints?: boolean
 }
 

@@ -12,20 +12,10 @@ import { Plus, Eye, EyeOff, ArrowUp, ArrowDown } from "lucide-react"
 import { deleteProduct, toggleProductStatus, reorderProduct } from "@/adapters/api/admin.api"
 import { toast } from "sonner"
 
-interface Product {
-    id: string
-    name: string
-    price: string
-    compareAtPrice: string | null
-    category: string | null
-    stockCount: number
-    isActive: boolean
-    isHot: boolean
-    sortOrder: number
-}
+import { AdminProduct } from "@/domain/admin"
 
 interface AdminProductsContentProps {
-    products: Product[]
+    products: AdminProduct[]
     lowStockThreshold: number
 }
 
@@ -161,7 +151,7 @@ export function AdminProductsContent({ products, lowStockThreshold }: AdminProdu
                                         )}
                                     </div>
                                 </TableCell>
-                                <TableCell className="capitalize">{product.category || 'general'}</TableCell>
+                                <TableCell className="capitalize">{product.categoryId || 'general'}</TableCell>
                                 <TableCell>
                                     {product.isHot ? (
                                         <Badge variant="secondary">{t('common.yes')}</Badge>
@@ -171,8 +161,8 @@ export function AdminProductsContent({ products, lowStockThreshold }: AdminProdu
                                 </TableCell>
                                 <TableCell>
                                     <div className="flex items-center gap-2">
-                                        <span>{product.stockCount}</span>
-                                        {product.stockCount <= threshold && (
+                                        <span>{product.stock}</span>
+                                        {product.stock <= threshold && (
                                             <Badge variant="destructive" className="text-[10px]">{t('admin.products.lowStock')}</Badge>
                                         )}
                                     </div>
@@ -186,7 +176,7 @@ export function AdminProductsContent({ products, lowStockThreshold }: AdminProdu
                                     <Button
                                         variant="outline"
                                         size="sm"
-                                        onClick={() => handleToggle(product.id, product.isActive)}
+                                        onClick={() => handleToggle(product.id, product.isActive ?? false)}
                                         title={product.isActive ? t('admin.products.hide') : t('admin.products.show')}
                                         disabled={busy}
                                     >

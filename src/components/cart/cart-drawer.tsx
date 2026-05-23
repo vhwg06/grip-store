@@ -15,13 +15,16 @@ export function CartDrawer() {
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
-        <button className="relative p-2 text-neutral-600 hover:text-black transition-colors">
-          <ShoppingCart className="w-6 h-6" />
-          {cart.totalQuantity > 0 && (
-            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full">
-              {cart.totalQuantity}
-            </span>
-          )}
+        <button className="flex items-center space-x-2 text-white hover:text-white/80 transition-colors h-full px-2">
+          <div className="relative flex items-center justify-center w-6 h-6">
+            <ShoppingCart className="w-[21px] h-[22px]" />
+            {cart.totalQuantity > 0 && (
+              <span className="absolute -top-1.5 -right-2 bg-[#99782b] text-white text-[11px] font-medium w-4 h-4 flex items-center justify-center rounded-full leading-none">
+                {cart.totalQuantity}
+              </span>
+            )}
+          </div>
+          <span className="text-[16px] font-semibold hidden md:block pl-1">Giỏ hàng</span>
         </button>
       </SheetTrigger>
       <SheetContent side="right" className="w-full sm:max-w-md flex flex-col p-0">
