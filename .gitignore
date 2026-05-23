@@ -72,3 +72,7 @@ pnpm-debug.log
 /src/environments/firebase.ConfigDummy.ts
 firebase.json
 .travis.yml
+
+
+# Thêm dòng này vào cuối file .gitignore của dự án grip-store
+.agents/skills/
