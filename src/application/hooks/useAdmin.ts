@@ -4,6 +4,7 @@ import useSWR from "swr"
 import {
   getAdminCards,
   getAdminCategories,
+  getAdminCollect,
   getAdminDashboard,
   getAdminData,
   getAdminMessages,
@@ -29,4 +30,5 @@ export const useAdminRefunds = () => useSWR("admin-refunds", getAdminRefunds)
 export const useAdminReviews = () => useSWR("admin-reviews", getAdminReviews)
 export const useAdminMessages = () => useSWR("admin-messages", getAdminMessages)
 export const useAdminData = () => useSWR("admin-data", getAdminData)
+export const useAdminCollect = () => useSWR("admin-collect", getAdminCollect)
 export const useAdminNotificationSettings = () => useSWR("admin-notification-settings", getAdminNotificationSettings)

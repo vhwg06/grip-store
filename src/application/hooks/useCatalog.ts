@@ -25,3 +25,14 @@ export function useCatalog(params: CatalogSearchParams = {}) {
     error: products.error || categories.error || settings.error || announcement.error || null,
   }
 }
+
+export function usePublicSettings() {
+  const swr = useSWR("catalog-settings", getPublicSettings)
+
+  return {
+    settings: swr.data ?? null,
+    isLoading: swr.isLoading,
+    error: swr.error ?? null,
+    refresh: swr.mutate,
+  }
+}

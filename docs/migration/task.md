@@ -113,8 +113,8 @@
 - [x] **[MODIFY]** `src/app/orders/page.tsx` – `'use client'`
 - [x] **[MODIFY]** `src/app/order/[id]/page.tsx` – `'use client'`
 - [x] **[DELETE]** `src/actions/order.ts`
-- [ ] **[DELETE]** `src/actions/refund.ts`
-- [ ] **[DELETE]** `src/actions/refund-requests.ts`
+- [x] **[DELETE]** `src/actions/refund.ts`
+- [x] **[DELETE]** `src/actions/refund-requests.ts`
 
 ### Phase 6 – Profile / Points Module (M5)
 - [x] **[NEW]** `src/domain/profile.ts`
@@ -164,37 +164,37 @@
 - [x] **[DELETE]** `src/actions/user-messages.ts`
 
 ### Phase 9 – Admin Module (M8)
-- [ ] **[NEW]** `src/domain/admin.ts`
-- [ ] **[NEW]** `src/adapters/api/admin.api.ts`
-  - [ ] Products CRUD functions
-  - [ ] Cards management functions
-  - [ ] Orders management functions
-  - [ ] Refunds management functions
-  - [ ] Users management functions
-  - [ ] Settings read/write functions
-  - [ ] Messages functions
-  - [ ] Categories CRUD
-  - [ ] Stats, data import/repair
-- [ ] **[NEW]** `src/application/hooks/useAdmin.ts` (hoặc per-feature hooks)
-- [ ] **[MODIFY]** `src/app/admin/**` – chuyển tất cả sang `'use client'`
-  - [ ] `admin/products/`
-  - [ ] `admin/cards/`
-  - [ ] `admin/orders/`
-  - [ ] `admin/refunds/`
-  - [ ] `admin/users/`
-  - [ ] `admin/settings/`
-  - [ ] `admin/messages/`
-  - [ ] `admin/reviews/`
-  - [ ] `admin/categories/`
-  - [ ] `admin/data/`
-- [ ] **[DELETE]** `src/actions/admin.ts`
-- [ ] **[DELETE]** `src/actions/admin-orders.ts`
-- [ ] **[DELETE]** `src/actions/admin-users.ts`
-- [ ] **[DELETE]** `src/actions/admin-messages.ts`
-- [ ] **[DELETE]** `src/actions/settings.ts`
-- [ ] **[DELETE]** `src/actions/data.ts`
-- [ ] **[DELETE]** `src/actions/registry.ts`
-- [ ] **[DELETE]** `src/actions/update-check.ts`
+- [x] **[NEW]** `src/domain/admin.ts`
+- [x] **[NEW]** `src/adapters/api/admin.api.ts`
+  - [x] Products CRUD functions
+  - [x] Cards management functions
+  - [x] Orders management functions
+  - [x] Refunds management functions
+  - [x] Users management functions
+  - [x] Settings read/write functions
+  - [x] Messages functions
+  - [x] Categories CRUD
+  - [x] Stats, data import/repair
+- [x] **[NEW]** `src/application/hooks/useAdmin.ts` (hoặc per-feature hooks)
+- [x] **[MODIFY]** `src/app/admin/**` – chuyển tất cả sang `'use client'`
+  - [x] `admin/products/`
+  - [x] `admin/cards/`
+  - [x] `admin/orders/`
+  - [x] `admin/refunds/`
+  - [x] `admin/users/`
+  - [x] `admin/settings/`
+  - [x] `admin/messages/`
+  - [x] `admin/reviews/`
+  - [x] `admin/categories/`
+  - [x] `admin/data/`
+- [x] **[DELETE]** `src/actions/admin.ts`
+- [x] **[DELETE]** `src/actions/admin-orders.ts`
+- [x] **[DELETE]** `src/actions/admin-users.ts`
+- [x] **[DELETE]** `src/actions/admin-messages.ts`
+- [x] **[DELETE]** `src/actions/settings.ts`
+- [x] **[DELETE]** `src/actions/data.ts`
+- [x] **[DELETE]** `src/actions/registry.ts`
+- [x] **[DELETE]** `src/actions/update-check.ts`
 
 ### Phase 10 – Final Cleanup
 - [ ] **[DELETE]** `src/lib/db/` (toàn bộ folder)

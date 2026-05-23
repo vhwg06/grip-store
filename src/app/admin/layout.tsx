@@ -1,67 +1,13 @@
-import { auth } from "@/lib/auth"
-import { redirect } from "next/navigation"
+"use client"
+
+import { useEffect, useState } from "react"
+import { useRouter } from "next/navigation"
 import { AdminSidebar } from "@/components/admin/sidebar"
 import { UpdateNotification } from "@/components/admin/update-notification"
-import { getSetting, setSetting } from "@/lib/db/queries"
 import { RegistryPrompt } from "@/components/admin/registry-prompt"
-import { isRegistryEnabled } from "@/lib/registry"
 import { APP_VERSION } from "@/lib/version"
-import { Suspense } from "react"
-
-async function AdminLayoutContent({ children }: { children: React.ReactNode }) {
-    const session = await auth()
-    const user = session?.user
-
-    // Admin Check - redirect to home if not admin
-    const adminUsers = process.env.ADMIN_USERS?.toLowerCase().split(',') || []
-    if (!user || !user.username || !adminUsers.includes(user.username.toLowerCase())) {
-        redirect("/")
-    }
-
-    if (user?.avatar_url) {
-        try {
-            const currentLogo = await getSetting("shop_logo")
-            if (!currentLogo || !currentLogo.trim()) {
-                await setSetting("shop_logo", user.avatar_url)
-                await setSetting("shop_logo_updated_at", String(Date.now()))
-            }
-        } catch {
-            // best effort
-        }
-    }
-
-    const registryEnabled = isRegistryEnabled()
-    let registryPrompted = null
-    let registryOptIn = null
-    if (registryEnabled) {
-        try {
-            const [prompted, optIn] = await Promise.all([
-                getSetting("registry_prompted"),
-                getSetting("registry_opt_in"),
-            ])
-            registryPrompted = prompted
-            registryOptIn = optIn
-        } catch {
-            registryPrompted = null
-            registryOptIn = null
-        }
-    }
-
-    const shouldPrompt = registryEnabled && registryPrompted !== "true" && registryOptIn !== "true"
-
-    return (
-        <div className="flex min-h-screen flex-col">
-            <UpdateNotification currentVersion={APP_VERSION} />
-            <RegistryPrompt shouldPrompt={shouldPrompt} registryEnabled={registryEnabled} />
-            <div className="flex flex-1 flex-col md:flex-row">
-                <AdminSidebar username={user.username} />
-                <main className="flex-1 p-6 md:p-12 overflow-y-auto">
-                    {children}
-                </main>
-            </div>
-        </div>
-    )
-}
+import { useAuth } from "@/application/hooks/useAuth"
+import { getRegistryStatus } from "@/adapters/api/admin.api"
 
 function AdminLayoutFallback() {
     return (
@@ -82,9 +28,50 @@ function AdminLayoutFallback() {
 }
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
+    const router = useRouter()
+    const { user, isAdmin, loading } = useAuth()
+    const [registryEnabled, setRegistryEnabled] = useState(false)
+    const [shouldPrompt, setShouldPrompt] = useState(false)
+
+    useEffect(() => {
+        if (!loading && !isAdmin) {
+            router.replace("/")
+        }
+    }, [isAdmin, loading, router])
+
+    useEffect(() => {
+        if (!isAdmin) return
+        let active = true
+        void getRegistryStatus()
+            .then((result) => {
+                if (!active) return
+                setRegistryEnabled(Boolean(result.registryEnabled))
+                setShouldPrompt(Boolean(result.shouldPrompt))
+            })
+            .catch(() => {
+                if (!active) return
+                setRegistryEnabled(false)
+                setShouldPrompt(false)
+            })
+        return () => {
+            active = false
+        }
+    }, [isAdmin])
+
+    if (loading || !isAdmin) {
+        return <AdminLayoutFallback />
+    }
+
     return (
-        <Suspense fallback={<AdminLayoutFallback />}>
-            <AdminLayoutContent>{children}</AdminLayoutContent>
-        </Suspense>
+        <div className="flex min-h-screen flex-col">
+            <UpdateNotification currentVersion={APP_VERSION} />
+            <RegistryPrompt shouldPrompt={shouldPrompt} registryEnabled={registryEnabled} />
+            <div className="flex flex-1 flex-col md:flex-row">
+                <AdminSidebar username={user?.username || user?.email || "admin"} />
+                <main className="flex-1 p-6 md:p-12 overflow-y-auto">
+                    {children}
+                </main>
+            </div>
+        </div>
     )
 }

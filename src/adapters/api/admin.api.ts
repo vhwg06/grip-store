@@ -4,6 +4,7 @@ import { apiFetch } from "@/adapters/api/http-client"
 import type {
   AdminActionResult,
   AdminDashboardPayload,
+  AdminCollectPayload,
   AdminMessagesPayload,
   AdminNotificationsSettings,
   AdminProductsPayload,
@@ -131,6 +132,10 @@ export async function getAdminData() {
   return apiFetch<{ shopName: string | null }>("/api/admin/data")
 }
 
+export async function getAdminCollect() {
+  return apiFetch<AdminCollectPayload>("/api/admin/collect")
+}
+
 export async function getAdminNotificationSettings() {
   return apiFetch<{ settings: AdminNotificationsSettings }>("/api/admin/notifications")
 }
@@ -181,8 +186,8 @@ export async function saveCardsApiConfig(productId: string, apiUrl: string, apiT
   })
 }
 
-export async function setCardsApiEnabled(productId: string, enabled: boolean) {
-  return patchJson(`/api/admin/products/${encodeURIComponent(productId)}/cards/api/enabled`, { enabled })
+export async function setCardsApiEnabled(productId: string, enabled: boolean, apiUrl?: string, apiToken?: string) {
+  return patchJson(`/api/admin/products/${encodeURIComponent(productId)}/cards/api/enabled`, { enabled, apiUrl, apiToken })
 }
 
 export async function pullCardFromApi(productId: string) {
@@ -298,7 +303,7 @@ export async function getAnnouncementConfig(): Promise<AnnouncementConfig | null
     "/api/admin/announcement",
   )
   if (!payload) return null
-  return "announcement" in payload ? payload.announcement ?? null : payload
+  return "announcement" in payload ? payload.announcement ?? null : payload as AnnouncementConfig
 }
 
 export async function saveAnnouncement(config: AnnouncementConfig) {
@@ -323,10 +328,14 @@ export const saveRefundReclaimCards = (enabled: boolean) => saveSetting("refund_
 export const saveRegistryHideNav = (enabled: boolean) => saveSetting("registry_hide_nav", enabled)
 
 export async function saveNotificationSettings(formData: FormData) {
-  return apiFetch<unknown>("/api/admin/notifications", {
+  const payload = await apiFetch<Partial<AdminNotificationsSettings> & AdminActionResult>("/api/admin/notifications", {
     method: "POST",
     body: formData,
-  }).then(normalizeActionResult)
+  })
+  return {
+    ...payload,
+    ...normalizeActionResult(payload),
+  }
 }
 
 export const testNotification = () => postJson("/api/admin/notifications/test/telegram")

@@ -1,14 +1,10 @@
-import { getSetting } from "@/lib/db/queries"
+"use client"
+
 import { FooterContent } from "./footer-content"
 import { APP_VERSION } from "@/lib/version"
+import { usePublicSettings } from "@/application/hooks/useCatalog"
 
-export async function SiteFooter() {
-    let shopFooter: string | null = null
-    try {
-        shopFooter = await getSetting('shop_footer')
-    } catch {
-        shopFooter = null
-    }
-
-    return <FooterContent customFooter={shopFooter} version={APP_VERSION} />
+export function SiteFooter() {
+    const { settings } = usePublicSettings()
+    return <FooterContent customFooter={settings?.shopFooter ?? null} version={APP_VERSION} />
 }

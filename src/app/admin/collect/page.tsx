@@ -1,39 +1,14 @@
-import { headers } from "next/headers"
-import { auth } from "@/lib/auth"
+"use client"
+
 import { AdminPaymentCodeContent } from "@/components/admin/payment-code-content"
-import { md5 } from "@/lib/crypto"
+import { useAdminCollect } from "@/application/hooks/useAdmin"
 
-async function resolveBaseUrl() {
-    if (process.env.APP_URL) return process.env.APP_URL
-    if (process.env.NEXT_PUBLIC_APP_URL) return process.env.NEXT_PUBLIC_APP_URL
+export default function AdminCollectPage() {
+    const { data, isLoading } = useAdminCollect()
 
-    const headerList = await headers()
-    const forwardedProto = headerList.get('x-forwarded-proto')
-    const forwardedHost = headerList.get('x-forwarded-host')
-    const host = forwardedHost || headerList.get('host')
-    const proto = forwardedProto || 'http'
-    if (host) return `${proto}://${host}`
-    return 'http://localhost:3000'
-}
+    if (isLoading || !data) {
+        return <div className="h-96 w-full rounded-xl bg-muted/40 animate-pulse" />
+    }
 
-export default async function AdminCollectPage() {
-    const baseUrl = await resolveBaseUrl()
-    const session = await auth()
-    const adminUsers = (process.env.ADMIN_USERS || '')
-        .split(',')
-        .map((name) => name.trim())
-        .filter(Boolean)
-    const adminFromEnv = adminUsers[0] || null
-    const payeeCandidate = session?.user?.username || session?.user?.name || adminFromEnv || null
-    const payeeMatch = payeeCandidate
-        ? adminUsers.find((name) => name.toLowerCase() === payeeCandidate.toLowerCase())
-        : undefined
-    const payee = payeeMatch || payeeCandidate
-    const secret = process.env.MERCHANT_KEY || ''
-    const sig = payee && secret ? md5(`payee=${payee}${secret}`) : null
-    const payLink = payee && sig
-        ? `${baseUrl}/pay?to=${encodeURIComponent(payee)}&sig=${sig}`
-        : `${baseUrl}/pay`
-
-    return <AdminPaymentCodeContent payLink={payLink} payee={payee} />
+    return <AdminPaymentCodeContent payLink={data.payLink} payee={data.payee} />
 }

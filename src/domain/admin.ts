@@ -8,11 +8,9 @@ export type AdminActionResult = {
 export type AdminTargetType = "all" | "username" | "userId"
 
 export type AnnouncementConfig = {
-  enabled: boolean
-  text: string
+  content: string
   startAt?: string | null
   endAt?: string | null
-  dismissible?: boolean
 }
 
 export interface AdminDashboardPayload {
@@ -45,4 +43,9 @@ export interface AdminNotificationsSettings {
   resendFromName: string
   resendEnabled: boolean
   emailLanguage: string
+}
+
+export interface AdminCollectPayload {
+  payLink: string
+  payee: string | null
 }
