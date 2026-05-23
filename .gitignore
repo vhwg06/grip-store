@@ -2,11 +2,13 @@
 
 # compiled output
 /dist
+/build
+/.next
 /tmp
 /out-tsc
 
 # dependencies
-/node_modules
+/node_modules/
 
 # IDEs and editors
 /.idea
@@ -18,11 +20,7 @@
 *.sublime-workspace
 
 # IDE - VSCode
-.vscode/*
-!.vscode/settings.json
-!.vscode/tasks.json
-!.vscode/launch.json
-!.vscode/extensions.json
+.vscode/
 
 # misc
 /.sass-cache
@@ -37,6 +35,37 @@ testem.log
 # System Files
 .DS_Store
 Thumbs.db
+
+# Logs
+logs
+*.log
+pnpm-debug.log
+
+# Environment variables
+.env
+.env.*
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# SQLite
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
+
+# Docker
+*.pid
+
+# Misc
+*.tgz
+*.tar.gz
+*.zip
+*.tmp
+
+# Ignore local data
+/data/*.sqlite*
+/data/*.db
 
 #Personal Config
 /src/environments/firebase.ConfigDummy.ts
