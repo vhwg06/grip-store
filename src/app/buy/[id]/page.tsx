@@ -1,53 +1,52 @@
-import { notFound } from "next/navigation"
-import { auth } from "@/lib/auth"
+"use client"
+
+import { useParams } from "next/navigation"
+import { useAuth } from "@/application/hooks/useAuth"
+import { useProduct } from "@/application/hooks/useProduct"
 import { BuyContent } from "@/components/buy-content"
 import { BuyRestricted } from "@/components/buy-restricted"
-import { getProduct, getProductVisibility, getLiveCardStats } from "@/lib/db/queries"
-import { INFINITE_STOCK } from "@/lib/constants"
+import { Card, CardContent } from "@/components/ui/card"
 
-interface BuyPageProps {
-    params: Promise<{ id: string }>
-}
+export default function BuyPage() {
+    const params = useParams<{ id: string }>()
+    const id = typeof params?.id === "string" ? params.id : ""
+    const { user } = useAuth()
+    const { product, requiredLevel, isLoading } = useProduct(id)
+    const isLoggedIn = Boolean(user)
 
-export default async function BuyPage({ params }: BuyPageProps) {
-    const { id } = await params
-    const session = await auth()
-    const isLoggedIn = !!session?.user
-    const trustLevel = Number.isFinite(Number(session?.user?.trustLevel)) ? Number(session?.user?.trustLevel) : 0
+    if (isLoading) {
+        return (
+            <div className="container py-8 md:py-16">
+                <div className="mx-auto max-w-3xl space-y-4">
+                    <div className="h-8 w-48 rounded-md bg-muted/60 animate-pulse" />
+                    <div className="h-96 rounded-2xl bg-muted/40 animate-pulse" />
+                </div>
+            </div>
+        )
+    }
 
-    // Keep first render lean: load only critical product data.
-    const product = await getProduct(id, { isLoggedIn, trustLevel }).catch(() => null)
-
-    // Return 404 if product doesn't exist or is inactive
-    if (!product) {
-        const visibility = await getProductVisibility(id).catch(() => null)
-        if (!visibility || visibility.isActive === false) {
-            notFound()
-        }
-        const requiredLevel = Number.isFinite(Number(visibility.visibilityLevel))
-            ? Number(visibility.visibilityLevel)
-            : -1
-        if (requiredLevel < 0) {
-            notFound()
-        }
+    if (!product && typeof requiredLevel === "number" && requiredLevel >= 0) {
         return <BuyRestricted requiredLevel={requiredLevel} isLoggedIn={isLoggedIn} />
     }
 
-    const liveStats = product ? await getLiveCardStats([product.id]).catch(() => new Map()) : new Map()
-    const stat = product ? (liveStats.get(product.id) || { unused: 0, available: 0, locked: 0 }) : { unused: 0, available: 0, locked: 0 }
-    const liveAvailable = product
-        ? (product.isShared
-            ? (stat.unused > 0 ? INFINITE_STOCK : 0)
-            : stat.available)
-        : 0
-    const liveLocked = product ? stat.locked : 0
+    if (!product) {
+        return (
+            <main className="container py-16 max-w-lg">
+                <Card className="tech-card">
+                    <CardContent className="py-8 text-sm text-muted-foreground">
+                        Product not found.
+                    </CardContent>
+                </Card>
+            </main>
+        )
+    }
 
     return (
         <BuyContent
             product={product}
-            stockCount={liveAvailable}
-            lockedStockCount={liveLocked}
-            isLoggedIn={!!session?.user}
+            stockCount={product.stock}
+            lockedStockCount={0}
+            isLoggedIn={isLoggedIn}
             reviews={[]}
             averageRating={Number(product.rating || 0)}
             reviewCount={Number(product.reviewCount || 0)}

@@ -1,5 +1,6 @@
 'use client'
 
+import { AuthProvider } from '@/application/context/AuthContext'
 import { I18nProvider } from '@/lib/i18n/context'
 import { Toaster } from 'sonner'
 import { ThemeProvider as NextThemesProvider } from "next-themes"
@@ -22,8 +23,10 @@ export function Providers({ children, themeColor, initialLocale = 'en' }: Provid
         >
             <ThemeColorProvider color={themeColor || null}>
                 <I18nProvider initialLocale={initialLocale}>
-                    {children}
-                    <Toaster position="top-center" richColors />
+                    <AuthProvider>
+                        {children}
+                        <Toaster position="top-center" richColors />
+                    </AuthProvider>
                 </I18nProvider>
             </ThemeColorProvider>
         </NextThemesProvider>

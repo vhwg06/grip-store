@@ -1,61 +1,42 @@
-import { auth } from "@/lib/auth"
-import { db } from "@/lib/db"
-import { orders, refundRequests } from "@/lib/db/schema"
-import { and, desc, eq } from "drizzle-orm"
-import { notFound } from "next/navigation"
-import { cookies } from "next/headers"
+"use client"
+
+import { useParams } from "next/navigation"
+import { useOrder } from "@/application/hooks/useOrder"
 import { OrderContent } from "@/components/order-content"
+import { Card, CardContent } from "@/components/ui/card"
 
-export default async function OrderPage({ params }: { params: Promise<{ id: string }> }) {
-    const { id } = await params
-    const session = await auth()
-    const user = session?.user
+export default function OrderPage() {
+    const params = useParams<{ id: string }>()
+    const id = typeof params?.id === "string" ? params.id : ""
+    const { order, canViewKey, isOwner, refundRequest, isLoading } = useOrder(id)
 
-    const order = await db.query.orders.findFirst({
-        where: eq(orders.orderId, id)
-    })
+    if (isLoading) {
+        return (
+            <div className="container py-12 max-w-2xl space-y-4">
+                <div className="h-8 w-40 rounded-md bg-muted/60 animate-pulse" />
+                <div className="h-96 rounded-xl bg-muted/40 animate-pulse" />
+            </div>
+        )
+    }
 
-    if (!order) return notFound()
-
-    // Access Control
-    let canViewKey = false
-    const isOwner = !!(user && (user.id === order.userId || user.username === order.username))
-    if (isOwner) canViewKey = true
-
-    // Check Cookie
-    const cookieStore = await cookies()
-    const pending = cookieStore.get('ldc_pending_order')
-    if (pending?.value === id) canViewKey = true
-
-    // Refund request status (best effort)
-    let refundRequest: any = null
-    if (user?.id) {
-        try {
-            refundRequest = await db.query.refundRequests.findFirst({
-                where: and(eq(refundRequests.orderId, id), eq(refundRequests.userId, user.id)),
-                orderBy: [desc(refundRequests.createdAt)]
-            })
-        } catch {
-            refundRequest = null
-        }
+    if (!order) {
+        return (
+            <main className="container py-16 max-w-lg">
+                <Card className="tech-card">
+                    <CardContent className="py-8 text-sm text-muted-foreground">
+                        Order not found.
+                    </CardContent>
+                </Card>
+            </main>
+        )
     }
 
     return (
         <OrderContent
-            order={{
-                orderId: order.orderId,
-                productId: order.productId,
-                productName: order.productName,
-                amount: order.amount,
-                status: order.status || 'pending',
-                cardKey: order.cardKey,
-                payee: order.payee,
-                createdAt: order.createdAt,
-                paidAt: order.paidAt
-            }}
+            order={order}
             canViewKey={canViewKey}
             isOwner={isOwner}
-            refundRequest={refundRequest ? { status: refundRequest.status, reason: refundRequest.reason } : null}
+            refundRequest={refundRequest}
         />
     )
 }

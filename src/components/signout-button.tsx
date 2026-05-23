@@ -1,15 +1,21 @@
 "use client"
 
-import { signOut } from "next-auth/react"
+import { useAuth } from "@/application/hooks/useAuth"
 import { DropdownMenuItem } from "@/components/ui/dropdown-menu"
 import { useI18n } from "@/lib/i18n/context"
+import { useRouter } from "next/navigation"
 
 export function SignOutButton() {
     const { t } = useI18n()
+    const { logout } = useAuth()
+    const router = useRouter()
 
     return (
         <DropdownMenuItem
-            onClick={() => signOut({ callbackUrl: "/" })}
+            onClick={async () => {
+                await logout()
+                router.push("/")
+            }}
             className="cursor-pointer"
         >
             {t('common.logout')}

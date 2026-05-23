@@ -5,7 +5,7 @@ import { useI18n } from '@/lib/i18n/context'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { StarRating } from '@/components/star-rating'
-import { submitReview } from '@/actions/reviews'
+import { useReviews } from '@/application/hooks/useReviews'
 
 interface ReviewFormProps {
     productId: string
@@ -20,6 +20,7 @@ export function ReviewForm({ productId, orderId, onSuccess }: ReviewFormProps) {
     const [submitting, setSubmitting] = useState(false)
     const [submitted, setSubmitted] = useState(false)
     const [error, setError] = useState('')
+    const { submitReview } = useReviews(productId)
 
     const handleSubmit = async () => {
         if (rating < 1 || rating > 5) {
@@ -31,7 +32,7 @@ export function ReviewForm({ productId, orderId, onSuccess }: ReviewFormProps) {
         setError('')
 
         try {
-            const result = await submitReview(productId, orderId, rating, comment)
+            const result = await submitReview(productId, { orderId, rating, comment })
             if (result.success) {
                 setSubmitted(true)
                 onSuccess?.()

@@ -11,10 +11,9 @@ import { ClientDate } from "@/components/client-date"
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { requestRefund } from "@/actions/refund-requests"
+import { cancelPendingOrder, checkOrderStatus, submitRefundRequest } from "@/adapters/api/orders.api"
 import { toast } from "sonner"
 import { useEffect } from "react"
-import { checkOrderStatus, cancelPendingOrder } from "@/actions/order"
 import { useRouter } from "next/navigation"
 import { isPaymentOrder } from "@/lib/payment"
 
@@ -23,11 +22,11 @@ interface Order {
     productId?: string | null
     productName: string
     amount: string
-    status: string
+    status: string | null
     cardKey: string | null
     payee?: string | null
-    createdAt: Date | null
-    paidAt: Date | null
+    createdAt: Date | string | null
+    paidAt: Date | string | null
 }
 
 interface OrderContentProps {
@@ -50,7 +49,11 @@ export function OrderContent({ order, canViewKey, isOwner, refundRequest }: Orde
         submitLock.current = true
         setSubmitting(true)
         try {
-            await requestRefund(order.orderId, reason)
+            const result = await submitRefundRequest(order.orderId, reason)
+            if (!result.success) {
+                toast.error(result.error ? t(result.error) : t('common.error'))
+                return
+            }
             toast.success(t('refund.requested'))
             setConfirmOpen(false)
         } catch (e: any) {
@@ -71,11 +74,12 @@ export function OrderContent({ order, canViewKey, isOwner, refundRequest }: Orde
         }
     }
 
-    const getStatusText = (status: string) => {
+    const getStatusText = (status: string | null) => {
+        if (!status) return t('order.status.pending')
         return t(`order.status.${status}`) || status.toUpperCase()
     }
 
-    const getStatusMessage = (status: string) => {
+    const getStatusMessage = (status: string | null) => {
         switch (status) {
             case 'paid': return isPayment ? t('payment.paidMessage') : t('order.stockDepleted')
             case 'cancelled': return t('order.cancelledMessage')
@@ -89,7 +93,7 @@ export function OrderContent({ order, canViewKey, isOwner, refundRequest }: Orde
 
     // Check status on mount and polling
     useEffect(() => {
-        if (order.status !== 'pending') return
+        if ((order.status || 'pending') !== 'pending') return
 
         let mounted = true
         let intervalId: NodeJS.Timeout
@@ -143,7 +147,7 @@ export function OrderContent({ order, canViewKey, isOwner, refundRequest }: Orde
                             </CardDescription>
                         </div>
                         <Badge
-                            variant={getStatusBadgeVariant(order.status)}
+                            variant={getStatusBadgeVariant(order.status || 'pending')}
                             className={`uppercase text-xs tracking-wider ${order.status === 'delivered' ? 'bg-green-500/10 text-green-500 border-green-500/30' : ''}`}
                         >
                             {getStatusText(order.status)}
@@ -308,21 +312,10 @@ export function OrderContent({ order, canViewKey, isOwner, refundRequest }: Orde
                                             submitLock.current = true
                                             setSubmitting(true)
                                             try {
-                                                const { getRetryPaymentParams } = await import("@/actions/checkout")
+                                                const { getRetryPaymentParams, submitPaymentForm } = await import("@/adapters/api/checkout.api")
                                                 const result = await getRetryPaymentParams(order.orderId)
-                                                if (result.success && result.params) {
-                                                    const form = document.createElement('form')
-                                                    form.method = 'POST'
-                                                    form.action = '/paying'
-                                                    Object.entries(result.params).forEach(([k, v]) => {
-                                                        const input = document.createElement('input')
-                                                        input.type = 'hidden'
-                                                        input.name = k
-                                                        input.value = String(v)
-                                                        form.appendChild(input)
-                                                    })
-                                                    document.body.appendChild(form)
-                                                    form.submit()
+                                                if (result.success && result.params && result.url) {
+                                                    submitPaymentForm(result)
                                                 } else {
                                                     toast.error(result.error ? t(result.error) : t('common.error'))
                                                 }

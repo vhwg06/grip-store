@@ -1,8 +1,8 @@
 'use client'
 
 import { useState, useEffect, useRef } from "react"
-import { createOrder } from "@/actions/checkout"
-import { getUserPoints } from "@/actions/points"
+import { useAuth } from "@/application/hooks/useAuth"
+import { useCheckout } from "@/application/hooks/useCheckout"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
@@ -26,26 +26,19 @@ export function BuyButton({ productId, price, productName, disabled, quantity = 
     const [open, setOpen] = useState(false)
     const [points, setPoints] = useState(0)
     const [usePoints, setUsePoints] = useState(false)
-    const [pointsLoading, setPointsLoading] = useState(false)
     const [hasAutoOpened, setHasAutoOpened] = useState(false)
     const [email, setEmail] = useState('')
     const isNavigatingRef = useRef(false)
     const { t } = useI18n()
+    const { user, refresh } = useAuth()
+    const { createOrder, submitPaymentForm } = useCheckout()
 
     const numericalPrice = Number(price) * quantity
 
     const openDialog = async () => {
         if (disabled) return
         setOpen(true)
-        setPointsLoading(true)
-        try {
-            const p = await getUserPoints()
-            setPoints(p)
-        } catch (e) {
-            console.error(e)
-        } finally {
-            setPointsLoading(false)
-        }
+        setPoints(user?.points || 0)
     }
 
     // Auto-open dialog when autoOpen is true (after warning confirmation)
@@ -65,7 +58,7 @@ export function BuyButton({ productId, price, productName, disabled, quantity = 
 
         try {
             setLoading(true)
-            const result = await createOrder(productId, quantity, email, usePoints)
+            const result = await createOrder({ productId, quantity, email, usePoints })
 
             if (!result?.success) {
                 const message = result?.error ? t(result.error) : t('common.error')
@@ -74,11 +67,12 @@ export function BuyButton({ productId, price, productName, disabled, quantity = 
                 return
             }
 
-            if (result.isZeroPrice && result.url) {
+            if (result.isZeroPrice && (result.url || result.orderId)) {
                 // Mark as navigating to prevent further state updates
                 isNavigatingRef.current = true
+                void refresh()
                 toast.success(t('buy.paymentSuccessPoints'))
-                window.location.href = result.url
+                window.location.href = result.url || `/order/${result.orderId}`
                 return
             }
 
@@ -93,22 +87,7 @@ export function BuyButton({ productId, price, productName, disabled, quantity = 
             if (params) {
                 // Mark as navigating to prevent React errors on Safari
                 isNavigatingRef.current = true
-
-                // Submit Form immediately without closing dialog
-                const form = document.createElement('form')
-                form.method = 'POST'
-                form.action = '/paying'
-
-                Object.entries(params as Record<string, any>).forEach(([k, v]) => {
-                    const input = document.createElement('input')
-                    input.type = 'hidden'
-                    input.name = k
-                    input.value = String(v)
-                    form.appendChild(input)
-                })
-
-                document.body.appendChild(form)
-                form.submit()
+                submitPaymentForm(result)
                 return
             }
 

@@ -7,12 +7,12 @@ import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Coins, Package, Clock, CheckCircle, ChevronRight, User, LogOut, Bell } from "lucide-react"
-import { signOut } from "next-auth/react"
+import { useAuth } from "@/application/hooks/useAuth"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { toast } from "sonner"
-import { updateDesktopNotifications, updateProfileEmail } from "@/actions/profile"
+import { useProfile } from "@/application/hooks/useProfile"
 import { useEffect, useRef, useState } from "react"
 import { CheckInButton } from "@/components/checkin-button"
 import { clearMyNotifications, getMyNotifications, markAllNotificationsRead, markNotificationRead } from "@/actions/user-notifications"
@@ -49,6 +49,8 @@ interface ProfileContentProps {
 
 export function ProfileContent({ user, points, checkinEnabled, orderStats, notifications: initialNotifications, desktopNotificationsEnabled }: ProfileContentProps) {
     const { t } = useI18n()
+    const { logout } = useAuth()
+    const { updateProfileEmail, updateDesktopNotifications, refresh: refreshProfile } = useProfile()
     const [email, setEmail] = useState(user.email || '')
     const [savingEmail, setSavingEmail] = useState(false)
     const [pointsValue, setPointsValue] = useState(points)
@@ -162,6 +164,7 @@ export function ProfileContent({ user, points, checkinEnabled, orderStats, notif
             const res = await updateDesktopNotifications(next)
             if (res?.success) {
                 setDesktopEnabled(next)
+                void refreshProfile()
                 toast.success(next ? t('profile.desktopNotifications.enabledToast') : t('profile.desktopNotifications.disabledToast'))
                 if (next) {
                     notifiedIdsRef.current = new Set(notifications.map((n) => n.id))
@@ -231,6 +234,7 @@ export function ProfileContent({ user, points, checkinEnabled, orderStats, notif
                                 try {
                                     const result = await updateProfileEmail(email)
                                     if (result?.success) {
+                                        void refreshProfile()
                                         toast.success(t('profile.emailSaved'))
                                     } else {
                                         toast.error(result?.error ? t(result.error) : t('common.error'))
@@ -526,7 +530,7 @@ export function ProfileContent({ user, points, checkinEnabled, orderStats, notif
             <Button
                 variant="outline"
                 className="w-full"
-                onClick={() => signOut({ callbackUrl: "/" })}
+                onClick={() => void logout()}
             >
                 <LogOut className="h-4 w-4 mr-2" />
                 {t('common.logout')}

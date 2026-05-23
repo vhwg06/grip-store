@@ -1,8 +1,8 @@
 'use client'
 
 import { useState } from "react"
+import { useCheckout } from "@/application/hooks/useCheckout"
 import { useI18n } from "@/lib/i18n/context"
-import { createPaymentOrder } from "@/actions/payment"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -12,6 +12,7 @@ import { toast } from "sonner"
 
 export function PaymentLinkContent({ payee }: { payee?: string | null }) {
     const { t } = useI18n()
+    const { createPaymentOrder, submitPaymentForm } = useCheckout()
     const [amount, setAmount] = useState("")
     const [submitting, setSubmitting] = useState(false)
 
@@ -25,26 +26,13 @@ export function PaymentLinkContent({ payee }: { payee?: string | null }) {
 
         setSubmitting(true)
         try {
-            const result = await createPaymentOrder(numeric, payee)
-            if (!result?.success || !result.params) {
+            const result = await createPaymentOrder({ amount: numeric, payee })
+            if (!result?.success || !result.params || !result.url) {
                 toast.error(result?.error ? t(result.error) : t('common.error'))
                 return
             }
 
-            const form = document.createElement('form')
-            form.method = 'POST'
-            form.action = '/paying'
-
-            Object.entries(result.params).forEach(([k, v]) => {
-                const input = document.createElement('input')
-                input.type = 'hidden'
-                input.name = k
-                input.value = String(v)
-                form.appendChild(input)
-            })
-
-            document.body.appendChild(form)
-            form.submit()
+            submitPaymentForm(result)
         } catch (e: any) {
             toast.error(e.message || t('common.error'))
         } finally {

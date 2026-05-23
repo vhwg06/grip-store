@@ -24,7 +24,7 @@ import { Loader2, Minus, Plus, Share2 } from "lucide-react"
 import { toast } from "sonner"
 import Image from "next/image"
 import { INFINITE_STOCK } from "@/lib/constants"
-import { getBuyPageMeta } from "@/actions/buy"
+import { getBuyPageMeta } from "@/adapters/api/checkout.api"
 
 interface Product {
     id: string

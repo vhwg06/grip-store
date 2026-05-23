@@ -1,8 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useCheckin } from "@/application/hooks/useCheckin"
 import { Button } from "@/components/ui/button"
-import { checkIn, getUserPoints, getCheckinStatus } from "@/actions/points"
 import { toast } from "sonner"
 import { Gift, Coins } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -28,23 +28,16 @@ export function CheckInButton({
     const [checkedIn, setCheckedIn] = useState(false)
     const [loading, setLoading] = useState(true)
     const [checkingIn, setCheckingIn] = useState(false)
+    const { checkIn, checkedIn: fetchedCheckedIn, points: fetchedPoints, isLoading, refresh } = useCheckin()
 
     useEffect(() => {
-        const init = async () => {
-            try {
-                const [p, s] = await Promise.all([getUserPoints(), getCheckinStatus()])
-                setPoints(p)
-                setCheckedIn(s.checkedIn)
-                onPointsChange?.(p)
-                onCheckedInChange?.(s.checkedIn)
-            } catch (e) {
-                console.error(e)
-            } finally {
-                setLoading(false)
-            }
-        }
-        init()
-    }, [])
+        if (isLoading) return
+        setPoints(fetchedPoints)
+        setCheckedIn(fetchedCheckedIn)
+        onPointsChange?.(fetchedPoints)
+        onCheckedInChange?.(fetchedCheckedIn)
+        setLoading(false)
+    }, [fetchedCheckedIn, fetchedPoints, isLoading, onCheckedInChange, onPointsChange])
 
     const handleCheckIn = async () => {
         setCheckingIn(true)
@@ -52,6 +45,7 @@ export function CheckInButton({
             const res = await checkIn()
             if (res.success) {
                 toast.success(t('checkin.success', { points: res.points || 0 }))
+                await refresh()
                 setPoints(prev => {
                     const next = prev + (res.points || 0)
                     onPointsChange?.(next)

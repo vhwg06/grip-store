@@ -17,7 +17,7 @@ interface Order {
     productName: string
     amount: string
     status: string | null
-    createdAt: Date | null
+    createdAt: Date | string | null
     canReview?: boolean
 }
 

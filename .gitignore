@@ -62,6 +62,7 @@ pnpm-debug.log
 *.tar.gz
 *.zip
 *.tmp
+*.tsbuildinfo
 
 # Ignore local data
 /data/*.sqlite*

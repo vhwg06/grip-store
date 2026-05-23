@@ -10,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import { toast } from "sonner"
 import { Trash2, ThumbsUp, Sparkles } from "lucide-react"
-import { submitWishlistItem, toggleWishlistVote, deleteWishlistItem } from "@/actions/wishlist"
+import { useWishlist } from "@/application/hooks/useWishlist"
 import { cn } from "@/lib/utils"
 
 export interface WishlistItem {
@@ -33,6 +33,7 @@ export function WishlistSection({
     isAdmin?: boolean
 }) {
     const { t } = useI18n()
+    const { submitWishlistItem, toggleWishlistVote, deleteWishlistItem, refresh } = useWishlist()
     const [items, setItems] = useState<WishlistItem[]>(initialItems || [])
     const [title, setTitle] = useState("")
     const [desc, setDesc] = useState("")
@@ -60,6 +61,7 @@ export function WishlistSection({
             const res = await submitWishlistItem(cleanTitle, cleanDesc)
             if (res?.success && res.item) {
                 setItems((prev) => [res.item, ...prev])
+                void refresh()
                 setTitle("")
                 setDesc("")
                 toast.success(t("wishlist.submitSuccess"))
@@ -92,6 +94,7 @@ export function WishlistSection({
                             : item
                     )
                 )
+                void refresh()
             } else {
                 toast.error(res?.error ? t(res.error) : t("common.error"))
             }
@@ -110,6 +113,7 @@ export function WishlistSection({
             const res = await deleteWishlistItem(itemId)
             if (res?.success) {
                 setItems((prev) => prev.filter((item) => item.id !== itemId))
+                void refresh()
                 toast.success(t("common.deleteSuccess"))
             } else {
                 toast.error(t("common.error"))
