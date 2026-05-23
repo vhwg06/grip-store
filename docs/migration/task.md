@@ -24,7 +24,7 @@
 ## Deliverable 2: Frontend Refactor
 
 ### Phase 0 – Cleanup Setup
-- [ ] Xóa packages không dùng:
+- [x] Xóa packages không dùng:
   ```bash
   npm uninstall drizzle-orm drizzle-kit better-sqlite3 next-auth @auth/core
   ```
@@ -39,15 +39,15 @@
 - [x] **[NEW]** `src/adapters/api/token-store.ts`
   - [x] `getAccessToken()`, `setTokens()`, `clearTokens()`, `getRefreshToken()`
   - [x] Storage: memory primary, cookie fallback cho SSR hydration
-- [ ] **[NEW]** `src/adapters/api/http-client.ts`
+- [x] **[NEW]** `src/adapters/api/http-client.ts`
   - [x] Base `apiFetch<T>(path, init)` với `NEXT_PUBLIC_API_URL` prefix
   - [x] Attach `Authorization: Bearer {token}` nếu có
   - [x] 401 → `POST /api/auth/refresh` → retry once
   - [x] Refresh fail → `clearTokens()` + redirect `/login`
-  - [ ] Error normalize: `{ success: false, error: string }`
-- [ ] **[MODIFY]** `src/app/layout.tsx`
-  - [ ] Xóa `SessionProvider` (next-auth)
-  - [ ] Thêm `AuthProvider` từ `src/application/context/AuthContext.tsx`
+  - [x] Error normalize: `{ success: false, error: string }`
+- [x] **[MODIFY]** `src/app/layout.tsx`
+  - [x] Xóa `SessionProvider` (next-auth)
+  - [x] Thêm `AuthProvider` từ `src/application/context/AuthContext.tsx`
 - [x] **[NEW]** `src/application/context/AuthContext.tsx`
   - [x] React context: `{ user, isAdmin, loading, login, logout, refresh }`
   - [x] `useEffect` → `GET /api/auth/me` on mount để hydrate state
@@ -64,9 +64,9 @@
 - [x] **[MODIFY]** `src/components/signin-button.tsx` – dùng `loginWithLinuxDO()`
 - [x] **[MODIFY]** `src/components/signout-button.tsx` – dùng `logout()`
 - [x] **[MODIFY]** `src/app/login/page.tsx` – hiển thị login buttons, xử lý OAuth callback token
-- [ ] **[DELETE]** `src/app/api/auth/` – next-auth route handlers
-- [ ] **[DELETE]** `src/lib/auth.ts`
-- [ ] **[DELETE]** `src/lib/admin-auth.ts`
+- [x] **[DELETE]** `src/app/api/auth/` – next-auth route handlers
+- [x] **[DELETE]** `src/lib/auth.ts`
+- [x] **[DELETE]** `src/lib/admin-auth.ts`
 
 ### Phase 3 – Catalog Module (M2)
 - [x] **[NEW]** `src/domain/catalog.ts`
@@ -81,8 +81,8 @@
 - [x] **[MODIFY]** `src/app/page.tsx` – `'use client'` + `useCatalog()`
 - [x] **[MODIFY]** `src/app/search/page.tsx` – `'use client'` + `useSearch()`
 - [x] **[MODIFY]** `src/app/buy/[id]/page.tsx` – `'use client'` + `useProduct()`
-- [ ] **[MODIFY]** `src/components/home-content.tsx`
-- [ ] **[MODIFY]** `src/components/search-content.tsx`
+- [x] **[MODIFY]** `src/components/home-content.tsx`
+- [x] **[MODIFY]** `src/components/search-content.tsx`
 
 ### Phase 4 – Checkout Module (M3)
 - [x] **[NEW]** `src/domain/checkout.ts`
@@ -197,68 +197,68 @@
 - [x] **[DELETE]** `src/actions/update-check.ts`
 
 ### Phase 10 – Final Cleanup
-- [ ] **[DELETE]** `src/lib/db/` (toàn bộ folder)
-- [ ] **[DELETE]** `src/lib/email.ts`
-- [ ] **[DELETE]** `src/lib/notifications.ts`
-- [ ] **[DELETE]** `src/lib/order-processing.ts`
-- [ ] **[DELETE]** `src/lib/epay.ts`
-- [ ] **[DELETE]** `src/lib/card-api.ts`
-- [ ] **[DELETE]** `src/lib/crypto.ts`
-- [ ] **[DELETE]** `drizzle.config.ts`
-- [ ] **[MODIFY]** `package.json` – remove backend deps
-- [ ] **[MODIFY]** `next.config.ts` – remove server-only configs
+- [x] **[DELETE]** `src/lib/db/` (toàn bộ folder)
+- [x] **[DELETE]** `src/lib/email.ts`
+- [x] **[DELETE]** `src/lib/notifications.ts`
+- [x] **[DELETE]** `src/lib/order-processing.ts`
+- [x] **[DELETE]** `src/lib/epay.ts`
+- [x] **[DELETE]** `src/lib/card-api.ts`
+- [x] **[DELETE]** `src/lib/crypto.ts`
+- [x] **[DELETE]** `drizzle.config.ts`
+- [x] **[MODIFY]** `package.json` – remove backend deps
+- [x] **[MODIFY]** `next.config.ts` – remove server-only configs
 
 ---
 
 ## Deliverable 3: New Components
 
 ### Foundation Components
-- [ ] `src/components/api-error-boundary.tsx` – Error boundary + retry
-- [ ] `src/components/loading-skeleton.tsx` – Skeleton variants (card, list-item, full-page)
-- [ ] `src/components/empty-state.tsx` – Icon + message + optional CTA
-- [ ] `src/components/toast-provider.tsx` – Global toast system
+- [x] `src/components/api-error-boundary.tsx` – Error boundary + retry
+- [x] `src/components/loading-skeleton.tsx` – Skeleton variants (card, list-item, full-page)
+- [x] `src/components/empty-state.tsx` – Icon + message + optional CTA
+- [x] `src/components/toast-provider.tsx` – Global toast system
 
 ### Auth Components
-- [ ] `src/components/auth-guard.tsx` – HOC/wrapper requiring auth
-- [ ] `src/components/user-avatar.tsx` – Avatar image + username
-- [ ] `src/components/login-modal.tsx` – Login prompt popup
+- [x] `src/components/auth-guard.tsx` – HOC/wrapper requiring auth
+- [x] `src/components/user-avatar.tsx` – Avatar image + username
+- [x] `src/components/login-modal.tsx` – Login prompt popup
 
 ### Catalog Components
-- [ ] `src/components/product-card.tsx` – Standalone product card (extract từ home-content)
-- [ ] `src/components/product-grid.tsx` – Responsive grid
-- [ ] `src/components/category-filter.tsx` – Horizontal scroll category pills
-- [ ] `src/components/search-bar.tsx` – Debounced search
-- [ ] `src/components/stock-badge.tsx` – In Stock / Low / OOS badge
-- [ ] `src/components/price-display.tsx` – Price + compareAtPrice
+- [x] `src/components/product-card.tsx` – Standalone product card (extract từ home-content)
+- [x] `src/components/product-grid.tsx` – Responsive grid
+- [x] `src/components/category-filter.tsx` – Horizontal scroll category pills
+- [x] `src/components/search-bar.tsx` – Debounced search
+- [x] `src/components/stock-badge.tsx` – In Stock / Low / OOS badge
+- [x] `src/components/price-display.tsx` – Price + compareAtPrice
 
 ### Checkout Components
-- [ ] `src/components/quantity-selector.tsx` – +/- với validation
-- [ ] `src/components/points-toggle.tsx` – Toggle + balance display
-- [ ] `src/components/payment-status-poller.tsx` – Auto-poll với countdown UI
+- [x] `src/components/quantity-selector.tsx` – +/- với validation
+- [x] `src/components/points-toggle.tsx` – Toggle + balance display
+- [x] `src/components/payment-status-poller.tsx` – Auto-poll với countdown UI
 
 ### Order Components
-- [ ] `src/components/order-status-badge.tsx` – Color-coded badge
-- [ ] `src/components/order-card.tsx` – Order list item
-- [ ] `src/components/card-key-display.tsx` – Masked + reveal + copy
-- [ ] `src/components/refund-request-form.tsx` – Refund form modal
+- [x] `src/components/order-status-badge.tsx` – Color-coded badge
+- [x] `src/components/order-card.tsx` – Order list item
+- [x] `src/components/card-key-display.tsx` – Masked + reveal + copy
+- [x] `src/components/refund-request-form.tsx` – Refund form modal
 
 ### Profile Components
-- [ ] `src/components/checkin-streak.tsx` – Streak visual
-- [ ] `src/components/notification-item.tsx` – Render i18n notification
+- [x] `src/components/checkin-streak.tsx` – Streak visual
+- [x] `src/components/notification-item.tsx` – Render i18n notification
 
 ### Admin Components
-- [ ] `src/components/admin/data-table.tsx` – Reusable table với sort/filter/pagination
-- [ ] `src/components/admin/stats-card.tsx` – Revenue/orders card
-- [ ] `src/components/admin/confirm-dialog.tsx` – Confirm modal
-- [ ] `src/components/admin/order-row.tsx` – Expandable order row
+- [x] `src/components/admin/data-table.tsx` – Reusable table với sort/filter/pagination
+- [x] `src/components/admin/stats-card.tsx` – Revenue/orders card
+- [x] `src/components/admin/confirm-dialog.tsx` – Confirm modal
+- [x] `src/components/admin/order-row.tsx` – Expandable order row
 
 ---
 
 ## Final Verification
-- [ ] `grep -rn "use server" src/` → 0 kết quả
-- [ ] `grep -rn "from.*@/lib/db" src/` → 0 kết quả
-- [ ] `grep -rn "from.*drizzle-orm" src/` → 0 kết quả
-- [ ] `grep -rn "from.*next-auth" src/` → 0 kết quả
-- [ ] `npm run lint` → pass
-- [ ] `npm run build` → pass (build static client bundle)
+- [x] `grep -rn "use server" src/` → 0 kết quả
+- [x] `grep -rn "from.*@/lib/db" src/` → 0 kết quả
+- [x] `grep -rn "from.*drizzle-orm" src/` → 0 kết quả
+- [x] `grep -rn "from.*next-auth" src/` → 0 kết quả
+- [x] `npm run lint` → pass
+- [x] `npm run build` → pass (build static client bundle)
 - [ ] Smoke test tất cả user flows
