@@ -32,7 +32,7 @@ export function NotificationsContent({ settings }: NotificationsContentProps) {
     const { t } = useI18n()
     const [token, setToken] = useState(settings.telegramBotToken || '')
     const [chatId, setChatId] = useState(settings.telegramChatId || '')
-    const [language, setLanguage] = useState(settings.telegramLanguage || 'zh')
+    const [language, setLanguage] = useState(settings.telegramLanguage || 'vi')
     const [telegramEnabled, setTelegramEnabled] = useState(settings.telegramEnabled || false)
     const [isLoading, setIsLoading] = useState(false)
     const [isTesting, setIsTesting] = useState(false)
@@ -48,7 +48,7 @@ export function NotificationsContent({ settings }: NotificationsContentProps) {
     const [resendApiKey, setResendApiKey] = useState(settings.resendApiKey || '')
     const [resendFromEmail, setResendFromEmail] = useState(settings.resendFromEmail || '')
     const [resendFromName, setResendFromName] = useState(settings.resendFromName || '')
-    const [emailLanguage, setEmailLanguage] = useState(settings.emailLanguage || 'zh')
+    const [emailLanguage, setEmailLanguage] = useState(settings.emailLanguage || 'vi')
     const [isTestingEmail, setIsTestingEmail] = useState(false)
     const [testEmail, setTestEmail] = useState('')
 
@@ -58,7 +58,7 @@ export function NotificationsContent({ settings }: NotificationsContentProps) {
             const saved = await saveNotificationSettings(formData)
             setToken(saved.telegramBotToken || '')
             setChatId(saved.telegramChatId || '')
-            setLanguage(saved.telegramLanguage || 'zh')
+            setLanguage(saved.telegramLanguage || 'vi')
             setTelegramEnabled(!!saved.telegramEnabled)
             setBarkEnabled(!!saved.barkEnabled)
             setBarkServerUrl(saved.barkServerUrl || 'https://api.day.app')
@@ -67,7 +67,7 @@ export function NotificationsContent({ settings }: NotificationsContentProps) {
             setResendApiKey(saved.resendApiKey || '')
             setResendFromEmail(saved.resendFromEmail || '')
             setResendFromName(saved.resendFromName || '')
-            setEmailLanguage(saved.emailLanguage || 'zh')
+            setEmailLanguage(saved.emailLanguage || 'vi')
             toast.success(t('common.success'))
         } catch (e: any) {
             toast.error(e.message || t('common.error'))
@@ -219,11 +219,11 @@ export function NotificationsContent({ settings }: NotificationsContentProps) {
                             <div className="flex gap-2">
                                 <Button
                                     type="button"
-                                    variant={language === 'zh' ? 'default' : 'outline'}
+                                    variant={language === 'vi' ? 'default' : 'outline'}
                                     size="sm"
-                                    onClick={() => setLanguage('zh')}
+                                    onClick={() => setLanguage('vi')}
                                 >
-                                    中文
+                                    Tiếng Việt
                                 </Button>
                                 <Button
                                     type="button"
@@ -398,11 +398,11 @@ export function NotificationsContent({ settings }: NotificationsContentProps) {
                             <div className="flex gap-2">
                                 <Button
                                     type="button"
-                                    variant={emailLanguage === 'zh' ? 'default' : 'outline'}
+                                    variant={emailLanguage === 'vi' ? 'default' : 'outline'}
                                     size="sm"
-                                    onClick={() => setEmailLanguage('zh')}
+                                    onClick={() => setEmailLanguage('vi')}
                                 >
-                                    中文
+                                    Tiếng Việt
                                 </Button>
                                 <Button
                                     type="button"

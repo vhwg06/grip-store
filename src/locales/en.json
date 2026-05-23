@@ -790,5 +790,19 @@
         "disabled": "Wishlist is disabled",
         "blocked": "Your account is restricted",
         "anonymous": "Anonymous"
+    },
+    "loginForm": {
+        "title": "Account Sign In",
+        "subtitle": "Please enter your credentials to access the shop",
+        "usernameOrEmail": "Username / Email",
+        "password": "Password",
+        "submit": "Sign In",
+        "submitting": "Signing in...",
+        "loadingSession": "Loading session...",
+        "verifying": "Verifying credentials...",
+        "errorEmpty": "Please enter username/email and password",
+        "errorPasswordLength": "Password must be at least 6 characters",
+        "errorFailed": "Login failed, please check connection or credentials",
+        "success": "Login successful! Redirecting..."
     }
 }

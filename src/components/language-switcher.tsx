@@ -18,15 +18,15 @@ export function LanguageSwitcher() {
             <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="sm" className="gap-1" title={t('language.switch')} aria-label={t('language.switch')}>
                     <Languages className="h-4 w-4" />
-                    <span className="hidden sm:inline">{locale === 'zh' ? '中文' : 'EN'}</span>
+                    <span className="hidden sm:inline">{locale === 'vi' ? 'Tiếng Việt' : 'EN'}</span>
                 </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
                 <DropdownMenuItem onClick={() => setLocale('en')} className={locale === 'en' ? 'bg-accent' : ''}>
                     English
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setLocale('zh')} className={locale === 'zh' ? 'bg-accent' : ''}>
-                    中文
+                <DropdownMenuItem onClick={() => setLocale('vi')} className={locale === 'vi' ? 'bg-accent' : ''}>
+                    Tiếng Việt
                 </DropdownMenuItem>
             </DropdownMenuContent>
         </DropdownMenu>

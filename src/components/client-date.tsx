@@ -26,7 +26,7 @@ export function ClientDate({ value, format = 'date', placeholder = '', className
         const date = value instanceof Date ? value : new Date(value)
         if (Number.isNaN(date.getTime())) return placeholder
 
-        const intlLocale = locale === 'zh' ? 'zh-CN' : 'en-US'
+        const intlLocale = locale === 'vi' ? 'vi-VN' : 'en-US'
         const options: Intl.DateTimeFormatOptions = format === 'dateTime'
             ? { dateStyle: 'medium', timeStyle: 'short' }
             : { dateStyle: 'medium' }

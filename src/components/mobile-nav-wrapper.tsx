@@ -7,7 +7,7 @@ import { MobileNav } from "./mobile-nav"
 export function MobileNavWrapper() {
     const { user, isAdmin } = useAuth()
     const { settings } = usePublicSettings()
-    const showNav = Boolean((settings as any)?.registryEnabled ? ((settings as any)?.registryOptIn || !(settings as any)?.registryHideNav) : true)
+    const showNav = false
 
     return <MobileNav isLoggedIn={!!user} isAdmin={isAdmin} showNav={showNav} />
 }

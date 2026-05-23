@@ -2,12 +2,12 @@
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react'
 import en from '@/locales/en.json'
-import zh from '@/locales/zh.json'
+import vi from '@/locales/vi.json'
 import { isLocale, type Locale } from './shared'
 
 type Translations = typeof en
 
-const translations: Record<Locale, Translations> = { en, zh }
+const translations: Record<Locale, Translations> = { en, vi }
 
 interface I18nContextType {
     locale: Locale
@@ -28,7 +28,7 @@ function interpolate(text: string, params?: Record<string, string | number>): st
     }, text)
 }
 
-export function I18nProvider({ children, initialLocale = 'en' }: { children: ReactNode; initialLocale?: Locale }) {
+export function I18nProvider({ children, initialLocale = 'vi' }: { children: ReactNode; initialLocale?: Locale }) {
     const [locale, setLocaleState] = useState<Locale>(initialLocale)
 
     useEffect(() => {

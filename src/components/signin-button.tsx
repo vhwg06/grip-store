@@ -3,10 +3,12 @@
 import { useAuth } from "@/application/hooks/useAuth"
 import { Button } from "@/components/ui/button"
 import { useI18n } from "@/lib/i18n/context"
+import { useRouter } from "next/navigation"
 
 export function SignInButton() {
     const { t } = useI18n()
-    const { loginWithLinuxDO, user } = useAuth()
+    const { user } = useAuth()
+    const router = useRouter()
 
     if (user) {
         return null
@@ -20,7 +22,7 @@ export function SignInButton() {
                 const callbackUrl = typeof window === "undefined"
                     ? "/"
                     : `${window.location.pathname}${window.location.search}`
-                loginWithLinuxDO(callbackUrl)
+                router.push(`/login?callbackUrl=${encodeURIComponent(callbackUrl)}`)
             }}
         >
             {t('common.login')}

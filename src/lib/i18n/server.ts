@@ -1,11 +1,11 @@
 import { cookies, headers } from "next/headers"
 import en from '@/locales/en.json'
-import zh from '@/locales/zh.json'
+import vi from '@/locales/vi.json'
 import { detectLocaleFromAcceptLanguage, isLocale, type Locale } from "./shared"
 
 type Translations = typeof en
 
-const translations: Record<Locale, Translations> = { en, zh }
+const translations: Record<Locale, Translations> = { en, vi }
 
 function getNestedValue(obj: any, path: string): string {
   return path.split('.').reduce((acc, part) => acc?.[part], obj) || path
