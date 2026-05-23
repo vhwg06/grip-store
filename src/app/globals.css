@@ -52,7 +52,7 @@
    ====================================== */
 :root {
   --radius: 0.75rem;
-  --theme-hue: 270;
+  --theme-hue: 45;
   --theme-chroma: 1;
   --theme-primary-l: 0.45;
   --theme-primary-dark-l: 0.7;
@@ -298,6 +298,41 @@
     background-image:
       linear-gradient(oklch(0.6 0.1 270 / 0.05) 1px, transparent 1px),
       linear-gradient(90deg, oklch(0.6 0.1 270 / 0.05) 1px, transparent 1px);
+  }
+
+  /* GRIP Typography Scale */
+  .text-grip-xs {
+    font-size: 12px;
+    line-height: 1.5;
+  }
+  .text-grip-sm {
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  .text-grip-base {
+    font-size: 16px;
+    line-height: 1.5;
+  }
+  .text-grip-lg {
+    font-size: 20px;
+    line-height: 1.4;
+  }
+  .text-grip-xl {
+    font-size: 28px;
+    line-height: 1.2;
+  }
+
+  /* Section Spacing */
+  .section-spacing {
+    padding-top: 4rem;
+    padding-bottom: 4rem;
+  }
+  
+  @media (min-width: 768px) {
+    .section-spacing {
+      padding-top: 6rem;
+      padding-bottom: 6rem;
+    }
   }
 }
 

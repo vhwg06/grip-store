@@ -804,5 +804,38 @@
         "errorPasswordLength": "Mật khẩu không được ít hơn 6 ký tự",
         "errorFailed": "Đăng nhập thất bại, vui lòng kiểm tra kết nối mạng hoặc thông tin đăng nhập",
         "success": "Đăng nhập thành công! Đang chuyển hướng..."
+    },
+    "ecommerce": {
+        "cart": {
+            "title": "Giỏ hàng",
+            "empty": "Giỏ hàng của bạn đang trống",
+            "total": "Tổng cộng",
+            "checkout": "Gửi đơn hàng"
+        },
+        "products": {
+            "title": "Sản phẩm",
+            "hot": "Hot",
+            "new": "Mới",
+            "bestSeller": "Bán chạy",
+            "viewAll": "Xem tất cả",
+            "filter": "Lọc",
+            "sort": "Sắp xếp theo"
+        },
+        "news": {
+            "title": "Tin tức mới nhất",
+            "readMore": "Đọc thêm"
+        },
+        "contact": {
+            "title": "Liên hệ",
+            "name": "Họ tên",
+            "phone": "Số điện thoại",
+            "email": "Email",
+            "message": "Lời nhắn",
+            "submit": "Gửi yêu cầu",
+            "success": "Gửi yêu cầu thành công"
+        },
+        "footer": {
+            "company": "GRIP - TỔNG KHO TAY NẮM VIỆT NAM"
+        }
     }
 }

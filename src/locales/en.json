@@ -804,5 +804,38 @@
         "errorPasswordLength": "Password must be at least 6 characters",
         "errorFailed": "Login failed, please check connection or credentials",
         "success": "Login successful! Redirecting..."
+    },
+    "ecommerce": {
+        "cart": {
+            "title": "Shopping Cart",
+            "empty": "Your cart is empty",
+            "total": "Total",
+            "checkout": "Submit Order"
+        },
+        "products": {
+            "title": "Products",
+            "hot": "Hot",
+            "new": "New",
+            "bestSeller": "Best Seller",
+            "viewAll": "View All",
+            "filter": "Filter",
+            "sort": "Sort by"
+        },
+        "news": {
+            "title": "Latest News",
+            "readMore": "Read More"
+        },
+        "contact": {
+            "title": "Contact Us",
+            "name": "Name",
+            "phone": "Phone",
+            "email": "Email",
+            "message": "Message",
+            "submit": "Send Request",
+            "success": "Request sent successfully"
+        },
+        "footer": {
+            "company": "GRIP - TỔNG KHO TAY NẮM VIỆT NAM"
+        }
     }
 }

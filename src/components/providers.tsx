@@ -5,6 +5,7 @@ import { I18nProvider } from '@/lib/i18n/context'
 import { Toaster } from 'sonner'
 import { ThemeProvider as NextThemesProvider } from "next-themes"
 import { ThemeColorProvider } from './theme-color-provider'
+import { CartProvider } from '@/application/context/CartContext'
 import type { Locale } from '@/lib/i18n/shared'
 
 interface ProvidersProps {
@@ -24,8 +25,10 @@ export function Providers({ children, themeColor, initialLocale = 'en' }: Provid
             <ThemeColorProvider color={themeColor || null}>
                 <I18nProvider initialLocale={initialLocale}>
                     <AuthProvider>
-                        {children}
-                        <Toaster position="top-center" richColors />
+                        <CartProvider>
+                            {children}
+                            <Toaster position="top-center" richColors />
+                        </CartProvider>
                     </AuthProvider>
                 </I18nProvider>
             </ThemeColorProvider>

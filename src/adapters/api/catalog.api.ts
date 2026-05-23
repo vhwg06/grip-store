@@ -33,8 +33,15 @@ function normalizeProduct(product: Partial<CatalogProduct>): CatalogProduct {
     price: String(product.price || "0"),
     compareAtPrice: product.compareAtPrice ?? null,
     image: product.image ?? null,
+    images: Array.isArray(product.images) ? product.images : [],
     category: product.category ?? null,
+    categoryId: typeof product.categoryId === 'number' ? product.categoryId : undefined,
+    brand: product.brand ?? undefined,
+    brandId: typeof product.brandId === 'number' ? product.brandId : undefined,
+    sku: product.sku ?? undefined,
     isHot: Boolean(product.isHot),
+    isNew: Boolean(product.isNew),
+    isBestSeller: Boolean(product.isBestSeller),
     isShared: Boolean(product.isShared),
     purchaseLimit: product.purchaseLimit ?? null,
     purchaseWarning: product.purchaseWarning ?? null,
@@ -43,6 +50,9 @@ function normalizeProduct(product: Partial<CatalogProduct>): CatalogProduct {
     sold: Number(product.sold ?? 0),
     rating: Number(product.rating ?? 0),
     reviewCount: Number(product.reviewCount ?? 0),
+    usageGuide: product.usageGuide ?? null,
+    bundledGifts: product.bundledGifts ?? null,
+    discountPercent: typeof product.discountPercent === 'number' ? product.discountPercent : undefined,
   }
 }
 
@@ -124,9 +134,18 @@ export async function getCategories() {
   return items.map((item) => ({
     id: item.id,
     name: String(item.name || ""),
+    slug: item.slug ?? undefined,
     icon: item.icon ?? null,
     sortOrder: Number(item.sortOrder ?? 0),
+    parentId: item.parentId ?? null,
+    productCount: item.productCount ?? undefined,
   }))
+}
+
+export async function getCategoryTree() {
+  const items = await getCategories()
+  // Can be extended to build actual tree if frontend needs nested structure
+  return items
 }
 
 export async function getPublicSettings() {

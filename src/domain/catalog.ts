@@ -5,8 +5,15 @@ export interface CatalogProduct {
   price: string
   compareAtPrice: string | null
   image: string | null
+  images?: string[]
   category: string | null
+  categoryId?: number
+  brand?: string
+  brandId?: number
+  sku?: string
   isHot: boolean
+  isNew?: boolean
+  isBestSeller?: boolean
   isShared: boolean
   purchaseLimit: number | null
   purchaseWarning: string | null
@@ -15,6 +22,9 @@ export interface CatalogProduct {
   sold: number
   rating: number
   reviewCount: number
+  usageGuide?: string | null
+  bundledGifts?: string | null
+  discountPercent?: number
 }
 
 export interface CatalogProductDetail extends CatalogProduct {}
@@ -22,8 +32,11 @@ export interface CatalogProductDetail extends CatalogProduct {}
 export interface CatalogCategory {
   id?: number
   name: string
+  slug?: string
   icon: string | null
   sortOrder: number
+  parentId?: number | null
+  productCount?: number
 }
 
 export interface CatalogSettings {
