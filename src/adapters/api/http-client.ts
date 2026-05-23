@@ -7,6 +7,21 @@ interface ApiErrorPayload {
   message?: string
 }
 
+export interface ApiErrorResult {
+  success: false
+  error: string
+}
+
+export class ApiFetchError extends Error {
+  result: ApiErrorResult
+
+  constructor(result: ApiErrorResult) {
+    super(result.error)
+    this.name = "ApiFetchError"
+    this.result = result
+  }
+}
+
 const API_URL = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "") ?? ""
 
 function resolveUrl(path: string) {
@@ -59,10 +74,24 @@ function redirectToLogin() {
 async function parseError(response: Response) {
   try {
     const payload = (await response.json()) as ApiErrorPayload
-    return payload.error || payload.message || `Request failed with status ${response.status}`
+    return {
+      success: false,
+      error: payload.error || payload.message || `Request failed with status ${response.status}`,
+    } satisfies ApiErrorResult
   } catch {
-    return `Request failed with status ${response.status}`
+    return {
+      success: false,
+      error: `Request failed with status ${response.status}`,
+    } satisfies ApiErrorResult
   }
+}
+
+export function normalizeApiError(error: unknown): ApiErrorResult {
+  if (error instanceof ApiFetchError) return error.result
+  if (error instanceof Error) {
+    return { success: false, error: error.message }
+  }
+  return { success: false, error: "Request failed" }
 }
 
 export async function apiFetch<T>(path: string, init: RequestInit = {}, retried = false): Promise<T> {
@@ -92,7 +121,7 @@ export async function apiFetch<T>(path: string, init: RequestInit = {}, retried 
   }
 
   if (!response.ok) {
-    throw new Error(await parseError(response))
+    throw new ApiFetchError(await parseError(response))
   }
 
   if (response.status === 204) {

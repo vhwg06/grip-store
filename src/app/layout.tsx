@@ -1,13 +1,10 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
 import "./globals.css";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { MobileNavWrapper } from "@/components/mobile-nav-wrapper";
 import { Providers } from "@/components/providers";
 import { cn } from "@/lib/utils";
-
-const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "LDC Virtual Goods Shop",
@@ -40,7 +37,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className={cn("min-h-screen bg-background font-sans antialiased", inter.className)}>
+      <body className={cn("min-h-screen bg-background font-sans antialiased")}>
         <Providers themeColor={null} initialLocale="en">
           <div className="relative flex min-h-screen flex-col">
             <SiteHeader />

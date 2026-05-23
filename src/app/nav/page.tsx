@@ -1,17 +1,22 @@
+"use client"
+
 import Link from "next/link"
+import { useSearchParams } from "next/navigation"
+import useSWR from "swr"
 import { fetchRegistryShops } from "@/lib/registry"
-import { getServerI18n } from "@/lib/i18n/server"
+import { useI18n } from "@/lib/i18n/context"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ShopLogo } from "@/components/nav/shop-logo"
 
-export default async function NavigatorPage({ searchParams }: { searchParams?: Promise<{ q?: string | string[] }> }) {
-    const { t } = await getServerI18n()
-    const resolvedParams = await searchParams
-    const rawQ = resolvedParams?.q
-    const qValue = Array.isArray(rawQ) ? rawQ[0] : rawQ || ""
+export default function NavigatorPage() {
+    const { t } = useI18n()
+    const searchParams = useSearchParams()
+    const qValue = searchParams.get("q") || ""
     const q = qValue.trim().toLowerCase()
-    const { items, error } = await fetchRegistryShops()
+    const { data } = useSWR("registry-shops", fetchRegistryShops)
+    const items = data?.items ?? []
+    const error = data?.error ?? null
     const filtered = q
         ? items.filter((item) => {
             const hay = `${item.name} ${item.description || ""} ${item.url}`.toLowerCase()

@@ -14,12 +14,8 @@ const nextConfig: NextConfig = {
   async rewrites() {
     return [
       {
-        source: '/authcallback',
-        destination: '/api/auth/callback/linuxdo',
-      },
-      {
         source: '/favicon.ico',
-        destination: '/favicon',
+        destination: '/globe.svg',
       },
     ]
   },
