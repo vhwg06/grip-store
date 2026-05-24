@@ -29,44 +29,64 @@ function resolveUrl(path: string) {
     throw new Error("NEXT_PUBLIC_API_URL is not configured")
   }
 
-  return `${API_URL}${path.startsWith("/") ? path : `/${path}`}`
+  const normalizedPath = path.startsWith("/") ? path : `/${path}`
+  // Map /api/... to /v1/... to match the Go backend routing
+  const targetPath = normalizedPath.startsWith("/api/")
+    ? normalizedPath.replace("/api/", "/v1/")
+    : normalizedPath
+
+  return `${API_URL}${targetPath}`
 }
 
 async function tryRefreshToken() {
-  const refreshToken = getRefreshToken()
-  if (!refreshToken) return false
+  try {
+    const refreshToken = getRefreshToken()
+    if (!refreshToken) return false
 
-  const response = await fetch(resolveUrl("/api/auth/refresh"), {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${refreshToken}`,
-    },
-    body: JSON.stringify({ refresh_token: refreshToken }),
-  })
+    const response = await fetch(resolveUrl("/api/auth/refresh"), {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ refreshToken: refreshToken }),
+    })
 
-  if (!response.ok) {
+    if (!response.ok) {
+      clearTokens()
+      return false
+    }
+
+    const payload = await response.json()
+    const data = payload?.data || payload
+    
+    const accessToken = data?.accessToken || data?.access_token
+    const newRefreshToken = data?.refreshToken || data?.refresh_token
+    const expiresIn = Number(data?.expiresIn || data?.expires_in || 86400) // Default to 24h fallback
+
+    if (!accessToken || !newRefreshToken) {
+      clearTokens()
+      return false
+    }
+
+    setTokens({
+      accessToken,
+      refreshToken: newRefreshToken,
+      expiresIn,
+    })
+
+    return true
+  } catch (error) {
+    console.error("Token refresh failed:", error)
     clearTokens()
     return false
   }
-
-  const payload = await response.json()
-  if (!payload?.access_token || !payload?.refresh_token || !payload?.expires_in) {
-    clearTokens()
-    return false
-  }
-
-  setTokens({
-    accessToken: payload.access_token,
-    refreshToken: payload.refresh_token,
-    expiresIn: payload.expires_in,
-  })
-
-  return true
 }
 
 function redirectToLogin() {
   if (typeof window === "undefined") return
+  // Prevent infinite loop redirects if we are already on the login page
+  if (window.location.pathname === "/login") return
+
   const callbackUrl = `${window.location.pathname}${window.location.search}`
   window.location.assign(`/login?callbackUrl=${encodeURIComponent(callbackUrl)}`)
 }
@@ -116,7 +136,11 @@ export async function apiFetch<T>(path: string, init: RequestInit = {}, retried 
       return apiFetch<T>(path, init, true)
     }
 
-    redirectToLogin()
+    // Only force redirect to login if the user was previously authenticated
+    const hasSession = Boolean(getRefreshToken())
+    if (hasSession) {
+      redirectToLogin()
+    }
     throw new Error("Unauthorized")
   }
 

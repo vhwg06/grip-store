@@ -45,15 +45,18 @@ export function setTokens(tokens: AuthTokens) {
   expiresAtMemory = expiresAt
 
   Cookies.set(ACCESS_TOKEN_KEY, tokens.accessToken, {
+    path: "/",
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
   })
   Cookies.set(REFRESH_TOKEN_KEY, tokens.refreshToken, {
+    path: "/",
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
     expires: 30,
   })
   Cookies.set(EXPIRES_AT_KEY, String(expiresAt), {
+    path: "/",
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
   })
@@ -66,9 +69,9 @@ export function clearTokens() {
   refreshTokenMemory = null
   expiresAtMemory = null
 
-  Cookies.remove(ACCESS_TOKEN_KEY)
-  Cookies.remove(REFRESH_TOKEN_KEY)
-  Cookies.remove(EXPIRES_AT_KEY)
+  Cookies.remove(ACCESS_TOKEN_KEY, { path: "/" })
+  Cookies.remove(REFRESH_TOKEN_KEY, { path: "/" })
+  Cookies.remove(EXPIRES_AT_KEY, { path: "/" })
 
   emitTokenChange()
 }

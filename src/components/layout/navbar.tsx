@@ -1,19 +1,19 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { Search, Heart, ShoppingCart } from "lucide-react";
 import { CartDrawer } from "@/components/cart/cart-drawer";
 
 export function Navbar() {
   return (
-    <nav className="bg-[#2b1809] sticky top-0 z-40 w-full">
-      <div className="container mx-auto h-[72px] flex items-center justify-between max-w-[1190px] px-4 lg:px-0">
+    <nav className="bg-[#2b1809] sticky top-0 z-40 w-full border-b border-[#9c702a]/10">
+      <div className="container mx-auto h-[72px] flex items-center justify-between max-w-[1440px] px-4 md:px-[125px]">
         
         <div className="flex items-center h-[56px] w-full justify-between">
           {/* Logo */}
-          <Link href="/" className="flex items-center justify-center w-[102px] h-[52px]">
-            {/* Fallback text since logo image is missing */}
-            <span className="font-bold text-2xl text-white tracking-wider">BKT</span>
+          <Link href="/" className="flex items-center justify-center w-[102px] h-[52px] relative">
+            <Image src="/logo.svg" alt="BKT Logo" fill className="object-contain" />
           </Link>
 
           {/* Links */}

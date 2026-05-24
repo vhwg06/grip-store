@@ -5,7 +5,6 @@ import { CategoryRail } from "@/components/home/category-rail";
 import { ProductSection } from "@/components/home/product-section";
 import { USPSection } from "@/components/home/usp-section";
 import { NewsSection } from "@/components/home/news-section";
-import { CTABanner } from "@/components/home/cta-banner";
 import { ShopByColor } from "@/components/home/shop-by-color";
 import { useCatalog } from "@/application/hooks/useCatalog";
 
@@ -27,8 +26,6 @@ export function HomeContent() {
         />
       )}
 
-      <USPSection />
-
       {isLoading ? null : (
         <ProductSection 
           title="TAY NẮM CAO CẤP" 
@@ -39,7 +36,7 @@ export function HomeContent() {
 
       <ShopByColor />
       <NewsSection />
-      <CTABanner />
+      <USPSection />
     </div>
   );
 }

@@ -26,18 +26,25 @@ function withQuery(path: string, params: Record<string, string | number | undefi
 }
 
 function normalizeProduct(product: Partial<CatalogProduct>): CatalogProduct {
+  const raw = product as any
   return {
     id: String(product.id || ""),
-    name: String(product.name || ""),
+    name: String(product.name || raw.title || ""),
     description: product.description ?? null,
-    price: String(product.price || "0"),
-    compareAtPrice: product.compareAtPrice ?? null,
-    image: product.image ?? null,
+    price: String(product.price !== undefined ? product.price : "0"),
+    compareAtPrice: product.compareAtPrice !== undefined 
+      ? product.compareAtPrice 
+      : (raw.compare_price !== undefined ? String(raw.compare_price) : null),
+    image: product.image ?? raw.image_url ?? null,
     images: Array.isArray(product.images) ? product.images : [],
     category: product.category ?? null,
-    categoryId: typeof product.categoryId === 'number' ? product.categoryId : undefined,
+    categoryId: typeof product.categoryId === 'number' 
+      ? product.categoryId 
+      : (typeof raw.category_id === 'number' ? raw.category_id : undefined),
     brand: product.brand ?? undefined,
-    brandId: typeof product.brandId === 'number' ? product.brandId : undefined,
+    brandId: typeof product.brandId === 'number' 
+      ? product.brandId 
+      : (typeof raw.brand_id === 'number' ? raw.brand_id : undefined),
     sku: product.sku ?? undefined,
     isHot: Boolean(product.isHot),
     isNew: Boolean(product.isNew),
@@ -46,8 +53,8 @@ function normalizeProduct(product: Partial<CatalogProduct>): CatalogProduct {
     purchaseLimit: product.purchaseLimit ?? null,
     purchaseWarning: product.purchaseWarning ?? null,
     visibilityLevel: Number(product.visibilityLevel ?? -1),
-    stock: Number(product.stock ?? 0),
-    sold: Number(product.sold ?? 0),
+    stock: Number(product.stock !== undefined ? product.stock : (raw.stock_count !== undefined ? raw.stock_count : 0)),
+    sold: Number(product.sold !== undefined ? product.sold : (raw.sold_count !== undefined ? raw.sold_count : 0)),
     rating: Number(product.rating ?? 0),
     reviewCount: Number(product.reviewCount ?? 0),
     usageGuide: product.usageGuide ?? null,
