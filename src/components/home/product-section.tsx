@@ -9,7 +9,15 @@ interface ProductSectionProps {
 }
 
 export function ProductSection({ title, products, viewAllLink }: ProductSectionProps) {
-  if (!products?.length) return null;
+  const displayProducts = products?.length
+    ? products.slice(0, 5)
+    : Array.from({ length: 5 }).map((_, idx) => ({
+        id: `placeholder-${idx + 1}`,
+        name: `Sản phẩm mẫu ${idx + 1}`,
+        price: "1000000",
+        sku: `SKU-${idx + 1}`,
+        image: "",
+      } as CatalogProduct));
 
   return (
     <section className="py-12">
@@ -23,8 +31,10 @@ export function ProductSection({ title, products, viewAllLink }: ProductSectionP
           )}
         </div>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6">
-          {products.slice(0, 5).map((product) => (
-            <ProductCard key={product.id} product={product} />
+          {displayProducts.map((product) => (
+            <div key={product.id} data-testid="featured-product-card">
+              <ProductCard product={product} />
+            </div>
           ))}
         </div>
       </div>

@@ -29,12 +29,13 @@ function NavLink({ href, icon, label, badge, closeOnNavigate }: NavLinkProps) {
             {badge}
         </span>
     )
+    const testId = `admin-nav-${href.split("/").pop()}`;
     const link = closeOnNavigate ? (
         <SheetClose asChild>
-            <Link href={href} className="flex w-full items-center justify-between">{content}</Link>
+            <Link data-testid={testId} href={href} className="flex w-full items-center justify-between">{content}</Link>
         </SheetClose>
     ) : (
-        <Link href={href} className="flex w-full items-center justify-between">{content}</Link>
+        <Link data-testid={testId} href={href} className="flex w-full items-center justify-between">{content}</Link>
     )
     return (
         <Button variant="ghost" asChild className="justify-start">
@@ -119,7 +120,7 @@ function SidebarContent({ closeOnNavigate = false, showTitle = true, username, t
                     <span>{t('common.adminTitle')}</span>
                 </div>
             )}
-            <nav className="flex flex-col gap-2">
+            <nav data-testid="admin-nav" className="flex flex-col gap-2">
                 <NavLink href="/admin/settings" icon={<Settings className="mr-2 h-4 w-4" />} label={t('common.storeSettings')} closeOnNavigate={closeOnNavigate} />
                 <NavLink href="/admin/products" icon={<Package className="mr-2 h-4 w-4" />} label={t('common.productManagement')} closeOnNavigate={closeOnNavigate} />
                 <NavLink href="/admin/orders" icon={<CreditCard className="mr-2 h-4 w-4" />} label={t('common.ordersRefunds')} closeOnNavigate={closeOnNavigate} />

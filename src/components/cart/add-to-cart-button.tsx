@@ -42,7 +42,8 @@ export function AddToCartButton({ product, className = "", showQuantity = true }
           </div>
         </div>
       )}
-      <button 
+      <button
+        data-testid="add-to-cart-btn"
         onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleAdd(); }}
         className="w-full bg-primary text-primary-foreground font-bold py-3.5 rounded-full hover:bg-primary/90 transition-colors"
       >

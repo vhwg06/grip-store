@@ -14,7 +14,7 @@ export default function UsersPage() {
         return (
             <div className="space-y-4">
                 <div className="h-8 w-40 rounded-md bg-muted/60 animate-pulse" />
-                <div className="h-16 w-full rounded-xl bg-muted/40 animate-pulse" />
+                <div data-testid="admin-table" className="h-16 w-full rounded-xl bg-muted/40 animate-pulse" />
                 <div className="h-16 w-full rounded-xl bg-muted/40 animate-pulse" />
                 <div className="h-16 w-full rounded-xl bg-muted/40 animate-pulse" />
             </div>

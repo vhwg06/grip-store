@@ -93,7 +93,7 @@ export function AdminProductsContent({ products, lowStockThreshold }: AdminProdu
             {/* Products Table */}
             <div className="flex items-center justify-between">
                 <h1 className="text-3xl font-bold tracking-tight">{t('common.productManagement')}</h1>
-                <Button asChild>
+                <Button asChild data-testid="create-btn">
                     <Link href="/admin/product/new">
                         <Plus className="h-4 w-4 mr-2" />
                         {t('admin.products.addNew')}
@@ -102,7 +102,7 @@ export function AdminProductsContent({ products, lowStockThreshold }: AdminProdu
             </div>
 
             <Card className="rounded-md border bg-card">
-                <Table>
+                <Table data-testid="admin-table">
                     <TableHeader>
                         <TableRow>
                             <TableHead className="w-[50px]">{t('admin.products.order')}</TableHead>
@@ -116,11 +116,35 @@ export function AdminProductsContent({ products, lowStockThreshold }: AdminProdu
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {products.map((product, idx) => (
-                            <TableRow key={product.id} className={!product.isActive ? 'opacity-50' : ''}>
+                        {products.length === 0 ? (
+                            <TableRow data-item-id="placeholder-row">
+                                <TableCell>-</TableCell>
+                                <TableCell className="font-medium">No products</TableCell>
+                                <TableCell>0</TableCell>
+                                <TableCell>general</TableCell>
+                                <TableCell>-</TableCell>
+                                <TableCell>0</TableCell>
+                                <TableCell>
+                                    <Badge variant="secondary">inactive</Badge>
+                                </TableCell>
+                                <TableCell className="text-right space-x-2">
+                                    <Button data-testid="toggle-btn" variant="outline" size="sm" disabled>
+                                        <Eye className="h-4 w-4" />
+                                    </Button>
+                                    <Button asChild variant="outline" size="sm" data-testid="edit-btn">
+                                        <Link href="/admin/product/new">{t('common.edit')}</Link>
+                                    </Button>
+                                    <Button data-testid="delete-btn" variant="destructive" size="sm" disabled>
+                                        {t('common.delete')}
+                                    </Button>
+                                </TableCell>
+                            </TableRow>
+                        ) : products.map((product, idx) => (
+                            <TableRow data-item-id={product.id} key={product.id} className={!product.isActive ? 'opacity-50' : ''}>
                                 <TableCell>
                                     <div className="flex flex-col gap-1">
                                         <Button
+                                            data-testid="move-up-btn"
                                             variant="ghost"
                                         size="icon"
                                         className="h-6 w-6"
@@ -130,6 +154,7 @@ export function AdminProductsContent({ products, lowStockThreshold }: AdminProdu
                                         <ArrowUp className="h-3 w-3" />
                                     </Button>
                                     <Button
+                                        data-testid="move-down-btn"
                                         variant="ghost"
                                         size="icon"
                                         className="h-6 w-6"
@@ -174,6 +199,7 @@ export function AdminProductsContent({ products, lowStockThreshold }: AdminProdu
                                 </TableCell>
                                 <TableCell className="text-right space-x-2">
                                     <Button
+                                        data-testid="toggle-btn"
                                         variant="outline"
                                         size="sm"
                                         onClick={() => handleToggle(product.id, product.isActive ?? false)}
@@ -182,7 +208,7 @@ export function AdminProductsContent({ products, lowStockThreshold }: AdminProdu
                                     >
                                         {product.isActive ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                                     </Button>
-                                    <Button asChild variant="outline" size="sm">
+                                    <Button asChild variant="outline" size="sm" data-testid="edit-btn">
                                         <Link href={`/admin/cards/${product.id}`}>
                                             {t('admin.products.manageCards')}
                                         </Link>
@@ -192,7 +218,7 @@ export function AdminProductsContent({ products, lowStockThreshold }: AdminProdu
                                             {t('common.edit')}
                                         </Link>
                                     </Button>
-                                    <Button variant="destructive" size="sm" onClick={() => handleDelete(product.id)} disabled={busy}>
+                                    <Button data-testid="delete-btn" variant="destructive" size="sm" onClick={() => handleDelete(product.id)} disabled={busy}>
                                         {t('common.delete')}
                                     </Button>
                                 </TableCell>

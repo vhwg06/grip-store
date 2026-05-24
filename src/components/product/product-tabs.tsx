@@ -9,7 +9,7 @@ interface ProductTabsProps {
 
 export function ProductTabs({ description, usageGuide, reviewCount = 0 }: ProductTabsProps) {
   return (
-    <Tabs defaultValue="details" className="w-full mt-16">
+    <Tabs defaultValue="details" className="w-full mt-16" data-testid="product-tabs">
       <TabsList className="w-full border-b rounded-none bg-transparent h-auto p-0 justify-start gap-8 mb-8">
         <TabsTrigger 
           value="details" 

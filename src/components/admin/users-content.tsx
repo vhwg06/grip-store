@@ -136,7 +136,7 @@ export function UsersContent({ data }: UsersContentProps) {
             </div>
 
             <div className="rounded-md border bg-card">
-                <Table>
+                <Table data-testid="admin-table">
                     <TableHeader>
                         <TableRow>
                             <TableHead>{t('admin.users.userId')}</TableHead>

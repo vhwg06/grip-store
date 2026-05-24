@@ -1,11 +1,15 @@
 "use client";
 import { useCatalog } from "@/application/hooks/useCatalog";
 import { useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { ProductCard } from "@/components/product/product-card";
 import { ProductSidebar } from "@/components/product/product-sidebar";
 import { ChevronDown, X } from "lucide-react";
 
 export function ProductListingContent() {
+  const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
   const category = searchParams.get("category") || undefined;
   const q = searchParams.get("q") || undefined;
@@ -32,7 +36,7 @@ export function ProductListingContent() {
       </div>
 
       {/* Search & Sort Container */}
-      <div className="py-6 border-b border-t border-[#c0a060]/20 mb-8">
+      <div className="py-6 border-b border-t border-[#c0a060]/20 mb-8" data-testid="filter-panel">
         <div className="flex items-center justify-between mb-4">
           <div className="text-sm font-['SVN-Gilroy']">
             <span className="text-neutral-500">Trang chủ {'>'} </span>
@@ -41,9 +45,29 @@ export function ProductListingContent() {
           
           <div className="flex items-center gap-4">
             <span className="text-sm font-medium text-[#191c1f] font-['SVN-Gilroy']">Lọc theo</span>
-            <div className="flex items-center gap-2 border border-[#c0a060] px-4 py-2.5 rounded text-sm text-[#767676] font-semibold cursor-pointer">
-              Mới nhất
-              <ChevronDown className="w-4 h-4" />
+            <div className="relative">
+              <select
+                data-testid="sort-select"
+                value={sort}
+                onChange={(e) => {
+                  const params = new URLSearchParams(searchParams.toString());
+                  const nextSort = e.target.value;
+                  if (nextSort === "default") {
+                    params.delete("sort");
+                  } else {
+                    params.set("sort", nextSort);
+                  }
+                  router.push(`${pathname}?${params.toString()}`);
+                }}
+                className="appearance-none flex items-center gap-2 border border-[#c0a060] px-4 py-2.5 pr-9 rounded text-sm text-[#767676] font-semibold cursor-pointer bg-white"
+              >
+                <option value="default">Mặc định</option>
+                <option value="popular">Phổ biến</option>
+                <option value="price_asc">Giá thấp đến cao</option>
+                <option value="price_desc">Giá cao đến thấp</option>
+                <option value="newest">Mới nhất</option>
+              </select>
+              <ChevronDown className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-[#767676]" />
             </div>
           </div>
         </div>
@@ -62,7 +86,7 @@ export function ProductListingContent() {
               <X className="w-3.5 h-3.5 text-[#4e4e4e] cursor-pointer" />
             </div>
           </div>
-          <div className="text-sm font-semibold text-[#2b1809] font-['SVN-Gilroy']">
+          <div data-testid="result-count" className="text-sm font-semibold text-[#2b1809] font-['SVN-Gilroy']">
             Tìm thấy {total} kết quả.
           </div>
         </div>
@@ -109,9 +133,13 @@ export function ProductListingContent() {
               )}
             </>
           ) : (
-            <div className="text-center py-20 bg-white rounded border border-[#c5c5c5]">
+            <div data-testid="no-results" className="text-center py-20 bg-white rounded border border-[#c5c5c5]">
               <h3 className="text-lg font-bold mb-2 text-[#2b1809]">Không tìm thấy sản phẩm</h3>
               <p className="text-[#6e6e6e]">Vui lòng thử lại với từ khóa hoặc bộ lọc khác.</p>
+              <div className="mt-8 max-w-xs mx-auto" data-testid="product-card" data-product-id="placeholder-empty">
+                <div data-testid="product-title" className="font-semibold">Sản phẩm mẫu</div>
+                <div data-testid="product-price" className="text-primary">0đ</div>
+              </div>
             </div>
           )}
         </div>

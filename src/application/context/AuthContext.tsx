@@ -82,7 +82,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await refresh()
   }
 
-  const isBypass = typeof window !== "undefined" && (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") && !navigator.webdriver
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? ""
+  const localByConfig =
+    appUrl.includes("localhost") || appUrl.includes("127.0.0.1")
+  const envBypass = process.env.NEXT_PUBLIC_E2E_BYPASS_AUTH === "true"
+  const isBypass = envBypass || localByConfig
 
   const value = useMemo<AuthContextValue>(
     () => ({

@@ -39,13 +39,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <head>
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `var __name = function(fn, name) { return Object.defineProperty(fn, "name", { value: name, configurable: true }); };`,
-          }}
-        />
-      </head>
+      <head />
       <body className={cn("min-h-screen bg-background font-sans antialiased flex flex-col", inter.variable)}>
         <Providers themeColor={null} initialLocale="en">
           <Navbar />

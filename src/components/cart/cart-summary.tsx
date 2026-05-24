@@ -29,12 +29,12 @@ export function CartSummary({ onCheckoutClick, checkoutLabel = "TIẾN HÀNH THA
         </div>
         <div className="flex justify-between pt-3 border-t">
           <span className="font-bold">Tổng cộng:</span>
-          <span className="font-bold text-primary text-lg">{totalFormat}</span>
+          <span data-testid="cart-total" className="font-bold text-primary text-lg">{totalFormat}</span>
         </div>
       </div>
       
       <Link href={checkoutHref} onClick={onCheckoutClick} className="block">
-        <button className="w-full bg-primary text-primary-foreground font-bold py-3.5 rounded-full hover:bg-primary/90 transition-colors text-center">
+        <button data-testid="checkout-btn" className="w-full bg-primary text-primary-foreground font-bold py-3.5 rounded-full hover:bg-primary/90 transition-colors text-center">
           {checkoutLabel}
         </button>
       </Link>

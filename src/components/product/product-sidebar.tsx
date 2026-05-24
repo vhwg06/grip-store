@@ -23,6 +23,7 @@ export function ProductSidebar({ currentCategory }: { currentCategory?: string }
         <div className="flex flex-col">
           <Link 
             href="/products" 
+            data-testid="category-filter-all"
             className={`flex items-center justify-between py-3 border-b border-[#c0a060] ${!currentCategory ? 'text-[#2b1809] font-bold' : 'text-[#475156] font-semibold'}`}
           >
             <div className="flex items-center gap-2">
@@ -36,6 +37,7 @@ export function ProductSidebar({ currentCategory }: { currentCategory?: string }
             <div key={category.id} className="flex flex-col border-b border-[#c0a060] py-3">
               <Link 
                 href={`/products?category=${category.slug || category.id}`}
+                data-testid={`category-filter-${category.slug || category.id}`}
                 className="flex items-center justify-between"
               >
                 <div className="flex items-center gap-2">

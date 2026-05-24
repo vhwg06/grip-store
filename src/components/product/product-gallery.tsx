@@ -9,10 +9,10 @@ interface ProductGalleryProps {
 export function ProductGallery({ images }: ProductGalleryProps) {
   const [selectedImage, setSelectedImage] = useState(0);
 
-  if (!images?.length) return <div className="aspect-square bg-neutral-100 rounded-2xl w-full" />;
+  if (!images?.length) return <div data-testid="product-gallery" className="aspect-square bg-neutral-100 rounded-2xl w-full" />;
 
   return (
-    <div className="flex flex-col gap-4">
+    <div data-testid="product-gallery" className="flex flex-col gap-4">
       <div className="relative aspect-square w-full rounded-2xl overflow-hidden border">
         <Image 
           src={images[selectedImage]} 
@@ -24,7 +24,8 @@ export function ProductGallery({ images }: ProductGalleryProps) {
       </div>
       <div className="flex gap-4 overflow-x-auto pb-2 snap-x hide-scrollbar">
         {images.map((img, i) => (
-          <button 
+          <button
+            data-testid="product-thumbnail"
             key={i} 
             onClick={() => setSelectedImage(i)}
             className={`relative w-20 h-20 shrink-0 rounded-lg overflow-hidden border-2 transition-all ${

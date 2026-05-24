@@ -17,7 +17,11 @@ export function ProductCard({ product }: ProductCardProps) {
   };
 
   return (
-    <div className="group relative block rounded border border-[#c5c5c5] bg-white p-3 transition-all hover:shadow-md flex flex-col h-full">
+    <div
+      data-testid="product-card"
+      data-product-id={product.id}
+      className="group relative block rounded border border-[#c5c5c5] bg-white p-3 transition-all hover:shadow-md flex flex-col h-full"
+    >
       {/* Thumbnail */}
       <div className="relative aspect-[4/5] w-full rounded overflow-hidden bg-neutral-100 mb-4">
         {/* Badges */}
@@ -64,14 +68,14 @@ export function ProductCard({ product }: ProductCardProps) {
           SKU: {product.sku || "2522"}
         </div>
         <Link href={`/products/${product.id}`} className="block">
-          <h3 className="text-[16px] font-semibold text-[#2b1809] font-['SVN-Gilroy'] leading-[1.2] text-center mb-[8px] line-clamp-2 group-hover:text-[#9c702a] transition-colors">
+          <h3 data-testid="product-title" className="text-[16px] font-semibold text-[#2b1809] font-['SVN-Gilroy'] leading-[1.2] text-center mb-[8px] line-clamp-2 group-hover:text-[#9c702a] transition-colors">
             {product.name}
           </h3>
         </Link>
         
         <div className="mt-auto pt-4 flex flex-col items-center">
           {product.compareAtPrice && parseFloat(product.compareAtPrice) > parseFloat(product.price) ? (
-            <div className="flex items-center gap-2 justify-center mb-4">
+            <div data-testid="product-price" className="flex items-center gap-2 justify-center mb-4">
               <span className="text-[16px] font-medium text-[#6e6e6e] line-through font-['SVN-Gilroy']">
                 {new Intl.NumberFormat('vi-VN').format(parseFloat(product.compareAtPrice))}đ
               </span>
@@ -80,12 +84,13 @@ export function ProductCard({ product }: ProductCardProps) {
               </span>
             </div>
           ) : (
-            <div className="text-[16px] font-bold text-[#99782b] font-['SVN-Gilroy'] mb-4 text-center">
+            <div data-testid="product-price" className="text-[16px] font-bold text-[#99782b] font-['SVN-Gilroy'] mb-4 text-center">
               {new Intl.NumberFormat('vi-VN').format(parseFloat(product.price))}đ
             </div>
           )}
           
-          <button 
+          <button
+            data-testid="add-to-cart"
             onClick={handleAddToCart}
             className="w-full bg-[#9c702a] hover:bg-[#2b1809] text-white py-2 rounded-sm font-semibold text-[16px] font-['SVN-Gilroy'] transition-colors"
           >

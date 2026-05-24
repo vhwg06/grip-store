@@ -92,20 +92,20 @@ export function CheckoutContent() {
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="phone">Số điện thoại *</Label>
-                                <Input id="phone" type="tel" value={form.phone} onChange={e => setForm({...form, phone: e.target.value})} required />
+                                <Input data-testid="checkout-phone" id="phone" type="tel" value={form.phone} onChange={e => setForm({...form, phone: e.target.value})} required />
                             </div>
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="email">Email</Label>
-                            <Input id="email" type="email" value={form.email} onChange={e => setForm({...form, email: e.target.value})} />
+                            <Input data-testid="checkout-email" id="email" type="email" value={form.email} onChange={e => setForm({...form, email: e.target.value})} />
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="address">Địa chỉ giao hàng chi tiết *</Label>
-                            <Input id="address" value={form.address} onChange={e => setForm({...form, address: e.target.value})} required />
+                            <Input data-testid="checkout-address" id="address" value={form.address} onChange={e => setForm({...form, address: e.target.value})} required />
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="notes">Ghi chú đơn hàng (Tùy chọn)</Label>
-                            <Textarea id="notes" value={form.notes} onChange={e => setForm({...form, notes: e.target.value})} />
+                            <Textarea data-testid="checkout-note" id="notes" value={form.notes} onChange={e => setForm({...form, notes: e.target.value})} />
                         </div>
                     </form>
                 </section>
@@ -117,11 +117,11 @@ export function CheckoutContent() {
                         onValueChange={(val: any) => setForm({...form, paymentMethod: val})}
                         className="space-y-4"
                     >
-                        <div className="flex items-center space-x-3 border p-4 rounded-lg cursor-pointer" onClick={() => setForm({...form, paymentMethod: 'COD'})}>
+                        <div data-testid="payment-method-COD" className="flex items-center space-x-3 border p-4 rounded-lg cursor-pointer" onClick={() => setForm({...form, paymentMethod: 'COD'})}>
                             <RadioGroupItem value="COD" id="cod" />
                             <Label htmlFor="cod" className="font-medium cursor-pointer flex-1">Thanh toán khi nhận hàng (COD)</Label>
                         </div>
-                        <div className="flex items-center space-x-3 border p-4 rounded-lg cursor-pointer" onClick={() => setForm({...form, paymentMethod: 'BANK_TRANSFER'})}>
+                        <div data-testid="payment-method-BANK_TRANSFER" className="flex items-center space-x-3 border p-4 rounded-lg cursor-pointer" onClick={() => setForm({...form, paymentMethod: 'BANK_TRANSFER'})}>
                             <RadioGroupItem value="BANK_TRANSFER" id="bank" />
                             <Label htmlFor="bank" className="font-medium cursor-pointer flex-1">Chuyển khoản ngân hàng</Label>
                         </div>
@@ -176,11 +176,12 @@ export function CheckoutContent() {
                         </div>
                         <div className="flex justify-between text-lg font-bold border-t pt-4">
                             <span>Tổng cộng</span>
-                            <span className="text-primary">{totalAmount.toLocaleString('vi-VN')} ₫</span>
+                            <span data-testid="checkout-total" className="text-primary">{totalAmount.toLocaleString('vi-VN')} ₫</span>
                         </div>
                     </div>
 
-                    <Button 
+                    <Button
+                        data-testid="place-order-btn"
                         type="submit" 
                         form="checkout-form"
                         className="w-full mt-8 h-12 text-base font-bold" 

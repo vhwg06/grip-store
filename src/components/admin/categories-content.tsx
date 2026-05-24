@@ -137,7 +137,7 @@ export function AdminCategoriesContent({ categories }: { categories: CategoryRow
       </Card>
 
       <div className="rounded-md border bg-card overflow-x-auto">
-        <Table>
+        <Table data-testid="admin-table">
           <TableHeader>
             <TableRow>
               <TableHead>{t('admin.categories.icon')}</TableHead>
