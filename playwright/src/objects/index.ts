@@ -1,1 +1,13 @@
 export { AuthPage } from "./auth.page";
+export { BasePage } from "./base.page";
+export { HomepagePage } from "./homepage.page";
+export { ProductListPage } from "./product-list.page";
+export { ProductDetailPage } from "./product-detail.page";
+export { CartPage } from "./cart.page";
+export { CheckoutPage } from "./checkout.page";
+export { OrdersPage } from "./orders.page";
+export { AdminPage } from "./admin.page";
+export { ProfilePage } from "./profile.page";
+export { ArticlePage } from "./article.page";
+export { WishlistPage } from "./wishlist.page";
+export type * from "./types";

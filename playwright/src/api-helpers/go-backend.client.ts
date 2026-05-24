@@ -1,4 +1,14 @@
-import type { APIRequestContext } from "@playwright/test";
+import type { APIRequestContext, APIResponse } from "@playwright/test";
+
+/**
+ * Typed API response wrapper for consistent return types.
+ */
+export interface ApiResponse<T = unknown> {
+  ok: boolean;
+  status: number;
+  data: T;
+  headers: Record<string, string>;
+}
 
 /**
  * GoBackendClient — thin helper around Playwright's APIRequestContext
@@ -10,6 +20,24 @@ const GO_BACKEND_URL =
 
 export class GoBackendClient {
   constructor(private readonly request: APIRequestContext) {}
+
+  /* ── Response parsing ───────────────────────────── */
+
+  private async parseResponse<T>(response: APIResponse): Promise<ApiResponse<T>> {
+    let data: T;
+    const contentType = response.headers()["content-type"] ?? "";
+    if (contentType.includes("application/json")) {
+      data = await response.json();
+    } else {
+      data = (await response.text()) as unknown as T;
+    }
+    return {
+      ok: response.ok(),
+      status: response.status(),
+      data,
+      headers: response.headers(),
+    };
+  }
 
   /* ── Test data management ───────────────────────── */
 
@@ -64,21 +92,35 @@ export class GoBackendClient {
     return response.json();
   }
 
-  /* ── Generic request helper ─────────────────────── */
+  /* ── Generic typed request helpers ──────────────── */
 
-  async get(path: string) {
-    return this.request.get(`${GO_BACKEND_URL}${path}`);
+  async get<T = unknown>(path: string, options?: { headers?: Record<string, string> }): Promise<ApiResponse<T>> {
+    const response = await this.request.get(`${GO_BACKEND_URL}${path}`, {
+      headers: options?.headers,
+    });
+    return this.parseResponse<T>(response);
   }
 
-  async post(path: string, data?: Record<string, unknown>) {
-    return this.request.post(`${GO_BACKEND_URL}${path}`, { data });
+  async post<T = unknown>(path: string, data?: unknown, options?: { headers?: Record<string, string> }): Promise<ApiResponse<T>> {
+    const response = await this.request.post(`${GO_BACKEND_URL}${path}`, {
+      data,
+      headers: options?.headers,
+    });
+    return this.parseResponse<T>(response);
   }
 
-  async put(path: string, data?: Record<string, unknown>) {
-    return this.request.put(`${GO_BACKEND_URL}${path}`, { data });
+  async put<T = unknown>(path: string, data?: unknown, options?: { headers?: Record<string, string> }): Promise<ApiResponse<T>> {
+    const response = await this.request.put(`${GO_BACKEND_URL}${path}`, {
+      data,
+      headers: options?.headers,
+    });
+    return this.parseResponse<T>(response);
   }
 
-  async delete(path: string) {
-    return this.request.delete(`${GO_BACKEND_URL}${path}`);
+  async delete<T = unknown>(path: string, options?: { headers?: Record<string, string> }): Promise<ApiResponse<T>> {
+    const response = await this.request.delete(`${GO_BACKEND_URL}${path}`, {
+      headers: options?.headers,
+    });
+    return this.parseResponse<T>(response);
   }
 }

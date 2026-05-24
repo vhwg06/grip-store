@@ -1,16 +1,19 @@
 import { defineConfig, devices } from "@playwright/test";
 import dotenv from "dotenv";
+import path from "path";
 
 dotenv.config({ path: ".env.local" });
+dotenv.config({ path: path.resolve(__dirname, "playwright/.env.test") });
 
 const BASE_URL = process.env.PLAYWRIGHT_BASE_URL ?? "http://localhost:3000";
+const GO_BACKEND_URL = process.env.GO_BACKEND_URL ?? "http://localhost:8080";
 
 export default defineConfig({
   testDir: "./playwright/specs",
   outputDir: "./playwright/test-results",
 
   /* Maximum time one test can run */
-  timeout: 60_000,
+  timeout: 30_000,
   expect: { timeout: 10_000 },
 
   /* Run tests in files in parallel */
@@ -36,21 +39,58 @@ export default defineConfig({
   },
 
   projects: [
+    /* Global setup — authenticates test users, saves storageState */
+    {
+      name: "setup",
+      testMatch: /auth\.setup\.ts/,
+    },
+
+    /* API-only tests — no browser, uses Go backend directly */
+    {
+      name: "api",
+      use: {
+        baseURL: GO_BACKEND_URL,
+      },
+      testMatch: /specs\/api\/.+\.spec\.ts/,
+      dependencies: ["setup"],
+    },
+
+    /* E2E browser tests */
     {
       name: "chromium",
-      use: { ...devices["Desktop Chrome"] },
+      use: {
+        ...devices["Desktop Chrome"],
+        storageState: "./playwright/src/fixtures/.auth/user.json",
+      },
+      testIgnore: /specs\/api\/.+\.spec\.ts/,
+      dependencies: ["setup"],
     },
     {
       name: "firefox",
-      use: { ...devices["Desktop Firefox"] },
+      use: {
+        ...devices["Desktop Firefox"],
+        storageState: "./playwright/src/fixtures/.auth/user.json",
+      },
+      testIgnore: /specs\/api\/.+\.spec\.ts/,
+      dependencies: ["setup"],
     },
     {
       name: "webkit",
-      use: { ...devices["Desktop Safari"] },
+      use: {
+        ...devices["Desktop Safari"],
+        storageState: "./playwright/src/fixtures/.auth/user.json",
+      },
+      testIgnore: /specs\/api\/.+\.spec\.ts/,
+      dependencies: ["setup"],
     },
     {
       name: "mobile-chrome",
-      use: { ...devices["Pixel 5"] },
+      use: {
+        ...devices["Pixel 5"],
+        storageState: "./playwright/src/fixtures/.auth/user.json",
+      },
+      testIgnore: /specs\/api\/.+\.spec\.ts/,
+      dependencies: ["setup"],
     },
   ],
 
