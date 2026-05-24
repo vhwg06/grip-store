@@ -40,7 +40,7 @@ export function SiteHeader() {
                                 <DropdownMenuTrigger asChild>
                                     <Button variant="ghost" className="relative h-8 w-8 overflow-visible rounded-full bg-background/70 hover:bg-background/90 transition-all duration-200 hover:-translate-y-0.5 hover:ring-2 hover:ring-primary/25 hover:ring-offset-2 hover:ring-offset-background">
                                         <HeaderUnreadBadge className="absolute -top-1 -right-1 z-10 pointer-events-none shadow-sm" />
-                                        <Avatar className="relative z-0 h-8 w-8">
+                                        <Avatar className="relative z-0 h-8 w-8" data-testid="user-avatar">
                                             <AvatarImage src={user.avatar_url || ''} alt={user.username || user.email || ''} />
                                             <AvatarFallback><User className="h-4 w-4" /></AvatarFallback>
                                         </Avatar>

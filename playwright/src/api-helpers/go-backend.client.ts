@@ -24,20 +24,25 @@ export class GoBackendClient {
   /* ── Response parsing ───────────────────────────── */
 
   private async parseResponse<T>(response: APIResponse): Promise<ApiResponse<T>> {
-    let data: T;
+    let data: any;
     const contentType = response.headers()["content-type"] ?? "";
     if (contentType.includes("application/json")) {
       data = await response.json();
+      // Centrally unpack the standard Go backend success envelope { data: ... }
+      if (data && typeof data === "object" && "data" in data && !("error" in data)) {
+        data = data.data;
+      }
     } else {
-      data = (await response.text()) as unknown as T;
+      data = await response.text();
     }
     return {
       ok: response.ok(),
       status: response.status(),
-      data,
+      data: data as T,
       headers: response.headers(),
     };
   }
+
 
   /* ── Test data management ───────────────────────── */
 

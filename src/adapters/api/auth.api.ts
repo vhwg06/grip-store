@@ -55,3 +55,34 @@ export function persistAuthResponse(response: AuthResponse) {
     expiresIn: response.expires_in,
   })
 }
+
+export async function login(email: string, password: string): Promise<AuthTokens> {
+  const payload = await apiFetch<any>("/api/auth/login", {
+    method: "POST",
+    body: JSON.stringify({ email, password }),
+  })
+  const data = payload?.data || payload
+  const tokens = {
+    accessToken: data?.accessToken || data?.access_token || data?.token,
+    refreshToken: data?.refreshToken || data?.refresh_token,
+    expiresIn: Number(data?.expiresIn || data?.expires_in || 3600),
+  }
+  persistAuthTokens(tokens)
+  return tokens
+}
+
+export async function register(email: string, password: string, name?: string): Promise<AuthTokens> {
+  const payload = await apiFetch<any>("/api/auth/register", {
+    method: "POST",
+    body: JSON.stringify({ email, password, name }),
+  })
+  const data = payload?.data || payload
+  const tokens = {
+    accessToken: data?.accessToken || data?.access_token || data?.token,
+    refreshToken: data?.refreshToken || data?.refresh_token,
+    expiresIn: Number(data?.expiresIn || data?.expires_in || 3600),
+  }
+  persistAuthTokens(tokens)
+  return tokens
+}
+

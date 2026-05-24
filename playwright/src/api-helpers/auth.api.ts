@@ -9,11 +9,24 @@ export interface UserProfile {
   points: number;
 }
 
+function mapTokens(data: any) {
+  if (!data) return data;
+  return {
+    token: data.token || data.accessToken || data.access_token,
+    refresh_token: data.refresh_token || data.refreshToken,
+    ...data,
+  };
+}
+
 export class AuthApiHelper {
   constructor(private readonly client: GoBackendClient) {}
 
   async refreshToken(refreshToken: string): Promise<ApiResponse<{ token: string; refresh_token: string }>> {
-    return this.client.post("/v1/auth/refresh", { refresh_token: refreshToken });
+    const response = await this.client.post<any>("/v1/auth/refresh", { refresh_token: refreshToken });
+    return {
+      ...response,
+      data: mapTokens(response.data),
+    };
   }
 
   async logout(): Promise<ApiResponse<void>> {
@@ -25,10 +38,19 @@ export class AuthApiHelper {
   }
 
   async login(email: string, password: string): Promise<ApiResponse<{ token: string; refresh_token: string }>> {
-    return this.client.post("/v1/auth/login", { email, password });
+    const response = await this.client.post<any>("/v1/auth/login", { email, password });
+    return {
+      ...response,
+      data: mapTokens(response.data),
+    };
   }
 
   async register(email: string, password: string, name?: string): Promise<ApiResponse<{ token: string; refresh_token: string }>> {
-    return this.client.post("/v1/auth/register", { email, password, name });
+    const response = await this.client.post<any>("/v1/auth/register", { email, password, name });
+    return {
+      ...response,
+      data: mapTokens(response.data),
+    };
   }
 }
+

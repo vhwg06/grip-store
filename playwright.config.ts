@@ -43,12 +43,17 @@ export default defineConfig({
     trace: "on-first-retry",
     screenshot: "only-on-failure",
     video: "retain-on-failure",
+    extraHTTPHeaders: {
+      "X-Playwright-Test": "true",
+    },
   },
+
 
   projects: [
     /* Global setup — authenticates test users, saves storageState */
     {
       name: "setup",
+      testDir: "./playwright/src/fixtures",
       testMatch: /auth\.setup\.ts/,
     },
 

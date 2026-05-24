@@ -59,7 +59,7 @@ async function tryRefreshToken() {
     const payload = await response.json()
     const data = payload?.data || payload
     
-    const accessToken = data?.accessToken || data?.access_token
+    const accessToken = data?.accessToken || data?.access_token || data?.token
     const newRefreshToken = data?.refreshToken || data?.refresh_token
     const expiresIn = Number(data?.expiresIn || data?.expires_in || 86400) // Default to 24h fallback
 
@@ -125,7 +125,9 @@ export async function apiFetch<T>(path: string, init: RequestInit = {}, retried 
     headers.set("Authorization", `Bearer ${accessToken}`)
   }
 
-  const response = await fetch(resolveUrl(path), {
+  const url = resolveUrl(path)
+  console.log("Client-side fetching URL:", url)
+  const response = await fetch(url, {
     ...init,
     headers,
   })

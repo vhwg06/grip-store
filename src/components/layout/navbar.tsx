@@ -2,10 +2,28 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { Search, Heart, ShoppingCart } from "lucide-react";
+import { Search, Heart, User } from "lucide-react";
 import { CartDrawer } from "@/components/cart/cart-drawer";
+import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { SignInButton } from "@/components/signin-button";
+import { SignOutButton } from "@/components/signout-button";
+import { HeaderUserMenuItems, HeaderUnreadBadge } from "@/components/header-client-parts";
+import { CheckInButton } from "@/components/checkin-button";
+import { useAuth } from "@/application/hooks/useAuth";
+import { usePublicSettings } from "@/application/hooks/useCatalog";
 
 export function Navbar() {
+  const { user, isAdmin } = useAuth();
+  const { settings } = usePublicSettings();
+
   return (
     <nav className="bg-[#2b1809] sticky top-0 z-40 w-full border-b border-[#9c702a]/10">
       <div className="container mx-auto h-[72px] flex items-center justify-between max-w-[1440px] px-4 md:px-[125px]">
@@ -34,8 +52,8 @@ export function Navbar() {
 
           <div className="flex-1" />
 
-          {/* Search, Heart, Cart */}
-          <div className="flex items-center h-full">
+          {/* Search, Heart, Cart, User Profile */}
+          <div className="flex items-center h-full gap-3">
             <div className="flex items-center p-2 gap-3 mr-2">
               <button className="w-[40px] h-[40px] flex items-center justify-center text-white hover:bg-white/10 rounded-full transition-colors">
                 <Search className="w-6 h-6" />
@@ -46,9 +64,44 @@ export function Navbar() {
             </div>
 
             <CartDrawer />
+
+            <div className="flex items-center ml-2">
+              {user ? (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" className="relative h-10 w-10 overflow-visible rounded-full bg-white/10 text-white hover:bg-white/20 transition-all duration-200">
+                      <HeaderUnreadBadge className="absolute -top-1 -right-1 z-10 pointer-events-none shadow-sm" />
+                      <Avatar className="relative z-0 h-10 w-10" data-testid="user-avatar">
+                        <AvatarImage src={user.avatar_url || ''} alt={user.username || user.email || ''} />
+                        <AvatarFallback><User className="h-5 w-5" /></AvatarFallback>
+                      </Avatar>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-56" align="end" forceMount>
+                    <DropdownMenuLabel className="font-normal">
+                      <div className="flex flex-col space-y-1">
+                        <p className="text-sm font-medium leading-none">{user.username || user.email}</p>
+                        <p className="text-xs leading-none text-muted-foreground">ID: {user.id}</p>
+                      </div>
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <div className="px-2 py-1">
+                      <CheckInButton enabled={settings?.checkinEnabled !== false} />
+                    </div>
+                    <DropdownMenuSeparator />
+                    <HeaderUserMenuItems isAdmin={isAdmin} showNav={false} />
+                    <DropdownMenuSeparator />
+                    <SignOutButton />
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              ) : (
+                <SignInButton />
+              )}
+            </div>
           </div>
         </div>
       </div>
     </nav>
   );
 }
+

@@ -13,7 +13,7 @@ import { LogIn, ShieldCheck, User, Lock, Eye, EyeOff } from "lucide-react"
 export default function LoginPage() {
   const searchParams = useSearchParams()
   const router = useRouter()
-  const { applyTokens, user } = useAuth()
+  const { applyTokens, user, login } = useAuth()
   const { t } = useI18n()
   const callbackUrl = searchParams.get("callbackUrl") || "/"
   const accessToken = searchParams.get("access_token")
@@ -82,18 +82,7 @@ export default function LoginPage() {
     setSuccess("")
 
     try {
-      // NOTE: Đây là nơi bạn sẽ gọi API xác thực/OAuth trực tiếp với server.
-      // Ví dụ:
-      // const res = await fetch("/api/auth/login", {
-      //   method: "POST",
-      //   headers: { "Content-Type": "application/json" },
-      //   body: JSON.stringify({ username: usernameOrEmail, password })
-      // })
-      // const data = await res.json()
-      // await applyTokens({ accessToken: data.access_token, refreshToken: data.refresh_token, expiresIn: data.expires_in })
-      
-      // Giả lập kết nối thành công để kiểm thử giao diện
-      await new Promise((resolve) => setTimeout(resolve, 1200))
+      await login(usernameOrEmail, password)
       
       setSuccess(t("loginForm.success"))
       
@@ -125,7 +114,7 @@ export default function LoginPage() {
           ) : (
             <form onSubmit={handleLogin} className="space-y-4">
               {error && (
-                <div className="rounded-lg border border-destructive/20 bg-destructive/10 p-3 text-xs text-destructive flex items-center gap-2">
+                <div data-testid="login-error-message" className="rounded-lg border border-destructive/20 bg-destructive/10 p-3 text-xs text-destructive flex items-center gap-2">
                   <ShieldCheck className="h-4 w-4 shrink-0 rotate-180" />
                   <span>{error}</span>
                 </div>
@@ -145,6 +134,7 @@ export default function LoginPage() {
                   <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground/60" />
                   <Input
                     id="usernameOrEmail"
+                    data-testid="login-email-input"
                     type="text"
                     placeholder="name@example.com"
                     value={usernameOrEmail}
@@ -166,6 +156,7 @@ export default function LoginPage() {
                   <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground/60" />
                   <Input
                     id="password"
+                    data-testid="login-password-input"
                     type={showPassword ? "text" : "password"}
                     placeholder="••••••••"
                     value={password}
@@ -191,6 +182,7 @@ export default function LoginPage() {
 
               <Button
                 type="submit"
+                data-testid="login-submit-btn"
                 size="lg"
                 className="w-full bg-primary text-primary-foreground hover:bg-primary/90 mt-2 font-medium"
                 disabled={loading}

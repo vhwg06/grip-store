@@ -151,7 +151,8 @@ export async function getCategoryTree() {
 }
 
 export async function getPublicSettings() {
-  return apiFetch<CatalogSettings>("/api/catalog/settings")
+  const payload = await apiFetch<any>("/api/catalog/settings")
+  return (payload?.data !== undefined ? payload.data : payload) as CatalogSettings
 }
 
 export async function getAnnouncement() {

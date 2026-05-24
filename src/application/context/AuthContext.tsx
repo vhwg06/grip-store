@@ -14,6 +14,7 @@ import {
   loginWithLinuxDO,
   logout as logoutRequest,
   persistAuthTokens,
+  login as loginApi,
 } from "@/adapters/api/auth.api"
 import { getAccessToken, getRefreshToken, onTokenChange } from "@/adapters/api/token-store"
 import type { AuthTokens, User } from "@/domain/auth"
@@ -27,6 +28,7 @@ interface AuthContextValue {
   applyTokens: (tokens: AuthTokens) => Promise<void>
   logout: () => Promise<void>
   refresh: () => Promise<void>
+  login: (email: string, password: string) => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null)
@@ -44,7 +46,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     try {
-      setUser(await getMe())
+      const me = await getMe() as any
+      if (me) {
+        me.isAdmin = Boolean(me.isAdmin ?? me.is_admin)
+        me.trustLevel = Number(me.trustLevel ?? me.trust_level ?? 0)
+        me.desktopNotificationsEnabled = Boolean(me.desktopNotificationsEnabled ?? me.desktop_notifications_enabled)
+      }
+      setUser(me)
     } catch {
       setUser(null)
     } finally {
@@ -69,7 +77,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null)
   }
 
-  const isBypass = typeof window !== "undefined" && (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1")
+  const login = async (email: string, password: string) => {
+    await loginApi(email, password)
+    await refresh()
+  }
+
+  const isBypass = typeof window !== "undefined" && (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") && !navigator.webdriver
 
   const value = useMemo<AuthContextValue>(
     () => ({
@@ -90,6 +103,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       applyTokens,
       logout,
       refresh,
+      login,
     }),
     [loading, user, isBypass],
   )
