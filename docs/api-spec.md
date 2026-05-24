@@ -16,23 +16,6 @@ This document defines the backend contract required by the frontend migration in
 
 ## Auth
 
-### `GET /api/auth/oauth/linuxdo`
-- Auth: Public
-- Behavior: starts LinuxDO OAuth redirect flow
-- Query:
-  - `callbackUrl?`: frontend URL to return to after successful login
-
-### `GET /api/auth/oauth/github`
-- Auth: Public
-- Behavior: starts GitHub OAuth redirect flow
-- Query:
-  - `callbackUrl?`: frontend URL to return to after successful login
-
-### `GET /api/auth/callback/linuxdo`
-### `GET /api/auth/callback/github`
-- Auth: Public
-- Behavior: backend finalizes OAuth, then redirects to frontend with tokens or exchanges code server-side and returns JSON if invoked programmatically
-
 ### `POST /api/auth/refresh`
 - Auth: RefreshToken
 - Request:
