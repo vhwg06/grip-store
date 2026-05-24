@@ -33,6 +33,11 @@ async function getProductServer(id: string): Promise<CatalogProductViewState> {
     const n = Number(value);
     return Number.isFinite(n) ? n : fallback;
   };
+  const asOptionalNumber = (value: unknown) => {
+    if (value == null || value === "") return undefined;
+    const n = Number(value);
+    return Number.isFinite(n) ? n : undefined;
+  };
 
   return {
     product: {
@@ -49,9 +54,9 @@ async function getProductServer(id: string): Promise<CatalogProductViewState> {
       image: asStringOrNull(raw.image ?? raw.image_url),
       images: Array.isArray(raw.images) ? raw.images.filter((v: unknown) => typeof v === "string") : [],
       category: asStringOrNull(raw.category),
-      categoryId: asStringOrUndefined(raw.categoryId ?? raw.category_id),
+      categoryId: asOptionalNumber(raw.categoryId ?? raw.category_id),
       brand: asStringOrUndefined(raw.brand),
-      brandId: asStringOrUndefined(raw.brandId ?? raw.brand_id),
+      brandId: asOptionalNumber(raw.brandId ?? raw.brand_id),
       sku: asStringOrUndefined(raw.sku),
       isHot: Boolean(raw.isHot),
       isNew: Boolean(raw.isNew),

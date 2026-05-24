@@ -33,13 +33,18 @@ function normalizeItem(item: Partial<WishlistItem>): WishlistItem {
 }
 
 function normalizeReview(review: Partial<ProductReview>): ProductReview {
+  const raw = review as any
+  const createdAtValue = review.createdAt ?? raw.created_at
   return {
-    id: Number(review.id ?? 0),
-    username: String(review.username || ""),
-    userId: review.userId ?? null,
-    rating: Number(review.rating ?? 0),
-    comment: review.comment ?? null,
-    createdAt: review.createdAt ?? null,
+    id: Number(review.id ?? raw.id ?? 0),
+    username: String(review.username ?? raw.user_name ?? ""),
+    userId: (review.userId ?? raw.user_id ?? null) as string | null,
+    rating: Number(review.rating ?? raw.rating ?? 0),
+    comment: (review.comment ?? raw.comment ?? raw.content ?? null) as string | null,
+    createdAt:
+      typeof createdAtValue === "number"
+        ? new Date(createdAtValue).toISOString()
+        : (createdAtValue as string | null) ?? null,
   }
 }
 
@@ -91,18 +96,19 @@ export async function deleteWishlistItem(id: number): Promise<WishlistActionResu
 }
 
 export async function getProductReviews(productId: string): Promise<ProductReviewsResponse> {
-  const payload = await apiFetch<Partial<ProductReviewsResponse>>(
+  const payload = await apiFetch<unknown>(
     `/api/products/${encodeURIComponent(productId)}/reviews`,
   )
-
-  const reviews = Array.isArray(payload.reviews)
-    ? payload.reviews.map((review) => normalizeReview(review))
-    : []
+  const value = (payload ?? {}) as Record<string, any>
+  const rawReviews = Array.isArray(value.reviews)
+    ? value.reviews
+    : (Array.isArray(value.data) ? value.data : [])
+  const reviews = rawReviews.map((review) => normalizeReview(review))
 
   return {
     reviews,
-    averageRating: Number(payload.averageRating ?? 0),
-    reviewCount: Number(payload.reviewCount ?? reviews.length),
+    averageRating: Number(value.averageRating ?? 0),
+    reviewCount: Number(value.reviewCount ?? reviews.length),
   }
 }
 

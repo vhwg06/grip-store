@@ -86,6 +86,9 @@ export async function getActiveProducts(options: CatalogSearchParams = {}) {
     withQuery("/api/catalog/products", {
       q: options.q,
       category: options.category,
+      brand: options.brand,
+      minPrice: options.minPrice,
+      maxPrice: options.maxPrice,
       page: options.page,
       limit: options.limit,
       sort: options.sort,
@@ -113,6 +116,9 @@ export async function searchProducts(options: CatalogSearchParams = {}) {
     withQuery("/api/catalog/search", {
       q: options.q,
       category: options.category,
+      brand: options.brand,
+      minPrice: options.minPrice,
+      maxPrice: options.maxPrice,
       page: options.page,
       limit: options.limit,
       sort: options.sort,
@@ -133,7 +139,7 @@ export async function getCategories() {
         ? value.items
         : []))
 
-  return items.map((item: any) => ({
+  return items.map((item: any): CatalogCategory => ({
     id: item.id,
     name: String(item.name || ""),
     slug: item.slug ?? undefined,

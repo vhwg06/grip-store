@@ -62,6 +62,9 @@ export interface CatalogProductsResponse {
 export interface CatalogSearchParams {
   q?: string
   category?: string
+  brand?: string
+  minPrice?: number
+  maxPrice?: number
   page?: number
   limit?: number
   sort?: string

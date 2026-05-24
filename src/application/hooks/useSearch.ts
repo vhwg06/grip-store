@@ -2,7 +2,7 @@
 
 import useSWR from "swr"
 import { getCategories, searchProducts } from "@/adapters/api/catalog.api"
-import type { CatalogSearchParams } from "@/domain/catalog"
+import type { CatalogCategory, CatalogSearchParams } from "@/domain/catalog"
 
 export function useSearch(params: CatalogSearchParams) {
   const results = useSWR(
@@ -16,7 +16,7 @@ export function useSearch(params: CatalogSearchParams) {
     total: results.data?.total ?? 0,
     page: results.data?.page ?? params.page ?? 1,
     pageSize: results.data?.limit ?? params.limit ?? 24,
-    categories: categories.data ?? [],
+    categories: (categories.data ?? []) as CatalogCategory[],
     isLoading: results.isLoading || categories.isLoading,
     error: results.error || categories.error || null,
   }

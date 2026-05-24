@@ -33,16 +33,13 @@ export function ArticlesListContent() {
         </p>
       </div>
 
-      {isLoading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {[1,2,3,4].map(i => <div key={i} className="aspect-[3/4] bg-neutral-100 animate-pulse rounded-xl" />)}
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {effectiveArticles.map(article => (
-            <ArticleCard key={article.id} article={article} />
-          ))}
-        </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        {effectiveArticles.map(article => (
+          <ArticleCard key={article.id} article={article} />
+        ))}
+      </div>
+      {isLoading && (
+        <p className="mt-4 text-sm text-neutral-500">Đang cập nhật danh sách bài viết...</p>
       )}
     </div>
   );

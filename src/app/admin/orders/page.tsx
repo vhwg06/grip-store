@@ -16,6 +16,7 @@ export default function AdminOrdersPage() {
     const page = intParam(searchParams.get("page"), 1)
     const pageSize = Math.min(intParam(searchParams.get("pageSize"), 50), 200)
     const { data, isLoading } = useAdminOrders({ page, pageSize, q, status })
+    const orders = data?.orders ?? []
 
     if (isLoading) {
         return (
@@ -29,7 +30,7 @@ export default function AdminOrdersPage() {
 
     return (
         <AdminOrdersContent
-            orders={data?.orders ?? []}
+            orders={orders}
             total={data?.total ?? 0}
             page={data?.page ?? page}
             pageSize={data?.pageSize ?? pageSize}

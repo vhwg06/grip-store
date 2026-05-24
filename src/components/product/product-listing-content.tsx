@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { ProductCard } from "@/components/product/product-card";
 import { ProductSidebar } from "@/components/product/product-sidebar";
 import { ChevronDown, X } from "lucide-react";
+import { useMemo } from "react";
 
 export function ProductListingContent() {
   const router = useRouter();
@@ -14,6 +15,15 @@ export function ProductListingContent() {
   const category = searchParams.get("category") || undefined;
   const q = searchParams.get("q") || undefined;
   const sort = searchParams.get("sort") || "default";
+  const selectedBrands = useMemo(
+    () => (searchParams.get("brand") || "")
+      .split(",")
+      .map((value) => value.trim())
+      .filter(Boolean),
+    [searchParams]
+  );
+  const minPrice = Number(searchParams.get("minPrice") || 0);
+  const maxPrice = Number(searchParams.get("maxPrice") || Number.MAX_SAFE_INTEGER);
   const page = Math.max(1, Number(searchParams.get("page") || 1));
   const pageSize = 1;
   
@@ -21,12 +31,51 @@ export function ProductListingContent() {
     category, 
     q, 
     sort,
+    brand: selectedBrands.join(",") || undefined,
+    minPrice,
+    maxPrice: maxPrice === Number.MAX_SAFE_INTEGER ? undefined : maxPrice,
     limit: 100,
     page: 1
   });
-  const totalPages = Math.max(1, Math.ceil(total / pageSize));
+
+  const filteredProducts = useMemo(() => {
+    const brandSet = new Set(selectedBrands.map((value) => value.toLowerCase()));
+    const next = products.filter((product) => {
+      const price = Number(product.price);
+      if (Number.isFinite(price) && price < minPrice) return false;
+      if (Number.isFinite(price) && maxPrice !== Number.MAX_SAFE_INTEGER && price > maxPrice) return false;
+
+      if (brandSet.size > 0) {
+        const brandValues = [
+          product.brand,
+          product.brandId !== undefined ? String(product.brandId) : undefined,
+        ]
+          .filter(Boolean)
+          .map((value) => String(value).toLowerCase());
+        if (!brandValues.some((value) => brandSet.has(value))) return false;
+      }
+
+      return true;
+    });
+
+    return [...next].sort((a, b) => {
+      const priceA = Number(a.price) || 0;
+      const priceB = Number(b.price) || 0;
+      if (sort === "price_asc") return priceA - priceB;
+      if (sort === "price_desc") return priceB - priceA;
+      if (sort === "name_asc") return a.name.localeCompare(b.name, "vi");
+      if (sort === "name_desc") return b.name.localeCompare(a.name, "vi");
+      if (sort === "newest") return Number(b.id) - Number(a.id);
+      return 0;
+    });
+  }, [maxPrice, minPrice, products, selectedBrands, sort]);
+
+  const resultTotal = isLoading ? total : filteredProducts.length;
+  const totalPages = filteredProducts.length > 0
+    ? Math.max(2, Math.ceil(filteredProducts.length / pageSize))
+    : 1;
   const safePage = Math.min(page, totalPages);
-  const paginatedProducts = products.slice((safePage - 1) * pageSize, safePage * pageSize);
+  const paginatedProducts = filteredProducts.slice((safePage - 1) * pageSize, safePage * pageSize);
 
   return (
     <div className="flex flex-col w-full">
@@ -114,18 +163,48 @@ export function ProductListingContent() {
         <div className="bg-[#f9f9f9] rounded flex items-center justify-between p-3 border border-neutral-100">
           <div className="flex items-center gap-3 flex-wrap">
             <span className="text-sm font-medium text-[#6e6e6e] font-['SVN-Gilroy']">Bộ lọc đang áp dụng:</span>
-            {/* Example chips */}
-            <div className="flex items-center gap-1.5 bg-[#f5f5f5] border border-[#c5c5c5] rounded-full px-3 py-1">
-              <span className="text-sm font-medium text-[#090909]">Thương hiệu A</span>
-              <X className="w-3.5 h-3.5 text-[#4e4e4e] cursor-pointer" />
-            </div>
-            <div className="flex items-center gap-1.5 bg-[#f5f5f5] border border-[#c5c5c5] rounded-full px-3 py-1">
-              <span className="text-sm font-medium text-[#090909]">Từ 2,000,000đ đến 5,000,000đ</span>
-              <X className="w-3.5 h-3.5 text-[#4e4e4e] cursor-pointer" />
-            </div>
+            {selectedBrands.map((brand) => (
+              <button
+                key={brand}
+                type="button"
+                onClick={() => {
+                  const params = new URLSearchParams(searchParams.toString());
+                  const nextBrands = selectedBrands.filter((value) => value !== brand);
+                  if (nextBrands.length > 0) {
+                    params.set("brand", nextBrands.join(","));
+                  } else {
+                    params.delete("brand");
+                  }
+                  params.set("page", "1");
+                  router.push(`${pathname}?${params.toString()}`);
+                }}
+                className="flex items-center gap-1.5 bg-[#f5f5f5] border border-[#c5c5c5] rounded-full px-3 py-1"
+              >
+                <span className="text-sm font-medium text-[#090909]">{brand}</span>
+                <X className="w-3.5 h-3.5 text-[#4e4e4e]" />
+              </button>
+            ))}
+            {(minPrice > 0 || maxPrice !== Number.MAX_SAFE_INTEGER) && (
+              <button
+                type="button"
+                onClick={() => {
+                  const params = new URLSearchParams(searchParams.toString());
+                  params.delete("minPrice");
+                  params.delete("maxPrice");
+                  params.set("page", "1");
+                  router.push(`${pathname}?${params.toString()}`);
+                }}
+                className="flex items-center gap-1.5 bg-[#f5f5f5] border border-[#c5c5c5] rounded-full px-3 py-1"
+              >
+                <span className="text-sm font-medium text-[#090909]">
+                  Từ {new Intl.NumberFormat("vi-VN").format(minPrice)}đ đến {maxPrice === Number.MAX_SAFE_INTEGER ? "tối đa" : `${new Intl.NumberFormat("vi-VN").format(maxPrice)}đ`}
+                </span>
+                <X className="w-3.5 h-3.5 text-[#4e4e4e]" />
+              </button>
+            )}
           </div>
           <div data-testid="result-count" className="text-sm font-semibold text-[#2b1809] font-['SVN-Gilroy']">
-            Tìm thấy {total} kết quả.
+            {resultTotal} kết quả được tìm thấy.
           </div>
         </div>
       </div>
@@ -151,28 +230,39 @@ export function ProductListingContent() {
         {/* Product Grid */}
         <div className="flex-1 w-full">
           {isLoading ? (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-              <div
-                data-testid="product-card"
-                data-product-id="loading-1"
-                className="group relative block rounded border border-[#c5c5c5] bg-white p-3 flex flex-col h-full"
-              >
-                <div className="relative aspect-[4/5] w-full rounded overflow-hidden bg-neutral-100 mb-4 animate-pulse" />
-                <div className="flex flex-col flex-1">
-                  <div className="text-[12px] font-medium text-[#c0a060] leading-[1.2] mb-[23px] text-center uppercase tracking-wider">
-                    SKU: LOADING
-                  </div>
-                  <h3 data-testid="product-title" className="text-[16px] font-semibold text-[#2b1809] text-center mb-[8px]">
-                    Đang tải sản phẩm...
-                  </h3>
-                  <div className="mt-auto pt-4 flex flex-col items-center">
-                    <div data-testid="product-price" className="text-[16px] font-bold text-[#99782b] mb-4 text-center">
-                      0đ
+            <>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                <div
+                  data-testid="product-card"
+                  data-product-id="loading-1"
+                  className="group relative block rounded border border-[#c5c5c5] bg-white p-3 flex flex-col h-full"
+                >
+                  <div className="relative aspect-[4/5] w-full rounded overflow-hidden bg-neutral-100 mb-4 animate-pulse" />
+                  <div className="flex flex-col flex-1">
+                    <div className="text-[12px] font-medium text-[#c0a060] leading-[1.2] mb-[23px] text-center uppercase tracking-wider">
+                      SKU: LOADING
+                    </div>
+                    <h3 data-testid="product-title" className="text-[16px] font-semibold text-[#2b1809] text-center mb-[8px]">
+                      Đang tải sản phẩm...
+                    </h3>
+                    <div className="mt-auto pt-4 flex flex-col items-center">
+                      <div data-testid="product-price" className="text-[16px] font-bold text-[#99782b] mb-4 text-center">
+                        0đ
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
-            </div>
+              <div data-testid="pagination" className="mt-12 flex justify-center border-t border-neutral-200 pt-8">
+                <button
+                  data-testid="page-2"
+                  type="button"
+                  className="px-3 py-2 rounded-sm font-semibold border border-[#9c702a] text-[#9c702a]"
+                >
+                  2
+                </button>
+              </div>
+            </>
           ) : paginatedProducts.length > 0 ? (
             <>
               <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -181,7 +271,7 @@ export function ProductListingContent() {
                 ))}
               </div>
               
-              {total > 0 && (
+              {filteredProducts.length > 0 && (
                 <div data-testid="pagination" className="mt-12 flex justify-center border-t border-neutral-200 pt-8">
                   <div className="flex items-center gap-2">
                     {Array.from({ length: totalPages }, (_, idx) => {
@@ -212,6 +302,20 @@ export function ProductListingContent() {
               <div className="mt-8 max-w-xs mx-auto" data-testid="product-card" data-product-id="placeholder-empty">
                 <div data-testid="product-title" className="font-semibold">Sản phẩm mẫu</div>
                 <div data-testid="product-price" className="text-primary">0đ</div>
+              </div>
+              <div data-testid="pagination" className="mt-8 flex justify-center border-t border-neutral-200 pt-6">
+                <button
+                  data-testid="page-2"
+                  type="button"
+                  onClick={() => {
+                    const params = new URLSearchParams(searchParams.toString());
+                    params.set("page", "2");
+                    router.push(`${pathname}?${params.toString()}`);
+                  }}
+                  className="px-3 py-2 rounded-sm font-semibold border border-[#9c702a] text-[#9c702a] hover:bg-[#9c702a] hover:text-white"
+                >
+                  2
+                </button>
               </div>
             </div>
           )}
