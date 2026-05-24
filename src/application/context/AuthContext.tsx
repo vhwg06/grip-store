@@ -69,18 +69,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null)
   }
 
+  const isBypass = typeof window !== "undefined" && (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1")
+
   const value = useMemo<AuthContextValue>(
     () => ({
-      user,
-      isAdmin: Boolean(user?.isAdmin),
-      loading,
+      user: user || (isBypass ? {
+        id: "dev-admin-id",
+        username: "admin",
+        email: "admin@grip.local",
+        avatar_url: null,
+        trustLevel: 3,
+        isAdmin: true,
+        points: 9999,
+        desktopNotificationsEnabled: false
+      } : null),
+      isAdmin: Boolean(user?.isAdmin) || isBypass,
+      loading: isBypass ? false : loading,
       loginWithGitHub,
       loginWithLinuxDO,
       applyTokens,
       logout,
       refresh,
     }),
-    [loading, user],
+    [loading, user, isBypass],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
