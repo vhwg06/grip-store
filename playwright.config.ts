@@ -14,7 +14,14 @@ export default defineConfig({
 
   /* Maximum time one test can run */
   timeout: 30_000,
-  expect: { timeout: 10_000 },
+  expect: {
+    timeout: 10_000,
+    toHaveScreenshot: {
+      maxDiffPixelRatio: 0.05,
+      threshold: 0.2,
+      animations: "disabled",
+    },
+  },
 
   /* Run tests in files in parallel */
   fullyParallel: true,

@@ -1,0 +1,98 @@
+name: Playwright Tests
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  test:
+    name: Playwright Tests (Shard ${{ matrix.shardIndex }}/${{ matrix.shardTotal }})
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        shardIndex: [1, 2, 3, 4]
+        shardTotal: [4]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Run Playwright tests
+        run: npx playwright test --shard=${{ matrix.shardIndex }}/${{ matrix.shardTotal }}
+        env:
+          CI: true
+          GO_BACKEND_URL: ${{ secrets.GO_BACKEND_URL || 'http://localhost:8080' }}
+          NEXT_PUBLIC_APP_URL: ${{ secrets.NEXT_PUBLIC_APP_URL || 'http://localhost:3000' }}
+          TEST_USER_EMAIL: ${{ secrets.TEST_USER_EMAIL }}
+          TEST_USER_PASSWORD: ${{ secrets.TEST_USER_PASSWORD }}
+          ADMIN_USER_EMAIL: ${{ secrets.ADMIN_USER_EMAIL }}
+          ADMIN_USER_PASSWORD: ${{ secrets.ADMIN_USER_PASSWORD }}
+          TEST_USER_TOKEN: ${{ secrets.TEST_USER_TOKEN }}
+          ADMIN_USER_TOKEN: ${{ secrets.ADMIN_USER_TOKEN }}
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: playwright-report-shard-${{ matrix.shardIndex }}
+          path: playwright/reports/
+          retention-days: 14
+
+      - name: Upload test artifacts
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-artifacts-shard-${{ matrix.shardIndex }}
+          path: |
+            playwright/test-results/
+          retention-days: 7
+
+  merge-reports:
+    name: Merge Playwright Reports
+    needs: test
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Download all shard reports
+        uses: actions/download-artifact@v4
+        with:
+          path: all-shard-reports
+          pattern: playwright-report-shard-*
+
+      - name: Merge reports
+        run: npx playwright merge-reports --reporter html ./all-shard-reports
+
+      - name: Upload merged report
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-merged
+          path: playwright-report/
+          retention-days: 14
