@@ -49,6 +49,38 @@ export function ProductListingContent() {
           </div>
           
           <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <input
+                data-testid="search-input"
+                value={q ?? ""}
+                onChange={(e) => {
+                  const params = new URLSearchParams(searchParams.toString());
+                  const next = e.target.value.trim();
+                  if (next) {
+                    params.set("q", next);
+                  } else {
+                    params.delete("q");
+                  }
+                  params.set("page", "1");
+                  router.push(`${pathname}?${params.toString()}`);
+                }}
+                placeholder="Tìm kiếm sản phẩm..."
+                className="h-10 rounded border border-[#c0a060] px-3 text-sm"
+              />
+              <button
+                data-testid="search-submit"
+                type="button"
+                onClick={() => {
+                  const params = new URLSearchParams(searchParams.toString());
+                  if (q) params.set("q", q);
+                  params.set("page", "1");
+                  router.push(`${pathname}?${params.toString()}`);
+                }}
+                className="h-10 rounded border border-[#c0a060] px-3 text-sm font-semibold text-[#9c702a]"
+              >
+                Tìm
+              </button>
+            </div>
             <span className="text-sm font-medium text-[#191c1f] font-['SVN-Gilroy']">Lọc theo</span>
             <div className="relative">
               <select

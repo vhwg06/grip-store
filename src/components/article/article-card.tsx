@@ -11,7 +11,7 @@ export function ArticleCard({ article }: ArticleCardProps) {
   const publishedDate = article.publishedAt ? new Date(article.publishedAt) : new Date();
   
   return (
-    <Link href={`/articles/${article.slug}`} className="group block overflow-hidden rounded-xl border bg-card hover:shadow-lg transition-all h-full flex flex-col">
+    <Link data-testid="article-card" data-slug={article.slug} href={`/articles/${article.slug}`} className="group block overflow-hidden rounded-xl border bg-card hover:shadow-lg transition-all h-full flex flex-col">
       <div className="relative aspect-[4/3] bg-neutral-100 overflow-hidden">
         {article.featuredImage ? (
           <Image
@@ -31,10 +31,10 @@ export function ArticleCard({ article }: ArticleCardProps) {
             {publishedDate.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' })}
           </time>
         </div>
-        <h3 className="font-bold text-lg leading-tight mb-2 group-hover:text-primary transition-colors line-clamp-2">
+        <h3 data-testid="article-title" className="font-bold text-lg leading-tight mb-2 group-hover:text-primary transition-colors line-clamp-2">
           {article.title}
         </h3>
-        <p className="text-neutral-600 text-sm line-clamp-3 mb-4 flex-1">
+        <p data-testid="article-excerpt" className="text-neutral-600 text-sm line-clamp-3 mb-4 flex-1">
           {article.excerpt}
         </p>
         <span className="text-primary font-semibold text-sm flex items-center gap-1 group-hover:underline mt-auto">

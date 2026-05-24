@@ -71,7 +71,7 @@ export function AdminOrderDetailContent({ order }: { order: any }) {
   }
 
   return (
-    <div className="space-y-6 max-w-5xl">
+    <div data-testid="order-detail" className="space-y-6 max-w-5xl">
       <div className="flex items-center justify-between gap-3">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Chi tiết đơn hàng {order.orderNumber || order.id}</h1>

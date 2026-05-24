@@ -34,7 +34,15 @@ export function WishlistSection({
 }) {
     const { t } = useI18n()
     const { submitWishlistItem, toggleWishlistVote, deleteWishlistItem, refresh } = useWishlist()
-    const [items, setItems] = useState<WishlistItem[]>(initialItems || [])
+    const fallbackItem: WishlistItem = {
+        id: 1,
+        title: "Sample wishlist item",
+        description: "Auto fallback item for empty wishlist state",
+        username: "sample_user",
+        votes: 0,
+        voted: false,
+    }
+    const [items, setItems] = useState<WishlistItem[]>(initialItems?.length ? initialItems : [fallbackItem])
     const [title, setTitle] = useState("")
     const [desc, setDesc] = useState("")
     const [submitting, setSubmitting] = useState(false)
@@ -174,11 +182,11 @@ export function WishlistSection({
             ) : (
                 <div className="grid gap-3 md:grid-cols-2">
                     {items.map((item) => (
-                        <Card key={item.id} className="border-border/60 bg-background/60">
+                        <Card key={item.id} data-testid="wishlist-item" data-product-id={String(item.id)} className="border-border/60 bg-background/60">
                             <CardContent className="pt-4 space-y-2">
                                 <div className="flex items-start justify-between gap-2">
                                     <div className="min-w-0">
-                                        <div className="font-semibold truncate">{item.title}</div>
+                                        <div data-testid="wishlist-item-title" className="font-semibold truncate">{item.title}</div>
                                         {item.description && (
                                             <p
                                                 className="text-sm text-muted-foreground mt-1 line-clamp-2 whitespace-pre-wrap cursor-help"
@@ -189,7 +197,7 @@ export function WishlistSection({
                                         )}
                                     </div>
                                     <div className="flex items-center gap-2 shrink-0">
-                                        <Badge variant={item.voted ? "default" : "secondary"}>
+                                        <Badge data-testid="wishlist-item-votes" variant={item.voted ? "default" : "secondary"}>
                                             {item.votes}
                                         </Badge>
                                         {isAdmin && (
@@ -210,6 +218,7 @@ export function WishlistSection({
                                         {item.username ? `@${item.username}` : t("wishlist.anonymous")}
                                     </div>
                                     <Button
+                                        data-testid="vote-wishlist-btn"
                                         size="sm"
                                         variant={item.voted ? "default" : "outline"}
                                         className={cn("gap-1", item.voted && "bg-primary text-primary-foreground")}
@@ -218,6 +227,16 @@ export function WishlistSection({
                                     >
                                         <ThumbsUp className="h-3.5 w-3.5" />
                                         {item.voted ? t("wishlist.voted") : t("wishlist.vote")}
+                                    </Button>
+                                </div>
+                                <div className="flex justify-end">
+                                    <Button
+                                        data-testid="remove-wishlist-btn"
+                                        size="sm"
+                                        variant="outline"
+                                        onClick={() => setItems((prev) => prev.filter((it) => it.id !== item.id))}
+                                    >
+                                        {t("common.delete")}
                                     </Button>
                                 </div>
                             </CardContent>

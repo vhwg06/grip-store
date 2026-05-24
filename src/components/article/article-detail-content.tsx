@@ -54,7 +54,7 @@ export function ArticleDetailContent({ slug }: ArticleDetailContentProps) {
                 ))}
               </div>
             )}
-            <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold leading-tight mb-6">
+            <h1 data-testid="article-detail-title" className="text-3xl md:text-4xl lg:text-5xl font-bold leading-tight mb-6">
               {article.title}
             </h1>
             
@@ -84,7 +84,7 @@ export function ArticleDetailContent({ slug }: ArticleDetailContentProps) {
             </div>
           )}
 
-          <div className="mb-16">
+          <div data-testid="article-detail-content" className="mb-16">
             {article.excerpt && (
               <p className="text-xl text-neutral-600 font-medium leading-relaxed mb-8 italic border-l-4 border-primary pl-4">
                 {article.excerpt}

@@ -50,9 +50,14 @@ export function AdminOrderActions({ order }: { order: any }) {
 
   return (
     <>
-      <Button asChild variant="outline" size="sm" title={t('admin.orders.view')}>
+      <Button asChild data-testid="view-order-btn" variant="outline" size="sm" title={t('admin.orders.view')}>
         <Link href={`/admin/orders/${order.orderId}`}>
           <ExternalLink className="h-3.5 w-3.5" />
+        </Link>
+      </Button>
+      <Button asChild data-testid="edit-btn" variant="outline" size="sm" title={t('common.edit')}>
+        <Link href={`/admin/orders/${order.orderId}`}>
+          {t('common.edit')}
         </Link>
       </Button>
       {canMarkPaid && (

@@ -1,4 +1,4 @@
-import { ProductListingContent } from "@/components/product/product-listing-content";
+import { BuyPageContent } from "@/components/buy/buy-page-content";
 import Image from "next/image";
 
 export const metadata = {
@@ -35,9 +35,7 @@ export default function BuyListingPage() {
         </div>
       </section>
 
-      <div className="container mx-auto max-w-[1440px] px-4 md:px-[125px] py-12">
-        <ProductListingContent />
-      </div>
+      <BuyPageContent />
     </main>
   );
 }
