@@ -64,23 +64,20 @@ function normalizeProduct(product: Partial<CatalogProduct>): CatalogProduct {
 }
 
 function normalizeProductsResponse(payload: unknown, fallback: CatalogSearchParams = {}): CatalogProductsResponse {
-  if (Array.isArray(payload)) {
-    return {
-      items: payload.map((item) => normalizeProduct(item as CatalogProduct)),
-      page: fallback.page ?? 1,
-      limit: fallback.limit ?? (payload.length || 20),
-      total: payload.length,
-    }
-  }
-
-  const value = (payload ?? {}) as Partial<CatalogProductsResponse> & { items?: CatalogProduct[] }
-  const items = Array.isArray(value.items) ? value.items.map((item) => normalizeProduct(item)) : []
+  const value = (payload ?? {}) as any
+  
+  // Unwrap Go backend response envelope {"data": [...], "meta": ...} or use array fallback
+  const rawItems = Array.isArray(value) 
+    ? value 
+    : (Array.isArray(value.data) ? value.data : (Array.isArray(value.items) ? value.items : []))
+    
+  const items = rawItems.map((item: any) => normalizeProduct(item))
 
   return {
     items,
-    page: Number(value.page ?? fallback.page ?? 1),
-    limit: Number(value.limit ?? fallback.limit ?? 20),
-    total: Number(value.total ?? items.length),
+    page: Number(value.page ?? value.meta?.page ?? fallback.page ?? 1),
+    limit: Number(value.limit ?? value.meta?.limit ?? fallback.limit ?? 20),
+    total: Number(value.total ?? value.meta?.total ?? items.length),
   }
 }
 
@@ -100,18 +97,14 @@ export async function getActiveProducts(options: CatalogSearchParams = {}) {
 
 export async function getProduct(id: string): Promise<CatalogProductViewState> {
   const payload = await apiFetch<unknown>(`/api/catalog/products/${encodeURIComponent(id)}`)
-  const value = (payload ?? {}) as { product?: CatalogProductDetail; requiredLevel?: number | null }
+  const value = (payload ?? {}) as any
 
-  if ("product" in value) {
-    return {
-      product: value.product ? normalizeProduct(value.product) : null,
-      requiredLevel: value.requiredLevel ?? null,
-    }
-  }
+  // Unwrap Go backend success envelope {"data": { ...product... }} or use fallback
+  const rawProduct = value.data !== undefined ? value.data : (value.product !== undefined ? value.product : value)
 
   return {
-    product: normalizeProduct(value as CatalogProductDetail),
-    requiredLevel: null,
+    product: rawProduct ? normalizeProduct(rawProduct) : null,
+    requiredLevel: value.requiredLevel ?? null,
   }
 }
 
@@ -131,14 +124,16 @@ export async function searchProducts(options: CatalogSearchParams = {}) {
 
 export async function getCategories() {
   const payload = await apiFetch<unknown>("/api/catalog/categories")
-  const value = payload as { items?: CatalogCategory[] } | CatalogCategory[]
+  const value = payload as any
   const items = Array.isArray(value)
     ? value
-    : Array.isArray(value?.items)
-      ? value.items
-      : []
+    : (Array.isArray(value?.data)
+      ? value.data
+      : (Array.isArray(value?.items)
+        ? value.items
+        : []))
 
-  return items.map((item) => ({
+  return items.map((item: any) => ({
     id: item.id,
     name: String(item.name || ""),
     slug: item.slug ?? undefined,
@@ -161,10 +156,11 @@ export async function getPublicSettings() {
 
 export async function getAnnouncement() {
   const payload = await apiFetch<unknown>("/api/catalog/announcement")
-  if (typeof payload === "string") {
-    return payload
-  }
+  const value = (payload ?? {}) as any
+  const raw = value.data !== undefined ? value.data : value
 
-  const value = payload as { content?: string | null }
-  return value.content ?? null
+  if (typeof raw === "string") {
+    return raw
+  }
+  return raw?.value || raw?.content || null
 }
