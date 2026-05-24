@@ -13,7 +13,8 @@ export function SignOutButton() {
     return (
         <DropdownMenuItem
             data-testid="logout-btn"
-            onClick={async () => {
+            onSelect={async (event) => {
+                event.preventDefault()
                 await logout()
                 router.push("/")
             }}

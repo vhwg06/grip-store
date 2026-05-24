@@ -28,6 +28,7 @@ export function CheckInButton({
     const [checkedIn, setCheckedIn] = useState(false)
     const [loading, setLoading] = useState(true)
     const [checkingIn, setCheckingIn] = useState(false)
+    const [showSuccess, setShowSuccess] = useState(false)
     const { checkIn, checkedIn: fetchedCheckedIn, points: fetchedPoints, isLoading, refresh } = useCheckin()
 
     useEffect(() => {
@@ -45,6 +46,8 @@ export function CheckInButton({
             const res = await checkIn()
             if (res.success) {
                 toast.success(t('checkin.success', { points: res.points || 0 }))
+                setShowSuccess(true)
+                setTimeout(() => setShowSuccess(false), 2500)
                 await refresh()
                 setPoints(prev => {
                     const next = prev + (res.points || 0)
@@ -57,6 +60,8 @@ export function CheckInButton({
                 if (res.error === "Already checked in today") {
                     setCheckedIn(true)
                     onCheckedInChange?.(true)
+                    setShowSuccess(true)
+                    setTimeout(() => setShowSuccess(false), 2500)
                     toast.info(t('checkin.alreadyCheckedIn'))
                 } else {
                     toast.error(res.error ? t(`checkin.${res.error}`) : t('checkin.failed'))
@@ -73,6 +78,11 @@ export function CheckInButton({
 
     return (
         <div className={cn("flex items-center gap-2", className)}>
+            {showSuccess && (
+                <span data-testid="checkin-success" className="text-xs text-green-600">
+                    {t('checkin.checkedIn')}
+                </span>
+            )}
             {showPoints && (
                 <div className="flex items-center gap-1.5 px-3 py-1.5 bg-muted/50 rounded-full text-sm font-medium">
                     <Coins className="w-4 h-4 text-yellow-500" />
@@ -82,6 +92,7 @@ export function CheckInButton({
 
             {enabled && !checkedIn && (
                 <Button
+                    data-testid="checkin-btn"
                     variant="outline"
                     size="sm"
                     className="h-8 gap-2 bg-gradient-to-r from-amber-500/10 to-orange-500/10 hover:from-amber-500/20 hover:to-orange-500/20 border-amber-500/20 text-amber-600 dark:text-amber-400"
@@ -95,6 +106,7 @@ export function CheckInButton({
 
             {enabled && checkedIn && showCheckedInLabel && (
                 <Button
+                    data-testid="checkin-btn"
                     variant="outline"
                     size="sm"
                     className="h-8 text-muted-foreground"

@@ -3,7 +3,7 @@ import type { ProductCardData } from "./types";
 
 export class ProductListPage extends BasePage {
   async goto() {
-    await super.goto("/buy");
+    await super.goto("/products");
   }
 
   async getProductCards(): Promise<ProductCardData[]> {
@@ -27,7 +27,13 @@ export class ProductListPage extends BasePage {
   }
 
   async sortBy(option: string) {
-    await this.page.locator('[data-testid="sort-select"]').selectOption(option);
+    const sort = this.page.locator('[data-testid="sort-select"]');
+    const tagName = await sort.evaluate((el) => el.tagName.toLowerCase());
+    if (tagName === "select") {
+      await sort.selectOption(option);
+    } else {
+      await sort.click();
+    }
     await this.waitForNetworkIdle();
   }
 

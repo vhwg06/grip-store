@@ -436,6 +436,7 @@ export function AdminSettingsContent({ stats, shopName, shopDescription, shopLog
                             <div className="floating-field flex-1 min-w-0">
                                 <Input
                                     id="shop-name"
+                                    data-testid="setting-site-name"
                                     value={shopNameValue}
                                     onChange={(e) => setShopNameValue(e.target.value)}
                                     placeholder=" "

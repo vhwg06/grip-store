@@ -7,7 +7,7 @@ import { APP_VERSION } from "@/lib/version"
 export default function AdminSettingsPage() {
     const { data, isLoading } = useAdminDashboard()
 
-    if (isLoading || !data) {
+    if (isLoading) {
         return (
             <div className="space-y-4">
                 <div className="h-8 w-40 rounded-md bg-muted/60 animate-pulse" />
@@ -17,7 +17,7 @@ export default function AdminSettingsPage() {
         )
     }
 
-    const settingsMap = data.settingsMap
+    const settingsMap = data?.settingsMap ?? {}
     const shopName = settingsMap['shop_name'] || null
     const shopDescription = settingsMap['shop_description'] || null
     const shopLogo = settingsMap['shop_logo'] || null
@@ -28,13 +28,18 @@ export default function AdminSettingsPage() {
 
     return (
         <AdminSettingsContent
-            stats={data.stats}
+            stats={data?.stats ?? {
+                today: { count: 0, revenue: 0 },
+                week: { count: 0, revenue: 0 },
+                month: { count: 0, revenue: 0 },
+                total: { count: 0, revenue: 0 },
+            }}
             shopName={shopName}
             shopDescription={shopDescription}
             shopLogo={shopLogo}
             shopFooter={shopFooter}
             themeColor={themeColor}
-            visitorCount={data.visitorCount}
+            visitorCount={data?.visitorCount ?? 0}
             lowStockThreshold={lowStockThreshold}
             checkinReward={checkinReward}
             checkinEnabled={settingsMap['checkin_enabled'] !== 'false'}
@@ -43,7 +48,7 @@ export default function AdminSettingsPage() {
             registryOptIn={settingsMap['registry_opt_in'] === 'true'}
             refundReclaimCards={settingsMap['refund_reclaim_cards'] !== 'false'}
             registryHideNav={settingsMap['registry_hide_nav'] === 'true'}
-            registryEnabled={Boolean(data.registryEnabled)}
+            registryEnabled={Boolean(data?.registryEnabled)}
             currentVersion={APP_VERSION}
             floatingButtonEnabled={settingsMap['floating_button_enabled'] === 'true'}
             floatingButtonUrl={settingsMap['floating_button_url'] || ''}

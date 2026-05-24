@@ -6,9 +6,10 @@ interface ProductSectionProps {
   title: string;
   products: CatalogProduct[];
   viewAllLink?: string;
+  cardTestId?: string;
 }
 
-export function ProductSection({ title, products, viewAllLink }: ProductSectionProps) {
+export function ProductSection({ title, products, viewAllLink, cardTestId = "featured-product-card" }: ProductSectionProps) {
   const displayProducts = products?.length
     ? products.slice(0, 5)
     : Array.from({ length: 5 }).map((_, idx) => ({
@@ -32,7 +33,7 @@ export function ProductSection({ title, products, viewAllLink }: ProductSectionP
         </div>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6">
           {displayProducts.map((product) => (
-            <div key={product.id} data-testid="featured-product-card">
+            <div key={product.id} data-testid={cardTestId}>
               <ProductCard product={product} />
             </div>
           ))}

@@ -246,7 +246,7 @@ export function AdminOrdersContent({
                 </div>
             </div>
 
-            <div className="rounded-md border bg-card">
+            <div data-testid="admin-table" className="rounded-md border bg-card">
                 <Table>
                     <TableHeader>
                         <TableRow>
@@ -276,8 +276,14 @@ export function AdminOrdersContent({
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {orders.map(order => (
-                            <TableRow key={order.orderId}>
+                        {orders.length === 0 ? (
+                            <TableRow data-testid="admin-table-empty">
+                                <TableCell colSpan={10} className="text-center text-muted-foreground py-8">
+                                    No orders
+                                </TableCell>
+                            </TableRow>
+                        ) : orders.map(order => (
+                            <TableRow data-testid="order-row" key={order.orderId}>
                                 <TableCell>
                                     <input
                                         type="checkbox"

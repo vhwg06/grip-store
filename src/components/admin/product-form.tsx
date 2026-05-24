@@ -97,12 +97,12 @@ export default function ProductForm({ product, categories = [] }: { product?: an
 
                     <div className="grid gap-2">
                         <Label htmlFor="name">{t('admin.productForm.nameLabel')}</Label>
-                        <Input id="name" name="name" defaultValue={currentProduct?.name} placeholder={t('admin.productForm.namePlaceholder')} required />
+                        <Input data-testid="field-title" id="name" name="name" defaultValue={currentProduct?.name} placeholder={t('admin.productForm.namePlaceholder')} required />
                     </div>
 
                     <div className="grid gap-2">
                         <Label htmlFor="price">{t('admin.productForm.priceLabel')}</Label>
-                        <Input id="price" name="price" type="number" step="0.01" defaultValue={currentProduct?.price} placeholder={t('admin.productForm.pricePlaceholder')} required />
+                        <Input data-testid="field-price" id="price" name="price" type="number" step="0.01" defaultValue={currentProduct?.price} placeholder={t('admin.productForm.pricePlaceholder')} required />
                     </div>
 
                     <div className="grid gap-2">
@@ -179,6 +179,7 @@ export default function ProductForm({ product, categories = [] }: { product?: an
                     <div className="grid gap-2">
                         <Label htmlFor="description">{t('admin.productForm.descLabel')}</Label>
                         <Textarea
+                            data-testid="field-description"
                             id="description"
                             name="description"
                             defaultValue={currentProduct?.description}
@@ -250,7 +251,7 @@ export default function ProductForm({ product, categories = [] }: { product?: an
 
                     <div className="pt-4 flex justify-end gap-2">
                         <Button variant="outline" type="button" onClick={() => router.back()}>{t('common.cancel')}</Button>
-                        <Button type="submit" disabled={loading}>{loading ? t('admin.productForm.saving') : t('admin.productForm.saveButton')}</Button>
+                        <Button data-testid="save-btn" type="submit" disabled={loading}>{loading ? t('admin.productForm.saving') : t('admin.productForm.saveButton')}</Button>
                     </div>
                 </form>
             </CardContent>

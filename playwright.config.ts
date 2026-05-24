@@ -11,6 +11,7 @@ const GO_BACKEND_URL = process.env.GO_BACKEND_URL ?? "http://localhost:8080";
 export default defineConfig({
   testDir: "./playwright/specs",
   outputDir: "./playwright/test-results",
+  globalSetup: "./playwright/src/fixtures/global-setup.ts",
 
   /* Maximum time one test can run */
   timeout: 30_000,

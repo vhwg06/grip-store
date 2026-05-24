@@ -69,24 +69,28 @@ interface CartContextType {
 
 export const CartContext = createContext<CartContextType | undefined>(undefined);
 
-export function CartProvider({ children }: { children: React.ReactNode }) {
-  const [state, dispatch] = useReducer(cartReducer, initialState);
+function loadInitialCartState(): Cart {
+  if (typeof window === "undefined") return initialState;
+  try {
+    const saved = localStorage.getItem("grip-cart");
+    if (!saved) return initialState;
+    const parsed = JSON.parse(saved) as Partial<Cart>;
+    if (!Array.isArray(parsed.items)) return initialState;
+    return calculateCartTotals(
+      parsed.items.map((item: any) => ({
+        id: String(item.id ?? Math.random().toString(36).substring(7)),
+        productId: String(item.productId ?? item.product?.id ?? ""),
+        product: item.product,
+        quantity: Number.isFinite(Number(item.quantity)) ? Math.max(1, Number(item.quantity)) : 1,
+      })),
+    );
+  } catch {
+    return initialState;
+  }
+}
 
-  // Load from local storage on mount
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem("grip-cart");
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        // Simple hydrate, you might want to dispatch an init action instead
-        parsed.items.forEach((item: any) => {
-          dispatch({ type: "ADD_ITEM", payload: { product: item.product, quantity: item.quantity } });
-        });
-      }
-    } catch (e) {
-      console.error("Failed to load cart from local storage", e);
-    }
-  }, []);
+export function CartProvider({ children }: { children: React.ReactNode }) {
+  const [state, dispatch] = useReducer(cartReducer, initialState, loadInitialCartState);
 
   // Save to local storage on change
   useEffect(() => {

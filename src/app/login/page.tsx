@@ -13,7 +13,7 @@ import { LogIn, ShieldCheck, User, Lock, Eye, EyeOff } from "lucide-react"
 export default function LoginPage() {
   const searchParams = useSearchParams()
   const router = useRouter()
-  const { applyTokens, user, login } = useAuth()
+  const { applyTokens, login } = useAuth()
   const { t } = useI18n()
   const callbackUrl = searchParams.get("callbackUrl") || "/"
   const accessToken = searchParams.get("access_token")
@@ -60,12 +60,6 @@ export default function LoginPage() {
     }
   }, [accessToken, applyTokens, callbackUrl, expiresIn, refreshToken, router])
 
-  useEffect(() => {
-    if (user && !hydratingSession) {
-      router.replace(callbackUrl)
-    }
-  }, [callbackUrl, hydratingSession, router, user])
-
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!usernameOrEmail.trim() || !password.trim()) {
@@ -90,7 +84,12 @@ export default function LoginPage() {
         router.push(callbackUrl)
       }, 1000)
     } catch (err: any) {
-      setError(err?.message || t("loginForm.errorFailed"))
+      const message = String(err?.message || "")
+      if (/unauthorized|401/i.test(message)) {
+        setError("Invalid credentials")
+      } else {
+        setError(message || t("loginForm.errorFailed"))
+      }
     } finally {
       setLoading(false)
     }

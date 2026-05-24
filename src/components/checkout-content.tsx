@@ -70,15 +70,6 @@ export function CheckoutContent() {
         }
     }
 
-    if (!cartItems || cartItems.length === 0) {
-        return (
-            <div className="text-center py-24">
-                <h2 className="text-2xl font-bold mb-4">Giỏ hàng của bạn đang trống</h2>
-                <Button onClick={() => router.push('/catalog')}>Tiếp tục mua sắm</Button>
-            </div>
-        )
-    }
-
     return (
         <div className="grid lg:grid-cols-12 gap-8 lg:gap-12 py-12">
             <div className="lg:col-span-7 space-y-8">
@@ -163,6 +154,11 @@ export function CheckoutContent() {
                                 </div>
                             </div>
                         ))}
+                        {cartItems.length === 0 && (
+                            <div className="text-sm text-muted-foreground py-2">
+                                Giỏ hàng hiện chưa có sản phẩm.
+                            </div>
+                        )}
                     </div>
 
                     <div className="border-t mt-6 pt-4 space-y-3 text-sm">

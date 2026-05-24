@@ -14,12 +14,15 @@ setup("authenticate test user", async ({ page }) => {
   const password = process.env.TEST_USER_PASSWORD ?? "TestPass123!";
 
   await page.goto(`${BASE_URL}/login`);
-  await page.locator('[data-testid="login-email-input"]').fill(email);
-  await page.locator('[data-testid="login-password-input"]').fill(password);
-  await page.locator('[data-testid="login-submit-btn"]').click();
+  const avatar = page.locator('[data-testid="user-avatar"]');
+  if (!(await avatar.isVisible())) {
+    await page.locator('[data-testid="login-email-input"]').fill(email);
+    await page.locator('[data-testid="login-password-input"]').fill(password);
+    await page.locator('[data-testid="login-submit-btn"]').click({ trial: false });
+  }
 
   // Wait for successful login
-  await expect(page.locator('[data-testid="user-avatar"]')).toBeVisible({
+  await expect(avatar).toBeVisible({
     timeout: 15_000,
   });
 
@@ -34,12 +37,15 @@ setup("authenticate admin user", async ({ page }) => {
   const password = process.env.ADMIN_USER_PASSWORD ?? "AdminPass123!";
 
   await page.goto(`${BASE_URL}/login`);
-  await page.locator('[data-testid="login-email-input"]').fill(email);
-  await page.locator('[data-testid="login-password-input"]').fill(password);
-  await page.locator('[data-testid="login-submit-btn"]').click();
+  const avatar = page.locator('[data-testid="user-avatar"]');
+  if (!(await avatar.isVisible())) {
+    await page.locator('[data-testid="login-email-input"]').fill(email);
+    await page.locator('[data-testid="login-password-input"]').fill(password);
+    await page.locator('[data-testid="login-submit-btn"]').click({ trial: false });
+  }
 
   // Wait for successful login
-  await expect(page.locator('[data-testid="user-avatar"]')).toBeVisible({
+  await expect(avatar).toBeVisible({
     timeout: 15_000,
   });
 

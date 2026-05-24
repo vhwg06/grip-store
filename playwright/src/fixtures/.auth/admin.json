@@ -1,0 +1,29 @@
+{
+  "cookies": [
+    {
+      "name": "ldc-locale",
+      "value": "en",
+      "domain": "localhost",
+      "path": "/",
+      "expires": 1811159877.044568,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    }
+  ],
+  "origins": [
+    {
+      "origin": "http://localhost:3000",
+      "localStorage": [
+        {
+          "name": "grip-cart",
+          "value": "{\"items\":[],\"totalQuantity\":0,\"subtotal\":0}"
+        },
+        {
+          "name": "ldc-locale",
+          "value": "en"
+        }
+      ]
+    }
+  ]
+}

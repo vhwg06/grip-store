@@ -201,7 +201,7 @@ export function ProfileContent({ user, points, checkinEnabled, orderStats, notif
                             <AvatarFallback><User className="h-8 w-8" /></AvatarFallback>
                         </Avatar>
                         <div className="flex-1">
-                            <h1 className="text-xl font-bold">{user.name}</h1>
+                            <h1 data-testid="profile-username" className="text-xl font-bold">{user.name}</h1>
                             {user.username && (
                                 <p className="text-sm text-muted-foreground">@{user.username}</p>
                             )}
@@ -289,7 +289,7 @@ export function ProfileContent({ user, points, checkinEnabled, orderStats, notif
                             </div>
                             <div>
                                 <p className="text-sm text-muted-foreground">{t('common.credits')}</p>
-                                <p className="text-2xl font-bold text-amber-600">{pointsValue}</p>
+                                <p data-testid="profile-points" className="text-2xl font-bold text-amber-600">{pointsValue}</p>
                             </div>
                         </div>
                         <CheckInButton

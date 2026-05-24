@@ -24,7 +24,7 @@ export default function ContactPage() {
                 Hãy để lại thông tin, đội ngũ chuyên gia của GRIP sẽ liên hệ lại với bạn trong thời gian sớm nhất.
               </p>
               
-              <div className="space-y-6 mb-10">
+              <div data-testid="contact-company-info" className="space-y-6 mb-10">
                 <div className="flex items-start gap-4">
                   <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary flex-shrink-0">
                     <MapPin className="w-6 h-6" />

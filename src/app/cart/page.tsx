@@ -16,16 +16,16 @@ export default function CartPage() {
         <h1 className="text-2xl md:text-3xl font-bold mb-8">Giỏ hàng của bạn</h1>
 
         {cart.items.length === 0 ? (
-          <div className="text-center py-16 bg-neutral-50 rounded-2xl border border-neutral-100">
+          <div data-testid="empty-cart" className="text-center py-16 bg-neutral-50 rounded-2xl border border-neutral-100">
             <h2 className="text-xl font-medium mb-4">Giỏ hàng đang trống</h2>
             <p className="text-neutral-500 mb-8">Bạn chưa thêm sản phẩm nào vào giỏ hàng.</p>
             <div className="mb-6">
               <span className="text-neutral-500">Tổng cộng: </span>
               <span data-testid="cart-total" className="font-bold text-primary">0 ₫</span>
             </div>
-            <Link href="/products">
+            <Link href="/checkout">
               <button data-testid="checkout-btn" className="bg-primary text-primary-foreground px-8 py-3 rounded-full font-bold hover:bg-primary/90 transition-colors">
-                TIẾP TỤC MUA SẮM
+                TIẾN HÀNH THANH TOÁN
               </button>
             </Link>
           </div>

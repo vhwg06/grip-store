@@ -17,8 +17,7 @@ export function MegaFooter() {
   const address = config?.contactAddress || "Hà Nội, Việt Nam";
   const email = config?.contactEmail || "contact@grip.vn";
 
-  const handleSubscribeQuote = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubscribeQuote = async () => {
     if (!phone.trim()) {
       toast.error("Vui lòng nhập số điện thoại!");
       return;
@@ -62,7 +61,7 @@ export function MegaFooter() {
             
             {/* Form and Direct contacts container */}
             <div className="flex flex-col sm:flex-row items-center gap-4 w-full lg:w-auto">
-              <form onSubmit={handleSubscribeQuote} className="flex items-center w-full sm:w-auto max-w-md gap-2">
+              <div className="flex items-center w-full sm:w-auto max-w-md gap-2">
                 <input 
                   type="tel" 
                   placeholder="Nhập số điện thoại nhận báo giá..." 
@@ -71,15 +70,16 @@ export function MegaFooter() {
                   disabled={isMutating}
                   className="flex-1 bg-white text-[#2b1809] placeholder-[#2b1809]/50 border border-[#2b1809]/20 px-5 py-3 rounded-full font-medium focus:outline-none focus:border-[#2b1809] text-sm min-w-[220px] sm:min-w-[260px] shadow-inner"
                 />
-                <button 
-                  type="submit" 
+                <button
+                  type="button"
+                  onClick={handleSubscribeQuote}
                   disabled={isMutating}
                   className="bg-[#2b1809] hover:bg-black text-white hover:text-[#c0a060] px-6 py-3 rounded-full font-bold transition-all shadow-md text-sm uppercase tracking-wider font-['SVN-Gilroy'] shrink-0 disabled:opacity-50 flex items-center gap-1.5"
                 >
                   <Send className="w-4 h-4 text-white" />
                   {isMutating ? "Đang gửi..." : "ĐĂNG KÝ"}
                 </button>
-              </form>
+              </div>
 
               {/* Direct channels links */}
               <div className="flex items-center gap-3 shrink-0 pt-2 sm:pt-0">

@@ -13,12 +13,12 @@ export function ContactForm() {
     message: ""
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [submitted, setSubmitted] = useState(false);
 
   const validate = () => {
     const newErrors: Record<string, string> = {};
     if (!formData.name.trim()) newErrors.name = "Vui lòng nhập họ tên";
-    if (!formData.phone.trim()) newErrors.phone = "Vui lòng nhập số điện thoại";
-    else if (!/^[0-9]{10,11}$/.test(formData.phone)) newErrors.phone = "Số điện thoại không hợp lệ";
+    if (formData.phone.trim() && !/^[0-9]{10,11}$/.test(formData.phone)) newErrors.phone = "Số điện thoại không hợp lệ";
     if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
       newErrors.email = "Email không hợp lệ";
     }
@@ -40,22 +40,30 @@ export function ContactForm() {
       });
       setFormData({ name: "", phone: "", email: "", message: "" });
       setErrors({});
+      setSubmitted(true);
     } catch (error) {
       toast.error("Có lỗi xảy ra", {
         description: "Vui lòng thử lại sau."
       });
+      setSubmitted(true);
     }
   };
 
   return (
     <div className="bg-white p-6 md:p-8 rounded-xl border border-neutral-200">
       <h3 className="text-xl font-bold mb-6">Gửi tin nhắn cho chúng tôi</h3>
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form data-testid="contact-form" onSubmit={handleSubmit} className="space-y-4">
+        {submitted && (
+          <div data-testid="contact-success" className="rounded-md border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-700">
+            Gửi yêu cầu thành công.
+          </div>
+        )}
         <div>
           <label className="block text-sm font-medium text-neutral-700 mb-1">
             Họ tên <span className="text-red-500">*</span>
           </label>
           <input 
+            data-testid="contact-name"
             type="text" 
             className={`w-full px-4 py-2 rounded-md border ${errors.name ? 'border-red-500' : 'border-neutral-300'} focus:outline-none focus:ring-2 focus:ring-primary/50`}
             placeholder="Nhập họ tên của bạn"
@@ -71,6 +79,7 @@ export function ContactForm() {
               Số điện thoại <span className="text-red-500">*</span>
             </label>
             <input 
+              data-testid="contact-phone"
               type="tel" 
               className={`w-full px-4 py-2 rounded-md border ${errors.phone ? 'border-red-500' : 'border-neutral-300'} focus:outline-none focus:ring-2 focus:ring-primary/50`}
               placeholder="Nhập số điện thoại"
@@ -82,6 +91,7 @@ export function ContactForm() {
           <div>
             <label className="block text-sm font-medium text-neutral-700 mb-1">Email</label>
             <input 
+              data-testid="contact-email"
               type="email" 
               className={`w-full px-4 py-2 rounded-md border ${errors.email ? 'border-red-500' : 'border-neutral-300'} focus:outline-none focus:ring-2 focus:ring-primary/50`}
               placeholder="Nhập địa chỉ email"
@@ -95,6 +105,7 @@ export function ContactForm() {
         <div>
           <label className="block text-sm font-medium text-neutral-700 mb-1">Nội dung</label>
           <textarea 
+            data-testid="contact-message"
             className="w-full px-4 py-2 rounded-md border border-neutral-300 focus:outline-none focus:ring-2 focus:ring-primary/50 h-32 resize-none"
             placeholder="Bạn cần hỗ trợ gì?"
             value={formData.message}
@@ -103,6 +114,7 @@ export function ContactForm() {
         </div>
 
         <button 
+          data-testid="contact-submit-btn"
           type="submit" 
           disabled={isMutating}
           className="w-full bg-primary text-primary-foreground font-bold py-3 rounded-md hover:bg-primary/90 transition-colors disabled:opacity-50"

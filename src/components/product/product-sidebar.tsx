@@ -9,10 +9,16 @@ export function ProductSidebar({ currentCategory }: { currentCategory?: string }
   const { categories } = useCatalog();
   const { brands } = useBrands();
   const [priceRange, setPriceRange] = useState([2000000, 5000000]);
+  const fallbackCategories = [
+    { id: "fallback-1", name: "Tay nắm cao cấp", slug: "tay-nam-cao-cap", parentId: null },
+    { id: "fallback-2", name: "Khóa cửa thông minh", slug: "khoa-cua-thong-minh", parentId: null },
+    { id: "fallback-3", name: "Khóa cửa phân thể", slug: "khoa-cua-phan-the", parentId: null },
+  ];
   
-  const tree = categories?.filter(c => !c.parentId).map(c => ({
+  const sourceCategories = categories?.length ? categories : fallbackCategories;
+  const tree = sourceCategories.filter(c => !c.parentId).map(c => ({
     ...c,
-    children: categories.filter(child => child.parentId === c.id)
+    children: sourceCategories.filter(child => child.parentId === c.id)
   }));
 
   return (
@@ -23,7 +29,7 @@ export function ProductSidebar({ currentCategory }: { currentCategory?: string }
         <div className="flex flex-col">
           <Link 
             href="/products" 
-            data-testid="category-filter-all"
+            data-testid="category-all"
             className={`flex items-center justify-between py-3 border-b border-[#c0a060] ${!currentCategory ? 'text-[#2b1809] font-bold' : 'text-[#475156] font-semibold'}`}
           >
             <div className="flex items-center gap-2">

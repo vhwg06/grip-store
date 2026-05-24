@@ -10,29 +10,27 @@ import { useCatalog } from "@/application/hooks/useCatalog";
 
 export function HomeContent() {
   const { products, isLoading } = useCatalog({ limit: 10, sort: "popular" });
+  const featuredProducts = products.filter((p) => p.isHot).slice(0, 5);
+  const premiumHandles = products.slice(0, 5);
 
   return (
     <div className="flex flex-col w-full">
       <HeroBanner />
       <CategoryRail />
-      
-      {isLoading ? (
-        <div className="h-64 bg-neutral-50 animate-pulse my-12 container mx-auto" />
-      ) : (
-        <ProductSection 
-          title="SẢN PHẨM NỔI BẬT" 
-          products={products.filter(p => p.isHot).slice(0, 5)} 
-          viewAllLink="/products?filter=hot" 
-        />
-      )}
 
-      {isLoading ? null : (
-        <ProductSection 
-          title="TAY NẮM CAO CẤP" 
-          products={products.slice(0, 5)} 
-          viewAllLink="/products" 
-        />
-      )}
+      <ProductSection
+        title="SẢN PHẨM NỔI BẬT"
+        products={isLoading ? [] : featuredProducts}
+        viewAllLink="/products?filter=hot"
+        cardTestId="featured-product-card"
+      />
+
+      <ProductSection
+        title="TAY NẮM CAO CẤP"
+        products={isLoading ? [] : premiumHandles}
+        viewAllLink="/products"
+        cardTestId="home-product-card"
+      />
 
       <ShopByColor />
       <NewsSection />

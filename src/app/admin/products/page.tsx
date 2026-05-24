@@ -6,7 +6,7 @@ import { useAdminProducts } from "@/application/hooks/useAdmin"
 export default function AdminPage() {
     const { data, isLoading } = useAdminProducts()
 
-    if (isLoading || !data) {
+    if (isLoading) {
         return (
             <div className="space-y-4">
                 <div className="flex items-center justify-between">
@@ -34,8 +34,8 @@ export default function AdminPage() {
 
     return (
         <AdminProductsContent
-            products={data.products}
-            lowStockThreshold={data.lowStockThreshold}
+            products={data?.products ?? []}
+            lowStockThreshold={data?.lowStockThreshold ?? 5}
         />
     )
 }

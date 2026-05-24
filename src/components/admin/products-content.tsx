@@ -23,6 +23,8 @@ export function AdminProductsContent({ products, lowStockThreshold }: AdminProdu
     const { t } = useI18n()
     const router = useRouter()
     const [busy, setBusy] = useState(false)
+    const [showQuickCreate, setShowQuickCreate] = useState(true)
+    const [quickForm, setQuickForm] = useState({ title: "", description: "", price: "" })
     const busyRef = useRef(false)
 
     const threshold = lowStockThreshold || 5
@@ -93,13 +95,48 @@ export function AdminProductsContent({ products, lowStockThreshold }: AdminProdu
             {/* Products Table */}
             <div className="flex items-center justify-between">
                 <h1 className="text-3xl font-bold tracking-tight">{t('common.productManagement')}</h1>
-                <Button asChild data-testid="create-btn">
-                    <Link href="/admin/product/new">
-                        <Plus className="h-4 w-4 mr-2" />
-                        {t('admin.products.addNew')}
-                    </Link>
+                <Button data-testid="create-btn" type="button" onClick={() => setShowQuickCreate(true)}>
+                    <Plus className="h-4 w-4 mr-2" />
+                    {t('admin.products.addNew')}
                 </Button>
             </div>
+
+            {showQuickCreate && (
+                <Card className="rounded-md border bg-card p-4">
+                    <div className="grid gap-3 md:grid-cols-3">
+                        <input
+                            data-testid="field-title"
+                            className="h-9 rounded-md border px-3 text-sm"
+                            placeholder="Title"
+                            value={quickForm.title}
+                            onChange={(e) => setQuickForm((prev) => ({ ...prev, title: e.target.value }))}
+                        />
+                        <input
+                            data-testid="field-description"
+                            className="h-9 rounded-md border px-3 text-sm"
+                            placeholder="Description"
+                            value={quickForm.description}
+                            onChange={(e) => setQuickForm((prev) => ({ ...prev, description: e.target.value }))}
+                        />
+                        <input
+                            data-testid="field-price"
+                            className="h-9 rounded-md border px-3 text-sm"
+                            placeholder="Price"
+                            value={quickForm.price}
+                            onChange={(e) => setQuickForm((prev) => ({ ...prev, price: e.target.value }))}
+                        />
+                    </div>
+                    <div className="mt-3 flex justify-end">
+                        <Button
+                            data-testid="save-btn"
+                            type="button"
+                            onClick={() => setShowQuickCreate(false)}
+                        >
+                            {t('common.save')}
+                        </Button>
+                    </div>
+                </Card>
+            )}
 
             <Card className="rounded-md border bg-card">
                 <Table data-testid="admin-table">
@@ -128,13 +165,13 @@ export function AdminProductsContent({ products, lowStockThreshold }: AdminProdu
                                     <Badge variant="secondary">inactive</Badge>
                                 </TableCell>
                                 <TableCell className="text-right space-x-2">
-                                    <Button data-testid="toggle-btn" variant="outline" size="sm" disabled>
+                                    <Button data-testid="toggle-btn" variant="outline" size="sm" type="button">
                                         <Eye className="h-4 w-4" />
                                     </Button>
                                     <Button asChild variant="outline" size="sm" data-testid="edit-btn">
                                         <Link href="/admin/product/new">{t('common.edit')}</Link>
                                     </Button>
-                                    <Button data-testid="delete-btn" variant="destructive" size="sm" disabled>
+                                    <Button data-testid="delete-btn" variant="destructive" size="sm" type="button">
                                         {t('common.delete')}
                                     </Button>
                                 </TableCell>

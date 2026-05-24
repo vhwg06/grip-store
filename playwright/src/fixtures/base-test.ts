@@ -32,9 +32,52 @@ type CustomFixtures = {
   articlePage: ArticlePage;
   wishlistPage: WishlistPage;
   apiClient: GoBackendClient;
+  ensureAuthTokens: void;
 };
 
+let cachedUserToken: string | null = null;
+let cachedAdminToken: string | null = null;
+
+async function loginForToken(request: any, email: string, password: string): Promise<string | null> {
+  const response = await request.post("/v1/auth/login", {
+    data: { email, password },
+  });
+  if (!response.ok()) return null;
+  const payload = await response.json();
+  return payload?.token ?? payload?.data?.token ?? null;
+}
+
 export const test = base.extend<CustomFixtures>({
+  ensureAuthTokens: [async ({ request }, use) => {
+    const workerToken = process.env.TEST_USER_TOKEN?.trim();
+    const workerAdminToken = process.env.ADMIN_USER_TOKEN?.trim();
+
+    if (!workerToken && !cachedUserToken) {
+      cachedUserToken = await loginForToken(
+        request,
+        process.env.TEST_USER_EMAIL ?? "test_buyer@example.com",
+        process.env.TEST_USER_PASSWORD ?? "Password123!"
+      );
+    }
+
+    if (!workerAdminToken && !cachedAdminToken) {
+      cachedAdminToken = await loginForToken(
+        request,
+        process.env.ADMIN_USER_EMAIL ?? "test_admin@example.com",
+        process.env.ADMIN_USER_PASSWORD ?? "Password123!"
+      );
+    }
+
+    if (!process.env.TEST_USER_TOKEN && cachedUserToken) {
+      process.env.TEST_USER_TOKEN = cachedUserToken;
+    }
+    if (!process.env.ADMIN_USER_TOKEN && cachedAdminToken) {
+      process.env.ADMIN_USER_TOKEN = cachedAdminToken;
+    }
+
+    await use();
+  }, { auto: true }],
+
   authPage: async ({ page }, use) => {
     await use(new AuthPage(page));
   },

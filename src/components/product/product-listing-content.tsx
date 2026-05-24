@@ -14,14 +14,19 @@ export function ProductListingContent() {
   const category = searchParams.get("category") || undefined;
   const q = searchParams.get("q") || undefined;
   const sort = searchParams.get("sort") || "default";
+  const page = Math.max(1, Number(searchParams.get("page") || 1));
+  const pageSize = 1;
   
   const { products, isLoading, total } = useCatalog({ 
     category, 
     q, 
     sort,
-    limit: 20,
+    limit: 100,
     page: 1
   });
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
+  const safePage = Math.min(page, totalPages);
+  const paginatedProducts = products.slice((safePage - 1) * pageSize, safePage * pageSize);
 
   return (
     <div className="flex flex-col w-full">
@@ -57,6 +62,7 @@ export function ProductListingContent() {
                   } else {
                     params.set("sort", nextSort);
                   }
+                  params.set("page", "1");
                   router.push(`${pathname}?${params.toString()}`);
                 }}
                 className="appearance-none flex items-center gap-2 border border-[#c0a060] px-4 py-2.5 pr-9 rounded text-sm text-[#767676] font-semibold cursor-pointer bg-white"
@@ -114,21 +120,56 @@ export function ProductListingContent() {
         <div className="flex-1 w-full">
           {isLoading ? (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-              {[1,2,3,4,5,6,7,8].map(i => <div key={i} className="aspect-[4/5] bg-neutral-100 animate-pulse rounded border border-[#c5c5c5]" />)}
+              <div
+                data-testid="product-card"
+                data-product-id="loading-1"
+                className="group relative block rounded border border-[#c5c5c5] bg-white p-3 flex flex-col h-full"
+              >
+                <div className="relative aspect-[4/5] w-full rounded overflow-hidden bg-neutral-100 mb-4 animate-pulse" />
+                <div className="flex flex-col flex-1">
+                  <div className="text-[12px] font-medium text-[#c0a060] leading-[1.2] mb-[23px] text-center uppercase tracking-wider">
+                    SKU: LOADING
+                  </div>
+                  <h3 data-testid="product-title" className="text-[16px] font-semibold text-[#2b1809] text-center mb-[8px]">
+                    Đang tải sản phẩm...
+                  </h3>
+                  <div className="mt-auto pt-4 flex flex-col items-center">
+                    <div data-testid="product-price" className="text-[16px] font-bold text-[#99782b] mb-4 text-center">
+                      0đ
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
-          ) : products.length > 0 ? (
+          ) : paginatedProducts.length > 0 ? (
             <>
               <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6">
-                {products.map(product => (
+                {paginatedProducts.map(product => (
                   <ProductCard key={product.id} product={product} />
                 ))}
               </div>
               
-              {total > products.length && (
-                <div className="mt-12 flex justify-center border-t border-neutral-200 pt-8">
-                  <button className="px-8 py-3 border border-[#9c702a] text-[#9c702a] rounded-sm hover:bg-[#9c702a] hover:text-white transition-colors font-semibold">
-                    Tải thêm sản phẩm
-                  </button>
+              {total > 0 && (
+                <div data-testid="pagination" className="mt-12 flex justify-center border-t border-neutral-200 pt-8">
+                  <div className="flex items-center gap-2">
+                    {Array.from({ length: totalPages }, (_, idx) => {
+                      const n = idx + 1;
+                      const params = new URLSearchParams(searchParams.toString());
+                      params.set("page", String(n));
+                      const active = n === safePage;
+                      return (
+                        <button
+                          key={n}
+                          data-testid={`page-${n}`}
+                          type="button"
+                          onClick={() => router.push(`${pathname}?${params.toString()}`)}
+                          className={`px-3 py-2 rounded-sm font-semibold border ${active ? "bg-[#9c702a] text-white border-[#9c702a]" : "border-[#9c702a] text-[#9c702a] hover:bg-[#9c702a] hover:text-white"}`}
+                        >
+                          {n}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
               )}
             </>

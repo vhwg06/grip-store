@@ -2,11 +2,11 @@ import { BasePage } from "./base.page";
 
 export class AdminPage extends BasePage {
   async goto() {
-    await super.goto("/admin");
+    await super.goto("/admin/settings");
   }
 
   async navigateTo(section: string) {
-    await this.page.locator(`[data-testid="admin-nav-${section}"]`).click();
+    await super.goto(`/admin/${section}`);
     await this.waitForNetworkIdle();
   }
 
