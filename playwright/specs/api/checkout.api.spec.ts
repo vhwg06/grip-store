@@ -24,11 +24,9 @@ test.describe("Checkout API @api", () => {
       test.skip(!products.ok || !products.data.items.length, "No products available");
 
       const product = products.data.items[0];
-      const authedClient = new GoBackendClient(
-        (await test.info().project.use).request!
-      );
+
       // Use client with auth header
-      const response = await client.post(
+      const response = await client.post<{ id: string; status: string; total: number }>(
         "/v1/checkout/orders",
         { items: [{ product_id: product.id, quantity: 1, price: product.price }] },
         { headers: { Authorization: `Bearer ${token}` } }

@@ -1,5 +1,6 @@
 import { GoBackendClient, type ApiResponse } from "./go-backend.client";
-import type { Order, PaginatedResponse } from "./checkout.api";
+import type { Order } from "./checkout.api";
+import type { PaginatedResponse } from "./catalog.api";
 
 export interface PaginationParams {
   page?: number;
