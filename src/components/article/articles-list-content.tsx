@@ -6,21 +6,6 @@ import { ArticleCard } from "@/components/article/article-card";
 
 export function ArticlesListContent() {
   const { articles, isLoading } = useArticles();
-  const fallbackArticles = [
-    {
-      id: "sample-article-1",
-      slug: "sample-article-1",
-      title: "Sample article",
-      excerpt: "Sample article excerpt",
-      content: "Sample article content",
-      featuredImage: null,
-      publishedAt: new Date().toISOString(),
-      author: "GRIP Admin",
-      tags: ["Sample"],
-      isPublished: true,
-    },
-  ];
-  const effectiveArticles = articles.length > 0 ? articles : fallbackArticles;
 
   return (
     <div className="container mx-auto max-w-[1190px] px-4">
@@ -34,12 +19,17 @@ export function ArticlesListContent() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {effectiveArticles.map(article => (
+        {articles.map(article => (
           <ArticleCard key={article.id} article={article} />
         ))}
       </div>
       {isLoading && (
         <p className="mt-4 text-sm text-neutral-500">Đang cập nhật danh sách bài viết...</p>
+      )}
+      {!isLoading && articles.length === 0 && (
+        <p className="mt-4 text-sm text-neutral-500" data-testid="articles-empty">
+          Chưa có bài viết để hiển thị.
+        </p>
       )}
     </div>
   );

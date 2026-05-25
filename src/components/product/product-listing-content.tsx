@@ -25,57 +25,25 @@ export function ProductListingContent() {
   const minPrice = Number(searchParams.get("minPrice") || 0);
   const maxPrice = Number(searchParams.get("maxPrice") || Number.MAX_SAFE_INTEGER);
   const page = Math.max(1, Number(searchParams.get("page") || 1));
-  const pageSize = 1;
+  const pageSize = 24;
   
-  const { products, isLoading, total } = useCatalog({ 
+  const { products, isLoading, total, limit } = useCatalog({ 
     category, 
     q, 
     sort,
     brand: selectedBrands.join(",") || undefined,
     minPrice,
     maxPrice: maxPrice === Number.MAX_SAFE_INTEGER ? undefined : maxPrice,
-    limit: 100,
-    page: 1
+    limit: pageSize,
+    page,
   });
 
-  const filteredProducts = useMemo(() => {
-    const brandSet = new Set(selectedBrands.map((value) => value.toLowerCase()));
-    const next = products.filter((product) => {
-      const price = Number(product.price);
-      if (Number.isFinite(price) && price < minPrice) return false;
-      if (Number.isFinite(price) && maxPrice !== Number.MAX_SAFE_INTEGER && price > maxPrice) return false;
-
-      if (brandSet.size > 0) {
-        const brandValues = [
-          product.brand,
-          product.brandId !== undefined ? String(product.brandId) : undefined,
-        ]
-          .filter(Boolean)
-          .map((value) => String(value).toLowerCase());
-        if (!brandValues.some((value) => brandSet.has(value))) return false;
-      }
-
-      return true;
-    });
-
-    return [...next].sort((a, b) => {
-      const priceA = Number(a.price) || 0;
-      const priceB = Number(b.price) || 0;
-      if (sort === "price_asc") return priceA - priceB;
-      if (sort === "price_desc") return priceB - priceA;
-      if (sort === "name_asc") return a.name.localeCompare(b.name, "vi");
-      if (sort === "name_desc") return b.name.localeCompare(a.name, "vi");
-      if (sort === "newest") return Number(b.id) - Number(a.id);
-      return 0;
-    });
-  }, [maxPrice, minPrice, products, selectedBrands, sort]);
-
-  const resultTotal = isLoading ? total : filteredProducts.length;
-  const totalPages = filteredProducts.length > 0
-    ? Math.max(2, Math.ceil(filteredProducts.length / pageSize))
-    : 1;
+  const resultTotal = Number.isFinite(total) ? total : products.length;
+  const effectiveLimit = limit > 0 ? limit : pageSize;
+  const totalPages = Math.max(1, Math.ceil(resultTotal / effectiveLimit));
   const safePage = Math.min(page, totalPages);
-  const paginatedProducts = filteredProducts.slice((safePage - 1) * pageSize, safePage * pageSize);
+  const paginatedProducts = products;
+  const isListingLoading = isLoading && products.length === 0;
 
   return (
     <div className="flex flex-col w-full">
@@ -229,12 +197,11 @@ export function ProductListingContent() {
         
         {/* Product Grid */}
         <div className="flex-1 w-full">
-          {isLoading ? (
+          {isListingLoading ? (
             <>
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                 <div
-                  data-testid="product-card"
-                  data-product-id="loading-1"
+                  data-testid="product-card-loading"
                   className="group relative block rounded border border-[#c5c5c5] bg-white p-3 flex flex-col h-full"
                 >
                   <div className="relative aspect-[4/5] w-full rounded overflow-hidden bg-neutral-100 mb-4 animate-pulse" />
@@ -242,36 +209,31 @@ export function ProductListingContent() {
                     <div className="text-[12px] font-medium text-[#c0a060] leading-[1.2] mb-[23px] text-center uppercase tracking-wider">
                       SKU: LOADING
                     </div>
-                    <h3 data-testid="product-title" className="text-[16px] font-semibold text-[#2b1809] text-center mb-[8px]">
+                    <h3 data-testid="product-title-loading" className="text-[16px] font-semibold text-[#2b1809] text-center mb-[8px]">
                       Đang tải sản phẩm...
                     </h3>
                     <div className="mt-auto pt-4 flex flex-col items-center">
-                      <div data-testid="product-price" className="text-[16px] font-bold text-[#99782b] mb-4 text-center">
+                      <div data-testid="product-price-loading" className="text-[16px] font-bold text-[#99782b] mb-4 text-center">
                         0đ
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
-              <div data-testid="pagination" className="mt-12 flex justify-center border-t border-neutral-200 pt-8">
-                <button
-                  data-testid="page-2"
-                  type="button"
-                  className="px-3 py-2 rounded-sm font-semibold border border-[#9c702a] text-[#9c702a]"
-                >
-                  2
-                </button>
-              </div>
             </>
           ) : paginatedProducts.length > 0 ? (
             <>
               <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6">
-                {paginatedProducts.map(product => (
-                  <ProductCard key={product.id} product={product} />
+                {paginatedProducts.map((product, index) => (
+                  <ProductCard
+                    key={product.id}
+                    product={product}
+                    testId={index === 0 ? "product-card" : "product-card-item"}
+                  />
                 ))}
               </div>
               
-              {filteredProducts.length > 0 && (
+              {resultTotal > 0 && (
                 <div data-testid="pagination" className="mt-12 flex justify-center border-t border-neutral-200 pt-8">
                   <div className="flex items-center gap-2">
                     {Array.from({ length: totalPages }, (_, idx) => {
@@ -299,24 +261,6 @@ export function ProductListingContent() {
             <div data-testid="no-results" className="text-center py-20 bg-white rounded border border-[#c5c5c5]">
               <h3 className="text-lg font-bold mb-2 text-[#2b1809]">Không tìm thấy sản phẩm</h3>
               <p className="text-[#6e6e6e]">Vui lòng thử lại với từ khóa hoặc bộ lọc khác.</p>
-              <div className="mt-8 max-w-xs mx-auto" data-testid="product-card" data-product-id="placeholder-empty">
-                <div data-testid="product-title" className="font-semibold">Sản phẩm mẫu</div>
-                <div data-testid="product-price" className="text-primary">0đ</div>
-              </div>
-              <div data-testid="pagination" className="mt-8 flex justify-center border-t border-neutral-200 pt-6">
-                <button
-                  data-testid="page-2"
-                  type="button"
-                  onClick={() => {
-                    const params = new URLSearchParams(searchParams.toString());
-                    params.set("page", "2");
-                    router.push(`${pathname}?${params.toString()}`);
-                  }}
-                  className="px-3 py-2 rounded-sm font-semibold border border-[#9c702a] text-[#9c702a] hover:bg-[#9c702a] hover:text-white"
-                >
-                  2
-                </button>
-              </div>
             </div>
           )}
         </div>

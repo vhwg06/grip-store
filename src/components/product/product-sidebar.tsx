@@ -25,13 +25,7 @@ export function ProductSidebar({ currentCategory }: { currentCategory?: string }
   useEffect(() => {
     setPriceRange([minPrice, maxPrice]);
   }, [minPrice, maxPrice]);
-  const fallbackCategories = [
-    { id: "fallback-1", name: "Tay nắm cao cấp", slug: "tay-nam-cao-cap", parentId: null },
-    { id: "fallback-2", name: "Khóa cửa thông minh", slug: "khoa-cua-thong-minh", parentId: null },
-    { id: "fallback-3", name: "Khóa cửa phân thể", slug: "khoa-cua-phan-the", parentId: null },
-  ];
-  
-  const sourceCategories = categories?.length ? categories : fallbackCategories;
+  const sourceCategories = categories ?? [];
   const tree = sourceCategories.filter(c => !c.parentId).map(c => ({
     ...c,
     children: sourceCategories.filter(child => String(child.parentId) === String(c.id))

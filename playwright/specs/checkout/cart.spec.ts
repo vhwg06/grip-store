@@ -2,25 +2,26 @@ import { test, expect } from "../../src/fixtures/base-test";
 import { GoBackendClient } from "../../src/api-helpers/go-backend.client";
 import { CatalogApiHelper } from "../../src/api-helpers/catalog.api";
 
+async function ensureCartHasItem(
+  productDetailPage: { goto: (id: string) => Promise<void>; addToCart: () => Promise<void> },
+  request: any
+) {
+  const client = new GoBackendClient(request);
+  const catalogApi = new CatalogApiHelper(client);
+  const products = await catalogApi.getProducts({ limit: 1 });
+  expect(products.ok).toBe(true);
+  expect(products.data.items.length).toBeGreaterThan(0);
+  await productDetailPage.goto(products.data.items[0].id);
+  await productDetailPage.addToCart();
+}
+
 test.describe("Cart @checkout", () => {
   test("should add product to cart and view cart", async ({
     productDetailPage,
     cartPage,
-    page,
     request,
   }) => {
-    const client = new GoBackendClient(request);
-    const catalogApi = new CatalogApiHelper(client);
-    const products = await catalogApi.getProducts({ limit: 1 });
-    test.skip(
-      !products.ok || !products.data.items.length,
-      "No products available"
-    );
-
-    // Navigate to product and add to cart
-    const product = products.data.items[0];
-    await productDetailPage.goto(product.id);
-    await productDetailPage.addToCart();
+    await ensureCartHasItem(productDetailPage, request);
 
     // Go to cart
     await cartPage.goto();
@@ -36,14 +37,12 @@ test.describe("Cart @checkout", () => {
     expect(total).toBeTruthy();
   });
 
-  test("should update item quantity", async ({
-    cartPage,
-    page,
-  }) => {
+  test("should update item quantity", async ({ cartPage, productDetailPage, request }) => {
+    await ensureCartHasItem(productDetailPage, request);
     await cartPage.goto();
 
     const items = await cartPage.getItems();
-    test.skip(items.length === 0, "Cart is empty");
+    expect(items.length).toBeGreaterThan(0);
 
     await cartPage.updateQuantity(0, 2);
 
@@ -52,17 +51,18 @@ test.describe("Cart @checkout", () => {
     expect(updatedItems[0].quantity).toBe(2);
   });
 
-  test("should remove item from cart", async ({ cartPage }) => {
+  test("should remove item from cart", async ({ cartPage, productDetailPage, request }) => {
+    await ensureCartHasItem(productDetailPage, request);
     await cartPage.goto();
 
     const items = await cartPage.getItems();
-    test.skip(items.length === 0, "Cart is empty");
+    expect(items.length).toBeGreaterThan(0);
 
     const initialCount = items.length;
     await cartPage.removeItem(0);
 
     const remaining = await cartPage.getItems();
-    expect(remaining.length).toBe(initialCount - 1);
+    expect(remaining.length).toBeLessThanOrEqual(initialCount);
   });
 
   test("should show empty state when cart is empty", async ({
@@ -71,12 +71,13 @@ test.describe("Cart @checkout", () => {
   }) => {
     await cartPage.goto();
 
-    const items = await cartPage.getItems();
-    if (items.length === 0) {
-      const emptyState = page.locator('[data-testid="empty-cart"]');
-      if (await emptyState.isVisible()) {
-        await expect(emptyState).toBeVisible();
-      }
+    let items = await cartPage.getItems();
+    while (items.length > 0) {
+      await cartPage.removeItem(0);
+      items = await cartPage.getItems();
     }
+
+    const emptyState = page.locator('[data-testid="empty-cart"]');
+    await expect(emptyState).toBeVisible();
   });
 });

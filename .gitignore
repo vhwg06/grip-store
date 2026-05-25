@@ -76,3 +76,9 @@ firebase.json
 
 # Thêm dòng này vào cuối file .gitignore của dự án grip-store
 .agents/skills/
+
+# Playwright
+.playwright-browsers/
+playwright-report/
+playwright/reports/
+test-results/

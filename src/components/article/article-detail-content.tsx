@@ -29,21 +29,7 @@ export function ArticleDetailContent({ slug }: ArticleDetailContentProps) {
     );
   }
 
-  const fallbackArticle = slug === "sample-article-1"
-    ? {
-        id: "sample-article-1",
-        slug: "sample-article-1",
-        title: "Sample article",
-        excerpt: "Sample article excerpt",
-        content: "Sample article content",
-        featuredImage: null,
-        publishedAt: new Date().toISOString(),
-        author: "GRIP Admin",
-        tags: ["Sample"],
-        isPublished: true,
-      }
-    : null;
-  const currentArticle = article ?? fallbackArticle;
+  const currentArticle = article;
 
   if (!currentArticle) {
     notFound();

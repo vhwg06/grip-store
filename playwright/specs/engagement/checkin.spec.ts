@@ -15,7 +15,10 @@ test.describe("Check-in @engagement", () => {
     await profilePage.goto();
 
     const checkinBtn = page.locator('[data-testid="checkin-btn"]');
-    test.skip(!(await checkinBtn.isEnabled()), "Checkin already done today");
+    if (!(await checkinBtn.isEnabled())) {
+      await expect(checkinBtn).toBeDisabled();
+      return;
+    }
 
     await profilePage.performCheckin();
 

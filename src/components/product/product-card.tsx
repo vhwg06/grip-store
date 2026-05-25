@@ -8,9 +8,10 @@ import { useCart } from "@/application/hooks/useCart";
 
 interface ProductCardProps {
   product: CatalogProduct;
+  testId?: string;
 }
 
-export function ProductCard({ product }: ProductCardProps) {
+export function ProductCard({ product, testId = "product-card" }: ProductCardProps) {
   const { addItem } = useCart();
 
   const handleAddToCart = (e: React.MouseEvent) => {
@@ -20,7 +21,7 @@ export function ProductCard({ product }: ProductCardProps) {
 
   return (
     <div
-      data-testid="product-card"
+      data-testid={testId}
       data-product-id={product.id}
       className="group relative block rounded border border-[#c5c5c5] bg-white p-3 transition-all hover:shadow-md flex flex-col h-full"
     >

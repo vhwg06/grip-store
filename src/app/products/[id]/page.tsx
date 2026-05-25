@@ -4,9 +4,9 @@ import { ProductTabs } from "@/components/product/product-tabs";
 import { ConsultationForm } from "@/components/product/consultation-form";
 import { ProductReviewsSection } from "@/components/product/product-reviews-section";
 import { AddToCartButton } from "@/components/cart/add-to-cart-button";
-import { ProductSection } from "@/components/home/product-section";
 import { DedupeTestIds } from "@/components/testing/dedupe-testids";
 import type { CatalogProductViewState } from "@/domain/catalog";
+import { notFound } from "next/navigation";
 
 async function getProductServer(id: string): Promise<CatalogProductViewState> {
   const apiUrl = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "");
@@ -94,36 +94,10 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
   const { id } = await params;
   const data = await getProductServer(id);
 
-  const fallbackProduct = {
-    id,
-    name: "Sản phẩm đang cập nhật",
-    description: "Thông tin sản phẩm đang được cập nhật.",
-    price: "0",
-    compareAtPrice: null,
-    image: null,
-    images: [],
-    category: null,
-    categoryId: undefined,
-    brand: undefined,
-    brandId: undefined,
-    sku: undefined,
-    isHot: false,
-    isNew: false,
-    isBestSeller: false,
-    isShared: false,
-    purchaseLimit: null,
-    purchaseWarning: null,
-    visibilityLevel: -1,
-    stock: 0,
-    sold: 0,
-    rating: 0,
-    reviewCount: 0,
-    usageGuide: null,
-    bundledGifts: null,
-    discountPercent: undefined,
-  };
-
-  const product = data?.product ?? fallbackProduct;
+  const product = data?.product;
+  if (!product) {
+    notFound();
+  }
   const sanitizeHtml = (html: string | null | undefined) =>
     (html ?? "").replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi, "");
   const images = product.images?.length ? product.images : (product.image ? [product.image] : []);
@@ -198,14 +172,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
           reviewCount={product.reviewCount} 
         />
 
-        <ProductReviewsSection
-          initialReviews={[{ author: "sample_user", rating: 5, content: "Sản phẩm mẫu cho kiểm thử" }]}
-        />
-        
-        {/* Placeholder for related products - would typically fetch based on categoryId */}
-        <div className="mt-20">
-          <ProductSection title="Sản phẩm tương tự" products={[]} />
-        </div>
+        <ProductReviewsSection productId={product.id} />
       </div>
     </main>
   );

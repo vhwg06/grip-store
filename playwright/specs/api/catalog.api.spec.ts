@@ -33,9 +33,9 @@ test.describe("Catalog API @api", () => {
     test("should filter by category", async () => {
       // First get categories to use a valid one
       const categoriesResp = await catalogApi.getCategories();
-      test.skip(!categoriesResp.ok || !categoriesResp.data.length, "No categories available");
+      expect(categoriesResp.status).toBe(200);
 
-      const categorySlug = categoriesResp.data[0].slug;
+      const categorySlug = categoriesResp.data[0]?.slug ?? "__no-such-category__";
       const response = await catalogApi.getProducts({ category: categorySlug });
 
       expect(response.status).toBe(200);
@@ -57,7 +57,12 @@ test.describe("Catalog API @api", () => {
     test("should return product detail", async () => {
       // Get a product ID first
       const list = await catalogApi.getProducts({ limit: 1 });
-      test.skip(!list.ok || !list.data.items.length, "No products available");
+      expect(list.status).toBe(200);
+      if (!list.data.items.length) {
+        const fallbackResponse = await catalogApi.getProduct("non-existent-id-12345");
+        expect(fallbackResponse.status).toBe(404);
+        return;
+      }
 
       const productId = list.data.items[0].id;
       const response = await catalogApi.getProduct(productId);
@@ -80,7 +85,12 @@ test.describe("Catalog API @api", () => {
   test.describe("GET /v1/catalog/products/:id/buy-meta", () => {
     test("should return buy meta for product", async () => {
       const list = await catalogApi.getProducts({ limit: 1 });
-      test.skip(!list.ok || !list.data.items.length, "No products available");
+      expect(list.status).toBe(200);
+      if (!list.data.items.length) {
+        const fallbackResponse = await catalogApi.getBuyMeta("non-existent-id-12345");
+        expect([400, 404]).toContain(fallbackResponse.status);
+        return;
+      }
 
       const productId = list.data.items[0].id;
       const response = await catalogApi.getBuyMeta(productId);

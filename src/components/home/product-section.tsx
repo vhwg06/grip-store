@@ -7,18 +7,18 @@ interface ProductSectionProps {
   products: CatalogProduct[];
   viewAllLink?: string;
   cardTestId?: string;
+  isLoading?: boolean;
 }
 
-export function ProductSection({ title, products, viewAllLink, cardTestId = "featured-product-card" }: ProductSectionProps) {
-  const displayProducts = products?.length
-    ? products.slice(0, 5)
-    : Array.from({ length: 5 }).map((_, idx) => ({
-        id: `placeholder-${idx + 1}`,
-        name: `Sản phẩm mẫu ${idx + 1}`,
-        price: "1000000",
-        sku: `SKU-${idx + 1}`,
-        image: "",
-      } as CatalogProduct));
+export function ProductSection({
+  title,
+  products,
+  viewAllLink,
+  cardTestId = "featured-product-card",
+  isLoading = false,
+}: ProductSectionProps) {
+  const displayProducts = products?.slice(0, 5) ?? [];
+  const slots = Array.from({ length: 5 }, (_, idx) => displayProducts[idx] ?? null);
 
   return (
     <section className="py-12">
@@ -32,9 +32,18 @@ export function ProductSection({ title, products, viewAllLink, cardTestId = "fea
           )}
         </div>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6">
-          {displayProducts.map((product) => (
-            <div key={product.id} data-testid={cardTestId}>
-              <ProductCard product={product} />
+          {slots.map((product, idx) => (
+            <div key={`slot-${idx}`} data-testid={cardTestId}>
+              {product ? (
+                <ProductCard product={product} />
+              ) : (
+                <div className="rounded border border-[#c5c5c5] p-3">
+                  <div className={`aspect-[4/5] w-full rounded ${isLoading ? "bg-neutral-100 animate-pulse" : "bg-neutral-50"} mb-4`} />
+                  <h3 data-testid="product-title" className="text-sm text-neutral-500 text-center">
+                    {isLoading ? "Đang tải sản phẩm..." : "Chưa có sản phẩm"}
+                  </h3>
+                </div>
+              )}
             </div>
           ))}
         </div>

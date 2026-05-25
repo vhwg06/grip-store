@@ -1,15 +1,11 @@
 "use client";
 
 import { useLayoutEffect, useMemo, useState } from "react";
-
-type ReviewItem = {
-  author: string;
-  rating: number;
-  content: string;
-};
+import { useReviews } from "@/application/hooks/useReviews";
+import type { ProductReview } from "@/domain/wishlist";
 
 interface ProductReviewsSectionProps {
-  initialReviews?: ReviewItem[];
+  productId?: string | null;
 }
 
 function dedupeTestId(value: string) {
@@ -21,22 +17,11 @@ function dedupeTestId(value: string) {
   });
 }
 
-export function ProductReviewsSection({ initialReviews = [] }: ProductReviewsSectionProps) {
-  const baseReviews = useMemo<ReviewItem[]>(
-    () =>
-      initialReviews.length > 0
-        ? initialReviews
-        : [
-            { author: "sample_user", rating: 5, content: "Sản phẩm mẫu cho kiểm thử" },
-            { author: "qa_user", rating: 4, content: "Mẫu đánh giá dự phòng cho kiểm thử e2e." },
-          ],
-    [initialReviews],
-  );
-
-  const [reviews, setReviews] = useState<ReviewItem[]>(baseReviews);
+export function ProductReviewsSection({ productId = null }: ProductReviewsSectionProps) {
+  const { reviews, isLoading, submitReview, refresh } = useReviews(productId);
   const [rating, setRating] = useState(5);
   const [content, setContent] = useState("");
-  const [showToast, setShowToast] = useState(false);
+  const [toastState, setToastState] = useState<"success" | "error" | null>(null);
 
   useLayoutEffect(() => {
     dedupeTestId("review-form");
@@ -45,17 +30,34 @@ export function ProductReviewsSection({ initialReviews = [] }: ProductReviewsSec
     [1, 2, 3, 4, 5].forEach((n) => dedupeTestId(`review-star-${n}`));
   }, []);
 
-  const submitReview = () => {
+  const normalizedReviews = useMemo(
+    () =>
+      reviews.map((review: ProductReview) => ({
+        author: review.username || "Ẩn danh",
+        rating: Math.max(1, Math.min(5, Number(review.rating) || 1)),
+        content: review.comment || "Đánh giá không có nội dung.",
+      })),
+    [reviews],
+  );
+
+  const onSubmitReview = async () => {
+    if (!productId) return;
     const trimmed = content.trim();
-    const nextReview: ReviewItem = {
-      author: "sample_user",
+    const result = await submitReview(productId, {
+      orderId: "",
       rating: Math.max(1, Math.min(5, rating)),
-      content: trimmed || "Đánh giá không có nội dung.",
-    };
-    setReviews((prev) => [nextReview, ...prev]);
-    setContent("");
-    setShowToast(true);
-    window.setTimeout(() => setShowToast(false), 2000);
+      comment: trimmed,
+    });
+
+    if (result.success) {
+      setContent("");
+      setToastState("success");
+      await refresh();
+    } else {
+      setToastState("error");
+    }
+
+    window.setTimeout(() => setToastState(null), 2000);
   };
 
   return (
@@ -87,19 +89,25 @@ export function ProductReviewsSection({ initialReviews = [] }: ProductReviewsSec
           data-testid="review-submit-btn"
           type="button"
           className="rounded bg-primary px-4 py-2 text-primary-foreground"
-          onClick={submitReview}
+          onClick={onSubmitReview}
         >
           Gửi đánh giá
         </button>
       </div>
 
-      {showToast && (
+      {toastState === "success" && (
         <div data-testid="toast" className="inline-flex rounded bg-green-600 px-3 py-1 text-sm text-white">
           Gửi đánh giá thành công
         </div>
       )}
+      {toastState === "error" && (
+        <div className="inline-flex rounded bg-red-600 px-3 py-1 text-sm text-white">
+          Không thể gửi đánh giá
+        </div>
+      )}
+      {isLoading && <div className="text-sm text-neutral-500">Đang tải đánh giá...</div>}
 
-      {reviews.map((review, index) => (
+      {normalizedReviews.map((review, index) => (
         <div data-testid="review-item" className="rounded-xl border p-4" key={`${review.author}-${index}`}>
           <div data-testid="review-author" className="font-semibold">
             {review.author}
@@ -110,7 +118,9 @@ export function ProductReviewsSection({ initialReviews = [] }: ProductReviewsSec
           <div data-testid="review-content">{review.content}</div>
         </div>
       ))}
+      {!isLoading && normalizedReviews.length === 0 && (
+        <div className="rounded-xl border p-4 text-sm text-neutral-500">Chưa có đánh giá nào.</div>
+      )}
     </section>
   );
 }
-

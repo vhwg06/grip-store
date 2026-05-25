@@ -2,12 +2,22 @@ import { BasePage } from "./base.page";
 
 export class AdminPage extends BasePage {
   async goto() {
-    await super.goto("/admin/settings");
+    await super.goto("/admin/products");
+    await this.page.locator('[data-testid="admin-nav"]').first().waitFor({
+      state: "visible",
+      timeout: 12_000,
+    });
   }
 
   async navigateTo(section: string) {
     await super.goto(`/admin/${section}`);
-    await this.waitForNetworkIdle();
+    await this.page.waitForURL(new RegExp(`/admin/${section}`), {
+      timeout: 12_000,
+    });
+    await this.page.locator('[data-testid="admin-nav"]').first().waitFor({
+      state: "visible",
+      timeout: 12_000,
+    });
   }
 
   async getTableRows(): Promise<number> {
@@ -20,7 +30,7 @@ export class AdminPage extends BasePage {
       await this.page.locator(`[data-testid="field-${key}"]`).fill(value);
     }
     await this.page.locator('[data-testid="save-btn"]').click();
-    await this.waitForNetworkIdle();
+    await this.page.waitForTimeout(250);
   }
 
   async editItem(id: string, data: Record<string, string>) {
@@ -29,12 +39,12 @@ export class AdminPage extends BasePage {
       await this.page.locator(`[data-testid="field-${key}"]`).fill(value);
     }
     await this.page.locator('[data-testid="save-btn"]').click();
-    await this.waitForNetworkIdle();
+    await this.page.waitForTimeout(250);
   }
 
   async deleteItem(id: string) {
     await this.page.locator(`[data-item-id="${id}"] [data-testid="delete-btn"]`).click();
     await this.page.locator('[data-testid="confirm-delete-btn"]').click();
-    await this.waitForNetworkIdle();
+    await this.page.waitForTimeout(250);
   }
 }

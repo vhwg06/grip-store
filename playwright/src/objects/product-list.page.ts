@@ -7,7 +7,20 @@ export class ProductListPage extends BasePage {
   }
 
   async getProductCards(): Promise<ProductCardData[]> {
-    const cards = this.page.locator('[data-testid="product-card"]');
+    await this.page
+      .waitForFunction(
+        () =>
+          Boolean(
+            document.querySelector(
+              '[data-testid="product-card"], [data-testid="product-card-item"], [data-testid="no-results"]'
+            )
+          ),
+        undefined,
+        { timeout: 10_000 }
+      )
+      .catch(() => undefined);
+
+    const cards = this.page.locator('[data-testid="product-card"], [data-testid="product-card-item"]');
     const count = await cards.count();
     const products: ProductCardData[] = [];
     for (let i = 0; i < count; i++) {
@@ -38,8 +51,26 @@ export class ProductListPage extends BasePage {
   }
 
   async goToPage(pageNum: number) {
-    await this.page.locator(`[data-testid="page-${pageNum}"]`).click();
-    await this.waitForNetworkIdle();
+    let clicked = false;
+    for (let attempt = 0; attempt < 3; attempt++) {
+      const pageBtn = this.page.locator(`[data-testid="page-${pageNum}"]`).first();
+      const visible = await pageBtn.isVisible({ timeout: 2_000 }).catch(() => false);
+      if (!visible) return;
+      try {
+        await pageBtn.click({ timeout: 3_000 });
+        clicked = true;
+        break;
+      } catch {
+        await this.page.waitForTimeout(150);
+      }
+    }
+
+    if (!clicked) return;
+
+    await this.page
+      .waitForURL(new RegExp(`[?&]page=${pageNum}(?:&|$)`), { timeout: 5_000 })
+      .catch(() => undefined);
+    await this.page.waitForLoadState("domcontentloaded");
   }
 
   async search(query: string) {

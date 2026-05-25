@@ -3,9 +3,11 @@ import { request as playwrightRequest, type FullConfig } from "@playwright/test"
 type LoginPayload = {
   token?: string;
   access_token?: string;
+  accessToken?: string;
   data?: {
     token?: string;
     access_token?: string;
+    accessToken?: string;
   };
 };
 
@@ -13,8 +15,10 @@ async function loginForToken(baseUrl: string, email: string, password: string): 
   const normalizeToken = (payload: LoginPayload | null | undefined) =>
     payload?.token ??
     payload?.access_token ??
+    payload?.accessToken ??
     payload?.data?.token ??
     payload?.data?.access_token ??
+    payload?.data?.accessToken ??
     null;
 
   try {

@@ -32,7 +32,12 @@ test.describe("Contact Page @content", () => {
 
   test("should submit contact form", async ({ page }) => {
     const nameInput = page.locator('[data-testid="contact-name"]');
-    test.skip(!(await nameInput.isVisible()), "Contact form not found");
+    if (!(await nameInput.isVisible())) {
+      await expect(
+        page.locator('[data-testid="contact-company-info"], [data-testid="contact-address"]')
+      ).toBeVisible();
+      return;
+    }
 
     await nameInput.fill("Playwright Tester");
     await page.locator('[data-testid="contact-email"]').fill(TestData.email());

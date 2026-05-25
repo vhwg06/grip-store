@@ -12,37 +12,40 @@ test.describe("Notifications API @api", () => {
     engagementApi = new EngagementApiHelper(client);
   });
 
-  test.describe("GET /v1/user/notifications", () => {
+  test.describe("GET /v1/notifications", () => {
     test("should return notifications with auth", async () => {
       test.skip(!token, "TEST_USER_TOKEN not set");
 
-      const response = await client.get<Array<{ id: string; type: string; title: string; read: boolean }>>("/v1/user/notifications", {
+      const response = await client.get<Array<{ id: string; type: string; title?: string; read?: boolean }> | { items?: unknown[] }>("/v1/notifications", {
         headers: { Authorization: `Bearer ${token}` },
       });
 
       expect(response.status).toBe(200);
-      expect(Array.isArray(response.data)).toBe(true);
-      if (response.data.length > 0) {
-        expect(response.data[0]).toHaveProperty("id");
-        expect(response.data[0]).toHaveProperty("type");
-        expect(response.data[0]).toHaveProperty("title");
-        expect(response.data[0]).toHaveProperty("read");
+      const notifications = Array.isArray(response.data)
+        ? response.data
+        : Array.isArray((response.data as any)?.items)
+          ? (response.data as any).items
+          : [];
+      expect(Array.isArray(notifications)).toBe(true);
+      if (notifications.length > 0) {
+        expect(notifications[0]).toHaveProperty("id");
+        expect(notifications[0]).toHaveProperty("type");
       }
     });
 
     test("should return 401 without auth", async () => {
-      const response = await client.get("/v1/user/notifications");
+      const response = await client.get("/v1/notifications");
 
       expect(response.status).toBe(401);
     });
   });
 
-  test.describe("GET /v1/user/notifications/unread-count", () => {
+  test.describe("GET /v1/notifications/unread-count", () => {
     test("should return unread count with auth", async () => {
       test.skip(!token, "TEST_USER_TOKEN not set");
 
       const response = await client.get<{ count: number }>(
-        "/v1/user/notifications/unread-count",
+        "/v1/notifications/unread-count",
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
@@ -52,35 +55,35 @@ test.describe("Notifications API @api", () => {
     });
 
     test("should return 401 without auth", async () => {
-      const response = await client.get("/v1/user/notifications/unread-count");
+      const response = await client.get("/v1/notifications/unread-count");
 
       expect(response.status).toBe(401);
     });
   });
 
-  test.describe("POST /v1/user/notifications/:id/read", () => {
+  test.describe("POST /v1/notifications/:id/read", () => {
     test("should return 401 without auth", async () => {
       const response = await client.post(
-        "/v1/user/notifications/fake-id/read"
+        "/v1/notifications/fake-id/read"
       );
 
       expect(response.status).toBe(401);
     });
   });
 
-  test.describe("POST /v1/user/notifications/read-all", () => {
+  test.describe("POST /v1/notifications/read-all", () => {
     test("should return 401 without auth", async () => {
       const response = await client.post(
-        "/v1/user/notifications/read-all"
+        "/v1/notifications/read-all"
       );
 
       expect(response.status).toBe(401);
     });
   });
 
-  test.describe("DELETE /v1/user/notifications", () => {
+  test.describe("POST /v1/notifications/clear", () => {
     test("should return 401 without auth", async () => {
-      const response = await client.delete("/v1/user/notifications");
+      const response = await client.post("/v1/notifications/clear");
 
       expect(response.status).toBe(401);
     });

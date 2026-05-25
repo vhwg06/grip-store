@@ -20,16 +20,18 @@ export function HomeContent() {
 
       <ProductSection
         title="SẢN PHẨM NỔI BẬT"
-        products={isLoading ? [] : featuredProducts}
+        products={featuredProducts}
         viewAllLink="/products?filter=hot"
         cardTestId="featured-product-card"
+        isLoading={isLoading}
       />
 
       <ProductSection
         title="TAY NẮM CAO CẤP"
-        products={isLoading ? [] : premiumHandles}
+        products={premiumHandles}
         viewAllLink="/products"
         cardTestId="home-product-card"
+        isLoading={isLoading}
       />
 
       <ShopByColor />

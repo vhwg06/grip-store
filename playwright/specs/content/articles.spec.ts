@@ -16,7 +16,12 @@ test.describe("Articles @content", () => {
     await articlePage.goto();
 
     const articles = await articlePage.getArticles();
-    test.skip(articles.length === 0, "No articles available");
+    if (articles.length === 0) {
+      await expect(
+        page.locator('[data-testid="article-card"], [data-testid="articles-empty"]')
+      ).toBeVisible();
+      return;
+    }
 
     await articlePage.viewArticle(articles[0].slug);
 
@@ -28,7 +33,12 @@ test.describe("Articles @content", () => {
     await articlePage.goto();
 
     const articles = await articlePage.getArticles();
-    test.skip(articles.length === 0, "No articles available");
+    if (articles.length === 0) {
+      await expect(
+        page.locator('[data-testid="article-card"], [data-testid="articles-empty"]')
+      ).toBeVisible();
+      return;
+    }
 
     await articlePage.viewArticle(articles[0].slug);
 
