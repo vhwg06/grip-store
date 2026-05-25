@@ -75,6 +75,12 @@ async function getProductServer(id: string): Promise<CatalogProductViewState> {
       bundledGifts: asStringOrNull(raw.bundledGifts),
       discountPercent:
         typeof raw.discountPercent === "number" ? raw.discountPercent : undefined,
+      specs: Array.isArray(raw.specs)
+        ? raw.specs.map((item: any) => ({
+            key: String(item.key || item.name || ""),
+            value: String(item.value || item.content || "")
+          }))
+        : []
     },
     requiredLevel: payload?.requiredLevel ?? null,
   };
@@ -148,6 +154,23 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
               <div className="bg-orange-50 border border-orange-200 p-4 rounded-xl mb-8 text-orange-800 text-sm">
                 <strong className="block mb-1">🎁 Quà tặng kèm:</strong>
                 {product.bundledGifts}
+              </div>
+            )}
+
+            {/* Specs Table */}
+            {product.specs && product.specs.length > 0 && (
+              <div className="mb-8 border border-neutral-200 rounded-xl p-4 bg-neutral-50/50">
+                <h3 className="text-base font-bold text-[#2b1809] mb-3 uppercase tracking-wider font-['SVN-Gilroy']">Thông số kỹ thuật</h3>
+                <table data-testid="product-specs-table" className="w-full text-sm">
+                  <tbody>
+                    {product.specs.map((spec: any) => (
+                      <tr key={spec.key} className="border-b border-neutral-100 last:border-0">
+                        <td className="py-2.5 font-semibold text-neutral-500 w-1/3">{spec.key}</td>
+                        <td data-testid={`spec-val-${spec.key}`} className="py-2.5 font-medium text-neutral-800 w-2/3">{spec.value}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             )}
 

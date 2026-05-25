@@ -3,20 +3,34 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Heart } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { CatalogProduct } from "@/domain/catalog";
 import { useCart } from "@/application/hooks/useCart";
 
 interface ProductCardProps {
   product: CatalogProduct;
   testId?: string;
+  variant?: 'home' | 'listing';
 }
 
-export function ProductCard({ product, testId = "product-card" }: ProductCardProps) {
+export function ProductCard({ 
+  product, 
+  testId = "product-card",
+  variant = "listing" 
+}: ProductCardProps) {
   const { addItem } = useCart();
+  const router = useRouter();
 
-  const handleAddToCart = (e: React.MouseEvent) => {
+  const handleAction = (e: React.MouseEvent) => {
     e.preventDefault();
-    addItem(product, 1);
+    e.stopPropagation();
+    if (variant === "home") {
+      router.push(`/products/${product.id}`);
+    } else {
+      addItem(product, 1);
+      toast.success("Đã thêm sản phẩm vào giỏ hàng!");
+    }
   };
 
   return (
@@ -41,10 +55,12 @@ export function ProductCard({ product, testId = "product-card" }: ProductCardPro
           )}
         </div>
 
-        {/* Wishlist Icon */}
-        <div className="absolute top-3 right-3 z-10 w-7 h-7 bg-white rounded-full flex items-center justify-center cursor-pointer shadow-sm hover:scale-110 transition-transform">
-          <Heart className="w-4 h-4 text-[#292d32]" />
-        </div>
+        {/* Wishlist Icon - Hidden on Home variant to simplify design */}
+        {variant !== "home" && (
+          <div className="absolute top-3 right-3 z-10 w-7 h-7 bg-white rounded-full flex items-center justify-center cursor-pointer shadow-sm hover:scale-110 transition-transform">
+            <Heart className="w-4 h-4 text-[#292d32]" />
+          </div>
+        )}
 
         {/* Discount Badge */}
         {product.discountPercent ? (
@@ -94,10 +110,10 @@ export function ProductCard({ product, testId = "product-card" }: ProductCardPro
           
           <button
             data-testid="add-to-cart"
-            onClick={handleAddToCart}
+            onClick={handleAction}
             className="w-full bg-[#9c702a] hover:bg-[#2b1809] text-white py-2 rounded-sm font-semibold text-[16px] font-['SVN-Gilroy'] transition-colors"
           >
-            Khám phá
+            {variant === "home" ? "Khám phá" : "Thêm vào giỏ"}
           </button>
         </div>
       </div>

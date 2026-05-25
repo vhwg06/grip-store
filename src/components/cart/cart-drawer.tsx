@@ -24,7 +24,7 @@ export function CartDrawer() {
           <div className="relative flex items-center justify-center w-6 h-6">
             <ShoppingCart className="w-[21px] h-[22px]" />
             {mounted && cart.totalQuantity > 0 && (
-              <span className="absolute -top-1.5 -right-2 bg-[#99782b] text-white text-[11px] font-medium w-4 h-4 flex items-center justify-center rounded-full leading-none">
+              <span data-testid="cart-count" className="absolute -top-1.5 -right-2 bg-[#99782b] text-white text-[11px] font-medium w-4 h-4 flex items-center justify-center rounded-full leading-none">
                 {cart.totalQuantity}
               </span>
             )}

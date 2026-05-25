@@ -5,7 +5,37 @@
       "value": "en",
       "domain": "localhost",
       "path": "/",
-      "expires": 1811159877.044568,
+      "expires": 1811221540.194526,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "ldc_access_token",
+      "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc19hZG1pbiI6dHJ1ZSwidXNlcm5hbWUiOiJ0ZXN0X2FkbWluIiwic3ViIjoiMTExMTExMTEtMTExMS0xMTExLTExMTEtMTExMTExMTExMTExIiwiZXhwIjoxNzc5NzcxOTQwfQ.yHGbuscKt_MwI8qJdAfnJQS4IKWrL6LzVOCbpsMySMo",
+      "domain": "localhost",
+      "path": "/",
+      "expires": -1,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "ldc_refresh_token",
+      "value": "b34bfafa-b09b-49d2-8514-a2885ab91171",
+      "domain": "localhost",
+      "path": "/",
+      "expires": 1782277540,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "ldc_access_token_expires_at",
+      "value": "1779689140749",
+      "domain": "localhost",
+      "path": "/",
+      "expires": -1,
       "httpOnly": false,
       "secure": false,
       "sameSite": "Lax"

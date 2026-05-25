@@ -24,6 +24,7 @@ export function HomeContent() {
         viewAllLink="/products?filter=hot"
         cardTestId="featured-product-card"
         isLoading={isLoading}
+        variant="home"
       />
 
       <ProductSection
@@ -32,6 +33,7 @@ export function HomeContent() {
         viewAllLink="/products"
         cardTestId="home-product-card"
         isLoading={isLoading}
+        variant="home"
       />
 
       <ShopByColor />

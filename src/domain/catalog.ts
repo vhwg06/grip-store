@@ -27,7 +27,15 @@ export interface CatalogProduct {
   discountPercent?: number
 }
 
-export interface CatalogProductDetail extends CatalogProduct {}
+export interface ProductSpecItem {
+  key: string
+  value: string
+}
+
+export interface CatalogProductDetail extends CatalogProduct {
+  specs?: ProductSpecItem[]
+}
+
 
 export interface CatalogCategory {
   id?: number

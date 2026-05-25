@@ -25,6 +25,7 @@ export default function ProductForm({ product, categories = [] }: { product?: an
     const { t } = useI18n()
     const [mainImage, setMainImage] = useState(product?.image || "")
     const [galleryImages, setGalleryImages] = useState<string[]>(product?.images || [])
+    const [specs, setSpecs] = useState<Array<{ key: string; value: string }>>([])
 
     useEffect(() => {
         setCurrentProduct(product)
@@ -33,6 +34,11 @@ export default function ProductForm({ product, categories = [] }: { product?: an
         setShowWarning(Boolean(product?.purchaseWarning && String(product.purchaseWarning).trim()))
         setVisibilityLevel(String(product?.visibilityLevel ?? -1))
         setFormSeed((s) => s + 1)
+        if (product?.specs) {
+            setSpecs(product.specs)
+        } else {
+            setSpecs([])
+        }
     }, [product?.id])
 
     useEffect(() => {
@@ -48,6 +54,9 @@ export default function ProductForm({ product, categories = [] }: { product?: an
                     setShowWarning(Boolean(latest?.purchaseWarning && String(latest.purchaseWarning).trim()))
                     setVisibilityLevel(String(latest?.visibilityLevel ?? -1))
                     setFormSeed((s) => s + 1)
+                    if ((latest as any)?.specs) {
+                        setSpecs((latest as any).specs)
+                    }
                 } catch {
                     // ignore
                 }
@@ -57,11 +66,29 @@ export default function ProductForm({ product, categories = [] }: { product?: an
         }
     }, [product?.id])
 
+    const handleAddSpec = () => {
+        setSpecs((prev) => [...prev, { key: "", value: "" }])
+    }
+
+    const handleSpecChange = (index: number, field: "key" | "value", value: string) => {
+        setSpecs((prev) => {
+            const next = [...prev]
+            next[index] = { ...next[index], [field]: value }
+            return next
+        })
+    }
+
+    const handleRemoveSpec = (index: number) => {
+        setSpecs((prev) => prev.filter((_, i) => i !== index))
+    }
+
     async function handleSubmit(formData: FormData) {
         if (submitLock.current) return
         submitLock.current = true
         setLoading(true)
         try {
+            const cleanedSpecs = specs.filter(s => s.key.trim() !== "")
+            formData.append("specs", JSON.stringify(cleanedSpecs))
             await saveProduct(formData)
             toast.success(t('common.success'))
             router.push('/admin/products')
@@ -257,6 +284,56 @@ export default function ProductForm({ product, categories = [] }: { product?: an
                                 className="h-4 w-4 accent-primary"
                             />
                             <Label htmlFor="isShared" className="cursor-pointer">{t('admin.productForm.isSharedLabel')}</Label>
+                        </div>
+                    </div>
+
+                    {/* Specs Section */}
+                    <div className="space-y-4 border border-[#c0a060]/20 p-4 rounded-lg bg-neutral-50/50">
+                        <div className="flex items-center justify-between">
+                            <Label className="text-base font-bold uppercase text-[#2b1809]">Thông số kỹ thuật</Label>
+                            <Button
+                                data-testid="add-spec-row-btn"
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={handleAddSpec}
+                                className="border-[#c0a060] text-[#9c702a] hover:bg-[#9c702a]/10"
+                            >
+                                Thêm thông số
+                            </Button>
+                        </div>
+                        <div data-testid="admin-specs-inputs" className="space-y-3">
+                            {specs.map((spec, index) => (
+                                <div key={index} className="flex items-center gap-3">
+                                    <Input
+                                        data-testid={`spec-key-${index}`}
+                                        placeholder="Tên thông số (VD: Chất liệu)"
+                                        value={spec.key}
+                                        onChange={(e) => handleSpecChange(index, "key", e.target.value)}
+                                        className="flex-1 bg-white"
+                                    />
+                                    <Input
+                                        data-testid={`spec-value-${index}`}
+                                        placeholder="Giá trị (VD: Nhôm CNC)"
+                                        value={spec.value}
+                                        onChange={(e) => handleSpecChange(index, "value", e.target.value)}
+                                        className="flex-1 bg-white"
+                                    />
+                                    <Button
+                                        data-testid={`delete-spec-row-${index}`}
+                                        type="button"
+                                        variant="destructive"
+                                        size="icon"
+                                        onClick={() => handleRemoveSpec(index)}
+                                        className="h-9 w-9 shrink-0 flex items-center justify-center font-bold"
+                                    >
+                                        &times;
+                                    </Button>
+                                </div>
+                            ))}
+                            {specs.length === 0 && (
+                                <p className="text-xs text-muted-foreground text-center py-2">Chưa có thông số kỹ thuật nào được cấu hình.</p>
+                            )}
                         </div>
                     </div>
 

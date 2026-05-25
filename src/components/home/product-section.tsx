@@ -8,6 +8,7 @@ interface ProductSectionProps {
   viewAllLink?: string;
   cardTestId?: string;
   isLoading?: boolean;
+  variant?: 'home' | 'listing';
 }
 
 export function ProductSection({
@@ -16,6 +17,7 @@ export function ProductSection({
   viewAllLink,
   cardTestId = "featured-product-card",
   isLoading = false,
+  variant = "listing",
 }: ProductSectionProps) {
   const displayProducts = products?.slice(0, 5) ?? [];
   const slots = Array.from({ length: 5 }, (_, idx) => displayProducts[idx] ?? null);
@@ -35,7 +37,7 @@ export function ProductSection({
           {slots.map((product, idx) => (
             <div key={`slot-${idx}`} data-testid={cardTestId}>
               {product ? (
-                <ProductCard product={product} />
+                <ProductCard product={product} variant={variant} />
               ) : (
                 <div className="rounded border border-[#c5c5c5] p-3">
                   <div className={`aspect-[4/5] w-full rounded ${isLoading ? "bg-neutral-100 animate-pulse" : "bg-neutral-50"} mb-4`} />

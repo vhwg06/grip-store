@@ -5,7 +5,37 @@
       "value": "en",
       "domain": "localhost",
       "path": "/",
-      "expires": 1811159877.057572,
+      "expires": 1811221540.25061,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "ldc_access_token",
+      "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc19hZG1pbiI6ZmFsc2UsInVzZXJuYW1lIjoidGVzdF9idXllciIsInN1YiI6IjIyMjIyMjIyLTIyMjItMjIyMi0yMjIyLTIyMjIyMjIyMjIyMiIsImV4cCI6MTc3OTc3MTk0MH0.GUr0Fh_IrmG3p0bt0IIZEA9SbRrc2Hd2MDWCbhAObPU",
+      "domain": "localhost",
+      "path": "/",
+      "expires": -1,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "ldc_refresh_token",
+      "value": "5889c925-6cbe-4a4b-b1cb-6bd8c9a2cdd4",
+      "domain": "localhost",
+      "path": "/",
+      "expires": 1782277540,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "ldc_access_token_expires_at",
+      "value": "1779689140801",
+      "domain": "localhost",
+      "path": "/",
+      "expires": -1,
       "httpOnly": false,
       "secure": false,
       "sameSite": "Lax"
