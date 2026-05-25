@@ -17,8 +17,8 @@ interface User {
     userId: string
     username: string | null
     points: number
-    lastLoginAt: Date | null
-    createdAt: Date | null
+    lastLoginAt: string | Date | null
+    createdAt: string | Date | null
     orderCount: number
     isBlocked: boolean
 }

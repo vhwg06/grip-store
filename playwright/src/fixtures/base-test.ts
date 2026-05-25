@@ -44,7 +44,15 @@ async function loginForToken(request: any, email: string, password: string): Pro
   });
   if (!response.ok()) return null;
   const payload = await response.json();
-  return payload?.token ?? payload?.data?.token ?? null;
+  return (
+    payload?.token ??
+    payload?.access_token ??
+    payload?.accessToken ??
+    payload?.data?.token ??
+    payload?.data?.access_token ??
+    payload?.data?.accessToken ??
+    null
+  );
 }
 
 export const test = base.extend<CustomFixtures>({

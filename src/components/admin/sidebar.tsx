@@ -17,9 +17,10 @@ interface NavLinkProps {
     label: ReactNode
     badge?: ReactNode
     closeOnNavigate?: boolean
+    testId?: string
 }
 
-function NavLink({ href, icon, label, badge, closeOnNavigate }: NavLinkProps) {
+function NavLink({ href, icon, label, badge, closeOnNavigate, testId }: NavLinkProps) {
     const content = (
         <span className="flex w-full items-center justify-between">
             <span className="flex items-center">
@@ -29,13 +30,13 @@ function NavLink({ href, icon, label, badge, closeOnNavigate }: NavLinkProps) {
             {badge}
         </span>
     )
-    const testId = `admin-nav-${href.split("/").pop()}`;
+    const linkProps = testId ? { "data-testid": testId } : {};
     const link = closeOnNavigate ? (
         <SheetClose asChild>
-            <Link data-testid={testId} href={href} className="flex w-full items-center justify-between">{content}</Link>
+            <Link {...linkProps} href={href} className="flex w-full items-center justify-between">{content}</Link>
         </SheetClose>
     ) : (
-        <Link data-testid={testId} href={href} className="flex w-full items-center justify-between">{content}</Link>
+        <Link {...linkProps} href={href} className="flex w-full items-center justify-between">{content}</Link>
     )
     return (
         <Button variant="ghost" asChild className="justify-start">
@@ -49,9 +50,10 @@ interface SidebarContentProps {
     showTitle?: boolean
     username?: string
     t: (key: string) => string
+    withTestIds?: boolean
 }
 
-function SidebarContent({ closeOnNavigate = false, showTitle = true, username, t }: SidebarContentProps) {
+function SidebarContent({ closeOnNavigate = false, showTitle = true, username, t, withTestIds = false }: SidebarContentProps) {
     const pathname = usePathname()
     const [pendingRefunds, setPendingRefunds] = useState(0)
     const { count: unreadMessages, refresh: refreshUnreadMessages } = useAdminUserMessageUnreadCount()
@@ -120,19 +122,19 @@ function SidebarContent({ closeOnNavigate = false, showTitle = true, username, t
                     <span>{t('common.adminTitle')}</span>
                 </div>
             )}
-            <nav data-testid="admin-nav" className="flex flex-col gap-2">
-                <NavLink href="/admin/settings" icon={<Settings className="mr-2 h-4 w-4" />} label={t('common.storeSettings')} closeOnNavigate={closeOnNavigate} />
-                <NavLink href="/admin/products" icon={<Package className="mr-2 h-4 w-4" />} label={t('common.productManagement')} closeOnNavigate={closeOnNavigate} />
-                <NavLink href="/admin/orders" icon={<CreditCard className="mr-2 h-4 w-4" />} label={t('common.ordersRefunds')} closeOnNavigate={closeOnNavigate} />
-                <NavLink href="/admin/refunds" icon={<RotateCcw className="mr-2 h-4 w-4" />} label={t('common.refundRequests')} badge={refundBadge} closeOnNavigate={closeOnNavigate} />
-                <NavLink href="/admin/messages" icon={<MessageSquare className="mr-2 h-4 w-4" />} label={t('common.adminMessages')} badge={messageBadge} closeOnNavigate={closeOnNavigate} />
-                <NavLink href="/admin/categories" icon={<Tags className="mr-2 h-4 w-4" />} label={t('common.categoriesManage')} closeOnNavigate={closeOnNavigate} />
-                <NavLink href="/admin/users" icon={<Users className="mr-2 h-4 w-4" />} label={t('common.customers')} closeOnNavigate={closeOnNavigate} />
-                <NavLink href="/admin/reviews" icon={<Star className="mr-2 h-4 w-4" />} label={t('common.reviews')} closeOnNavigate={closeOnNavigate} />
-                <NavLink href="/admin/announcement" icon={<Megaphone className="mr-2 h-4 w-4" />} label={t('announcement.title')} closeOnNavigate={closeOnNavigate} />
-                <NavLink href="/admin/data" icon={<Download className="mr-2 h-4 w-4" />} label={t('common.dataExport')} closeOnNavigate={closeOnNavigate} />
-                <NavLink href="/admin/collect" icon={<QrCode className="mr-2 h-4 w-4" />} label={t('payment.adminMenu')} closeOnNavigate={closeOnNavigate} />
-                <NavLink href="/admin/notifications" icon={<Bell className="mr-2 h-4 w-4" />} label={t('admin.settings.notifications.title')} closeOnNavigate={closeOnNavigate} />
+            <nav data-testid={withTestIds ? "admin-nav" : undefined} className="flex flex-col gap-2">
+                <NavLink href="/admin/settings" testId={withTestIds ? "admin-nav-settings" : undefined} icon={<Settings className="mr-2 h-4 w-4" />} label={t('common.storeSettings')} closeOnNavigate={closeOnNavigate} />
+                <NavLink href="/admin/products" testId={withTestIds ? "admin-nav-products" : undefined} icon={<Package className="mr-2 h-4 w-4" />} label={t('common.productManagement')} closeOnNavigate={closeOnNavigate} />
+                <NavLink href="/admin/orders" testId={withTestIds ? "admin-nav-orders" : undefined} icon={<CreditCard className="mr-2 h-4 w-4" />} label={t('common.ordersRefunds')} closeOnNavigate={closeOnNavigate} />
+                <NavLink href="/admin/refunds" testId={withTestIds ? "admin-nav-refunds" : undefined} icon={<RotateCcw className="mr-2 h-4 w-4" />} label={t('common.refundRequests')} badge={refundBadge} closeOnNavigate={closeOnNavigate} />
+                <NavLink href="/admin/messages" testId={withTestIds ? "admin-nav-messages" : undefined} icon={<MessageSquare className="mr-2 h-4 w-4" />} label={t('common.adminMessages')} badge={messageBadge} closeOnNavigate={closeOnNavigate} />
+                <NavLink href="/admin/categories" testId={withTestIds ? "admin-nav-categories" : undefined} icon={<Tags className="mr-2 h-4 w-4" />} label={t('common.categoriesManage')} closeOnNavigate={closeOnNavigate} />
+                <NavLink href="/admin/users" testId={withTestIds ? "admin-nav-users" : undefined} icon={<Users className="mr-2 h-4 w-4" />} label={t('common.customers')} closeOnNavigate={closeOnNavigate} />
+                <NavLink href="/admin/reviews" testId={withTestIds ? "admin-nav-reviews" : undefined} icon={<Star className="mr-2 h-4 w-4" />} label={t('common.reviews')} closeOnNavigate={closeOnNavigate} />
+                <NavLink href="/admin/announcement" testId={withTestIds ? "admin-nav-announcement" : undefined} icon={<Megaphone className="mr-2 h-4 w-4" />} label={t('announcement.title')} closeOnNavigate={closeOnNavigate} />
+                <NavLink href="/admin/data" testId={withTestIds ? "admin-nav-data" : undefined} icon={<Download className="mr-2 h-4 w-4" />} label={t('common.dataExport')} closeOnNavigate={closeOnNavigate} />
+                <NavLink href="/admin/collect" testId={withTestIds ? "admin-nav-collect" : undefined} icon={<QrCode className="mr-2 h-4 w-4" />} label={t('payment.adminMenu')} closeOnNavigate={closeOnNavigate} />
+                <NavLink href="/admin/notifications" testId={withTestIds ? "admin-nav-notifications" : undefined} icon={<Bell className="mr-2 h-4 w-4" />} label={t('admin.settings.notifications.title')} closeOnNavigate={closeOnNavigate} />
             </nav>
             {/* Removed footer logout block to avoid duplicate exit entry */}
         </>
@@ -141,6 +143,16 @@ function SidebarContent({ closeOnNavigate = false, showTitle = true, username, t
 
 export function AdminSidebar({ username }: { username: string }) {
     const { t } = useI18n()
+    const [isMobileView, setIsMobileView] = useState<boolean | null>(null)
+
+    useEffect(() => {
+        if (typeof window === "undefined") return
+        const mql = window.matchMedia("(max-width: 767px)")
+        const apply = () => setIsMobileView(mql.matches)
+        apply()
+        mql.addEventListener("change", apply)
+        return () => mql.removeEventListener("change", apply)
+    }, [])
 
     return (
         <>
@@ -157,16 +169,22 @@ export function AdminSidebar({ username }: { username: string }) {
                         </SheetTrigger>
                         <SheetContent side="left" className="w-4/5 max-w-sm">
                             <div className="flex flex-1 flex-col gap-4 px-4 pb-4 pt-6">
-                                <SidebarContent closeOnNavigate showTitle={false} username={username} t={t} />
+                                <SidebarContent closeOnNavigate showTitle={false} username={username} t={t} withTestIds={false} />
                             </div>
                         </SheetContent>
                     </Sheet>
                 </div>
+                <nav data-testid={isMobileView ? "admin-nav" : undefined} className="flex items-center gap-2 overflow-x-auto px-4 pb-3">
+                    <Link data-testid={isMobileView ? "admin-nav-settings" : undefined} href="/admin/settings" className="rounded-md border px-3 py-1.5 text-sm whitespace-nowrap">{t('common.storeSettings')}</Link>
+                    <Link data-testid={isMobileView ? "admin-nav-products" : undefined} href="/admin/products" className="rounded-md border px-3 py-1.5 text-sm whitespace-nowrap">{t('common.productManagement')}</Link>
+                    <Link data-testid={isMobileView ? "admin-nav-orders" : undefined} href="/admin/orders" className="rounded-md border px-3 py-1.5 text-sm whitespace-nowrap">{t('common.ordersRefunds')}</Link>
+                    <Link data-testid={isMobileView ? "admin-nav-users" : undefined} href="/admin/users" className="rounded-md border px-3 py-1.5 text-sm whitespace-nowrap">{t('common.customers')}</Link>
+                </nav>
             </div>
 
             {/* Desktop sidebar */}
             <aside className="hidden md:flex md:flex-col md:w-64 bg-muted/40 border-r md:min-h-screen p-6 gap-4">
-                <SidebarContent username={username} t={t} />
+                <SidebarContent username={username} t={t} withTestIds={isMobileView !== true} />
             </aside>
         </>
     )

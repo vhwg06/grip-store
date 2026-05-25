@@ -62,7 +62,6 @@ async function hydrateCartFromServer(userId: string) {
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
-  const [bypassLoggedOut, setBypassLoggedOut] = useState(false)
 
   const refresh = async () => {
     const hasTokens = Boolean(getAccessToken() || getRefreshToken())
@@ -96,40 +95,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const applyTokens = async (tokens: AuthTokens) => {
-    setBypassLoggedOut(false)
     persistAuthTokens(tokens)
     await refresh()
   }
 
   const logout = async () => {
     await logoutRequest()
-    setBypassLoggedOut(true)
     setUser(null)
   }
 
   const login = async (email: string, password: string) => {
-    setBypassLoggedOut(false)
     await loginApi(email, password)
     await refresh()
   }
 
-  const envBypass = process.env.NEXT_PUBLIC_E2E_BYPASS_AUTH === "true"
-  const isBypass = envBypass && !bypassLoggedOut
-
   const value = useMemo<AuthContextValue>(
     () => ({
-      user: user || (isBypass ? {
-        id: "dev-admin-id",
-        username: "admin",
-        email: "admin@grip.local",
-        avatar_url: null,
-        trustLevel: 3,
-        isAdmin: true,
-        points: 9999,
-        desktopNotificationsEnabled: false
-      } : null),
-      isAdmin: Boolean(user?.isAdmin) || isBypass,
-      loading: isBypass ? false : loading,
+      user,
+      isAdmin: Boolean(user?.isAdmin),
+      loading,
       loginWithGitHub,
       loginWithLinuxDO,
       applyTokens,
@@ -137,7 +121,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       refresh,
       login,
     }),
-    [loading, user, isBypass],
+    [loading, user],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

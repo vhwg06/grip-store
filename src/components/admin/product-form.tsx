@@ -11,6 +11,7 @@ import { useEffect, useRef, useState } from "react"
 import { toast } from "sonner"
 import { useRouter } from "next/navigation"
 import { useI18n } from "@/lib/i18n/context"
+import MediaUploader from "@/components/admin/media-uploader"
 
 export default function ProductForm({ product, categories = [] }: { product?: any; categories?: Array<{ name: string }> }) {
     const router = useRouter()
@@ -22,9 +23,13 @@ export default function ProductForm({ product, categories = [] }: { product?: an
     const [showWarning, setShowWarning] = useState(Boolean(product?.purchaseWarning && String(product.purchaseWarning).trim()))
     const [visibilityLevel, setVisibilityLevel] = useState(String(product?.visibilityLevel ?? -1))
     const { t } = useI18n()
+    const [mainImage, setMainImage] = useState(product?.image || "")
+    const [galleryImages, setGalleryImages] = useState<string[]>(product?.images || [])
 
     useEffect(() => {
         setCurrentProduct(product)
+        setMainImage(product?.image || "")
+        setGalleryImages(product?.images || [])
         setShowWarning(Boolean(product?.purchaseWarning && String(product.purchaseWarning).trim()))
         setVisibilityLevel(String(product?.visibilityLevel ?? -1))
         setFormSeed((s) => s + 1)
@@ -38,6 +43,8 @@ export default function ProductForm({ product, categories = [] }: { product?: an
                     const latest = await getProductForAdminAction(product.id)
                     if (!active || !latest) return
                     setCurrentProduct(latest as any)
+                    setMainImage((latest as any)?.image || "")
+                    setGalleryImages((latest as any)?.images || [])
                     setShowWarning(Boolean(latest?.purchaseWarning && String(latest.purchaseWarning).trim()))
                     setVisibilityLevel(String(latest?.visibilityLevel ?? -1))
                     setFormSeed((s) => s + 1)
@@ -151,19 +158,23 @@ export default function ProductForm({ product, categories = [] }: { product?: an
                     </div>
 
                     <div className="grid gap-2">
-                        <Label htmlFor="image">{t('admin.productForm.imageLabel')}</Label>
-                        <Input id="image" name="image" defaultValue={currentProduct?.image} placeholder={t('admin.productForm.imagePlaceholder')} />
+                        <MediaUploader
+                            label={t('admin.productForm.imageLabel')}
+                            value={mainImage}
+                            onChange={(val) => setMainImage(val as string)}
+                        />
+                        <input type="hidden" name="image" value={mainImage} />
                     </div>
 
                     <div className="grid gap-2">
-                        <Label htmlFor="images">Thư viện ảnh (Mỗi link một dòng)</Label>
-                        <Textarea
-                            id="images"
-                            name="images"
-                            defaultValue={currentProduct?.images?.join('\n')}
-                            placeholder="https://...&#10;https://..."
-                            className="min-h-[80px]"
+                        <MediaUploader
+                            label="Thư viện ảnh sản phẩm"
+                            value={galleryImages}
+                            onChange={(val) => setGalleryImages(val as string[])}
+                            multiple
+                            maxFiles={6}
                         />
+                        <input type="hidden" name="images" value={galleryImages.join('\n')} />
                     </div>
 
                     <div className="grid gap-2">

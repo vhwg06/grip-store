@@ -16,6 +16,7 @@ export class ProductDetailPage extends BasePage {
 
   async addToCart() {
     await this.page.locator('[data-testid="add-to-cart-btn"]').click();
+    await this.page.waitForTimeout(150);
   }
 
   async getReviews(): Promise<ReviewData[]> {

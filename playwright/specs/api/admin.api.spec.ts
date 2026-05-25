@@ -264,4 +264,108 @@ test.describe("Admin API @api", () => {
       expect(response.status).toBe(403);
     });
   });
+
+  /* ── Admin Media Presigned ───────────────────── */
+
+  test.describe("Admin Media Presigned API", () => {
+    test("should generate presigned URL with admin token", async () => {
+      test.skip(!adminToken, "ADMIN_USER_TOKEN not set");
+
+      const response = await client.get(
+        "/v1/admin/media/presigned?fileName=test-image.png&contentType=image/png",
+        { headers: { Authorization: `Bearer ${adminToken}` } }
+      );
+
+      expect(response.status).toBe(200);
+      expect(response.data).toHaveProperty("upload_url");
+      expect(response.data).toHaveProperty("public_url");
+      expect(response.data).toHaveProperty("id");
+      expect(typeof response.data.upload_url).toBe("string");
+      expect(typeof response.data.public_url).toBe("string");
+      expect(typeof response.data.id).toBe("string");
+    });
+
+    test("should return 403 without admin role for presigned url", async () => {
+      test.skip(!userToken, "TEST_USER_TOKEN not set");
+
+      const response = await client.get(
+        "/v1/admin/media/presigned?fileName=test-image.png&contentType=image/png",
+        { headers: { Authorization: `Bearer ${userToken}` } }
+      );
+
+      expect(response.status).toBe(403);
+    });
+
+    test("should return 400 for invalid content type", async () => {
+      test.skip(!adminToken, "ADMIN_USER_TOKEN not set");
+
+      const response = await client.get(
+        "/v1/admin/media/presigned?fileName=test-doc.pdf&contentType=application/pdf",
+        { headers: { Authorization: `Bearer ${adminToken}` } }
+      );
+
+      expect(response.status).toBe(400);
+    });
+  });
+
+  /* ── Media Metadata CRUD API ─────────────────── */
+
+  test.describe("Media Metadata API", () => {
+    const testMediaId = `test-media-${Date.now()}`;
+
+    test("should register media metadata successfully with auth", async () => {
+      test.skip(!adminToken, "ADMIN_USER_TOKEN not set");
+
+      const response = await client.post(
+        "/v1/media",
+        {
+          id: testMediaId,
+          file_name: "test-uploaded-image.png",
+          mime_type: "image/png",
+          size_bytes: 524288,
+          url: `https://media.gripstore.com/${testMediaId}.png`,
+        },
+        { headers: { Authorization: `Bearer ${adminToken}` } }
+      );
+
+      expect([200, 201]).toContain(response.status);
+      expect(response.data).toHaveProperty("id", testMediaId);
+      expect(response.data).toHaveProperty("file_name", "test-uploaded-image.png");
+    });
+
+    test("should return 401 for anonymous registration attempt", async () => {
+      const response = await client.post("/v1/media", {
+        id: "anon-media",
+        file_name: "anon.png",
+        mime_type: "image/png",
+        size_bytes: 128,
+        url: "https://media.gripstore.com/anon.png",
+      });
+
+      expect(response.status).toBe(401);
+    });
+
+    test("should list registered media assets", async () => {
+      test.skip(!adminToken, "ADMIN_USER_TOKEN not set");
+
+      const response = await client.get<{ data: any[] }>("/v1/media", {
+        headers: { Authorization: `Bearer ${adminToken}` },
+      });
+
+      expect(response.status).toBe(200);
+      expect(response.data).toHaveProperty("data");
+      expect(Array.isArray(response.data.data)).toBe(true);
+    });
+
+    test("should delete registered media asset", async () => {
+      test.skip(!adminToken, "ADMIN_USER_TOKEN not set");
+
+      const response = await client.delete(`/v1/media/${testMediaId}`, {
+        headers: { Authorization: `Bearer ${adminToken}` },
+      });
+
+      expect([200, 204]).toContain(response.status);
+    });
+  });
 });
+

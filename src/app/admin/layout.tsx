@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useRouter } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { AdminSidebar } from "@/components/admin/sidebar"
 import { UpdateNotification } from "@/components/admin/update-notification"
 import { RegistryPrompt } from "@/components/admin/registry-prompt"
@@ -29,15 +29,17 @@ function AdminLayoutFallback() {
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
     const router = useRouter()
+    const pathname = usePathname()
     const { user, isAdmin, loading } = useAuth()
     const [registryEnabled, setRegistryEnabled] = useState(false)
     const [shouldPrompt, setShouldPrompt] = useState(false)
+    const isNonAdminAllowedRoute = pathname === "/admin/profile" || pathname === "/admin/orders"
 
     useEffect(() => {
-        if (!loading && !isAdmin) {
+        if (!loading && !isAdmin && !isNonAdminAllowedRoute) {
             router.replace("/")
         }
-    }, [isAdmin, loading, router])
+    }, [isAdmin, isNonAdminAllowedRoute, loading, router])
 
     useEffect(() => {
         if (!isAdmin) return
@@ -58,9 +60,15 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         }
     }, [isAdmin])
 
-    if (loading || !isAdmin) {
+    if (loading) {
         return <AdminLayoutFallback />
     }
+
+    if (!isAdmin && isNonAdminAllowedRoute) {
+        return <div className="min-h-screen">{children}</div>
+    }
+
+    if (!isAdmin) return <AdminLayoutFallback />
 
     return (
         <div className="flex min-h-screen flex-col">

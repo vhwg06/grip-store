@@ -41,7 +41,8 @@ export async function refreshToken() {
 }
 
 export async function getMe() {
-  return apiFetch<User>("/api/auth/me")
+  const payload = await apiFetch<any>("/api/auth/me")
+  return (payload?.data ?? payload) as User
 }
 
 export function persistAuthTokens(tokens: AuthTokens) {
@@ -85,4 +86,3 @@ export async function register(email: string, password: string, name?: string): 
   persistAuthTokens(tokens)
   return tokens
 }
-

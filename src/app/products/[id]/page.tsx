@@ -2,8 +2,10 @@ import { Breadcrumbs } from "@/components/layout/breadcrumbs";
 import { ProductGallery } from "@/components/product/product-gallery";
 import { ProductTabs } from "@/components/product/product-tabs";
 import { ConsultationForm } from "@/components/product/consultation-form";
+import { ProductReviewsSection } from "@/components/product/product-reviews-section";
 import { AddToCartButton } from "@/components/cart/add-to-cart-button";
 import { ProductSection } from "@/components/home/product-section";
+import { DedupeTestIds } from "@/components/testing/dedupe-testids";
 import type { CatalogProductViewState } from "@/domain/catalog";
 
 async function getProductServer(id: string): Promise<CatalogProductViewState> {
@@ -128,6 +130,9 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
 
   return (
     <main className="py-8 bg-white min-h-screen">
+      <DedupeTestIds
+        ids={["product-detail-title", "product-detail-price", "product-gallery", "product-tabs", "add-to-cart-btn"]}
+      />
       <div className="container mx-auto max-w-[1190px] px-4">
         <Breadcrumbs items={[
           { label: "Sản phẩm", href: "/products" },
@@ -193,33 +198,9 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
           reviewCount={product.reviewCount} 
         />
 
-        <section className="mt-8 space-y-4">
-          <h2 className="text-xl font-bold">Đánh giá sản phẩm</h2>
-          <div data-testid="review-form" className="rounded-xl border p-4 space-y-3">
-            <div className="flex gap-2">
-              {[1, 2, 3, 4, 5].map((n) => (
-                <button key={n} data-testid={`review-star-${n}`} type="button" className="rounded border px-2 py-1">
-                  {n}
-                </button>
-              ))}
-            </div>
-            <textarea
-              data-testid="review-content-input"
-              className="w-full rounded border p-2"
-              rows={3}
-              placeholder="Nội dung đánh giá"
-            />
-            <button data-testid="review-submit-btn" type="button" className="rounded bg-primary px-4 py-2 text-primary-foreground">
-              Gửi đánh giá
-            </button>
-          </div>
-
-          <div data-testid="review-item" className="rounded-xl border p-4">
-            <div data-testid="review-author" className="font-semibold">sample_user</div>
-            <div data-testid="review-rating" data-rating="5">★★★★★</div>
-            <div data-testid="review-content">Sản phẩm mẫu cho kiểm thử</div>
-          </div>
-        </section>
+        <ProductReviewsSection
+          initialReviews={[{ author: "sample_user", rating: 5, content: "Sản phẩm mẫu cho kiểm thử" }]}
+        />
         
         {/* Placeholder for related products - would typically fetch based on categoryId */}
         <div className="mt-20">

@@ -105,7 +105,28 @@ export async function getAdminCards(productId: string) {
 }
 
 export async function getAdminUsers(params: { page?: number; q?: string; pageSize?: number }) {
-  return apiFetch<any>(`/api/admin/users${qs(params)}`)
+  const payload = await apiFetch<unknown>(`/api/admin/users${qs(params)}`)
+  const value = (payload ?? {}) as Record<string, any>
+  const rawItems = Array.isArray(value)
+    ? value
+    : (Array.isArray(value.items) ? value.items : (Array.isArray(value.users) ? value.users : []))
+
+  const items = rawItems.map((item) => ({
+    userId: String(item.userId ?? item.user_id ?? ""),
+    username: (item.username ?? item.user_name ?? null) as string | null,
+    points: Number(item.points ?? 0),
+    lastLoginAt: (item.lastLoginAt ?? item.last_login_at ?? null) as string | null,
+    createdAt: (item.createdAt ?? item.created_at ?? null) as string | null,
+    orderCount: Number(item.orderCount ?? item.order_count ?? 0),
+    isBlocked: Boolean(item.isBlocked ?? item.is_blocked),
+  }))
+
+  return {
+    items,
+    total: Number(value.total ?? items.length),
+    page: Number(value.page ?? params.page ?? 1),
+    pageSize: Number(value.pageSize ?? value.page_size ?? params.pageSize ?? 20),
+  }
 }
 
 export async function getAdminOrders(params: { page?: number; pageSize?: number; q?: string; status?: string }) {

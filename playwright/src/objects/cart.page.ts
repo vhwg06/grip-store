@@ -4,9 +4,11 @@ import type { CartItemData } from "./types";
 export class CartPage extends BasePage {
   async goto() {
     await super.goto("/cart");
+    await this.waitForCartReady();
   }
 
   async getItems(): Promise<CartItemData[]> {
+    await this.waitForCartReady();
     const rows = this.page.locator('[data-testid="cart-item"]');
     const count = await rows.count();
     const items: CartItemData[] = [];
@@ -20,6 +22,15 @@ export class CartPage extends BasePage {
       });
     }
     return items;
+  }
+
+  private async waitForCartReady() {
+    const row = this.page.locator('[data-testid="cart-item"]').first();
+    const emptyState = this.page.locator('[data-testid="empty-cart"]');
+    await Promise.race([
+      row.waitFor({ state: "visible", timeout: 4000 }).catch(() => undefined),
+      emptyState.waitFor({ state: "visible", timeout: 4000 }).catch(() => undefined),
+    ]);
   }
 
   async updateQuantity(index: number, quantity: number) {

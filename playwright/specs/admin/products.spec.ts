@@ -33,6 +33,41 @@ test.describe("Admin Products @admin", () => {
     await page.waitForLoadState("networkidle");
   });
 
+  test("should upload image via media uploader when creating product", async ({ adminPage, page }) => {
+    // Navigate directly to the full create product page
+    await page.goto("/admin/product/new");
+    await page.waitForLoadState("networkidle");
+
+    // Fill standard fields
+    await page.locator('[data-testid="field-title"]').fill(`Product with Image ${Date.now()}`);
+    await page.locator('[data-testid="field-price"]').fill("29.99");
+    await page.locator('#slug').fill(`prod-img-${Date.now()}`);
+
+    // Select and upload mock image to first media uploader (main image)
+    const fileInput = page.locator('input[data-testid="media-file-input"]').first();
+
+    // Create a mock PNG buffer to upload
+    const mockFile = {
+      name: "test-product-image.png",
+      mimeType: "image/png",
+      buffer: Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==", "base64"),
+    };
+
+    await fileInput.setInputFiles(mockFile);
+
+    // Assert that the preview image is shown and uploaded successfully
+    const previewImage = page.locator('[data-testid="media-preview-image"]').first();
+    await expect(previewImage).toBeVisible();
+
+    // Verify it contains our uploaded preview card
+    const previewCards = page.locator('[data-testid="media-preview-card"]');
+    await expect(previewCards).toHaveCount(1);
+
+    // Save product
+    await page.locator('[data-testid="save-btn"]').click();
+    await page.waitForLoadState("networkidle");
+  });
+
   test("should toggle product visibility", async ({ adminPage, page }) => {
     const toggleBtns = page.locator('[data-testid="toggle-btn"]');
     test.skip((await toggleBtns.count()) === 0, "No toggle buttons found");

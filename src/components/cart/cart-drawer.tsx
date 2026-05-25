@@ -5,12 +5,17 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import { useCart } from "@/application/hooks/useCart";
 import { CartItem } from "./cart-item";
 import { CartSummary } from "./cart-summary";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 
 export function CartDrawer() {
   const { cart } = useCart();
   const [open, setOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
@@ -18,7 +23,7 @@ export function CartDrawer() {
         <button className="flex items-center space-x-2 text-white hover:text-white/80 transition-colors h-full px-2">
           <div className="relative flex items-center justify-center w-6 h-6">
             <ShoppingCart className="w-[21px] h-[22px]" />
-            {cart.totalQuantity > 0 && (
+            {mounted && cart.totalQuantity > 0 && (
               <span className="absolute -top-1.5 -right-2 bg-[#99782b] text-white text-[11px] font-medium w-4 h-4 flex items-center justify-center rounded-full leading-none">
                 {cart.totalQuantity}
               </span>
