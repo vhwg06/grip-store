@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import { ProductCard } from "@/components/product/product-card";
 import { ProductSidebar } from "@/components/product/product-sidebar";
 import { ChevronDown, X } from "lucide-react";
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 export function ProductListingContent() {
   const router = useRouter();
@@ -26,6 +26,11 @@ export function ProductListingContent() {
   const maxPrice = Number(searchParams.get("maxPrice") || Number.MAX_SAFE_INTEGER);
   const page = Math.max(1, Number(searchParams.get("page") || 1));
   const pageSize = 24;
+  const [searchInput, setSearchInput] = useState(q ?? "");
+
+  useEffect(() => {
+    setSearchInput(q ?? "");
+  }, [q]);
   
   const { products, isLoading, total, limit } = useCatalog({ 
     category, 
@@ -69,12 +74,14 @@ export function ProductListingContent() {
             <div className="flex items-center gap-2">
               <input
                 data-testid="search-input"
-                value={q ?? ""}
+                value={searchInput}
                 onChange={(e) => {
+                  const next = e.target.value;
+                  setSearchInput(next);
                   const params = new URLSearchParams(searchParams.toString());
-                  const next = e.target.value.trim();
-                  if (next) {
-                    params.set("q", next);
+                  const normalized = next.trim();
+                  if (normalized) {
+                    params.set("q", normalized);
                   } else {
                     params.delete("q");
                   }
@@ -89,7 +96,12 @@ export function ProductListingContent() {
                 type="button"
                 onClick={() => {
                   const params = new URLSearchParams(searchParams.toString());
-                  if (q) params.set("q", q);
+                  const normalized = searchInput.trim();
+                  if (normalized) {
+                    params.set("q", normalized);
+                  } else {
+                    params.delete("q");
+                  }
                   params.set("page", "1");
                   router.push(`${pathname}?${params.toString()}`);
                 }}
