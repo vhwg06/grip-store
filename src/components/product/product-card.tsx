@@ -21,6 +21,11 @@ export function ProductCard({
 }: ProductCardProps) {
   const { addItem } = useCart();
   const router = useRouter();
+  const formatPrice = (value: string | number | null | undefined) => {
+    const parsed = Number(value ?? 0);
+    if (!Number.isFinite(parsed)) return "0";
+    return Math.round(parsed).toString();
+  };
 
   const handleAction = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -96,15 +101,15 @@ export function ProductCard({
           {product.compareAtPrice && parseFloat(product.compareAtPrice) > parseFloat(product.price) ? (
             <div data-testid="product-price" className="flex items-center gap-2 justify-center mb-4">
               <span className="text-[16px] font-medium text-[#6e6e6e] line-through font-['SVN-Gilroy']">
-                {new Intl.NumberFormat('vi-VN').format(parseFloat(product.compareAtPrice))}đ
+                {formatPrice(product.compareAtPrice)}đ
               </span>
               <span className="text-[16px] font-bold text-[#99782b] font-['SVN-Gilroy']">
-                {new Intl.NumberFormat('vi-VN').format(parseFloat(product.price))}đ
+                {formatPrice(product.price)}đ
               </span>
             </div>
           ) : (
             <div data-testid="product-price" className="text-[16px] font-bold text-[#99782b] font-['SVN-Gilroy'] mb-4 text-center">
-              {new Intl.NumberFormat('vi-VN').format(parseFloat(product.price))}đ
+              {formatPrice(product.price)}đ
             </div>
           )}
           

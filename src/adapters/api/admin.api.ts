@@ -75,9 +75,49 @@ export async function getAdminDashboard(): Promise<AdminDashboardPayload> {
 }
 
 export async function getAdminProducts(): Promise<AdminProductsPayload> {
-  const payload = await apiFetch<Partial<AdminProductsPayload>>("/api/admin/products")
+  const payload = await apiFetch<any>("/api/admin/products")
+  const rawItems = Array.isArray(payload)
+    ? payload
+    : (Array.isArray(payload?.products)
+      ? payload.products
+      : (Array.isArray(payload?.data)
+        ? payload.data
+        : (Array.isArray(payload?.items) ? payload.items : [])))
+
+  const products: AdminProduct[] = rawItems.map((item: any) => ({
+    id: String(item?.id ?? ""),
+    name: String(item?.name ?? item?.title ?? ""),
+    description: item?.description ?? null,
+    price: String(item?.price ?? "0"),
+    compareAtPrice: item?.compareAtPrice != null
+      ? String(item.compareAtPrice)
+      : (item?.compare_price != null ? String(item.compare_price) : null),
+    image: item?.image ?? item?.image_url ?? null,
+    images: Array.isArray(item?.images) ? item.images : [],
+    categoryId: item?.categoryId != null
+      ? Number(item.categoryId)
+      : (item?.category_id != null ? Number(item.category_id) : null),
+    brandId: item?.brandId != null ? Number(item.brandId) : null,
+    sku: item?.sku ?? null,
+    isHot: Boolean(item?.isHot ?? item?.is_hot),
+    isNew: Boolean(item?.isNew),
+    isBestSeller: Boolean(item?.isBestSeller),
+    isShared: Boolean(item?.isShared ?? item?.is_shared),
+    purchaseLimit: item?.purchaseLimit != null
+      ? Number(item.purchaseLimit)
+      : (item?.purchase_limit != null ? Number(item.purchase_limit) : null),
+    purchaseWarning: item?.purchaseWarning ?? item?.purchase_warning ?? null,
+    visibilityLevel: Number(item?.visibilityLevel ?? item?.visibility_level ?? -1),
+    stock: Number(item?.stock ?? item?.stock_count ?? 0),
+    sold: Number(item?.sold ?? item?.sold_count ?? 0),
+    usageGuide: item?.usageGuide ?? null,
+    bundledGifts: item?.bundledGifts ?? null,
+    isActive: Boolean(item?.isActive ?? item?.is_active),
+    sortOrder: Number(item?.sortOrder ?? item?.sort_order ?? 0),
+  }))
+
   return {
-    products: Array.isArray(payload.products) ? payload.products : [],
+    products,
     lowStockThreshold: Number(payload.lowStockThreshold ?? 5),
   }
 }

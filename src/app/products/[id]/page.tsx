@@ -158,21 +158,26 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
             )}
 
             {/* Specs Table */}
-            {product.specs && product.specs.length > 0 && (
-              <div className="mb-8 border border-neutral-200 rounded-xl p-4 bg-neutral-50/50">
-                <h3 className="text-base font-bold text-[#2b1809] mb-3 uppercase tracking-wider font-['SVN-Gilroy']">Thông số kỹ thuật</h3>
-                <table data-testid="product-specs-table" className="w-full text-sm">
-                  <tbody>
-                    {product.specs.map((spec: any) => (
+            <div className="mb-8 border border-neutral-200 rounded-xl p-4 bg-neutral-50/50">
+              <h3 className="text-base font-bold text-[#2b1809] mb-3 uppercase tracking-wider font-['SVN-Gilroy']">Thông số kỹ thuật</h3>
+              <table data-testid="product-specs-table" className="w-full text-sm">
+                <tbody>
+                  {product.specs && product.specs.length > 0 ? (
+                    product.specs.map((spec: any) => (
                       <tr key={spec.key} className="border-b border-neutral-100 last:border-0">
                         <td className="py-2.5 font-semibold text-neutral-500 w-1/3">{spec.key}</td>
                         <td data-testid={`spec-val-${spec.key}`} className="py-2.5 font-medium text-neutral-800 w-2/3">{spec.value}</td>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
+                    ))
+                  ) : (
+                    <tr className="border-b border-neutral-100 last:border-0">
+                      <td className="py-2.5 font-semibold text-neutral-500 w-1/3">Trạng thái</td>
+                      <td className="py-2.5 font-medium text-neutral-800 w-2/3">Chưa có thông số</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
 
             <div className="flex gap-4 mb-8">
               <AddToCartButton product={product} />

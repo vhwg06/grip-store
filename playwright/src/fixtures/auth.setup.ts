@@ -16,7 +16,13 @@ async function tryLoginAndPersistState(page: any, email: string, password: strin
     await page.locator('[data-testid="login-submit-btn"]').first().click({ trial: false });
   }
 
-  const loggedIn = await avatar.isVisible({ timeout: 15_000 }).catch(() => false);
+  const loggedIn = await page
+    .locator('[data-testid="user-avatar"]')
+    .first()
+    .waitFor({ state: "visible", timeout: 15_000 })
+    .then(() => true)
+    .catch(() => false);
+
   await page.context().storageState({ path: statePath });
 
   // Do not fail the whole test graph if auth bootstrap is unavailable in local/dev env.
