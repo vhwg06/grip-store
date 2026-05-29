@@ -1,3 +1,7 @@
+export function generateStaticParams() {
+  return [{ slug: "placeholder" }]
+}
+
 import { ArticleDetailContent } from "@/components/article/article-detail-content";
 
 export const metadata = {

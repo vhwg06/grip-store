@@ -8,13 +8,13 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Download, Upload, FileUp, AlertCircle, CheckCircle2 } from "lucide-react"
 import { importData, repairDataAction } from "@/adapters/api/admin.api"
+import { resolveApiUrl } from "@/adapters/api/http-client"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 
 function downloadUrl(params: Record<string, string>) {
   const search = new URLSearchParams(params)
-  const baseUrl = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "") ?? ""
-  return `${baseUrl}/api/admin/data/download?${search.toString()}`
+  return `${resolveApiUrl("/api/admin/data/download")}?${search.toString()}`
 }
 
 export function AdminDataContent({ shopName }: { shopName: string | null }) {

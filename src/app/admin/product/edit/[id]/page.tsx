@@ -1,27 +1,10 @@
-"use client"
+import EditProductPageClient from "./page-client";
 
-import { useParams } from "next/navigation"
-import ProductForm from "@/components/admin/product-form"
-import { RefreshOnMount } from "@/components/refresh-on-mount"
-import { useAdminProductForm } from "@/application/hooks/useAdmin"
+export function generateStaticParams() {
+  return [{ id: "placeholder" }];
+}
 
-export default function EditProductPage() {
-    const params = useParams<{ id: string }>()
-    const id = typeof params?.id === "string" ? params.id : ""
-    const { data, isLoading } = useAdminProductForm(id)
-
-    if (isLoading) {
-        return <div className="h-96 w-full rounded-xl bg-muted/40 animate-pulse" />
-    }
-
-    if (!data?.product) {
-        return <div className="text-sm text-muted-foreground">Product not found.</div>
-    }
-
-    return (
-        <>
-            <RefreshOnMount />
-            <ProductForm product={data.product} categories={data.categories ?? []} />
-        </>
-    )
+export default async function EditProductPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  return <EditProductPageClient id={id} />;
 }

@@ -1,17 +1,11 @@
 "use client"
 
-import { apiFetch } from "@/adapters/api/http-client"
+import { apiFetch, resolveApiUrl } from "@/adapters/api/http-client"
 import { clearTokens, setTokens } from "@/adapters/api/token-store"
 import type { AuthResponse, AuthTokens, User } from "@/domain/auth"
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "") ?? ""
-
 function resolveAuthUrl(path: string, callbackUrl?: string) {
-  if (!API_URL) {
-    throw new Error("NEXT_PUBLIC_API_URL is not configured")
-  }
-
-  const url = new URL(`${API_URL}${path}`)
+  const url = new URL(resolveApiUrl(path))
   if (callbackUrl) {
     url.searchParams.set("callbackUrl", callbackUrl)
   }

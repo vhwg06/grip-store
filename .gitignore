@@ -4,6 +4,7 @@
 /dist
 /build
 /.next
+/out
 /tmp
 /out-tsc
 
@@ -63,6 +64,7 @@ pnpm-debug.log
 *.zip
 *.tmp
 *.tsbuildinfo
+*.tar.gz
 
 # Ignore local data
 /data/*.sqlite*

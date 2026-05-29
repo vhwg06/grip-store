@@ -1,0 +1,58 @@
+name: Deploy Frontend
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    env:
+      NEXT_PUBLIC_API_URL: http://104.199.183.42:80
+      IMAGE_NAME: grip-store-fe
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build Docker image with embedded API URL
+        run: |
+          docker build \
+            --build-arg NEXT_PUBLIC_API_URL="$NEXT_PUBLIC_API_URL" \
+            -t "$IMAGE_NAME:latest" .
+
+      - name: Save Docker image
+        run: |
+          docker save "$IMAGE_NAME:latest" | gzip > grip-store-fe-image.tar.gz
+
+      - name: Prepare deploy bundle
+        run: |
+          mkdir -p deploy-bundle
+          cp grip-store-fe-image.tar.gz deploy-bundle/
+          cp template.docker-compose.yml deploy-bundle/docker-compose.yml
+          tar -czf grip-store-fe-deploy.tar.gz -C deploy-bundle .
+
+      - name: Copy bundle to VM
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.GCP_VM_HOST }}
+          username: ${{ secrets.GCP_VM_USER }}
+          key: ${{ secrets.GCP_VM_SSH_KEY }}
+          source: grip-store-fe-deploy.tar.gz
+          target: /tmp
+
+      - name: Load and run container on VM
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.GCP_VM_HOST }}
+          username: ${{ secrets.GCP_VM_USER }}
+          key: ${{ secrets.GCP_VM_SSH_KEY }}
+          script: |
+            set -e
+            sudo mkdir -p /opt/grip-store-fe
+            sudo tar -xzf /tmp/grip-store-fe-deploy.tar.gz -C /opt/grip-store-fe
+            cd /opt/grip-store-fe
+            sudo docker load < grip-store-fe-image.tar.gz
+            sudo docker compose up -d

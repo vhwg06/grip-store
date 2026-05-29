@@ -24,7 +24,7 @@ export class ApiFetchError extends Error {
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "") ?? ""
 
-function resolveUrl(path: string) {
+export function resolveApiUrl(path: string) {
   if (!API_URL) {
     throw new Error("NEXT_PUBLIC_API_URL is not configured")
   }
@@ -43,7 +43,7 @@ async function tryRefreshToken() {
     const refreshToken = getRefreshToken()
     if (!refreshToken) return false
 
-    const response = await fetch(resolveUrl("/api/auth/refresh"), {
+    const response = await fetch(resolveApiUrl("/api/auth/refresh"), {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -125,7 +125,7 @@ export async function apiFetch<T>(path: string, init: RequestInit = {}, retried 
     headers.set("Authorization", `Bearer ${accessToken}`)
   }
 
-  const url = resolveUrl(path)
+  const url = resolveApiUrl(path)
   console.log("Client-side fetching URL:", url)
   const response = await fetch(url, {
     ...init,
