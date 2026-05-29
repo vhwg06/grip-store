@@ -6,5 +6,8 @@ build/
 .git/
 .env*
 *.log*
-Dockerfile*
-.dockerignore
+out/
+.agents/
+playwright/reports/
+playwright/test-results/
+playwright-report/

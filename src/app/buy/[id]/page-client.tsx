@@ -5,10 +5,12 @@ import { useProduct } from "@/application/hooks/useProduct";
 import { BuyContent } from "@/components/buy-content";
 import { BuyRestricted } from "@/components/buy-restricted";
 import { Card, CardContent } from "@/components/ui/card";
+import { useResolvedRouteParam } from "@/lib/route-param";
 
 export default function BuyPageClient({ id }: { id: string }) {
   const { user } = useAuth();
-  const { product, requiredLevel, isLoading } = useProduct(id);
+  const resolvedId = useResolvedRouteParam(id, "/buy");
+  const { product, requiredLevel, isLoading } = useProduct(resolvedId);
   const isLoggedIn = Boolean(user);
 
   if (isLoading) {

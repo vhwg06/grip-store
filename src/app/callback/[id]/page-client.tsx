@@ -2,10 +2,11 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useResolvedRouteParam } from "@/lib/route-param";
 
 export default function PaymentCallbackPageClient({ id }: { id: string }) {
   const router = useRouter();
-  const orderId = id.trim();
+  const orderId = useResolvedRouteParam(id, "/callback");
 
   useEffect(() => {
     router.replace(orderId ? `/order/${orderId}` : "/orders");

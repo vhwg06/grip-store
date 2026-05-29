@@ -3,9 +3,11 @@
 import { useOrder } from "@/application/hooks/useOrder";
 import { OrderContent } from "@/components/order-content";
 import { Card, CardContent } from "@/components/ui/card";
+import { useResolvedRouteParam } from "@/lib/route-param";
 
 export default function OrderPageClient({ id }: { id: string }) {
-  const { order, canViewKey, isOwner, refundRequest, isLoading } = useOrder(id);
+  const resolvedId = useResolvedRouteParam(id, "/order");
+  const { order, canViewKey, isOwner, refundRequest, isLoading } = useOrder(resolvedId);
 
   if (isLoading) {
     return (

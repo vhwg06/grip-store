@@ -2,9 +2,11 @@
 
 import { ArticleForm } from "@/components/admin/article-form";
 import { useAdminArticle } from "@/application/hooks/useAdmin";
+import { useResolvedRouteParam } from "@/lib/route-param";
 
 export default function EditArticlePageClient({ id }: { id: string }) {
-  const { data: article, isLoading } = useAdminArticle(id);
+  const resolvedId = useResolvedRouteParam(id, "/admin/article/edit");
+  const { data: article, isLoading } = useAdminArticle(resolvedId);
 
   if (isLoading) {
     return <div className="h-96 w-full rounded-xl bg-muted/40 animate-pulse" />;

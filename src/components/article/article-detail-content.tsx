@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { notFound } from "next/navigation";
+import { useResolvedRouteParam } from "@/lib/route-param";
 import { useArticle } from "@/application/hooks/useArticles";
 import { Breadcrumbs } from "@/components/layout/breadcrumbs";
 import { ArticleContent } from "@/components/article/article-content";
@@ -13,7 +13,8 @@ interface ArticleDetailContentProps {
 }
 
 export function ArticleDetailContent({ slug }: ArticleDetailContentProps) {
-  const { article, isLoading } = useArticle(slug);
+  const resolvedSlug = useResolvedRouteParam(slug, "/articles");
+  const { article, isLoading } = useArticle(resolvedSlug);
   
   if (isLoading) {
     return (
@@ -32,7 +33,7 @@ export function ArticleDetailContent({ slug }: ArticleDetailContentProps) {
   const currentArticle = article;
 
   if (!currentArticle) {
-    notFound();
+    return <div className="container mx-auto max-w-[1190px] px-4 py-8 text-sm text-muted-foreground">Article not found.</div>;
   }
 
   const publishedDate = currentArticle.publishedAt ? new Date(currentArticle.publishedAt) : new Date();

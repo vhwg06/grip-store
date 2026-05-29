@@ -3,9 +3,11 @@
 import ProductForm from "@/components/admin/product-form";
 import { RefreshOnMount } from "@/components/refresh-on-mount";
 import { useAdminProductForm } from "@/application/hooks/useAdmin";
+import { useResolvedRouteParam } from "@/lib/route-param";
 
 export default function EditProductPageClient({ id }: { id: string }) {
-  const { data, isLoading } = useAdminProductForm(id);
+  const resolvedId = useResolvedRouteParam(id, "/admin/product/edit");
+  const { data, isLoading } = useAdminProductForm(resolvedId);
 
   if (isLoading) {
     return <div className="h-96 w-full rounded-xl bg-muted/40 animate-pulse" />;

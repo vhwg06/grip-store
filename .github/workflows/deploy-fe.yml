@@ -10,7 +10,6 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      NEXT_PUBLIC_API_URL: http://104.199.183.42:80
       IMAGE_NAME: grip-store-fe
 
     steps:
@@ -18,7 +17,10 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Build Docker image with embedded API URL
+        env:
+          NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
         run: |
+          test -n "$NEXT_PUBLIC_API_URL"
           docker build \
             --build-arg NEXT_PUBLIC_API_URL="$NEXT_PUBLIC_API_URL" \
             -t "$IMAGE_NAME:latest" .

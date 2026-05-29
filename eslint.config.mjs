@@ -14,6 +14,11 @@ const eslintConfig = [
   },
   {
     ignores: [
+      ".agents/**",
+      "playwright/**",
+      "playwright-report/**",
+      "playwright/reports/**",
+      "playwright/test-results/**",
       "coverage/**",
       "dist/**",
       ".next/**",

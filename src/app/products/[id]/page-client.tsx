@@ -9,9 +9,11 @@ import { AddToCartButton } from "@/components/cart/add-to-cart-button";
 import { DedupeTestIds } from "@/components/testing/dedupe-testids";
 import { useProduct } from "@/application/hooks/useProduct";
 import { Card, CardContent } from "@/components/ui/card";
+import { useResolvedRouteParam } from "@/lib/route-param";
 
 export default function ProductDetailPageClient({ id }: { id: string }) {
-  const { product, isLoading } = useProduct(id);
+  const resolvedId = useResolvedRouteParam(id, "/products");
+  const { product, isLoading } = useProduct(resolvedId);
 
   if (isLoading) {
     return (
