@@ -64,7 +64,7 @@ export function AdminRefundsContent({ requests }: { requests: any[] }) {
         toast.success(t('common.success'))
       }
       if (typeof window !== "undefined") {
-        window.dispatchEvent(new CustomEvent("ldc:refunds-updated"))
+        window.dispatchEvent(new CustomEvent("grip-store:refunds-updated"))
       }
     } catch (e: any) {
       toast.error(e.message)

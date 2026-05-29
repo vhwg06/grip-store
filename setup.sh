@@ -25,7 +25,7 @@ detect_compose() {
 }
 
 if ! detect_compose; then
-    echo -e "${YELLOW}未检测到 Docker Compose，正在自动安装...${NC}"
+    echo -e "${YELLOW}Chua phat hien Docker Compose, dang tu dong cai dat...${NC}"
     if [ -f /etc/debian_version ]; then
         apt-get update -qq > /dev/null 2>&1
         apt-get install -y docker-compose-plugin > /dev/null 2>&1 || apt-get install -y docker-compose > /dev/null 2>&1
@@ -34,17 +34,17 @@ if ! detect_compose; then
     fi
 
     if ! detect_compose; then
-        echo -e "${RED}Docker Compose 安装失败，请手动安装后重试${NC}"
+        echo -e "${RED}Cai dat Docker Compose that bai, vui long cai dat thu cong roi thu lai${NC}"
         echo -e "  Debian/Ubuntu: apt-get install docker-compose-plugin"
         echo -e "  CentOS/RHEL:   yum install docker-compose-plugin"
         exit 1
     fi
-    echo -e "${GREEN}✓${NC} Docker Compose 安装成功"
+    echo -e "${GREEN}✓${NC} Cai dat Docker Compose thanh cong"
 fi
 
 echo ""
 echo -e "${CYAN}${BOLD}╔══════════════════════════════════════╗${NC}"
-echo -e "${CYAN}${BOLD}║      LDC Shop Docker 一键部署       ║${NC}"
+echo -e "${CYAN}${BOLD}║      Grip Store Docker trien khai 1 lenh       ║${NC}"
 echo -e "${CYAN}${BOLD}╚══════════════════════════════════════╝${NC}"
 echo ""
 
@@ -116,60 +116,60 @@ generate_secret() {
     fi
 }
 
-echo -e "${GREEN}━━━ 基础配置（必填）━━━${NC}"
+echo -e "${GREEN}━━━ Cau hinh co ban (bat buoc)━━━${NC}"
 echo ""
 
-prompt APP_URL "站点 URL（如 https://shop.example.com）" ""
+prompt APP_URL "URL trang web (vi du https://shop.example.com)" ""
 while [ -z "$APP_URL" ]; do
-    echo -e "${RED}站点 URL 不能为空，请输入你的域名（含 https://）${NC}"
-    prompt APP_URL "站点 URL（如 https://shop.example.com）" ""
+    echo -e "${RED}URL trang web khong duoc de trong, vui long nhap domain (kem https://)${NC}"
+    prompt APP_URL "URL trang web (vi du https://shop.example.com)" ""
 done
-prompt PORT "映射端口" "3000"
+prompt PORT "Cong anh xa" "3000"
 
 echo ""
-echo -e "${GREEN}━━━ Linux DO Connect OAuth（必填）━━━${NC}"
-echo -e "${YELLOW}在 https://connect.linux.do 创建应用获取${NC}"
+echo -e "${GREEN}━━━ Linux DO Connect OAuth (bat buoc)━━━${NC}"
+echo -e "${YELLOW}Tao ung dung tai https://connect.linux.do de lay thong tin${NC}"
 echo ""
 
 prompt OAUTH_CLIENT_ID "Client ID" ""
 while [ -z "$OAUTH_CLIENT_ID" ]; do
-    echo -e "${RED}Client ID 不能为空${NC}"
+    echo -e "${RED}Client ID khong duoc de trong${NC}"
     prompt OAUTH_CLIENT_ID "Client ID" ""
 done
 
 prompt OAUTH_CLIENT_SECRET "Client Secret" "" true
 while [ -z "$OAUTH_CLIENT_SECRET" ]; do
-    echo -e "${RED}Client Secret 不能为空${NC}"
+    echo -e "${RED}Client Secret khong duoc de trong${NC}"
     prompt OAUTH_CLIENT_SECRET "Client Secret" "" true
 done
 
 echo ""
-echo -e "${GREEN}━━━ EPay 支付配置（必填）━━━${NC}"
+echo -e "${GREEN}━━━ Cau hinh thanh toan EPay (bat buoc)━━━${NC}"
 echo ""
 
-prompt MERCHANT_ID "商户 ID" ""
+prompt MERCHANT_ID "Merchant ID" ""
 while [ -z "$MERCHANT_ID" ]; do
-    echo -e "${RED}商户 ID 不能为空${NC}"
-    prompt MERCHANT_ID "商户 ID" ""
+    echo -e "${RED}Merchant ID khong duoc de trong${NC}"
+    prompt MERCHANT_ID "Merchant ID" ""
 done
 
-prompt MERCHANT_KEY "商户密钥" "" true
+prompt MERCHANT_KEY "Merchant Key" "" true
 while [ -z "$MERCHANT_KEY" ]; do
-    echo -e "${RED}商户密钥不能为空${NC}"
-    prompt MERCHANT_KEY "商户密钥" "" true
+    echo -e "${RED}Merchant Keykhong duoc de trong${NC}"
+    prompt MERCHANT_KEY "Merchant Key" "" true
 done
 
 echo ""
-echo -e "${GREEN}━━━ 管理员配置 ━━━${NC}"
+echo -e "${GREEN}━━━ Cau hinh quan tri vien ━━━${NC}"
 echo ""
 
-prompt ADMIN_USERS "管理员用户名（多个用逗号分隔）" "admin"
+prompt ADMIN_USERS "Username admin (nhieu username tach bang dau phay)" "admin"
 
 PAY_URL="https://credit.linux.do/epay/pay/submit.php"
 
 echo ""
-echo -e "${GREEN}━━━ GitHub OAuth（可选，回车跳过）━━━${NC}"
-echo -e "${YELLOW}在 https://github.com/settings/developers 创建 OAuth App${NC}"
+echo -e "${GREEN}━━━ GitHub OAuth (tuy chon, Enter de bo qua)━━━${NC}"
+echo -e "${YELLOW}Tao OAuth App tai https://github.com/settings/developers${NC}"
 echo ""
 
 prompt GITHUB_ID "GitHub Client ID" ""
@@ -179,18 +179,18 @@ prompt GITHUB_SECRET "GitHub Client Secret" "" true
 AUTH_SECRET=$(generate_secret)
 
 echo ""
-echo -e "${CYAN}━━━ 生成配置文件 ━━━${NC}"
+echo -e "${CYAN}━━━ Tao file cau hinh ━━━${NC}"
 echo ""
 
 # Write .env file
 cat > "$ENV_FILE" <<EOF
-# === LDC Shop Docker 配置 ===
-# 由 setup.sh 自动生成于 $(date)
+# === Cau hinh Docker Grip Store ===
+# Duoc tao tu dong boi setup.sh vao $(date)
 
-# 站点（外部访问地址，服务端运行时使用）
+# Site (dia chi truy cap ben ngoai, runtime phia server)
 APP_URL=${APP_URL}
 NEXT_PUBLIC_APP_URL=${APP_URL}
-# NextAuth: AUTH_URL 由 entrypoint.sh 自动从 APP_URL 派生，无需手动设置
+# NextAuth: AUTH_URL duoc entrypoint.sh suy ra tu APP_URL, khong can set tay
 AUTH_TRUST_HOST=true
 AUTH_SECRET=${AUTH_SECRET}
 
@@ -198,31 +198,31 @@ AUTH_SECRET=${AUTH_SECRET}
 OAUTH_CLIENT_ID=${OAUTH_CLIENT_ID}
 OAUTH_CLIENT_SECRET=${OAUTH_CLIENT_SECRET}
 
-# EPay 支付
+# EPay payment
 MERCHANT_ID=${MERCHANT_ID}
 MERCHANT_KEY=${MERCHANT_KEY}
 PAY_URL=${PAY_URL}
 
-# 管理员
+# Admin users
 ADMIN_USERS=${ADMIN_USERS}
 
-# SQLite 数据库
-DATABASE_PATH=/app/data/ldc-shop.sqlite
+# SQLite database
+DATABASE_PATH=/app/data/grip-store.sqlite
 
-# GitHub OAuth 登录（可选）
+# GitHub OAuth login (tuy chon)
 GITHUB_ID=${GITHUB_ID}
 GITHUB_SECRET=${GITHUB_SECRET}
 
-# Telegram / Bark / 邮件通知：登录后在管理后台配置，无需在此设置
+# Telegram / Bark / email notification: cau hinh trong trang quan tri sau khi dang nhap
 EOF
 
-echo -e "${GREEN}✓${NC} .env 文件已生成"
+echo -e "${GREEN}✓${NC} .env da duoc tao"
 
 # Write docker-compose.yml
 cat > "$COMPOSE_FILE" <<EOF
 services:
   app:
-    container_name: ldc-shop
+    container_name: grip-store
     build: .
     restart: always
     ports:
@@ -233,40 +233,40 @@ services:
       - .env
 EOF
 
-echo -e "${GREEN}✓${NC} docker-compose.yml 已生成"
+echo -e "${GREEN}✓${NC} docker-compose.yml da duoc tao"
 
 # Create data directory with open permissions for container
 mkdir -p data && chmod 777 data
-echo -e "${GREEN}✓${NC} data 目录已创建"
+echo -e "${GREEN}✓${NC} Da tao thu muc data"
 
 echo ""
-echo -e "${CYAN}━━━ 配置摘要 ━━━${NC}"
+echo -e "${CYAN}━━━ Tom tat cau hinh ━━━${NC}"
 echo ""
-echo -e "  站点地址:        ${BOLD}${APP_URL}${NC}"
-echo -e "  映射端口:        ${BOLD}${PORT}${NC}"
-echo -e "  管理员:          ${BOLD}${ADMIN_USERS}${NC}"
+echo -e "  Dia chi site:        ${BOLD}${APP_URL}${NC}"
+echo -e "  Cong anh xa:        ${BOLD}${PORT}${NC}"
+echo -e "  Admin users:          ${BOLD}${ADMIN_USERS}${NC}"
 if [ -n "$GITHUB_ID" ]; then
-echo -e "  GitHub 登录:     ${GREEN}已配置${NC}"
+echo -e "  GitHub login:     ${GREEN}da cau hinh${NC}"
 else
-echo -e "  GitHub 登录:     ${YELLOW}未配置（可后续编辑 .env 添加）${NC}"
+echo -e "  GitHub login:     ${YELLOW}chua cau hinh (co the sua .env de bo sung sau)${NC}"
 fi
 echo ""
-echo -e "  ${YELLOW}Telegram/Bark/邮件通知: 启动后在管理后台配置${NC}"
+echo -e "  ${YELLOW}Telegram/Bark/email notification: cau hinh trong trang quan tri sau khi dang nhap${NC}"
 echo ""
 
-prompt_yn DO_START "是否立即构建并启动？" "y"
+prompt_yn DO_START "Co build va khoi dong ngay khong?" "y"
 
 if [ "$DO_START" = "true" ]; then
     echo ""
-    echo -e "${CYAN}正在构建并启动容器（首次构建可能需要几分钟）...${NC}"
+    echo -e "${CYAN}Dang build va khoi dong container (lan dau co the mat vai phut)...${NC}"
     echo ""
     $COMPOSE_CMD up -d --build
     echo ""
-    echo -e "${GREEN}${BOLD}✓ LDC Shop 已启动！${NC}"
+    echo -e "${GREEN}${BOLD}✓ Grip Store da khoi dong!${NC}"
     echo ""
 else
     echo ""
-    echo -e "${YELLOW}稍后可手动启动:${NC}"
+    echo -e "${YELLOW}Ban co the khoi dong thu cong sau:${NC}"
     echo ""
     echo "  $COMPOSE_CMD up -d --build"
     echo ""
@@ -276,9 +276,9 @@ fi
 DOMAIN="${APP_URL#https://}"
 DOMAIN="${DOMAIN#http://}"
 
-echo -e "${CYAN}━━━ 反向代理配置 ━━━${NC}"
+echo -e "${CYAN}━━━ Cau hinh reverse proxy ━━━${NC}"
 echo ""
-echo -e "  容器监听端口 ${BOLD}${PORT}${NC}，需要配置反向代理才能通过域名 ${BOLD}${DOMAIN}${NC} 访问。"
+echo -e "  Container lang nghe cong ${BOLD}${PORT}${NC}，Can cau hinh reverse proxy de truy cap bang domain ${BOLD}${DOMAIN}${NC} ."
 echo ""
 
 HAS_NGINX=false
@@ -287,9 +287,9 @@ if command -v nginx &> /dev/null 2>&1 || systemctl is-active --quiet nginx 2>/de
 fi
 
 if [ "$HAS_NGINX" = "true" ]; then
-    echo -e "  ${GREEN}检测到 Nginx 已安装${NC}，建议直接用 Nginx 反代（如宝塔面板可在面板中配置）。"
+    echo -e "  ${GREEN}Da phat hien Nginx da duoc cai${NC}，Khuyen nghi dung Nginx reverse proxy truc tiep (neu dung panel thi cau hinh tren panel)."
     echo ""
-    echo -e "  ${BOLD}Nginx 反代配置：${NC}"
+    echo -e "  ${BOLD}Cau hinh Nginx reverse proxy:${NC}"
     echo ""
     echo "    server {"
     echo "        listen 443 ssl;"
@@ -308,16 +308,16 @@ if [ "$HAS_NGINX" = "true" ]; then
     echo "        }"
     echo "    }"
     echo ""
-    echo -e "  ${YELLOW}宝塔面板用户：${NC}添加站点 → 域名填 ${BOLD}${DOMAIN}${NC} → 设置 → 反向代理 → 目标 URL 填 ${BOLD}http://127.0.0.1:${PORT}${NC}"
+    echo -e "  ${YELLOW}Nguoi dung panel:${NC}tao site → domain dien ${BOLD}${DOMAIN}${NC} → cai dat → reverse proxy → Target URL dien ${BOLD}http://127.0.0.1:${PORT}${NC}"
     echo ""
 else
-    prompt_yn SETUP_CADDY "未检测到 Nginx，是否自动安装 Caddy（自动 HTTPS）？" "n"
+    prompt_yn SETUP_CADDY "Chua phat hien Nginx, co tu dong cai Caddy (HTTPS tu dong) khong?" "n"
 
     if [ "$SETUP_CADDY" = "true" ]; then
         echo ""
 
         if ! command -v caddy &> /dev/null; then
-            echo -e "${CYAN}正在安装 Caddy...${NC}"
+            echo -e "${CYAN}Dang cai dat Caddy...${NC}"
 
             if [ -f /etc/debian_version ]; then
                 apt-get install -y debian-keyring debian-archive-keyring apt-transport-https curl > /dev/null 2>&1 || true
@@ -330,18 +330,18 @@ else
                 yum copr enable -y @caddy/caddy > /dev/null 2>&1 || dnf copr enable -y @caddy/caddy > /dev/null 2>&1 || true
                 yum install -y caddy > /dev/null 2>&1 || dnf install -y caddy > /dev/null 2>&1
             else
-                echo -e "${RED}无法自动安装 Caddy，请参考 https://caddyserver.com/docs/install 手动安装${NC}"
+                echo -e "${RED}Khong the tu dong cai Caddy, xem https://caddyserver.com/docs/install de cai thu cong${NC}"
                 SETUP_CADDY=false
             fi
 
             if command -v caddy &> /dev/null; then
-                echo -e "${GREEN}✓${NC} Caddy 安装成功"
+                echo -e "${GREEN}✓${NC} Caddy cai dat thanh cong"
             else
-                echo -e "${RED}✗ Caddy 安装失败，请手动安装后配置${NC}"
+                echo -e "${RED}✗ Caddy cai dat that bai, vui long cai thu cong roi cau hinh${NC}"
                 SETUP_CADDY=false
             fi
         else
-            echo -e "${GREEN}✓${NC} Caddy 已安装"
+            echo -e "${GREEN}✓${NC} Caddy da duoc cai"
         fi
     fi
 
@@ -353,31 +353,31 @@ ${DOMAIN} {
 }
 CADDYEOF
 
-        echo -e "${GREEN}✓${NC} Caddyfile 已写入 ${CADDYFILE}"
+        echo -e "${GREEN}✓${NC} Caddyfile da ghi vao ${CADDYFILE}"
 
         if systemctl is-active --quiet caddy 2>/dev/null; then
             systemctl reload caddy
-            echo -e "${GREEN}✓${NC} Caddy 已重新加载"
+            echo -e "${GREEN}✓${NC} Caddy da reload"
         else
             systemctl enable caddy > /dev/null 2>&1 || true
             systemctl start caddy
-            echo -e "${GREEN}✓${NC} Caddy 已启动"
+            echo -e "${GREEN}✓${NC} Caddy da khoi dong"
         fi
 
         echo ""
-        echo -e "${GREEN}${BOLD}━━━ 部署完成！━━━${NC}"
+        echo -e "${GREEN}${BOLD}━━━ Trien khai hoan tat!━━━${NC}"
         echo ""
-        echo -e "  ${BOLD}最后一步：${NC}请到你的域名 DNS 管理面板，添加一条 A 记录："
+        echo -e "  ${BOLD}Buoc cuoi:${NC} vao DNS domain va them ban ghi A:"
         echo ""
-        echo -e "    主机记录:  ${BOLD}${DOMAIN}${NC}"
-        echo -e "    记录类型:  ${BOLD}A${NC}"
-        echo -e "    记录值:    ${BOLD}你的服务器公网 IP${NC}"
+        echo -e "    Host:  ${BOLD}${DOMAIN}${NC}"
+        echo -e "    Type:  ${BOLD}A${NC}"
+        echo -e "    Value:    ${BOLD}Public IP cua server${NC}"
         echo ""
-        echo -e "  DNS 生效后，访问 ${BOLD}${APP_URL}${NC} 即可（Caddy 自动申请 HTTPS 证书）。"
+        echo -e "  Cho DNS cap nhat, truy cap ${BOLD}${APP_URL}${NC} (Caddy tu dong xin chung chi HTTPS)."
         echo ""
     else
         echo ""
-        echo -e "  手动配置 Nginx 反代示例："
+        echo -e "  Vi du cau hinh Nginx reverse proxy thu cong:"
         echo ""
         echo "    server {"
         echo "        listen 443 ssl;"
@@ -397,9 +397,9 @@ CADDYEOF
     fi
 fi
 
-echo -e "${CYAN}常用命令:${NC}"
-echo "  查看日志:   $COMPOSE_CMD logs -f"
-echo "  停止服务:   $COMPOSE_CMD down"
-echo "  重启服务:   $COMPOSE_CMD down && $COMPOSE_CMD up -d"
-echo "  更新部署:   $COMPOSE_CMD up -d --build"
+echo -e "${CYAN}Lenh thuong dung:${NC}"
+echo "  Xem log:   $COMPOSE_CMD logs -f"
+echo "  Dung service:   $COMPOSE_CMD down"
+echo "  Khoi dong lai service:   $COMPOSE_CMD down && $COMPOSE_CMD up -d"
+echo "  Cap nhat deploy:   $COMPOSE_CMD up -d --build"
 echo ""

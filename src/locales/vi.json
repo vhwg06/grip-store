@@ -1,6 +1,6 @@
 {
     "common": {
-        "appName": "LDC Shop",
+        "appName": "Grip Store",
         "shopNamePattern": "{{appName}} của {{name}}",
         "login": "Đăng nhập",
         "categories": "Danh mục",
@@ -56,14 +56,14 @@
         "no": "Không",
         "expand": "Mở rộng",
         "collapse": "Thu gọn",
-        "navigator": "LDC Nav",
+        "navigator": "Grip Nav",
         "themeToggle": "Chuyển đổi giao diện",
         "themeLight": "Sáng",
         "themeDark": "Tối",
         "themeSystem": "Hệ thống"
     },
     "home": {
-        "title": "Chào mừng đến với LDC Shop",
+        "title": "Chào mừng đến với Grip Store",
         "subtitle": "Cửa hàng hàng hóa ảo dành cho hệ sinh thái Linux DO",
         "noProducts": "Chưa có sản phẩm nào.",
         "checkBackLater": "Vui lòng quay lại sau!",
@@ -744,9 +744,9 @@
         "syncNow": "Đồng bộ hóa trên GitHub"
     },
     "registry": {
-        "title": "LDC Navigator",
+        "title": "Grip Navigator",
         "description": "Chia sẻ cửa hàng của bạn trên danh mục công cộng.",
-        "promptTitle": "Tham gia LDC Navigator?",
+        "promptTitle": "Tham gia Grip Navigator?",
         "promptDescription": "Đưa cửa hàng của bạn xuất hiện công khai trên danh mục để mọi người dễ dàng tìm kiếm. Bạn có thể chọn rời đi sau này.",
         "joinNow": "Tham gia ngay",
         "notNow": "Để sau",
@@ -758,14 +758,14 @@
         "statusJoined": "Đã tham gia",
         "statusNotJoined": "Chưa tham gia",
         "resubmit": "Gửi lại",
-        "navTitle": "LDC Navigator",
-        "navSubtitle": "Khám phá thêm các cửa hàng được phát triển bằng dự án ldc-shop",
+        "navTitle": "Grip Navigator",
+        "navSubtitle": "Khám phá thêm các cửa hàng được phát triển bằng dự án grip-store",
         "navSearch": "Tìm kiếm cửa hàng...",
         "search": "Tìm kiếm",
         "navEmpty": "Chưa có cửa hàng nào.",
         "visit": "Truy cập",
         "hideNavLabel": "Ẩn lối vào danh mục",
-        "hideNavHint": "Ẩn liên kết LDC Navigator nếu bạn chưa tham gia.",
+        "hideNavHint": "Ẩn liên kết Grip Navigator nếu bạn chưa tham gia.",
         "hideNavLockedHint": "Sau khi tham gia, lối vào danh mục bắt buộc phải hiển thị.",
         "hideNavEnabled": "Đã ẩn",
         "hideNavDisabled": "Đang hiển thị"

@@ -1,43 +1,22 @@
 services:
-  app:
-    container_name: ldc-shop
+  grip-store-fe:
     build:
       context: .
       args:
-        NEXT_PUBLIC_DEV_ADMIN_BYPASS: "true"
-    restart: always
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8080}
+    image: grip-store-fe:latest
+    container_name: grip-store-fe
+    restart: unless-stopped
     ports:
-      - "3000:3000"
-    volumes:
-      - ./data:/app/data
-    environment:
-      # App URL (change to your domain in production)
-      - APP_URL=http://localhost:3000
-      - NEXT_PUBLIC_APP_URL=http://localhost:3000
-
-      # Auth (AUTH_URL is auto-derived from APP_URL by entrypoint.sh)
-      - AUTH_TRUST_HOST=true
-      - AUTH_SECRET=replace_with_a_random_secret_string
-      - DEV_ADMIN_BYPASS=true
-      - NEXT_PUBLIC_DEV_ADMIN_BYPASS=true
-      - DEV_ADMIN_USERNAME=admin
-
-      # Linux DO Connect OAuth (required)
-      - OAUTH_CLIENT_ID=replace_with_client_id
-      - OAUTH_CLIENT_SECRET=replace_with_client_secret
-
-      # GitHub OAuth (optional)
-      # - GITHUB_ID=replace_with_github_client_id
-      # - GITHUB_SECRET=replace_with_github_client_secret
-
-      # EPay payment (required for payment)
-      - MERCHANT_ID=replace_with_merchant_id
-      - MERCHANT_KEY=replace_with_merchant_key
-
-      # Admin users (comma separated usernames)
-      - ADMIN_USERS=admin
-
-      # SQLite database path (inside container)
-      - DATABASE_PATH=/app/data/ldc-shop.sqlite
-
-      # Telegram / Bark / 邮件通知：登录后在管理后台配置，无需在此设置
+      - "80:80"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1/ || exit 1"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"

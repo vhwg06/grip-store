@@ -85,7 +85,7 @@ export function ProfileContent({ user, points, checkinEnabled, orderStats, notif
 
     const emitNotificationUpdate = () => {
         if (typeof window !== "undefined") {
-            window.dispatchEvent(new CustomEvent("ldc:notifications-updated"))
+            window.dispatchEvent(new CustomEvent("grip-store:notifications-updated"))
         }
     }
 

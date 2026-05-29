@@ -3,10 +3,10 @@
 import Cookies from "js-cookie"
 import type { AuthTokens } from "@/domain/auth"
 
-const ACCESS_TOKEN_KEY = "ldc_access_token"
-const REFRESH_TOKEN_KEY = "ldc_refresh_token"
-const EXPIRES_AT_KEY = "ldc_access_token_expires_at"
-const TOKEN_EVENT = "ldc:auth-changed"
+const ACCESS_TOKEN_KEY = "grip_store_access_token"
+const REFRESH_TOKEN_KEY = "grip_store_refresh_token"
+const EXPIRES_AT_KEY = "grip_store_access_token_expires_at"
+const TOKEN_EVENT = "grip-store:auth-changed"
 
 let accessTokenMemory: string | null = null
 let refreshTokenMemory: string | null = null

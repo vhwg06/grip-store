@@ -32,21 +32,21 @@ export function I18nProvider({ children, initialLocale = 'vi' }: { children: Rea
     const [locale, setLocaleState] = useState<Locale>(initialLocale)
 
     useEffect(() => {
-        const saved = localStorage.getItem('ldc-locale')
+        const saved = localStorage.getItem('grip-store-locale')
         const resolved = isLocale(saved) ? saved : initialLocale
 
         if (resolved !== locale) {
             setLocaleState(resolved)
             return
         }
-        localStorage.setItem('ldc-locale', resolved)
-        document.cookie = `ldc-locale=${resolved}; path=/; max-age=31536000`
+        localStorage.setItem('grip-store-locale', resolved)
+        document.cookie = `grip-store-locale=${resolved}; path=/; max-age=31536000`
     }, [initialLocale, locale])
 
     const setLocale = (newLocale: Locale) => {
         setLocaleState(newLocale)
-        localStorage.setItem('ldc-locale', newLocale)
-        document.cookie = `ldc-locale=${newLocale}; path=/; max-age=31536000`
+        localStorage.setItem('grip-store-locale', newLocale)
+        document.cookie = `grip-store-locale=${newLocale}; path=/; max-age=31536000`
     }
 
     const t = (key: string, params?: Record<string, string | number>): string => {

@@ -1,6 +1,6 @@
-export const REGISTRY_APP_ID = "ldc-shop"
+export const REGISTRY_APP_ID = "grip-store"
 
-const DEFAULT_REGISTRY_URL = "https://ldcnavi.chatgptuk.workers.dev"
+const DEFAULT_REGISTRY_URL = ""
 
 export function getRegistryBaseUrl(): string {
     const raw = process.env.NEXT_PUBLIC_REGISTRY_URL || DEFAULT_REGISTRY_URL

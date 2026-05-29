@@ -158,8 +158,8 @@ export default function ProductForm({ product, categories = [] }: { product?: an
 
                     <div className="grid gap-2">
                         <Label htmlFor="category">{t('admin.productForm.categoryLabel')}</Label>
-                        <Input id="category" name="category" list="ldc-category-list" defaultValue={currentProduct?.category} placeholder={t('admin.productForm.categoryPlaceholder')} />
-                        <datalist id="ldc-category-list">
+                        <Input id="category" name="category" list="grip-store-category-list" defaultValue={currentProduct?.category} placeholder={t('admin.productForm.categoryPlaceholder')} />
+                        <datalist id="grip-store-category-list">
                             {categories.map(c => (
                                 <option key={c.name} value={c.name} />
                             ))}

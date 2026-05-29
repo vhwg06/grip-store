@@ -92,13 +92,13 @@ function SidebarContent({ closeOnNavigate = false, showTitle = true, username, t
             })()
         }
         if (typeof window !== "undefined") {
-            window.addEventListener("ldc:refunds-updated", handler)
-            window.addEventListener("ldc:user-messages-updated", handler)
+            window.addEventListener("grip-store:refunds-updated", handler)
+            window.addEventListener("grip-store:user-messages-updated", handler)
         }
         return () => {
             if (typeof window !== "undefined") {
-                window.removeEventListener("ldc:refunds-updated", handler)
-                window.removeEventListener("ldc:user-messages-updated", handler)
+                window.removeEventListener("grip-store:refunds-updated", handler)
+                window.removeEventListener("grip-store:user-messages-updated", handler)
             }
         }
     }, [refreshUnreadMessages])

@@ -6,7 +6,7 @@ export interface ClientUpdateCheckResult {
     error?: string
 }
 
-const UPSTREAM_REPO = "chatgptuk/ldc-shop"
+const UPSTREAM_REPO = "chatgptuk/grip-store"
 
 function compareVersions(a: string, b: string): number {
     const partsA = a.split("-")[0].split(".").map(Number)

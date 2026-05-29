@@ -256,7 +256,7 @@ export function AdminMessagesContent({ history, inbox }: { history: any[]; inbox
                                     await clearUserMessages()
                                     setInboxItems([])
                                     if (typeof window !== "undefined") {
-                                        window.dispatchEvent(new CustomEvent("ldc:user-messages-updated"))
+                                        window.dispatchEvent(new CustomEvent("grip-store:user-messages-updated"))
                                     }
                                     toast.success(t('admin.messages.cleared'))
                                 } catch (e: any) {
@@ -329,7 +329,7 @@ export function AdminMessagesContent({ history, inbox }: { history: any[]; inbox
                                                                             prev.map((item) => item.id === row.id ? { ...item, isRead: true } : item)
                                                                         )
                                                                         if (typeof window !== "undefined") {
-                                                                            window.dispatchEvent(new CustomEvent("ldc:user-messages-updated"))
+                                                                            window.dispatchEvent(new CustomEvent("grip-store:user-messages-updated"))
                                                                         }
                                                                     } catch (e: any) {
                                                                         toast.error(e.message || t('common.error'))
@@ -352,7 +352,7 @@ export function AdminMessagesContent({ history, inbox }: { history: any[]; inbox
                                                                     await deleteUserMessage(row.id)
                                                                     setInboxItems((prev: any[]) => prev.filter((item) => item.id !== row.id))
                                                                     if (typeof window !== "undefined") {
-                                                                        window.dispatchEvent(new CustomEvent("ldc:user-messages-updated"))
+                                                                        window.dispatchEvent(new CustomEvent("grip-store:user-messages-updated"))
                                                                     }
                                                                 } catch (e: any) {
                                                                     toast.error(e.message || t('common.error'))

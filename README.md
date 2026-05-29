@@ -1,36 +1,118 @@
-# LDC Shop (Docker Edition)
+# Grip Store (Docker Edition)
 
-基于 **Next.js 16**、**SQLite** 和 **Shadcn UI** 构建的虚拟商品商店 Docker 版本。
+Phiên bản Docker của Grip Store, xây dựng bằng **Next.js 16**, **SQLite** và **Shadcn UI**.
 
-本版本基于 `_workers_next`（Cloudflare Workers 版）改造，将数据库从 Cloudflare D1 替换为本地 SQLite（`better-sqlite3`），适用于 VPS / 自托管部署。
+Dự án được điều chỉnh từ bản `_workers_next` (Cloudflare Workers), thay Cloudflare D1 bằng SQLite local (`better-sqlite3`) để phù hợp triển khai VPS/self-host.
 
-## 技术架构
+## Runbook CI/CD (GitHub Actions -> VM Ubuntu/Debian)
 
-- **核心框架**: Next.js 16 (App Router) + TypeScript
-- **数据库**: SQLite（better-sqlite3），数据文件持久化到 Docker volume
+Frontend deploy theo mô hình: `Next.js static export + Nginx`.
+Container publish cổng `80`, image được build trên GitHub Actions và đẩy xuống VM qua SSH.
+
+### 1) Điều kiện tiên quyết trên VM
+
+```bash
+sudo apt-get update
+sudo apt-get install -y ca-certificates curl gnupg
+sudo install -m 0755 -d /etc/apt/keyrings
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+sudo chmod a+r /etc/apt/keyrings/docker.gpg
+echo \
+  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
+  $(. /etc/os-release && echo \"$VERSION_CODENAME\") stable" | \
+  sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+sudo apt-get update
+sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+sudo systemctl enable docker
+sudo systemctl start docker
+docker --version
+docker compose version
+```
+
+### 2) Secrets cần cấu hình trong GitHub
+
+- `NEXT_PUBLIC_API_URL`: URL API dùng lúc build frontend
+- `GCP_VM_HOST`: IP public hoặc domain của VM
+- `GCP_VM_USER`: user SSH trên VM
+- `GCP_VM_SSH_KEY`: private key SSH (nội dung PEM)
+
+### 3) Luồng deploy tự động
+
+1. Push code vào nhánh `main` hoặc chạy tay workflow `Deploy Frontend`.
+2. Workflow build image `grip-store-fe:latest`.
+3. Export image thành `grip-store-fe-image.tar.gz` và đóng gói cùng `template.docker-compose.yml`.
+4. Upload bundle lên VM tại `/tmp`, sau đó giải nén vào `/opt/grip-store-fe`.
+5. Trên VM sẽ chạy:
+   - `docker load < grip-store-fe-image.tar.gz`
+   - `docker compose up -d --remove-orphans`
+
+### 4) Kiểm tra sau deploy
+
+Chạy trên VM:
+
+```bash
+cd /opt/grip-store-fe
+sudo docker compose ps
+sudo docker ps --filter "name=grip-store-fe"
+curl -I http://127.0.0.1/
+```
+
+Kiểm tra từ bên ngoài:
+
+```bash
+curl -I http://<VM_IP_OR_DOMAIN>/
+```
+
+### 5) Rollback
+
+Nếu đã giữ lại file image của bản trước (`grip-store-fe-image-prev.tar.gz`), rollback trên VM như sau:
+
+```bash
+cd /opt/grip-store-fe
+sudo docker load < grip-store-fe-image-prev.tar.gz
+sudo docker compose up -d --remove-orphans
+```
+
+### 6) Lệnh vận hành thường dùng
+
+```bash
+# Xem log
+sudo docker logs -f grip-store-fe
+
+# Khởi động lại service
+cd /opt/grip-store-fe && sudo docker compose restart
+
+# Dừng service
+cd /opt/grip-store-fe && sudo docker compose down
+```
+
+## Kiến trúc kỹ thuật
+
+- **Framework**: Next.js 16 (App Router) + TypeScript
+- **Database**: SQLite (`better-sqlite3`), dữ liệu bền vững qua Docker volume
 - **ORM**: Drizzle ORM
-- **认证**: NextAuth（Linux DO Connect + GitHub OAuth）
-- **支付**: EPay
+- **Authentication**: NextAuth (Linux DO Connect + GitHub OAuth)
+- **Payment**: EPay
 - **UI**: Tailwind CSS + Shadcn UI + Framer Motion
 
 ---
 
-## 部署方式一：拉取预构建镜像（推荐）
+## Cách deploy 1: Kéo image có sẵn
 
-无需克隆代码，直接使用已发布的 Docker 镜像。
+Không cần clone source, dùng image Docker đã build sẵn.
 
-### 一键脚本
+### Script một lệnh
 
 ```bash
-mkdir ldc-shop && cd ldc-shop
-curl -fsSL https://raw.githubusercontent.com/chatgptuk/ldc-shop/main/_docker/pull-setup.sh -o setup.sh
+mkdir grip-store && cd grip-store
+curl -fsSL https://raw.githubusercontent.com/chatgptuk/grip-store/main/_docker/pull-setup.sh -o setup.sh
 chmod +x setup.sh
 ./setup.sh
 ```
 
-脚本会交互式引导你输入所有配置项（站点 URL、OAuth、支付、GitHub 登录等），自动生成 `.env` 和 `docker-compose.yml`，拉取镜像并启动。
+Script sẽ hỏi cấu hình cần thiết (URL site, OAuth, payment, GitHub login...), sau đó tự sinh `.env` + `docker-compose.yml`, kéo image và chạy container.
 
-### 更新镜像
+### Cập nhật image
 
 ```bash
 docker compose pull && docker compose up -d
@@ -38,29 +120,27 @@ docker compose pull && docker compose up -d
 
 ---
 
-## 部署方式二：自行构建镜像
+## Cách deploy 2: Tự build image
 
-适合需要修改源码或自定义构建的场景。
+Dành cho trường hợp cần sửa source hoặc tùy biến build.
 
-### 方法 A：一键脚本（交互式）
+### Cách A: Script tương tác
 
 ```bash
-git clone https://github.com/chatgptuk/ldc-shop.git
-cd ldc-shop/_docker
+git clone https://github.com/chatgptuk/grip-store.git
+cd grip-store/_docker
 chmod +x setup.sh
 ./setup.sh
 ```
 
-脚本会引导你输入必要的配置项，自动生成 `.env` 和 `docker-compose.yml`，并构建启动容器。
-
-### 方法 B：手动构建
+### Cách B: Build thủ công
 
 ```bash
-git clone https://github.com/chatgptuk/ldc-shop.git
-cd ldc-shop/_docker
+git clone https://github.com/chatgptuk/grip-store.git
+cd grip-store/_docker
 ```
 
-编辑 `.env` 文件（参考上方"拉取镜像"部分的 `.env` 模板），然后：
+Sửa file `.env` rồi chạy:
 
 ```bash
 mkdir -p data && chmod 777 data
@@ -69,11 +149,11 @@ docker compose up -d --build
 
 ---
 
-## 反向代理配置
+## Cấu hình reverse proxy
 
-容器监听 `3000` 端口，生产环境建议用 Nginx / Caddy 反向代理并配置 HTTPS。
+Container ứng dụng lắng nghe cổng `3000`. Môi trường production nên đặt sau Nginx/Caddy và bật HTTPS.
 
-**Nginx 示例：**
+### Ví dụ Nginx
 
 ```nginx
 server {
@@ -94,9 +174,9 @@ server {
 }
 ```
 
-**Caddy 示例（自动 HTTPS）：**
+### Ví dụ Caddy (tự cấp HTTPS)
 
-```
+```caddy
 your-domain.com {
     reverse_proxy localhost:3000
 }
@@ -104,70 +184,72 @@ your-domain.com {
 
 ---
 
-## 环境变量说明
+## Biến môi trường
 
-| 变量 | 必填 | 说明 |
-|------|------|------|
-| `APP_URL` | 是 | 站点外部访问地址，如 `https://your-domain.com` |
-| `NEXT_PUBLIC_APP_URL` | 是 | 同 `APP_URL`，值保持一致 |
-| `AUTH_TRUST_HOST` | 是 | 设为 `true`，信任反代传递的 Host 头 |
-| `AUTH_SECRET` | 是 | 随机字符串，用于加密 session |
-| `OAUTH_CLIENT_ID` | 是 | Linux DO Connect OAuth Client ID |
-| `OAUTH_CLIENT_SECRET` | 是 | Linux DO Connect OAuth Client Secret |
-| `MERCHANT_ID` | 是 | EPay 商户 ID |
-| `MERCHANT_KEY` | 是 | EPay 商户密钥 |
-| `PAY_URL` | 否 | 支付接口地址，默认 Linux DO Credit |
-| `ADMIN_USERS` | 是 | 管理员用户名，多个用逗号分隔 |
-| `DATABASE_PATH` | 否 | SQLite 路径，默认 `/app/data/ldc-shop.sqlite` |
-| `GITHUB_ID` | 否 | GitHub OAuth Client ID |
-| `GITHUB_SECRET` | 否 | GitHub OAuth Client Secret |
+| Biến | Bắt buộc | Mô tả |
+|------|----------|------|
+| `APP_URL` | Có | URL truy cập ngoài, ví dụ `https://your-domain.com` |
+| `NEXT_PUBLIC_APP_URL` | Có | Giống `APP_URL` |
+| `AUTH_TRUST_HOST` | Có | Đặt `true` để tin cậy Host header từ reverse proxy |
+| `AUTH_SECRET` | Có | Chuỗi bí mật để mã hóa session |
+| `OAUTH_CLIENT_ID` | Có | Linux DO Connect OAuth Client ID |
+| `OAUTH_CLIENT_SECRET` | Có | Linux DO Connect OAuth Client Secret |
+| `MERCHANT_ID` | Có | EPay Merchant ID |
+| `MERCHANT_KEY` | Có | EPay Merchant Key |
+| `PAY_URL` | Không | URL cổng thanh toán, mặc định Linux DO Credit |
+| `ADMIN_USERS` | Có | Danh sách username admin, ngăn cách bởi dấu phẩy |
+| `DATABASE_PATH` | Không | Đường dẫn SQLite, mặc định `/app/data/grip-store.sqlite` |
+| `GITHUB_ID` | Không | GitHub OAuth Client ID |
+| `GITHUB_SECRET` | Không | GitHub OAuth Client Secret |
 
-> Telegram 通知、Bark 推送、邮件通知等可选功能在管理后台中配置，无需设置环境变量。
+> Telegram/Bark/email notification cấu hình trong trang quản trị sau khi đăng nhập, không cần đặt qua env.
 
 ---
 
-## GitHub OAuth App 创建方法
+## Tạo GitHub OAuth App
 
-如需启用 GitHub 登录（作为 Linux DO Connect 的备用登录方式），按以下步骤创建 OAuth App：
+Nếu muốn bật đăng nhập GitHub (fallback cho Linux DO Connect):
 
-1. 访问 [GitHub Developer Settings](https://github.com/settings/developers)
-2. 点击 **New OAuth App**
-3. 填写信息：
-   - **Application name**: `LDC Shop`（任意名称）
-   - **Homepage URL**: `https://your-domain.com`（你的站点地址）
+1. Vào [GitHub Developer Settings](https://github.com/settings/developers)
+2. Chọn **New OAuth App**
+3. Khai báo:
+   - **Application name**: `Grip Store`
+   - **Homepage URL**: `https://your-domain.com`
    - **Authorization callback URL**: `https://your-domain.com/api/auth/callback/github`
-4. 点击 **Register application**
-5. 记录 **Client ID**，点击 **Generate a new client secret** 获取 **Client Secret**
-6. 将两个值填入 `.env` 文件的 `GITHUB_ID` 和 `GITHUB_SECRET`
-7. 重启容器生效：`docker compose down && docker compose up -d`
+4. Chọn **Register application**
+5. Lấy **Client ID** và tạo **Client Secret**
+6. Điền vào `.env` với `GITHUB_ID`, `GITHUB_SECRET`
+7. Khởi động lại container:
+   - `docker compose down && docker compose up -d`
 
 ---
 
-## 数据持久化与备份
+## Dữ liệu và backup
 
-SQLite 数据库文件存储在 `./data/ldc-shop.sqlite`，通过 Docker volume 挂载持久化。
+File SQLite nằm tại `./data/grip-store.sqlite` (map từ volume container).
 
 ```bash
-# 备份
+# Backup
 cp -r ./data ./data-backup-$(date +%Y%m%d)
 
-# 恢复
+# Restore
 cp -r ./data-backup-20260304 ./data
-docker restart ldc-shop
+docker restart grip-store
 ```
 
-## 定时任务
+## Cron job
 
-容器内置 cron 定时任务（每分钟执行），自动处理：
-- 超时未支付订单的清理
-- 过期卡密预留的释放
+Container có cron chạy mỗi phút để:
 
-## 修改环境变量后生效方式
+- Dọn đơn hàng quá hạn chưa thanh toán
+- Giải phóng giữ chỗ card đã hết hạn
+
+## Áp dụng thay đổi cấu hình
 
 ```bash
-# 修改 .env 后需要重建容器（不是 docker restart）
+# Sau khi sửa .env: cần recreate container
 docker compose down && docker compose up -d
 
-# 如果修改了源码，需要重新构建
+# Nếu có sửa source: build lại image
 docker compose up -d --build
 ```

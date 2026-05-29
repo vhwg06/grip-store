@@ -48,7 +48,7 @@ export function UpdateNotification({ currentVersion }: { currentVersion: string 
             </div>
             <div className="flex items-center gap-3">
                 <a
-                    href={updateInfo.releaseUrl || "https://github.com/chatgptuk/ldc-shop"}
+                    href={updateInfo.releaseUrl || "https://github.com/chatgptuk/grip-store"}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-sm underline underline-offset-2 hover:no-underline flex items-center gap-1"

@@ -20,7 +20,7 @@ function interpolate(text: string, params?: Record<string, string | number>): st
 
 export async function detectServerLocale(): Promise<Locale> {
   const cookieStore = await cookies()
-  const cookieLocale = cookieStore.get('ldc-locale')?.value
+  const cookieLocale = cookieStore.get('grip-store-locale')?.value
   if (isLocale(cookieLocale)) return cookieLocale
 
   const headerList = await headers()

@@ -1062,7 +1062,7 @@ announcement_format:
 registry:
   description: "Optional shop listing registry. Admin can opt-in/out."
   challenge_flow: "POST /challenge → get token → store in settings → POST /submit"
-  verification_endpoint: "backend serves /.well-known/ldc-registry-verify returning the token"
+  verification_endpoint: "backend serves /.well-known/grip-store-registry-verify returning the token"
 
 card_api:
   description: "External API to auto-replenish card stock"
@@ -1185,7 +1185,7 @@ checkout:
     response: "{ success: true, url, params } | { success: true, url, isZeroPrice: true } | { success: false, error }"
     error_codes: [buy.outOfStock, buy.invalidQuantity, buy.limitExceeded, buy.userBlocked, buy.productNotFound, buy.stockLocked, buy.quantityTooLarge]
     side_effects:
-      - "Sets ldc_pending_order cookie on non-zero-price orders"
+      - "Sets grip_store_pending_order cookie on non-zero-price orders"
       - "Calls payment gateway to get payment params"
       - "Zero-price: creates delivered order, sends email if email provided"
   - method: GET
@@ -1424,7 +1424,7 @@ admin_misc:
 
 # Well-known endpoints (keep in Next.js frontend)
 frontend_keeps:
-  - { method: GET, path: "/.well-known/ldc-registry-verify", description: "Returns registry challenge token" }
+  - { method: GET, path: "/.well-known/grip-store-registry-verify", description: "Returns registry challenge token" }
 ```
 
 ---
@@ -1631,9 +1631,9 @@ phases:
 6. Token storage: use token-store.ts abstraction, never access cookies/localStorage directly.
 7. Error handling: adapter functions return { success: false, error: string } on failure, never throw.
 8. i18n error keys must be preserved exactly as documented in ::BUSINESS_RULES and API_ENDPOINTS.
-9. The ldc_pending_order cookie set by backend checkout endpoint is read by order status checker.
+9. The grip_store_pending_order cookie set by backend checkout endpoint is read by order status checker.
 10. Admin routes must check isAdmin from useAuth() and redirect to /login if false.
-11. The /.well-known/ldc-registry-verify route stays in Next.js frontend (not deleted).
+11. The /.well-known/grip-store-registry-verify route stays in Next.js frontend (not deleted).
 12. SWR is preferred for data fetching hooks: useSWR(key, fetcher) pattern.
 13. Optimistic updates should be used for vote/checkin/notifications to improve UX.
 ```

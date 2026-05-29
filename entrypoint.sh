@@ -1,6 +1,6 @@
 #!/bin/sh
 
-echo "Starting LDC Shop (Docker)..."
+echo "Starting Grip Store (Docker)..."
 
 # Auto-set AUTH_URL from APP_URL so NextAuth uses the correct external origin
 # (Docker sets HOSTNAME=0.0.0.0 which would make NextAuth generate wrong callback URLs)

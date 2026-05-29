@@ -148,11 +148,11 @@ export function HeaderUnreadBadge({ initialCount = 0, desktopEnabled = false, cl
             void refresh()
         }
         if (typeof window !== "undefined") {
-            window.addEventListener("ldc:notifications-updated", handler)
+            window.addEventListener("grip-store:notifications-updated", handler)
         }
         return () => {
             if (typeof window !== "undefined") {
-                window.removeEventListener("ldc:notifications-updated", handler)
+                window.removeEventListener("grip-store:notifications-updated", handler)
             }
         }
     }, [refresh])

@@ -1,6 +1,6 @@
 {
     "common": {
-        "appName": "LDC Shop",
+        "appName": "Grip Store",
         "shopNamePattern": "{{name}}'s {{appName}}",
         "login": "Sign in",
         "categories": "Categories",
@@ -56,14 +56,14 @@
         "no": "No",
         "expand": "Expand",
         "collapse": "Collapse",
-        "navigator": "LDC Nav",
+        "navigator": "Grip Nav",
         "themeToggle": "Toggle theme",
         "themeLight": "Light",
         "themeDark": "Dark",
         "themeSystem": "System"
     },
     "home": {
-        "title": "Welcome to LDC Shop",
+        "title": "Welcome to Grip Store",
         "subtitle": "A virtual goods shop for the Linux DO ecosystem",
         "noProducts": "No products available yet.",
         "checkBackLater": "Check back later!",
@@ -744,9 +744,9 @@
         "syncNow": "Sync on GitHub"
     },
     "registry": {
-        "title": "LDC Navigator",
+        "title": "Grip Navigator",
         "description": "Share your store in the public navigator.",
-        "promptTitle": "Join LDC Navigator?",
+        "promptTitle": "Join Grip Navigator?",
         "promptDescription": "Make your store discoverable in the public navigator. You can opt out later.",
         "joinNow": "Join now",
         "notNow": "Not now",
@@ -758,14 +758,14 @@
         "statusJoined": "Joined",
         "statusNotJoined": "Not joined",
         "resubmit": "Resubmit",
-        "navTitle": "LDC Navigator",
-        "navSubtitle": "Discover more stores built with the ldc-shop project",
+        "navTitle": "Grip Navigator",
+        "navSubtitle": "Discover more stores built with the grip-store project",
         "navSearch": "Search stores...",
         "search": "Search",
         "navEmpty": "No stores yet.",
         "visit": "Visit",
         "hideNavLabel": "Hide navigator entry",
-        "hideNavHint": "Hide the LDC navigator link if you haven't joined.",
+        "hideNavHint": "Hide the Grip navigator link if you haven't joined.",
         "hideNavLockedHint": "After joining, the navigator entry must stay visible.",
         "hideNavEnabled": "Hidden",
         "hideNavDisabled": "Visible"

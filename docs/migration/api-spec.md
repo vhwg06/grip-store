@@ -157,7 +157,7 @@ This document defines the backend contract required by the frontend migration in
 - Response:
 ```json
 {
-  "shopName": "LDC Virtual Goods Shop",
+  "shopName": "Grip Virtual Goods Shop",
   "shopDescription": "High-quality virtual goods, instant delivery",
   "shopLogo": null,
   "shopFooter": null,
@@ -196,7 +196,7 @@ This document defines the backend contract required by the frontend migration in
 - Response:
 ```json
 {
-  "orderId": "LDC-20260523-0001",
+  "orderId": "Grip-20260523-0001",
   "status": "pending",
   "amount": "11.50",
   "pointsUsed": 1,
@@ -220,7 +220,7 @@ This document defines the backend contract required by the frontend migration in
 - Response:
 ```json
 {
-  "orderId": "LDC-20260523-0002",
+  "orderId": "Grip-20260523-0002",
   "status": "pending",
   "amount": "12.50",
   "paymentUrl": "https://gateway.example.com/pay",
@@ -239,7 +239,7 @@ This document defines the backend contract required by the frontend migration in
 - Response:
 ```json
 {
-  "orderId": "LDC-20260523-0001",
+  "orderId": "Grip-20260523-0001",
   "status": "pending",
   "paidAt": null,
   "deliveredAt": null
@@ -387,7 +387,7 @@ Review create request:
 ```json
 {
   "productId": "discord-nitro",
-  "orderId": "LDC-20260523-0001",
+  "orderId": "Grip-20260523-0001",
   "rating": 5,
   "comment": "Fast delivery"
 }

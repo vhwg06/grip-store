@@ -74,7 +74,7 @@ graph TD
     end
 
     subgraph "Data Layer"
-        AuthSvc --> DB[(SQLite WAL<br/>ldc-shop.sqlite)]
+        AuthSvc --> DB[(SQLite WAL<br/>grip-store.sqlite)]
         CatalogSvc --> DB
         CheckoutSvc --> DB
         OrderSvc --> DB
@@ -130,7 +130,7 @@ graph TD
 docker-compose.yml
 ├── backend (Node.js app)
 │   ├── Port 4000
-│   ├── Volume: ./data/ldc-shop.sqlite
+│   ├── Volume: ./data/grip-store.sqlite
 │   └── ENV: JWT_SECRET, ADMIN_USERS, EPAY_*, OAUTH_*, SMTP_*
 └── frontend (Next.js static/client)
     ├── Port 3000
@@ -1089,7 +1089,7 @@ backend/
 │       ├── cleanup-expired-cards.ts
 │       └── sync-aggregates.ts
 ├── data/
-│   └── ldc-shop.sqlite            # Mounted volume
+│   └── grip-store.sqlite            # Mounted volume
 └── tests/
     ├── unit/
     └── integration/
@@ -1191,7 +1191,7 @@ export const CRON_CLEANUP_THROTTLE_MS = 600_000  // 10 minutes
 ```env
 # .env
 PORT=4000
-DATABASE_PATH=./data/ldc-shop.sqlite
+DATABASE_PATH=./data/grip-store.sqlite
 JWT_SECRET=your-secret-key
 JWT_REFRESH_SECRET=your-refresh-secret
 
