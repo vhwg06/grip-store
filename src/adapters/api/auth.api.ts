@@ -66,17 +66,10 @@ export async function login(email: string, password: string): Promise<AuthTokens
   return tokens
 }
 
-export async function register(email: string, password: string, name?: string): Promise<AuthTokens> {
+export async function register(email: string, password: string, name?: string): Promise<User> {
   const payload = await apiFetch<any>("/api/auth/register", {
     method: "POST",
-    body: JSON.stringify({ email, password, name }),
+    body: JSON.stringify({ email, password, username: name }),
   })
-  const data = payload?.data || payload
-  const tokens = {
-    accessToken: data?.accessToken || data?.access_token || data?.token,
-    refreshToken: data?.refreshToken || data?.refresh_token,
-    expiresIn: Number(data?.expiresIn || data?.expires_in || 3600),
-  }
-  persistAuthTokens(tokens)
-  return tokens
+  return (payload?.data || payload) as User
 }

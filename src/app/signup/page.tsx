@@ -1,6 +1,6 @@
 "use client"
 
-import { register } from "@/adapters/api/auth.api"
+import { login, register } from "@/adapters/api/auth.api"
 import { useAuth } from "@/application/hooks/useAuth"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -44,6 +44,7 @@ export default function SignupPage() {
     setLoading(true)
     try {
       await register(email.trim(), password, name.trim())
+      await login(email.trim(), password)
       await refresh()
       setSuccess("Đăng ký thành công.")
       setTimeout(() => {
