@@ -132,7 +132,6 @@ export default defineConfig({
         baseURL: GO_BACKEND_URL,
       },
       testMatch: /specs\/api\/.+\.spec\.ts/,
-      dependencies: ["setup"],
     },
 
     /* E2E browser tests */
