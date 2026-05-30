@@ -63,7 +63,7 @@ jobs:
         run: npx playwright install --with-deps chromium
 
       - name: Run Playwright tests
-        run: npx playwright test --shard=${{ matrix.shardIndex }}/${{ matrix.shardTotal }}
+        run: npx playwright test --reporter=blob --shard=${{ matrix.shardIndex }}/${{ matrix.shardTotal }}
         env:
           CI: true
           CI_EXTERNAL_BACKEND: "true"
@@ -80,7 +80,7 @@ jobs:
         if: ${{ !cancelled() }}
         with:
           name: playwright-report-shard-${{ matrix.shardIndex }}
-          path: playwright/reports/
+          path: blob-report/
           retention-days: 14
 
       - name: Upload test artifacts
