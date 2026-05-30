@@ -20,6 +20,14 @@ function extractSpecsFromPayload(payload: unknown): Array<{ label?: string; valu
 }
 
 test.describe("Product Flow - Detail @product-flow", () => {
+  async function readCartCount(page: any) {
+    const badge = page.locator('[data-testid="cart-count"]');
+    if ((await badge.count()) === 0) return 0;
+    const raw = (await badge.first().innerText()).trim();
+    const parsed = Number(raw);
+    return Number.isFinite(parsed) ? parsed : 0;
+  }
+
   test("PF-DETAIL-001 detail renders product core info", async ({ request, productDetailPage, page }) => {
     const productId = await getFirstProductIdOrNull(request);
     expect(productId, "No product available for detail flow test").toBeTruthy();
@@ -48,17 +56,20 @@ test.describe("Product Flow - Detail @product-flow", () => {
     const productId = await getFirstProductIdOrNull(request);
     expect(productId, "No product available for add-to-cart test").toBeTruthy();
     await productDetailPage.goto(productId);
+    const before = await readCartCount(page);
     await productDetailPage.addToCart();
-    await expect(page.locator('[data-testid="cart-count"]')).toHaveText("1");
+    await expect(page.locator('[data-testid="cart-count"]')).toHaveText(String(before + 1));
   });
 
   test("PF-DETAIL-004 quantity add-to-cart stores correct quantity", async ({ request, productDetailPage, page }) => {
     const productId = await getFirstProductIdOrNull(request);
     expect(productId, "No product available for quantity add-to-cart test").toBeTruthy();
     await productDetailPage.goto(productId);
+    const before = await readCartCount(page);
     await page.locator('button:has-text("+")').first().click().catch(() => undefined);
     await page.locator('[data-testid="add-to-cart-btn"]').click();
-    await expect(page.locator('[data-testid="cart-count"]')).toHaveText(/^[12]$/);
+    const after = await readCartCount(page);
+    expect(after).toBeGreaterThanOrEqual(before + 1);
   });
 
   test("PF-DETAIL-005 inactive product cannot be opened or added", async ({ page }) => {

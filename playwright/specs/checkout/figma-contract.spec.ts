@@ -9,6 +9,18 @@ import { CatalogApiHelper } from "../../src/api-helpers/catalog.api";
  * Requirement: browse -> add cart -> cart/checkout contract visibility.
  */
 test.describe("Figma Contract Checkout @checkout", () => {
+  async function findPurchasableProductId(request: any): Promise<string | null> {
+    const client = new GoBackendClient(request);
+    const catalogApi = new CatalogApiHelper(client);
+    const products = await catalogApi.getProducts({ limit: 20 });
+    if (!products.ok || !products.data.items.length) return null;
+    for (const product of products.data.items) {
+      const buyMeta = await catalogApi.getBuyMeta(product.id);
+      if (buyMeta.ok && buyMeta.data.available) return product.id;
+    }
+    return products.data.items[0]?.id ?? null;
+  }
+
   test("cart route should expose cart total + checkout CTA", async ({ cartPage, page }) => {
     await cartPage.goto();
     await expect(page.locator('[data-testid="cart-total"]')).toBeVisible();
@@ -16,14 +28,11 @@ test.describe("Figma Contract Checkout @checkout", () => {
   });
 
   test("detail to cart to checkout should preserve core CTA flow", async ({ productDetailPage, cartPage, page, request }) => {
-    const client = new GoBackendClient(request);
-    const catalogApi = new CatalogApiHelper(client);
-    const products = await catalogApi.getProducts({ limit: 1 });
-    expect(products.ok).toBeTruthy();
-    expect(products.data.items.length).toBeGreaterThan(0);
+    const productId = await findPurchasableProductId(request);
+    expect(productId).toBeTruthy();
 
-    await productDetailPage.goto(products.data.items[0].id);
-    await page.locator('[data-testid="add-to-cart-btn"]').click();
+    await productDetailPage.goto(productId ?? "");
+    await productDetailPage.addToCart();
 
     await cartPage.goto();
     await page.locator('[data-testid="checkout-btn"]').click();

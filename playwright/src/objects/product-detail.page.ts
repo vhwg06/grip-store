@@ -15,8 +15,24 @@ export class ProductDetailPage extends BasePage {
   }
 
   async addToCart() {
+    const cartCount = this.page.locator('[data-testid="cart-count"]').first();
+    const hadCount = (await cartCount.count()) > 0;
+    const before = hadCount
+      ? Number((await cartCount.innerText()).trim() || "0")
+      : 0;
+
     await this.page.locator('[data-testid="add-to-cart-btn"]').click();
-    await this.page.waitForTimeout(150);
+
+    await this.page.waitForFunction(
+      ({ selector, previous }) => {
+        const el = document.querySelector(selector);
+        if (!el) return previous === 0;
+        const value = Number((el.textContent || "").trim() || "0");
+        return Number.isFinite(value) && value >= previous + 1;
+      },
+      { selector: '[data-testid="cart-count"]', previous: before },
+      { timeout: 5_000 }
+    );
   }
 
   async getReviews(): Promise<ReviewData[]> {

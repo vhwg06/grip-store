@@ -3,6 +3,18 @@ import { GoBackendClient } from "../../src/api-helpers/go-backend.client";
 import { CatalogApiHelper } from "../../src/api-helpers/catalog.api";
 
 test.describe("Order Flow @checkout", () => {
+  async function findPurchasableProductId(request: any): Promise<string | null> {
+    const client = new GoBackendClient(request);
+    const catalogApi = new CatalogApiHelper(client);
+    const products = await catalogApi.getProducts({ limit: 20 });
+    if (!products.ok || !products.data.items.length) return null;
+    for (const product of products.data.items) {
+      const buyMeta = await catalogApi.getBuyMeta(product.id);
+      if (buyMeta.ok && buyMeta.data.available) return product.id;
+    }
+    return products.data.items[0]?.id ?? null;
+  }
+
   test("should complete purchase flow from product to confirmation", async ({
     productDetailPage,
     cartPage,
@@ -10,11 +22,8 @@ test.describe("Order Flow @checkout", () => {
     page,
     request,
   }) => {
-    const client = new GoBackendClient(request);
-    const catalogApi = new CatalogApiHelper(client);
-    const products = await catalogApi.getProducts({ limit: 1 });
-    expect(products.ok).toBeTruthy();
-    if (!products.data.items.length) {
+    const productId = await findPurchasableProductId(request);
+    if (!productId) {
       await page.goto("/products");
       await expect(
         page.locator('[data-testid="product-card"], [data-testid="no-results"]')
@@ -23,8 +32,7 @@ test.describe("Order Flow @checkout", () => {
     }
 
     // Step 1: Add product to cart
-    const product = products.data.items[0];
-    await productDetailPage.goto(product.id);
+    await productDetailPage.goto(productId);
     await productDetailPage.addToCart();
 
     // Step 2: Go to cart and proceed to checkout
