@@ -6,6 +6,28 @@ test.describe("Auth API @api", () => {
   let client: GoBackendClient;
   let authApi: AuthApiHelper;
 
+  const userLoginCandidates: Array<[string, string]> = [
+    [
+      process.env.TEST_USER_EMAIL ?? "test_buyer@example.com",
+      process.env.TEST_USER_PASSWORD ?? "Password123!",
+    ],
+    ["test@example.com", "Password123!"],
+    ["test@example.com", "TestPass123!"],
+  ];
+
+  async function loginAsSeedUser() {
+    for (const [email, password] of userLoginCandidates) {
+      const response = await authApi.login(email, password);
+      if (response.ok) {
+        return response;
+      }
+    }
+    return await authApi.login(
+      process.env.TEST_USER_EMAIL ?? "test_buyer@example.com",
+      process.env.TEST_USER_PASSWORD ?? "Password123!"
+    );
+  }
+
   test.beforeEach(async ({ request }) => {
     client = new GoBackendClient(request);
     authApi = new AuthApiHelper(client);
@@ -13,10 +35,7 @@ test.describe("Auth API @api", () => {
 
   test.describe("GET /v1/auth/me", () => {
     test("should return user profile with valid token", async () => {
-      const loginResponse = await authApi.login(
-        process.env.TEST_USER_EMAIL ?? "test@example.com",
-        process.env.TEST_USER_PASSWORD ?? "TestPass123!"
-      );
+      const loginResponse = await loginAsSeedUser();
       expect(loginResponse.ok).toBe(true);
       const token = loginResponse.data.token;
 
@@ -41,10 +60,7 @@ test.describe("Auth API @api", () => {
   test.describe("POST /v1/auth/refresh", () => {
     test("should refresh token successfully", async () => {
       // First login to get a refresh token
-      const loginResponse = await authApi.login(
-        process.env.TEST_USER_EMAIL ?? "test@example.com",
-        process.env.TEST_USER_PASSWORD ?? "TestPass123!"
-      );
+      const loginResponse = await loginAsSeedUser();
 
       expect(loginResponse.ok).toBe(true);
 
@@ -66,10 +82,7 @@ test.describe("Auth API @api", () => {
 
   test.describe("POST /v1/auth/logout", () => {
     test("should logout successfully with valid token", async () => {
-      const loginResponse = await authApi.login(
-        process.env.TEST_USER_EMAIL ?? "test@example.com",
-        process.env.TEST_USER_PASSWORD ?? "TestPass123!"
-      );
+      const loginResponse = await loginAsSeedUser();
       expect(loginResponse.ok).toBe(true);
       const token = loginResponse.data.token;
 
@@ -90,10 +103,7 @@ test.describe("Auth API @api", () => {
 
   test.describe("POST /v1/auth/login", () => {
     test("should login with valid credentials", async () => {
-      const response = await authApi.login(
-        process.env.TEST_USER_EMAIL ?? "test@example.com",
-        process.env.TEST_USER_PASSWORD ?? "TestPass123!"
-      );
+      const response = await loginAsSeedUser();
 
       expect(response.status).toBe(200);
       expect(response.data).toHaveProperty("token");
