@@ -44,6 +44,7 @@ export default async function globalSetup(_config: FullConfig) {
   if (!process.env.TEST_USER_TOKEN) {
     const userCandidates: Array<[string, string]> = [
       [process.env.TEST_USER_EMAIL ?? "test_buyer@example.com", process.env.TEST_USER_PASSWORD ?? "Password123!"],
+      ["test_buyer@example.com", "Password123!"],
       ["test@example.com", "Password123!"],
       ["test@example.com", "TestPass123!"],
     ];
@@ -59,6 +60,7 @@ export default async function globalSetup(_config: FullConfig) {
   if (!process.env.ADMIN_USER_TOKEN) {
     const adminCandidates: Array<[string, string]> = [
       [process.env.ADMIN_USER_EMAIL ?? "test_admin@example.com", process.env.ADMIN_USER_PASSWORD ?? "Password123!"],
+      ["test_admin@example.com", "Password123!"],
       ["admin@example.com", "AdminPass123!"],
       ["admin@example.com", "Password123!"],
     ];

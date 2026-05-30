@@ -41,10 +41,10 @@ jobs:
           GO_BACKEND_URL: ${{ secrets.GO_BACKEND_URL || 'http://localhost:8080' }}
           NEXT_PUBLIC_API_URL: ${{ secrets.GO_BACKEND_URL || 'http://localhost:8080' }}
           NEXT_PUBLIC_APP_URL: ${{ secrets.NEXT_PUBLIC_APP_URL || 'http://localhost:3000' }}
-          TEST_USER_EMAIL: ${{ secrets.TEST_USER_EMAIL }}
-          TEST_USER_PASSWORD: ${{ secrets.TEST_USER_PASSWORD }}
-          ADMIN_USER_EMAIL: ${{ secrets.ADMIN_USER_EMAIL }}
-          ADMIN_USER_PASSWORD: ${{ secrets.ADMIN_USER_PASSWORD }}
+          TEST_USER_EMAIL: ${{ secrets.TEST_USER_EMAIL || 'test_buyer@example.com' }}
+          TEST_USER_PASSWORD: ${{ secrets.TEST_USER_PASSWORD || 'Password123!' }}
+          ADMIN_USER_EMAIL: ${{ secrets.ADMIN_USER_EMAIL || 'test_admin@example.com' }}
+          ADMIN_USER_PASSWORD: ${{ secrets.ADMIN_USER_PASSWORD || 'Password123!' }}
           TEST_USER_TOKEN: ${{ secrets.TEST_USER_TOKEN }}
           ADMIN_USER_TOKEN: ${{ secrets.ADMIN_USER_TOKEN }}
 

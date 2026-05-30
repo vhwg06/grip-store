@@ -11,6 +11,7 @@ test.describe("Auth API @api", () => {
       process.env.TEST_USER_EMAIL ?? "test_buyer@example.com",
       process.env.TEST_USER_PASSWORD ?? "Password123!",
     ],
+    ["test_buyer@example.com", "Password123!"],
     ["test@example.com", "Password123!"],
     ["test@example.com", "TestPass123!"],
   ];
