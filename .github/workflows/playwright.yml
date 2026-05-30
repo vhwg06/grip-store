@@ -37,7 +37,9 @@ jobs:
         run: npx playwright test --shard=${{ matrix.shardIndex }}/${{ matrix.shardTotal }}
         env:
           CI: true
+          CI_EXTERNAL_BACKEND: "true"
           GO_BACKEND_URL: ${{ secrets.GO_BACKEND_URL || 'http://localhost:8080' }}
+          NEXT_PUBLIC_API_URL: ${{ secrets.GO_BACKEND_URL || 'http://localhost:8080' }}
           NEXT_PUBLIC_APP_URL: ${{ secrets.NEXT_PUBLIC_APP_URL || 'http://localhost:3000' }}
           TEST_USER_EMAIL: ${{ secrets.TEST_USER_EMAIL }}
           TEST_USER_PASSWORD: ${{ secrets.TEST_USER_PASSWORD }}

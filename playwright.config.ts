@@ -9,6 +9,9 @@ dotenv.config({ path: path.resolve(__dirname, "playwright/.env.test") });
 const BASE_URL = process.env.PLAYWRIGHT_BASE_URL ?? "http://localhost:3000";
 const GO_BACKEND_URL = process.env.GO_BACKEND_URL ?? "http://127.0.0.1:8080";
 const CI_EXTERNAL_BACKEND = process.env.CI_EXTERNAL_BACKEND === "true";
+const IS_LOCAL_BACKEND =
+  /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(GO_BACKEND_URL);
+const USE_EXTERNAL_BACKEND = CI_EXTERNAL_BACKEND || !IS_LOCAL_BACKEND;
 const FIREFOX_AVAILABLE = fs.existsSync(firefox.executablePath());
 const WEBKIT_AVAILABLE = fs.existsSync(webkit.executablePath());
 
@@ -137,7 +140,7 @@ export default defineConfig({
   ],
 
   /* Run local dev server before starting the tests */
-  webServer: CI_EXTERNAL_BACKEND
+  webServer: USE_EXTERNAL_BACKEND
     ? [
         {
           command: "npm run dev",
