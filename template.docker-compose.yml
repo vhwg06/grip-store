@@ -4,7 +4,7 @@ services:
     container_name: grip-store-fe
     restart: unless-stopped
     ports:
-      - "80:80"
+      - "${FE_PORT:-3000}:80"
     healthcheck:
       test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1/ || exit 1"]
       interval: 30s
