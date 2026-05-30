@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import ReactMarkdown from "react-markdown"
 import { cn } from "@/lib/utils"
+import { buildExportRoutePath } from "@/lib/export-route"
 
 type Category = { name: string; icon: string | null; sortOrder: number }
 type Product = {
@@ -176,7 +177,7 @@ export function SearchContent(props: {
                       {product.stockCount > 0 ? `${t('common.stock')} ${product.stockCount}` : t('common.outOfStock')}
                     </Badge>
                   </div>
-                  <Link href={`/buy/${product.id}`} className="w-full">
+                  <Link href={buildExportRoutePath("/buy", product.id)} className="w-full">
                     <Button size="sm" className="w-full bg-primary text-primary-foreground hover:bg-primary/90 whitespace-nowrap shadow-md hover:shadow-lg transition-all">
                       {t('common.viewDetails')}
                     </Button>

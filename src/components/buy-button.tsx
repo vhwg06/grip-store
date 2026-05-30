@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label"
 import { Loader2, Coins } from "lucide-react"
 import { toast } from "sonner"
 import { useI18n } from "@/lib/i18n/context"
+import { buildExportRoutePath } from "@/lib/export-route"
 
 interface BuyButtonProps {
     productId: string
@@ -72,7 +73,7 @@ export function BuyButton({ productId, price, productName, disabled, quantity = 
                 isNavigatingRef.current = true
                 void refresh()
                 toast.success(t('buy.paymentSuccessPoints'))
-                window.location.href = result.url || `/order/${result.orderId}`
+                window.location.href = result.url || buildExportRoutePath("/order", result.orderId ?? "")
                 return
             }
 

@@ -55,6 +55,21 @@ Ghi chú:
 - Full E2E dùng trực tiếp tài khoản seed từ migration backend:
   - `test_buyer@example.com` / `Password123!`
   - `test_admin@example.com` / `Password123!`
+- Trong job `full-e2e`, frontend test được ép `NEXT_PUBLIC_API_URL = GO_BACKEND_URL` để FE và API tests cùng trỏ về cùng backend dev/staging.
+- Khuyến nghị vận hành: luôn set `NEXT_PUBLIC_APP_URL` trong Secrets, không rely vào fallback `http://localhost:3000`.
+
+### 3.4 Switch env local (dev/prod)
+
+Repo hỗ trợ switch nhanh profile môi trường:
+
+```bash
+npm run env:dev
+npm run env:prod
+```
+
+- `env:dev` dùng API dev `http://104.199.183.42`
+- `env:prod` dùng profile production (cần điền endpoint thật trong `.env.prod`)
+- Lệnh sẽ cập nhật `.env.local` từ profile tương ứng.
 
 ### 3.2 Điều kiện trên VM
 

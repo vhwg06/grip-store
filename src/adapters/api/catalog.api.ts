@@ -27,6 +27,16 @@ function withQuery(path: string, params: Record<string, string | number | undefi
 
 function normalizeProduct(product: Partial<CatalogProduct>): CatalogProduct {
   const raw = product as any
+  const rawSpecs = Array.isArray(raw.specs)
+    ? raw.specs
+    : (Array.isArray(raw.details) ? raw.details : [])
+  const specs = rawSpecs
+    .map((spec: any) => ({
+      key: String(spec?.key ?? spec?.label ?? "").trim(),
+      value: String(spec?.value ?? "").trim(),
+    }))
+    .filter((spec: { key: string; value: string }) => spec.key.length > 0)
+
   return {
     id: String(product.id || ""),
     name: String(product.name || raw.title || ""),
@@ -57,6 +67,7 @@ function normalizeProduct(product: Partial<CatalogProduct>): CatalogProduct {
     sold: Number(product.sold !== undefined ? product.sold : (raw.sold_count !== undefined ? raw.sold_count : 0)),
     rating: Number(product.rating ?? 0),
     reviewCount: Number(product.reviewCount ?? 0),
+    specs,
     usageGuide: product.usageGuide ?? null,
     bundledGifts: product.bundledGifts ?? null,
     discountPercent: typeof product.discountPercent === 'number' ? product.discountPercent : undefined,

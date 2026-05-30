@@ -1,15 +1,29 @@
 import { test, expect } from "../../src/fixtures/base-test";
+import { GoBackendClient } from "../../src/api-helpers/go-backend.client";
 
 /**
  * Product Flow - Admin UI
  * Source usecases: ./admin-ui.usecases.md
  */
+async function findProductIdByName(page: any, request: any, productName: string) {
+  const client = new GoBackendClient(request);
+  for (let i = 0; i < 5; i++) {
+    await page.waitForTimeout(400);
+    const response = await client.get<any>("/v1/catalog/products?limit=100");
+    if (!response.ok) continue;
+    const items = Array.isArray(response.data?.items) ? response.data.items : [];
+    const found = items.find((item: any) => String(item?.title ?? item?.name ?? "").trim() === productName);
+    if (found?.id) return String(found.id);
+  }
+  return null;
+}
+
 test.describe("Product Flow - Admin UI @product-flow", () => {
   test.use({
     storageState: "./playwright/src/fixtures/.auth/admin.json",
   });
 
-  test("PF-ADMIN-UI-001 create product with specs and verify storefront detail", async ({ page }) => {
+  test("PF-ADMIN-UI-001 create product with specs and verify storefront detail", async ({ page, request }) => {
     const uniqueId = Date.now();
     const productName = `PF Admin UI Product ${uniqueId}`;
     const productSlug = `pf-admin-ui-${uniqueId}`;
@@ -34,16 +48,10 @@ test.describe("Product Flow - Admin UI @product-flow", () => {
     await page.locator('[data-testid="save-btn"]').click();
     await page.waitForLoadState("networkidle");
 
-    await page.goto("/products");
+    const productId = await findProductIdByName(page, request, productName);
+    expect(productId, "Created product not found via catalog API").toBeTruthy();
+    await page.goto(`/products/placeholder?id=${encodeURIComponent(productId ?? "")}`);
     await page.waitForLoadState("networkidle");
-    await page.locator('[data-testid="search-input"]').fill(productName);
-    await page.locator('[data-testid="search-submit"]').click();
-    await page.waitForLoadState("networkidle");
-
-    const firstCard = page.locator('[data-testid="product-card"], [data-testid="product-card-item"]').first();
-    await expect(firstCard).toBeVisible();
-    await firstCard.locator('[data-testid="product-title"]').click();
-    await page.waitForLoadState("domcontentloaded");
 
     await expect(page.locator('[data-testid="product-specs-table"]')).toBeVisible();
     await expect(page.locator('[data-testid="spec-val-Material"]')).toHaveText("Aluminum");

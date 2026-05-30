@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { CatalogProduct } from "@/domain/catalog";
 import { useCart } from "@/application/hooks/useCart";
+import { buildExportRoutePath } from "@/lib/export-route";
 
 interface ProductCardProps {
   product: CatalogProduct;
@@ -31,7 +32,7 @@ export function ProductCard({
     e.preventDefault();
     e.stopPropagation();
     if (variant === "home") {
-      router.push(`/products/${product.id}`);
+      router.push(buildExportRoutePath("/products", product.id));
     } else {
       addItem(product, 1);
       toast.success("Đã thêm sản phẩm vào giỏ hàng!");
@@ -91,7 +92,7 @@ export function ProductCard({
         <div className="text-[12px] font-medium text-[#c0a060] font-['SVN-Gilroy'] leading-[1.2] mb-[23px] text-center uppercase tracking-wider">
           SKU: {product.sku || "2522"}
         </div>
-        <Link href={`/products/${product.id}`} className="block">
+        <Link href={buildExportRoutePath("/products", product.id)} className="block">
           <h3 data-testid="product-title" className="text-[16px] font-semibold text-[#2b1809] font-['SVN-Gilroy'] leading-[1.2] text-center mb-[8px] line-clamp-2 group-hover:text-[#9c702a] transition-colors">
             {product.name}
           </h3>

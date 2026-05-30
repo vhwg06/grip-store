@@ -13,6 +13,7 @@ import { deleteProduct, toggleProductStatus, reorderProduct } from "@/adapters/a
 import { toast } from "sonner"
 
 import { AdminProduct } from "@/domain/admin"
+import { buildExportRoutePath } from "@/lib/export-route"
 
 interface AdminProductsContentProps {
     products: AdminProduct[]
@@ -246,12 +247,12 @@ export function AdminProductsContent({ products, lowStockThreshold }: AdminProdu
                                         {product.isActive ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                                     </Button>
                                     <Button asChild variant="outline" size="sm" data-testid="edit-btn">
-                                        <Link href={`/admin/cards/${product.id}`}>
+                                        <Link href={buildExportRoutePath("/admin/cards", product.id)}>
                                             {t('admin.products.manageCards')}
                                         </Link>
                                     </Button>
                                     <Button asChild variant="outline" size="sm">
-                                        <Link href={`/admin/product/edit/${product.id}`} prefetch={false}>
+                                        <Link href={buildExportRoutePath("/admin/product/edit", product.id)} prefetch={false}>
                                             {t('common.edit')}
                                         </Link>
                                     </Button>

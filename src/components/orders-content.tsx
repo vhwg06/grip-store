@@ -10,6 +10,7 @@ import { ClientDate } from "@/components/client-date"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { isPaymentOrder } from "@/lib/payment"
+import { buildExportRoutePath } from "@/lib/export-route"
 
 interface Order {
     orderId: string
@@ -102,7 +103,7 @@ export function OrdersContent({ orders }: { orders: Order[] }) {
                 {filtered.length > 0 ? (
                     filtered.map(order => (
                         <Card key={order.orderId} className="hover:border-primary/50 transition-colors">
-                            <Link href={`/order/${order.orderId}`}>
+                            <Link href={buildExportRoutePath("/order", order.orderId)}>
                                 <div className="flex flex-col gap-4 p-6 sm:flex-row sm:items-center">
                                     <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center shrink-0">
                                         {isPaymentOrder(order.productId) ? (
@@ -123,7 +124,7 @@ export function OrdersContent({ orders }: { orders: Order[] }) {
                                         <div className="mt-2 flex flex-wrap items-center gap-2 sm:justify-end">
                                             {order.canReview && !isPaymentOrder(order.productId) && (
                                                 <Link
-                                                    href={`/buy/${order.productId}#reviews`}
+                                                    href={`${buildExportRoutePath("/buy", order.productId ?? "")}#reviews`}
                                                     onClick={(e) => e.stopPropagation()}
                                                     className="shrink-0"
                                                 >

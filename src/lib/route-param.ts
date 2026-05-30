@@ -1,6 +1,8 @@
 "use client";
 
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
+
+type SearchParamsLike = { get: (key: string) => string | null };
 
 function normalizePrefix(prefix: string) {
   return prefix.endsWith("/") ? prefix.slice(0, -1) : prefix;
@@ -9,7 +11,9 @@ function normalizePrefix(prefix: string) {
 export function resolveRouteParamFromPath(
   fallbackParam: string,
   routePrefix: string,
-  pathname: string | null
+  pathname: string | null,
+  searchParamCandidates: string[] = ["id", "slug", "orderId"],
+  searchParams?: SearchParamsLike | null
 ) {
   const trimmed = fallbackParam.trim();
   if (trimmed && trimmed !== "placeholder") {
@@ -30,13 +34,32 @@ export function resolveRouteParamFromPath(
 
   const dynamicValue = decodeURIComponent(path.slice(prefix.length).split("/")[0] ?? "").trim();
   if (!dynamicValue || dynamicValue === "placeholder") {
+    if (searchParams) {
+      for (const key of searchParamCandidates) {
+        const value = searchParams.get(key)?.trim();
+        if (value && value !== "placeholder") {
+          return value;
+        }
+      }
+    }
     return trimmed;
   }
 
   return dynamicValue;
 }
 
-export function useResolvedRouteParam(fallbackParam: string, routePrefix: string) {
+export function useResolvedRouteParam(
+  fallbackParam: string,
+  routePrefix: string,
+  searchParamCandidates?: string[]
+) {
   const pathname = usePathname();
-  return resolveRouteParamFromPath(fallbackParam, routePrefix, pathname);
+  const searchParams = useSearchParams();
+  return resolveRouteParamFromPath(
+    fallbackParam,
+    routePrefix,
+    pathname,
+    searchParamCandidates,
+    searchParams
+  );
 }

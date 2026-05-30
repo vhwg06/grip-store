@@ -22,6 +22,7 @@ export interface CatalogProduct {
   sold: number
   rating: number
   reviewCount: number
+  specs?: ProductSpecItem[]
   usageGuide?: string | null
   bundledGifts?: string | null
   discountPercent?: number

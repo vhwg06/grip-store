@@ -2,6 +2,7 @@
 
 import { useEffect } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
+import { buildExportRoutePath } from "@/lib/export-route"
 
 function normalizeOrderId(input: string | null) {
   if (!input) return ""
@@ -18,7 +19,7 @@ export default function PaymentCallbackIndexPage() {
     normalizeOrderId(searchParams.get("orderId"))
 
   useEffect(() => {
-    router.replace(orderId ? `/order/${orderId}` : "/orders")
+    router.replace(orderId ? buildExportRoutePath("/order", orderId) : "/orders")
   }, [orderId, router])
 
   return (

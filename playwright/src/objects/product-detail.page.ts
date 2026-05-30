@@ -3,7 +3,7 @@ import type { ReviewData } from "./types";
 
 export class ProductDetailPage extends BasePage {
   async goto(productId: string) {
-    await super.goto(`/products/${productId}`);
+    await super.goto(`/products/placeholder?id=${encodeURIComponent(productId)}`);
   }
 
   async getProductTitle(): Promise<string> {

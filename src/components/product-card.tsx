@@ -4,6 +4,7 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { PriceDisplay } from "@/components/price-display"
 import { StockBadge } from "@/components/stock-badge"
+import { buildExportRoutePath } from "@/lib/export-route"
 
 export interface ProductCardData {
   id: string
@@ -29,7 +30,7 @@ export function ProductCard({ product }: { product: ProductCardData }) {
       </CardContent>
       <CardFooter className="p-4 pt-0">
         <Button asChild className="w-full">
-          <Link href={`/buy/${product.id}`}>Buy</Link>
+          <Link href={buildExportRoutePath("/buy", product.id)}>Buy</Link>
         </Button>
       </CardFooter>
     </Card>

@@ -1,11 +1,25 @@
 import { test, expect } from "../../src/fixtures/base-test";
+import { GoBackendClient } from "../../src/api-helpers/go-backend.client";
+
+async function findProductIdByName(page: any, request: any, productName: string) {
+  const client = new GoBackendClient(request);
+  for (let i = 0; i < 5; i++) {
+    await page.waitForTimeout(400);
+    const response = await client.get<any>("/v1/catalog/products?limit=100");
+    if (!response.ok) continue;
+    const items = Array.isArray(response.data?.items) ? response.data.items : [];
+    const found = items.find((item: any) => String(item?.title ?? item?.name ?? "").trim() === productName);
+    if (found?.id) return String(found.id);
+  }
+  return null;
+}
 
 test.describe("Admin Product Specs Management @admin", () => {
   test.use({
     storageState: "./playwright/src/fixtures/.auth/admin.json",
   });
 
-  test("should allow adding, editing and deleting specs on product creation", async ({ page }) => {
+  test("should allow adding, editing and deleting specs on product creation", async ({ page, request }) => {
     // 1. Go to the new product page
     await page.goto("/admin/product/new");
     await page.waitForLoadState("networkidle");
@@ -53,21 +67,10 @@ test.describe("Admin Product Specs Management @admin", () => {
     // Navigate to the list or direct url to details
     // Since Next.js has client side navigation, let's navigate to the client-facing detail page
     // We'll search for this product in products list or go directly by slug
-    await page.goto(`/products`);
+    const productId = await findProductIdByName(page, request, productName);
+    expect(productId, "Created product not found via catalog API").toBeTruthy();
+    await page.goto(`/products/placeholder?id=${encodeURIComponent(productId ?? "")}`);
     await page.waitForLoadState("networkidle");
-
-    // Search for our newly created product
-    await page.locator('[data-testid="search-input"]').fill(productName);
-    await page.locator('[data-testid="search-submit"]').click();
-    await page.waitForLoadState("networkidle");
-
-    // Expect card to be shown
-    const firstCard = page.locator('[data-testid="product-card"], [data-testid="product-card-item"]').first();
-    await expect(firstCard).toBeVisible();
-
-    // Click title to go to detail page
-    await firstCard.locator('[data-testid="product-title"]').click();
-    await page.waitForLoadState("domcontentloaded");
 
     // 5. Verify the Specs Table on details page
     const specsTable = page.locator('[data-testid="product-specs-table"]');

@@ -8,10 +8,18 @@ async function ensureCartHasItem(
 ) {
   const client = new GoBackendClient(request);
   const catalogApi = new CatalogApiHelper(client);
-  const products = await catalogApi.getProducts({ limit: 1 });
+  const products = await catalogApi.getProducts({ limit: 20 });
   expect(products.ok).toBe(true);
   expect(products.data.items.length).toBeGreaterThan(0);
-  await productDetailPage.goto(products.data.items[0].id);
+  let selectedProductId = products.data.items[0].id;
+  for (const product of products.data.items) {
+    const buyMeta = await catalogApi.getBuyMeta(product.id);
+    if (buyMeta.ok && buyMeta.data.available) {
+      selectedProductId = product.id;
+      break;
+    }
+  }
+  await productDetailPage.goto(selectedProductId);
   await productDetailPage.addToCart();
 }
 

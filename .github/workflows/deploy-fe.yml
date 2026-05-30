@@ -68,6 +68,7 @@ jobs:
           CI: true
           CI_EXTERNAL_BACKEND: "true"
           GO_BACKEND_URL: ${{ secrets.GO_BACKEND_URL }}
+          NEXT_PUBLIC_API_URL: ${{ secrets.GO_BACKEND_URL }}
           NEXT_PUBLIC_APP_URL: ${{ secrets.NEXT_PUBLIC_APP_URL || 'http://localhost:3000' }}
           TEST_USER_EMAIL: test_buyer@example.com
           TEST_USER_PASSWORD: Password123!

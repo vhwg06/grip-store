@@ -1,18 +1,18 @@
 {
   "cookies": [
     {
-      "name": "ldc-locale",
+      "name": "grip-store-locale",
       "value": "en",
       "domain": "localhost",
       "path": "/",
-      "expires": 1811242470.593686,
+      "expires": 1811670974.511016,
       "httpOnly": false,
       "secure": false,
       "sameSite": "Lax"
     },
     {
-      "name": "ldc_access_token",
-      "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc19hZG1pbiI6ZmFsc2UsInVzZXJuYW1lIjoidGVzdF9idXllciIsInN1YiI6IjIyMjIyMjIyLTIyMjItMjIyMi0yMjIyLTIyMjIyMjIyMjIyMiIsImV4cCI6MTc3OTc5Mjg3MX0.SFxgpWYjlIOWVUA6gtYDeX35JhmXsfeeEEkk8a_3los",
+      "name": "grip_store_access_token",
+      "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc19hZG1pbiI6ZmFsc2UsInVzZXJuYW1lIjoidGVzdF9idXllciIsInN1YiI6IjIyMjIyMjIyLTIyMjItMjIyMi0yMjIyLTIyMjIyMjIyMjIyMiIsImV4cCI6MTc4MDIyMTM3NX0.oAF_FAcflOzaD66QMQDIV4Rv7pL_C8_dFVCLX_NJep4",
       "domain": "localhost",
       "path": "/",
       "expires": -1,
@@ -21,18 +21,18 @@
       "sameSite": "Lax"
     },
     {
-      "name": "ldc_refresh_token",
-      "value": "29309f9c-b29e-4128-b867-f1cc0bb83cc2",
+      "name": "grip_store_refresh_token",
+      "value": "115c7185-c337-48a4-a3e7-cbb97449c75e",
       "domain": "localhost",
       "path": "/",
-      "expires": 1782298471,
+      "expires": 1782726975,
       "httpOnly": false,
       "secure": false,
       "sameSite": "Lax"
     },
     {
-      "name": "ldc_access_token_expires_at",
-      "value": "1779710071457",
+      "name": "grip_store_access_token_expires_at",
+      "value": "1780138575034",
       "domain": "localhost",
       "path": "/",
       "expires": -1,
@@ -50,7 +50,7 @@
           "value": "{\"items\":[],\"totalQuantity\":0,\"subtotal\":0}"
         },
         {
-          "name": "ldc-locale",
+          "name": "grip-store-locale",
           "value": "en"
         }
       ]
