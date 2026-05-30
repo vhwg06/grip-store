@@ -8,6 +8,7 @@ dotenv.config({ path: path.resolve(__dirname, "playwright/.env.test") });
 
 const BASE_URL = process.env.PLAYWRIGHT_BASE_URL ?? "http://localhost:3000";
 const GO_BACKEND_URL = process.env.GO_BACKEND_URL ?? "http://127.0.0.1:8080";
+const CI_EXTERNAL_BACKEND = process.env.CI_EXTERNAL_BACKEND === "true";
 const FIREFOX_AVAILABLE = fs.existsSync(firefox.executablePath());
 const WEBKIT_AVAILABLE = fs.existsSync(webkit.executablePath());
 
@@ -136,19 +137,28 @@ export default defineConfig({
   ],
 
   /* Run local dev server before starting the tests */
-  webServer: [
-    {
-      command:
-        "cd /Users/cynus/Desktop/go-grip && set -a && . ./.env && set +a && CGO_ENABLED=0 go run -tags migrate ./cmd/app",
-      url: `${GO_BACKEND_URL}/healthz`,
-      reuseExistingServer: !process.env.CI,
-      timeout: 120_000,
-    },
-    {
-      command: "npm run dev",
-      url: BASE_URL,
-      reuseExistingServer: !process.env.CI,
-      timeout: 120_000,
-    },
-  ],
+  webServer: CI_EXTERNAL_BACKEND
+    ? [
+        {
+          command: "npm run dev",
+          url: BASE_URL,
+          reuseExistingServer: !process.env.CI,
+          timeout: 120_000,
+        },
+      ]
+    : [
+        {
+          command:
+            "cd /Users/cynus/Desktop/go-grip && set -a && . ./.env && set +a && CGO_ENABLED=0 go run -tags migrate ./cmd/app",
+          url: `${GO_BACKEND_URL}/healthz`,
+          reuseExistingServer: !process.env.CI,
+          timeout: 120_000,
+        },
+        {
+          command: "npm run dev",
+          url: BASE_URL,
+          reuseExistingServer: !process.env.CI,
+          timeout: 120_000,
+        },
+      ],
 });

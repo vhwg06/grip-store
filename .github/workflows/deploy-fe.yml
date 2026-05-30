@@ -5,57 +5,185 @@ on:
     branches: [main]
   workflow_dispatch:
 
+permissions:
+  contents: read
+  packages: write
+
 jobs:
-  deploy:
+  quality-gate:
+    name: Quality Gate (lint + build)
     runs-on: ubuntu-latest
-
-    env:
-      IMAGE_NAME: grip-store-fe
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Build Docker image with embedded API URL
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build
+        env:
+          NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
+        run: |
+          test -n "$NEXT_PUBLIC_API_URL"
+          npm run build
+
+  full-e2e:
+    name: Full Playwright (Shard ${{ matrix.shardIndex }}/${{ matrix.shardTotal }})
+    needs: quality-gate
+    timeout-minutes: 20
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        shardIndex: [1, 2, 3, 4]
+        shardTotal: [4]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Run Playwright tests
+        run: npx playwright test --shard=${{ matrix.shardIndex }}/${{ matrix.shardTotal }}
+        env:
+          CI: true
+          CI_EXTERNAL_BACKEND: "true"
+          GO_BACKEND_URL: ${{ secrets.GO_BACKEND_URL }}
+          NEXT_PUBLIC_APP_URL: ${{ secrets.NEXT_PUBLIC_APP_URL || 'http://localhost:3000' }}
+          TEST_USER_EMAIL: test_buyer@example.com
+          TEST_USER_PASSWORD: Password123!
+          ADMIN_USER_EMAIL: test_admin@example.com
+          ADMIN_USER_PASSWORD: Password123!
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: playwright-report-shard-${{ matrix.shardIndex }}
+          path: playwright/reports/
+          retention-days: 14
+
+      - name: Upload test artifacts
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-artifacts-shard-${{ matrix.shardIndex }}
+          path: playwright/test-results/
+          retention-days: 7
+
+  merge-reports:
+    name: Merge Playwright Reports
+    needs: full-e2e
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Download all shard reports
+        uses: actions/download-artifact@v4
+        with:
+          path: all-shard-reports
+          pattern: playwright-report-shard-*
+
+      - name: Merge reports
+        run: npx playwright merge-reports --reporter html ./all-shard-reports
+
+      - name: Upload merged report
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-merged
+          path: playwright-report/
+          retention-days: 14
+
+  deploy:
+    name: Deploy via GHCR
+    needs: merge-reports
+    runs-on: ubuntu-latest
+    env:
+      REGISTRY_IMAGE: ghcr.io/${{ github.repository_owner }}/grip-store-fe
+      IMAGE_TAG: ${{ github.sha }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Normalize image name
+        run: echo "REGISTRY_IMAGE=$(echo "$REGISTRY_IMAGE" | tr '[:upper:]' '[:lower:]')" >> "$GITHUB_ENV"
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push Docker image
         env:
           NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
         run: |
           test -n "$NEXT_PUBLIC_API_URL"
           docker build \
             --build-arg NEXT_PUBLIC_API_URL="$NEXT_PUBLIC_API_URL" \
-            -t "$IMAGE_NAME:latest" .
+            -t "$REGISTRY_IMAGE:$IMAGE_TAG" \
+            -t "$REGISTRY_IMAGE:latest" .
+          docker push "$REGISTRY_IMAGE:$IMAGE_TAG"
+          docker push "$REGISTRY_IMAGE:latest"
 
-      - name: Save Docker image
-        run: |
-          docker save "$IMAGE_NAME:latest" | gzip > grip-store-fe-image.tar.gz
-
-      - name: Prepare deploy bundle
-        run: |
-          mkdir -p deploy-bundle
-          cp grip-store-fe-image.tar.gz deploy-bundle/
-          cp template.docker-compose.yml deploy-bundle/docker-compose.yml
-          tar -czf grip-store-fe-deploy.tar.gz -C deploy-bundle .
-
-      - name: Copy bundle to VM
+      - name: Copy compose template to VM
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.GCP_VM_HOST }}
           username: ${{ secrets.GCP_VM_USER }}
           key: ${{ secrets.GCP_VM_SSH_KEY }}
-          source: grip-store-fe-deploy.tar.gz
+          source: template.docker-compose.yml
           target: /tmp
 
-      - name: Load and run container on VM
+      - name: Pull and run container on VM
         uses: appleboy/ssh-action@v1.2.0
+        env:
+          REGISTRY_IMAGE: ${{ env.REGISTRY_IMAGE }}
+          IMAGE_TAG: ${{ env.IMAGE_TAG }}
+          GHCR_USERNAME: ${{ github.repository_owner }}
+          GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
         with:
           host: ${{ secrets.GCP_VM_HOST }}
           username: ${{ secrets.GCP_VM_USER }}
           key: ${{ secrets.GCP_VM_SSH_KEY }}
+          envs: REGISTRY_IMAGE,IMAGE_TAG,GHCR_USERNAME,GHCR_TOKEN
           script: |
             set -e
             sudo mkdir -p /opt/grip-store-fe
-            sudo tar -xzf /tmp/grip-store-fe-deploy.tar.gz -C /opt/grip-store-fe
+            sudo cp /tmp/template.docker-compose.yml /opt/grip-store-fe/docker-compose.yml
             cd /opt/grip-store-fe
-            sudo docker load < grip-store-fe-image.tar.gz
-            sudo docker compose up -d --remove-orphans
+            echo "$GHCR_TOKEN" | sudo docker login ghcr.io -u "$GHCR_USERNAME" --password-stdin
+            sudo REGISTRY_IMAGE="$REGISTRY_IMAGE" IMAGE_TAG="$IMAGE_TAG" docker compose pull
+            sudo REGISTRY_IMAGE="$REGISTRY_IMAGE" IMAGE_TAG="$IMAGE_TAG" docker compose up -d --remove-orphans
             sudo docker ps --filter "name=grip-store-fe"

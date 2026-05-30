@@ -1,6 +1,6 @@
 services:
   grip-store-fe:
-    image: grip-store-fe:latest
+    image: ${REGISTRY_IMAGE}:${IMAGE_TAG}
     container_name: grip-store-fe
     restart: unless-stopped
     ports:
