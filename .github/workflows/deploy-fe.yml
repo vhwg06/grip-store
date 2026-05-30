@@ -32,7 +32,7 @@ jobs:
 
       - name: Build and push Docker image
         env:
-          NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL || '/api' }}
+          NEXT_PUBLIC_API_URL: /api
         run: |
           test -n "$NEXT_PUBLIC_API_URL"
           docker build \
