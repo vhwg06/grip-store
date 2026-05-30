@@ -88,6 +88,12 @@ jobs:
         with:
           path: all-shard-reports
           pattern: playwright-report-shard-*
+          merge-multiple: true
+
+      - name: Verify blob reports
+        run: |
+          ls -la all-shard-reports || true
+          find all-shard-reports -maxdepth 2 -type f -name '*.zip' -print
 
       - name: Merge reports
         run: npx playwright merge-reports --reporter html ./all-shard-reports
