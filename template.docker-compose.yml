@@ -4,7 +4,7 @@ services:
     container_name: grip-store-fe
     restart: unless-stopped
     ports:
-      - "${FE_PORT:-3000}:80"
+      - "${FE_PORT:-80}:80"
     extra_hosts:
       - "host.docker.internal:host-gateway"
     healthcheck:
