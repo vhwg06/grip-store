@@ -1,6 +1,15 @@
 import { apiFetch } from "@/adapters/api/http-client";
 import { Article, ArticleListResponse } from "@/domain/article";
 
+function firstString(...values: Array<unknown>) {
+  for (const value of values) {
+    if (typeof value !== "string") continue
+    const trimmed = value.trim()
+    if (trimmed) return trimmed
+  }
+  return ""
+}
+
 function normalizeArticle(raw: any): Article {
   if (!raw) return {} as Article;
   
@@ -14,7 +23,7 @@ function normalizeArticle(raw: any): Article {
     title: String(raw.title || ""),
     excerpt: excerptText,
     content: bodyText,
-    featuredImage: raw.featuredImage ?? raw.image_url ?? null,
+    featuredImage: firstString(raw.featuredImage, raw.featured_image, raw.imageUrl, raw.image_url, raw.image) || null,
     publishedAt: raw.published_at || raw.publishedAt || raw.created_at || new Date().toISOString(),
     author: raw.author_id || raw.author || "GRIP Admin",
     tags: Array.isArray(raw.tags) ? raw.tags : ["Hardware", "Grip Store"],

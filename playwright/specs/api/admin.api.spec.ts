@@ -1,6 +1,7 @@
 import { test, expect } from "../../src/fixtures/base-test";
 import { GoBackendClient } from "../../src/api-helpers/go-backend.client";
 import { AdminApiHelper } from "../../src/api-helpers/admin.api";
+import { randomUUID } from "crypto";
 
 function extractList(payload: any, keys: string[] = ["items"]): unknown[] {
   if (Array.isArray(payload)) return payload;
@@ -323,7 +324,7 @@ test.describe("Admin API @api", () => {
   /* ── Media Metadata CRUD API ─────────────────── */
 
   test.describe("Media Metadata API", () => {
-    const testMediaId = `test-media-${Date.now()}`;
+    let testMediaId = randomUUID();
 
     test("should register media metadata successfully with auth", async () => {
       test.skip(!adminToken, "ADMIN_USER_TOKEN not set");
@@ -341,6 +342,10 @@ test.describe("Admin API @api", () => {
       );
 
       expect([200, 201]).toContain(response.status);
+      const data = (response.data as any)?.data ?? response.data as any;
+      if (data && data.id) {
+        testMediaId = data.id;
+      }
     });
 
     test("should return 401 for anonymous registration attempt", async () => {

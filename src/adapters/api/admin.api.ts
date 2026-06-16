@@ -39,6 +39,44 @@ function normalizeActionResult(payload: unknown): AdminActionResult {
   }
 }
 
+function firstString(...values: Array<unknown>) {
+  for (const value of values) {
+    if (typeof value !== "string") continue
+    const trimmed = value.trim()
+    if (trimmed) return trimmed
+  }
+  return ""
+}
+
+function normalizeAdminArticle(raw: any): AdminArticle {
+  return {
+    id: String(raw?.id ?? ""),
+    title: String(raw?.title ?? ""),
+    slug: String(raw?.slug ?? ""),
+    excerpt: raw?.excerpt ?? null,
+    content: String(raw?.content ?? raw?.body ?? ""),
+    featuredImage: firstString(raw?.featuredImage, raw?.featured_image, raw?.imageUrl, raw?.image_url, raw?.image) || null,
+    author: raw?.author ?? raw?.author_id ?? null,
+    tags: Array.isArray(raw?.tags) ? raw.tags : [],
+    publishedAt: raw?.publishedAt ?? raw?.published_at ?? null,
+    isActive: Boolean(raw?.isActive ?? raw?.is_active),
+  }
+}
+
+function normalizeAdminBanner(raw: any): AdminBanner {
+  return {
+    id: Number(raw?.id ?? 0),
+    title: raw?.title ?? null,
+    subtitle: raw?.subtitle ?? null,
+    image: firstString(raw?.image, raw?.imageUrl, raw?.image_url, raw?.url),
+    mobileImage: firstString(raw?.mobileImage, raw?.mobileImageUrl, raw?.mobile_image, raw?.mobile_image_url) || null,
+    ctaText: raw?.ctaText ?? raw?.cta_text ?? null,
+    ctaLink: raw?.ctaLink ?? raw?.cta_url ?? null,
+    sortOrder: Number(raw?.sortOrder ?? raw?.sort_order ?? 0),
+    isActive: Boolean(raw?.isActive ?? raw?.is_active),
+  }
+}
+
 function postJson(path: string, body?: unknown) {
   return apiFetch<unknown>(path, {
     method: "POST",
@@ -428,11 +466,13 @@ export async function deleteReview(reviewId: number) {
 
 export async function getAdminArticles() {
   const payload = await apiFetch<{ articles?: AdminArticle[] } | AdminArticle[]>("/api/admin/articles")
-  return Array.isArray(payload) ? payload : payload.articles ?? []
+  const items = Array.isArray(payload) ? payload : payload.articles ?? []
+  return items.map(normalizeAdminArticle)
 }
 
 export async function getAdminArticle(id: string) {
-  return apiFetch<AdminArticle>(`/api/admin/articles/${encodeURIComponent(id)}`)
+  const payload = await apiFetch<any>(`/api/admin/articles/${encodeURIComponent(id)}`)
+  return normalizeAdminArticle(payload)
 }
 
 export async function saveArticle(formData: FormData) {
@@ -448,7 +488,9 @@ export async function deleteArticle(id: string) {
 
 export async function getAdminBanners() {
   const payload = await apiFetch<{ banners?: AdminBanner[] } | AdminBanner[]>("/api/admin/banners")
-  return Array.isArray(payload) ? payload : payload.banners ?? []
+  if (!payload) return []
+  const items = Array.isArray(payload) ? payload : payload.banners ?? []
+  return items.map(normalizeAdminBanner)
 }
 
 export async function saveBanner(formData: FormData) {

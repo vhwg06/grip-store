@@ -64,4 +64,80 @@ test.describe("Admin Media Management @admin", () => {
     await expect(page.locator('[data-testid="product-gallery-media"]')).toBeVisible();
     await expect(page.locator('[data-testid="field-description"]')).toBeVisible();
   });
+
+  test("should support full flow: add banner with image -> display on homepage -> delete banner", async ({ page }) => {
+    // Forward browser console logs to Node console
+    page.on('console', msg => console.log('BROWSER LOG:', msg.text()));
+
+    // 1. Go to Admin Banners page
+    await page.goto("/admin/banners");
+    await page.waitForLoadState("networkidle");
+
+    // 2. Fill in the new banner details
+    await page.locator("#banner-title").fill("E2E Test Banner Title");
+    await page.locator("#banner-subtitle").fill("E2E Test Banner Subtitle");
+    await page.locator("#banner-cta").fill("Shop E2E");
+    await page.locator("#banner-link").fill("/products");
+    await page.locator("#banner-sort").fill("999");
+
+    // 3. Upload banner image
+    await page.locator('[data-testid="banner-desktop-media"] input[data-testid="media-file-input"]').setInputFiles({
+      name: "e2e-banner.png",
+      mimeType: "image/png",
+      buffer: tinyPng,
+    });
+
+    // Wait for upload success indicator/preview
+    await expect(page.locator('[data-testid="banner-desktop-media"] [data-testid="media-preview-image"]').first()).toBeVisible();
+
+    // 4. Click Add/Save banner button
+    const postPromise = page.waitForResponse(response =>
+      response.url().includes("/v1/admin/banners") && response.request().method() === "POST"
+    );
+    await page.locator('[data-testid="banner-add-btn"]').click();
+    const postResponse = await postPromise;
+    expect(postResponse.status()).toBe(200);
+
+    // Wait for the new banner row to be visible in the table
+    const tableRow = page.locator("tr").filter({
+      has: page.locator('input[value="E2E Test Banner Title"]')
+    });
+    await expect(tableRow).toBeVisible();
+
+    // 5. Navigate to public Homepage
+    await page.goto("/");
+    await page.waitForLoadState("networkidle");
+
+    // 6. Verify that the banner is rendered on the homepage
+    await expect(page.locator('[data-testid="hero"]')).toBeVisible();
+    await expect(page.locator('[data-testid="hero-title"]', { hasText: "E2E Test Banner Title" }).first()).toBeVisible();
+
+    // Verify that the banner image is displayed and has the correct src
+    const bannerImage = page.locator('img[alt="E2E Test Banner Title"]').first();
+    await expect(bannerImage).toBeVisible();
+    const src = await bannerImage.getAttribute("src");
+    expect(src).toBeTruthy();
+    expect(decodeURIComponent(src!)).toContain("/static/uploads/");
+
+    // 7. Cleanup: Go back to Admin Banners and delete it
+    await page.goto("/admin/banners");
+    await page.waitForLoadState("networkidle");
+
+    // Register dialog handler to automatically accept confirm delete dialog
+    page.once("dialog", dialog => dialog.accept());
+    
+    // Click the delete button on the row
+    const deleteRow = page.locator("tr").filter({
+      has: page.locator('input[value="E2E Test Banner Title"]')
+    });
+    const deletePromise = page.waitForResponse(response =>
+      response.url().includes("/v1/admin/banners/") && response.request().method() === "DELETE"
+    );
+    await deleteRow.locator('[data-testid="banner-delete-btn"]').click();
+    const deleteResponse = await deletePromise;
+    expect(deleteResponse.status()).toBe(200);
+
+    // Verify row disappears
+    await expect(deleteRow).not.toBeVisible();
+  });
 });

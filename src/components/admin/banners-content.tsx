@@ -17,6 +17,7 @@ import MediaUploader from "@/components/admin/media-uploader"
 export function AdminBannersContent() {
   const { t } = useI18n()
   const { data: banners = [], mutate } = useAdminBanners()
+  console.log("AdminBannersContent banners count:", banners.length, "data:", JSON.stringify(banners))
   
   const [title, setTitle] = useState("")
   const [subtitle, setSubtitle] = useState("")
@@ -141,7 +142,7 @@ export function AdminBannersContent() {
             <Label htmlFor="banner-active" className="cursor-pointer">Hiển thị (Active)</Label>
           </div>
           <div className="md:col-span-2 lg:col-span-4 flex justify-end">
-            <Button onClick={handleCreate} disabled={saving || !image.trim()}>
+            <Button data-testid="banner-add-btn" onClick={handleCreate} disabled={saving || !image.trim()}>
               {saving ? t('common.processing') : t('common.add')}
             </Button>
           </div>
@@ -206,6 +207,7 @@ export function AdminBannersContent() {
                 </TableCell>
                 <TableCell className="text-right">
                   <Button
+                    data-testid="banner-delete-btn"
                     variant="destructive"
                     size="sm"
                     onClick={async () => {

@@ -81,7 +81,8 @@ export function MediaLibrary({ selectable = false, onSelect }: MediaLibraryProps
         size_bytes: file.size,
         url: presigned.public_url,
       })
-      setUploadedPreview(presigned.public_url)
+      const localUrl = URL.createObjectURL(file)
+      setUploadedPreview(localUrl)
       toast.success("Đã tải ảnh lên R2")
       mutate()
       if (selectable) {

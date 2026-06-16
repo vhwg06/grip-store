@@ -122,6 +122,14 @@ export class GoBackendClient {
     return this.parseResponse<T>(response);
   }
 
+  async patch<T = unknown>(path: string, data?: unknown, options?: { headers?: Record<string, string> }): Promise<ApiResponse<T>> {
+    const response = await this.request.patch(`${GO_BACKEND_URL}${path}`, {
+      data,
+      headers: options?.headers,
+    });
+    return this.parseResponse<T>(response);
+  }
+
   async delete<T = unknown>(path: string, options?: { headers?: Record<string, string> }): Promise<ApiResponse<T>> {
     const response = await this.request.delete(`${GO_BACKEND_URL}${path}`, {
       headers: options?.headers,

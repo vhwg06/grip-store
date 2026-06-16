@@ -128,6 +128,7 @@ export async function apiFetch<T>(path: string, init: RequestInit = {}, retried 
   const url = resolveApiUrl(path)
   console.log("Client-side fetching URL:", url)
   const response = await fetch(url, {
+    cache: "no-store",
     ...init,
     headers,
   })

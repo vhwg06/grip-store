@@ -43,6 +43,7 @@ export default function MediaUploader({
   const [dragActive, setDragActive] = useState(false)
   const [uploads, setUploads] = useState<UploadingState[]>([])
   const [localPreviews, setLocalPreviews] = useState<LocalPreview[]>([])
+  const [localBlobMap, setLocalBlobMap] = useState<Record<string, string>>({})
   const [libraryOpen, setLibraryOpen] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const objectUrlsRef = useRef<Set<string>>(new Set())
@@ -165,6 +166,15 @@ export default function MediaUploader({
           )
         )
 
+        // Lưu vết ánh xạ từ URL remote sang URL local blob để hiển thị preview không bị gián đoạn
+        const localPreview = createdPreviews.find(p => p.fileName === file.name)
+        if (localPreview) {
+          setLocalBlobMap(prev => ({
+            ...prev,
+            [presigned.public_url]: localPreview.url
+          }))
+        }
+
         // Cập nhật giá trị ra Form chính
         if (multiple) {
           nextImages = [...nextImages, presigned.public_url].slice(0, maxFiles)
@@ -176,11 +186,7 @@ export default function MediaUploader({
         setLocalPreviews((prev) => {
           const index = prev.findIndex((item) => item.fileName === file.name)
           if (index < 0) return prev
-          const removed = prev[index]
-          if (removed) {
-            URL.revokeObjectURL(removed.url)
-            objectUrlsRef.current.delete(removed.url)
-          }
+          // Không gọi URL.revokeObjectURL ở đây để localBlobMap vẫn truy cập được ảnh blob
           return [...prev.slice(0, index), ...prev.slice(index + 1)]
         })
 
@@ -227,10 +233,18 @@ export default function MediaUploader({
     } else {
       onChange("")
     }
+    
+    // Thu hồi blob URL tương ứng nếu có
+    const localUrl = localBlobMap[urlToRemove] || urlToRemove
+    if (localUrl.startsWith("blob:")) {
+      URL.revokeObjectURL(localUrl)
+      objectUrlsRef.current.delete(localUrl)
+    }
+
     setLocalPreviews((prev) => {
       const retained: LocalPreview[] = []
       for (const item of prev) {
-        if (item.url === urlToRemove) {
+        if (item.url === localUrl) {
           URL.revokeObjectURL(item.url)
           objectUrlsRef.current.delete(item.url)
           continue
@@ -239,11 +253,38 @@ export default function MediaUploader({
       }
       return retained
     })
+
+    setLocalBlobMap((prev) => {
+      const next = { ...prev }
+      delete next[urlToRemove]
+      return next
+    })
   }
 
-  const previewItems = currentImages.length > 0
-    ? currentImages.map((url, index) => ({ key: `remote-${index}`, url }))
-    : localPreviews.map((item) => ({ key: item.id, url: item.url }))
+  const previewItems = (() => {
+    const getDisplayUrl = (url: string) => {
+      return localBlobMap[url] || url
+    }
+
+    if (!multiple) {
+      if (localPreviews.length > 0) {
+        return [{ key: localPreviews[0].id, url: localPreviews[0].url }]
+      }
+      if (currentImages.length > 0) {
+        return [{ key: `remote-0`, url: getDisplayUrl(currentImages[0]) }]
+      }
+      return []
+    } else {
+      const items = currentImages.map((url, index) => ({ key: `remote-${index}`, url: getDisplayUrl(url) }))
+      localPreviews.forEach((item) => {
+        const isUploaded = currentImages.some(url => localBlobMap[url] === item.url)
+        if (!isUploaded) {
+          items.push({ key: item.id, url: item.url })
+        }
+      })
+      return items
+    }
+  })()
 
   return (
     <div className="space-y-3 font-sans">
