@@ -151,7 +151,7 @@ export default defineConfig({
     : [
         {
           command:
-            "cd /Users/cynus/Desktop/go-grip && set -a && . ./.env && set +a && CGO_ENABLED=0 go run -tags migrate ./cmd/app",
+            "cd /workspaces/go-grip && set -a && if [ -f .env ]; then . ./.env; else . ./.env.example; fi && set +a && CGO_ENABLED=0 go run -tags migrate ./cmd/app",
           url: `${GO_BACKEND_URL}/healthz`,
           reuseExistingServer: !process.env.CI,
           timeout: 120_000,
