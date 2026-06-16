@@ -136,19 +136,21 @@ export async function getAdminMedia(params: MediaListParams = {}): Promise<Media
     q: params.q,
     type: params.type ?? "image",
   })}`)
-  const value = payload?.data ?? payload
-  const rawItems = Array.isArray(value)
-    ? value
-    : (Array.isArray(value?.items)
-      ? value.items
-      : (Array.isArray(value?.media) ? value.media : []))
+  // Backend returns { data: [...items], meta: { limit, offset, total } }
+  const meta = payload?.meta
+  const rawData = payload?.data ?? payload
+  const rawItems = Array.isArray(rawData)
+    ? rawData
+    : (Array.isArray(rawData?.items)
+      ? rawData.items
+      : (Array.isArray(rawData?.media) ? rawData.media : []))
   const items = rawItems.map(normalizeMediaAsset).filter((item: MediaAsset) => item.id && item.url)
 
   return {
     items,
-    total: Number(value?.total ?? payload?.total ?? items.length),
-    page: Number(value?.page ?? page),
-    pageSize: Number(value?.pageSize ?? value?.page_size ?? pageSize),
+    total: Number(meta?.total ?? rawData?.total ?? payload?.total ?? items.length),
+    page: Number(meta ? Math.floor((meta.offset ?? 0) / Math.max(meta.limit ?? pageSize, 1)) + 1 : (rawData?.page ?? page)),
+    pageSize: Number(meta?.limit ?? rawData?.pageSize ?? rawData?.page_size ?? pageSize),
   }
 }
 
