@@ -1,9 +1,12 @@
 "use client"
 
 import React, { useEffect, useRef, useState } from "react"
-import { UploadCloud, FileImage, X, CheckCircle2, AlertCircle, Loader2 } from "lucide-react"
+import { UploadCloud, X, CheckCircle2, AlertCircle, Loader2, Images } from "lucide-react"
 import { getPresignedUrl, uploadToR2, registerMediaMetadata } from "@/adapters/api/media.api"
 import { toast } from "sonner"
+import { Button } from "@/components/ui/button"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { MediaLibrary } from "@/components/admin/media-library"
 
 interface MediaUploaderProps {
   value?: string | string[];
@@ -11,6 +14,8 @@ interface MediaUploaderProps {
   multiple?: boolean;
   maxFiles?: number;
   label?: string;
+  maxSizeMB?: number;
+  enableLibrary?: boolean;
 }
 
 interface UploadingState {
@@ -31,11 +36,14 @@ export default function MediaUploader({
   onChange,
   multiple = false,
   maxFiles = 5,
-  label = "Hình ảnh"
+  label = "Hình ảnh",
+  maxSizeMB = 5,
+  enableLibrary = true,
 }: MediaUploaderProps) {
   const [dragActive, setDragActive] = useState(false)
   const [uploads, setUploads] = useState<UploadingState[]>([])
   const [localPreviews, setLocalPreviews] = useState<LocalPreview[]>([])
+  const [libraryOpen, setLibraryOpen] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const objectUrlsRef = useRef<Set<string>>(new Set())
 
@@ -87,6 +95,13 @@ export default function MediaUploader({
       return
     }
 
+    const maxBytes = maxSizeMB * 1024 * 1024
+    const oversized = imageFiles.find((file) => file.size > maxBytes)
+    if (oversized) {
+      toast.error(`Ảnh "${oversized.name}" vượt quá giới hạn ${maxSizeMB}MB!`)
+      return
+    }
+
     // Kiểm tra giới hạn số lượng file
     if (multiple && currentImages.length + imageFiles.length > maxFiles) {
       toast.error(`Bạn chỉ được tải lên tối đa ${maxFiles} hình ảnh!`)
@@ -118,6 +133,7 @@ export default function MediaUploader({
 
     setUploads(prev => [...prev, ...newUploads])
 
+    let nextImages = [...currentImages]
     for (let i = 0; i < filesToUpload.length; i++) {
       const file = filesToUpload[i]
       try {
@@ -151,8 +167,10 @@ export default function MediaUploader({
 
         // Cập nhật giá trị ra Form chính
         if (multiple) {
-          onChange([...currentImages, presigned.public_url])
+          nextImages = [...nextImages, presigned.public_url].slice(0, maxFiles)
+          onChange(nextImages)
         } else {
+          nextImages = [presigned.public_url]
           onChange(presigned.public_url)
         }
         setLocalPreviews((prev) => {
@@ -186,6 +204,23 @@ export default function MediaUploader({
     }, 3000)
   }
 
+  const handleSelectFromLibrary = (url: string) => {
+    if (multiple) {
+      if (currentImages.includes(url)) {
+        setLibraryOpen(false)
+        return
+      }
+      if (currentImages.length >= maxFiles) {
+        toast.error(`Bạn chỉ được chọn tối đa ${maxFiles} hình ảnh!`)
+        return
+      }
+      onChange([...currentImages, url])
+    } else {
+      onChange(url)
+    }
+    setLibraryOpen(false)
+  }
+
   const handleRemoveImage = (urlToRemove: string) => {
     if (multiple) {
       onChange(currentImages.filter(url => url !== urlToRemove))
@@ -212,13 +247,21 @@ export default function MediaUploader({
 
   return (
     <div className="space-y-3 font-sans">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <span className="text-sm font-semibold text-neutral-800 dark:text-neutral-200">{label}</span>
-        {multiple && (
-          <span className="text-xs text-neutral-500">
-            {currentImages.length}/{maxFiles} ảnh
-          </span>
-        )}
+        <div className="flex items-center gap-2">
+          {multiple && (
+            <span className="text-xs text-neutral-500">
+              {currentImages.length}/{maxFiles} ảnh
+            </span>
+          )}
+          {enableLibrary && (
+            <Button type="button" variant="outline" size="sm" onClick={() => setLibraryOpen(true)}>
+              <Images className="mr-2 h-4 w-4" />
+              Chọn từ thư viện
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* Vùng Dropzone kéo thả */}
@@ -252,7 +295,7 @@ export default function MediaUploader({
           Kéo thả ảnh hoặc nhấp để chọn tệp
         </p>
         <p className="text-xs text-neutral-400 mt-1">
-          Hỗ trợ định dạng PNG, JPG, WEBP lên đến 5MB
+          Hỗ trợ định dạng PNG, JPG, WEBP lên đến {maxSizeMB}MB
         </p>
       </div>
 
@@ -329,6 +372,20 @@ export default function MediaUploader({
             </div>
           ))}
         </div>
+      )}
+
+      {enableLibrary && (
+        <Dialog open={libraryOpen} onOpenChange={setLibraryOpen}>
+          <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-5xl">
+            <DialogHeader>
+              <DialogTitle>Chọn media</DialogTitle>
+              <DialogDescription>
+                Chọn ảnh đã tải lên R2 để dùng lại cho trường này.
+              </DialogDescription>
+            </DialogHeader>
+            <MediaLibrary selectable onSelect={handleSelectFromLibrary} />
+          </DialogContent>
+        </Dialog>
       )}
     </div>
   )

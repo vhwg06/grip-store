@@ -7,13 +7,19 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Textarea } from "@/components/ui/textarea"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { toast } from "sonner"
 import { useRouter } from "next/navigation"
+import MediaUploader from "@/components/admin/media-uploader"
 
 export function ArticleForm({ article }: { article?: any }) {
     const router = useRouter()
     const [loading, setLoading] = useState(false)
+    const [featuredImage, setFeaturedImage] = useState(article?.featuredImage || "")
+
+    useEffect(() => {
+        setFeaturedImage(article?.featuredImage || "")
+    }, [article?.id, article?.featuredImage])
 
     async function handleSubmit(formData: FormData) {
         setLoading(true)
@@ -71,9 +77,13 @@ export function ArticleForm({ article }: { article?: any }) {
                         />
                     </div>
 
-                    <div className="grid gap-2">
-                        <Label htmlFor="featuredImage">Ảnh đại diện (URL)</Label>
-                        <Input id="featuredImage" name="featuredImage" defaultValue={article?.featuredImage} placeholder="https://..." />
+                    <div data-testid="article-featured-media" className="grid gap-2">
+                        <MediaUploader
+                            label="Ảnh đại diện"
+                            value={featuredImage}
+                            onChange={(value) => setFeaturedImage(value as string)}
+                        />
+                        <input type="hidden" id="featuredImage" name="featuredImage" value={featuredImage} />
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

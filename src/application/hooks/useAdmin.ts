@@ -23,6 +23,7 @@ import {
   getAdminLeads,
   getAdminOrderDetails,
 } from "@/adapters/api/admin.api"
+import { getAdminMedia, type MediaListParams } from "@/adapters/api/media.api"
 
 export const useAdminDashboard = () => useSWR("admin-dashboard", getAdminDashboard)
 export const useAdminProducts = () => useSWR("admin-products", getAdminProducts)
@@ -44,3 +45,4 @@ export const useAdminBanners = () => useSWR("admin-banners", getAdminBanners)
 export const useAdminFAQs = () => useSWR("admin-faqs", getAdminFAQs)
 export const useAdminLeads = () => useSWR("admin-leads", getAdminLeads)
 export const useAdminOrderDetails = (id: string) => useSWR(id ? ["admin-order-details", id] : null, () => getAdminOrderDetails(id))
+export const useAdminMedia = (params: MediaListParams) => useSWR(["admin-media", params], () => getAdminMedia(params))

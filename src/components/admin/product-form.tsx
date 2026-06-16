@@ -184,7 +184,7 @@ export default function ProductForm({ product, categories = [] }: { product?: an
                         <p className="text-xs text-muted-foreground">{t('admin.productForm.visibilityHint')}</p>
                     </div>
 
-                    <div className="grid gap-2">
+                    <div data-testid="product-main-media" className="grid gap-2">
                         <MediaUploader
                             label={t('admin.productForm.imageLabel')}
                             value={mainImage}
@@ -193,7 +193,7 @@ export default function ProductForm({ product, categories = [] }: { product?: an
                         <input type="hidden" name="image" value={mainImage} />
                     </div>
 
-                    <div className="grid gap-2">
+                    <div data-testid="product-gallery-media" className="grid gap-2">
                         <MediaUploader
                             label="Thư viện ảnh sản phẩm"
                             value={galleryImages}

@@ -16,6 +16,50 @@ export interface RegisterMediaPayload {
   url: string;
 }
 
+export interface MediaAsset {
+  id: string;
+  fileName: string;
+  mimeType: string;
+  sizeBytes: number;
+  url: string;
+  createdAt: string | null;
+}
+
+export interface MediaListParams {
+  page?: number;
+  pageSize?: number;
+  q?: string;
+  type?: "image";
+}
+
+export interface MediaListResult {
+  items: MediaAsset[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+
+function qs(params: Record<string, string | number | undefined>) {
+  const search = new URLSearchParams()
+  Object.entries(params).forEach(([key, value]) => {
+    if (value === undefined || value === "") return
+    search.set(key, String(value))
+  })
+  const text = search.toString()
+  return text ? `?${text}` : ""
+}
+
+function normalizeMediaAsset(raw: any): MediaAsset {
+  return {
+    id: String(raw?.id ?? raw?.media_id ?? raw?.key ?? raw?.url ?? ""),
+    fileName: String(raw?.fileName ?? raw?.file_name ?? raw?.name ?? "media"),
+    mimeType: String(raw?.mimeType ?? raw?.mime_type ?? raw?.content_type ?? "image/*"),
+    sizeBytes: Number(raw?.sizeBytes ?? raw?.size_bytes ?? raw?.size ?? 0),
+    url: String(raw?.url ?? raw?.publicUrl ?? raw?.public_url ?? ""),
+    createdAt: raw?.createdAt ?? raw?.created_at ?? null,
+  }
+}
+
 /**
  * Lấy Presigned URL tải lên trực tiếp Cloudflare R2 từ Go Backend
  */
@@ -80,5 +124,36 @@ export async function registerMediaMetadata(payload: RegisterMediaPayload): Prom
       "Content-Type": "application/json",
     },
     body: JSON.stringify(payload),
+  })
+}
+
+export async function getAdminMedia(params: MediaListParams = {}): Promise<MediaListResult> {
+  const page = params.page ?? 1
+  const pageSize = params.pageSize ?? 24
+  const payload = await apiFetch<any>(`/api/admin/media${qs({
+    page,
+    pageSize,
+    q: params.q,
+    type: params.type ?? "image",
+  })}`)
+  const value = payload?.data ?? payload
+  const rawItems = Array.isArray(value)
+    ? value
+    : (Array.isArray(value?.items)
+      ? value.items
+      : (Array.isArray(value?.media) ? value.media : []))
+  const items = rawItems.map(normalizeMediaAsset).filter((item: MediaAsset) => item.id && item.url)
+
+  return {
+    items,
+    total: Number(value?.total ?? payload?.total ?? items.length),
+    page: Number(value?.page ?? page),
+    pageSize: Number(value?.pageSize ?? value?.page_size ?? pageSize),
+  }
+}
+
+export async function deleteAdminMedia(id: string) {
+  return apiFetch<any>(`/api/admin/media/${encodeURIComponent(id)}`, {
+    method: "DELETE",
   })
 }

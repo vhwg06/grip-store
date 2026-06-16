@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useRef, useState, useEffect } from "react"
+import { useMemo, useRef, useState } from "react"
 import { useI18n } from "@/lib/i18n/context"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -12,10 +12,11 @@ import { toast } from "sonner"
 import { Checkbox } from "@/components/ui/checkbox"
 import { AdminBanner } from "@/domain/admin"
 import { useAdminBanners } from "@/application/hooks/useAdmin"
+import MediaUploader from "@/components/admin/media-uploader"
 
 export function AdminBannersContent() {
   const { t } = useI18n()
-  const { data: banners = [], mutate, isLoading } = useAdminBanners()
+  const { data: banners = [], mutate } = useAdminBanners()
   
   const [title, setTitle] = useState("")
   const [subtitle, setSubtitle] = useState("")
@@ -97,13 +98,19 @@ export function AdminBannersContent() {
           <CardTitle>Thêm Banner mới</CardTitle>
         </CardHeader>
         <CardContent className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <div className="floating-field">
-            <Input id="banner-image" value={image} onChange={(e) => setImage(e.target.value)} placeholder=" " />
-            <Label htmlFor="banner-image" className="floating-label">Ảnh Banner (URL)</Label>
+          <div data-testid="banner-desktop-media" className="md:col-span-2">
+            <MediaUploader
+              label="Ảnh Banner"
+              value={image}
+              onChange={(value) => setImage(value as string)}
+            />
           </div>
-          <div className="floating-field">
-            <Input id="banner-mobile-image" value={mobileImage} onChange={(e) => setMobileImage(e.target.value)} placeholder=" " />
-            <Label htmlFor="banner-mobile-image" className="floating-label">Ảnh Mobile (Tùy chọn URL)</Label>
+          <div data-testid="banner-mobile-media" className="md:col-span-2">
+            <MediaUploader
+              label="Ảnh Mobile"
+              value={mobileImage}
+              onChange={(value) => setMobileImage(value as string)}
+            />
           </div>
           <div className="floating-field">
             <Input id="banner-title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder=" " />
@@ -156,12 +163,12 @@ export function AdminBannersContent() {
           <TableBody>
             {sorted.map((b) => (
               <TableRow key={b.id}>
-                <TableCell className="w-[120px]">
-                    {b.image ? (
-                        <div className="w-20 h-10 bg-neutral-100 rounded overflow-hidden">
-                            <img src={b.image} alt={b.title || 'banner'} className="object-cover w-full h-full" />
-                        </div>
-                    ) : '-'}
+                <TableCell className="min-w-[220px]">
+                    <MediaUploader
+                      label="Ảnh"
+                      value={b.image}
+                      onChange={(value) => handleUpdate(b, { image: value as string })}
+                    />
                 </TableCell>
                 <TableCell>
                   <Input
