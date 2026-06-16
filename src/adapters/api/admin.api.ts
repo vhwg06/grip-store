@@ -487,9 +487,17 @@ export async function deleteArticle(id: string) {
 }
 
 export async function getAdminBanners() {
-  const payload = await apiFetch<{ banners?: AdminBanner[] } | AdminBanner[]>("/api/admin/banners")
+  const payload = await apiFetch<any>("/api/admin/banners")
   if (!payload) return []
-  const items = Array.isArray(payload) ? payload : payload.banners ?? []
+  const items: any[] = Array.isArray(payload)
+    ? payload
+    : Array.isArray(payload?.banners)
+      ? payload.banners
+      : Array.isArray(payload?.data)
+        ? payload.data
+        : Array.isArray(payload?.data?.banners)
+          ? payload.data.banners
+          : []
   return items.map(normalizeAdminBanner)
 }
 

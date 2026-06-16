@@ -13,7 +13,18 @@ function firstString(...values: Array<unknown>) {
 export async function getActiveBanners(): Promise<BannerSlide[]> {
   try {
     const payload = await apiFetch<any>("/api/public/homepage");
-    const blocks = payload?.data || [];
+    // Handle multiple possible response shapes from backend:
+    // { data: [...blocks] } | { data: { blocks: [...] } } | [...blocks] | { blocks: [...] }
+    let blocks: any[] = [];
+    if (Array.isArray(payload)) {
+      blocks = payload;
+    } else if (Array.isArray(payload?.data)) {
+      blocks = payload.data;
+    } else if (Array.isArray(payload?.data?.blocks)) {
+      blocks = payload.data.blocks;
+    } else if (Array.isArray(payload?.blocks)) {
+      blocks = payload.blocks;
+    }
     
     // Look for block with block_type === "banner"
     const bannerBlock = blocks.find((b: any) => b.block_type === "banner" && b.is_active);

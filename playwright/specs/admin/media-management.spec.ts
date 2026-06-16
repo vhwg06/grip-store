@@ -10,6 +10,27 @@ test.describe("Admin Media Management @admin", () => {
     storageState: "./playwright/src/fixtures/.auth/admin.json",
   });
 
+  test("should show banner management link in admin sidebar nav", async ({ page }) => {
+    await page.goto("/admin/settings");
+    await page.waitForLoadState("networkidle");
+
+    // Desktop sidebar should have the banner link (data-testid only set on desktop)
+    await expect(page.locator('[data-testid="admin-nav-banners"]')).toBeVisible();
+    await page.locator('[data-testid="admin-nav-banners"]').click();
+    await page.waitForLoadState("networkidle");
+    await expect(page).toHaveURL(/\/admin\/banners/);
+  });
+
+  test("should load banners page and show banner table", async ({ page }) => {
+    await page.goto("/admin/banners");
+    await page.waitForLoadState("networkidle");
+
+    // The page heading should exist
+    await expect(page.locator('h1').filter({ hasText: /banner/i }).first()).toBeVisible();
+    // The add form card should be visible
+    await expect(page.locator('[data-testid="banner-desktop-media"]')).toBeVisible();
+  });
+
   test("should expose media library navigation and upload/select contract", async ({ page }) => {
     await page.goto("/admin/media");
     await page.waitForLoadState("networkidle");
