@@ -6,7 +6,7 @@ import { useEffect, useState } from "react"
 import { usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger, SheetClose } from "@/components/ui/sheet"
-import { Package, CreditCard, Megaphone, Star, Download, Tags, RotateCcw, Users, Settings, QrCode, Bell, Menu, MessageSquare, Images } from "lucide-react"
+import { Package, CreditCard, Megaphone, Star, Download, Tags, RotateCcw, Users, Settings, QrCode, Bell, Menu, MessageSquare, Images, Image as BannersIcon } from "lucide-react"
 import { useI18n } from "@/lib/i18n/context"
 import { getPendingRefundRequestCount } from "@/adapters/api/admin.api"
 import { useAdminUserMessageUnreadCount } from "@/application/hooks/useNotifications"
@@ -125,6 +125,7 @@ function SidebarContent({ closeOnNavigate = false, showTitle = true, username, t
             <nav data-testid={withTestIds ? "admin-nav" : undefined} className="flex flex-col gap-2">
                 <NavLink href="/admin/settings" testId={withTestIds ? "admin-nav-settings" : undefined} icon={<Settings className="mr-2 h-4 w-4" />} label={t('common.storeSettings')} closeOnNavigate={closeOnNavigate} />
                 <NavLink href="/admin/products" testId={withTestIds ? "admin-nav-products" : undefined} icon={<Package className="mr-2 h-4 w-4" />} label={t('common.productManagement')} closeOnNavigate={closeOnNavigate} />
+                <NavLink href="/admin/banners" testId={withTestIds ? "admin-nav-banners" : undefined} icon={<BannersIcon className="mr-2 h-4 w-4" />} label={t('common.bannerManagement')} closeOnNavigate={closeOnNavigate} />
                 <NavLink href="/admin/media" testId={withTestIds ? "admin-nav-media" : undefined} icon={<Images className="mr-2 h-4 w-4" />} label="Media" closeOnNavigate={closeOnNavigate} />
                 <NavLink href="/admin/orders" testId={withTestIds ? "admin-nav-orders" : undefined} icon={<CreditCard className="mr-2 h-4 w-4" />} label={t('common.ordersRefunds')} closeOnNavigate={closeOnNavigate} />
                 <NavLink href="/admin/refunds" testId={withTestIds ? "admin-nav-refunds" : undefined} icon={<RotateCcw className="mr-2 h-4 w-4" />} label={t('common.refundRequests')} badge={refundBadge} closeOnNavigate={closeOnNavigate} />

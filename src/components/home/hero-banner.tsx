@@ -1,5 +1,4 @@
 "use client";
-import Image from "next/image";
 import Link from "next/link";
 import { useBanners } from "@/application/hooks/useBanners";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
@@ -36,7 +35,7 @@ export function HeroBanner() {
             <CarouselItem key={slide.id}>
               <div className="relative w-full h-[400px] md:h-[668px]">
                 {slide.imageUrl ? (
-                  <Image src={slide.imageUrl} alt={slide.title || "Banner"} fill className="object-cover" priority />
+                  <img src={slide.imageUrl} alt={slide.title || "Banner"} className="absolute inset-0 w-full h-full object-cover" />
                 ) : (
                   <div className="w-full h-full bg-neutral-800" />
                 )}

@@ -11,6 +11,7 @@
         "adminTitle": "Admin Panel",
         "storeSettings": "Store Settings",
         "productManagement": "Products",
+        "bannerManagement": "Banner Management",
         "dashboardProducts": "Store & Products",
         "ordersRefunds": "Order Management",
         "loggedInAs": "Logged in as",
