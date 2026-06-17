@@ -5,14 +5,14 @@
       "value": "en",
       "domain": "localhost",
       "path": "/",
-      "expires": 1811671596.761247,
+      "expires": 1813138557.907379,
       "httpOnly": false,
       "secure": false,
       "sameSite": "Lax"
     },
     {
       "name": "grip_store_access_token",
-      "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc19hZG1pbiI6dHJ1ZSwidXNlcm5hbWUiOiJ0ZXN0X2FkbWluIiwic3ViIjoiMTExMTExMTEtMTExMS0xMTExLTExMTEtMTExMTExMTExMTExIiwiZXhwIjoxNzgwMjIxOTk3fQ.bZbv_99D0BzYw-1F5DoSdaz8YY08DeS9YosBdPp4NC0",
+      "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc19hZG1pbiI6dHJ1ZSwidXNlcm5hbWUiOiJ0ZXN0X2FkbWluIiwic3ViIjoiMTExMTExMTEtMTExMS0xMTExLTExMTEtMTExMTExMTExMTExIiwiZXhwIjoxNzgxNjg4OTU4fQ.DCtYuN3T_vwVCLpxXoUtKiEjOi0T_mT236C07aFVT8Y",
       "domain": "localhost",
       "path": "/",
       "expires": -1,
@@ -22,17 +22,17 @@
     },
     {
       "name": "grip_store_refresh_token",
-      "value": "37bfc045-4348-46ce-a70f-deb8673cef73",
+      "value": "7bb9d427-869e-40af-b90f-2d437bb66f32",
       "domain": "localhost",
       "path": "/",
-      "expires": 1782727597,
+      "expires": 1784194558,
       "httpOnly": false,
       "secure": false,
       "sameSite": "Lax"
     },
     {
       "name": "grip_store_access_token_expires_at",
-      "value": "1780139197252",
+      "value": "1781606158454",
       "domain": "localhost",
       "path": "/",
       "expires": -1,
