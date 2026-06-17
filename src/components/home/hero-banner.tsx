@@ -40,13 +40,15 @@ export function HeroBanner() {
                   <div className="w-full h-full bg-neutral-800" />
                 )}
                 <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center text-center px-4">
-                  <h2 data-testid="hero-title" className="text-white text-3xl md:text-5xl font-bold mb-4">{slide.title}</h2>
-                  {slide.subtitle && <p className="text-white/90 text-lg md:text-xl mb-8 max-w-2xl">{slide.subtitle}</p>}
-                  {slide.ctaUrl && slide.ctaText && (
-                    <Link href={slide.ctaUrl} className="bg-primary text-primary-foreground px-8 py-3 rounded-full font-semibold hover:bg-primary/90 transition-colors">
-                      {slide.ctaText}
-                    </Link>
-                  )}
+                  <h2 data-testid="hero-title" className="text-white text-3xl md:text-5xl font-bold mb-4">
+                    {slide.title || "SẢN PHẨM CỦA CHÚNG TÔI"}
+                  </h2>
+                  <p className="text-white/90 text-lg md:text-xl mb-8 max-w-2xl">
+                    {slide.subtitle || "Bán lẻ và phân phối phụ kiện nắm cửa, nắm tủ, khóa cửa thông minh"}
+                  </p>
+                  <Link href={slide.ctaUrl || "/products"} className="bg-primary text-primary-foreground px-8 py-3 rounded-full font-semibold hover:bg-primary/90 transition-colors">
+                    {slide.ctaText || "Xem ngay"}
+                  </Link>
                 </div>
               </div>
             </CarouselItem>

@@ -51,10 +51,10 @@ export function MegaFooter() {
           <div className="flex flex-col lg:flex-row items-center justify-between gap-8">
             {/* Text description */}
             <div className="text-center lg:text-left max-w-xl">
-              <h3 className="text-xl md:text-2xl font-bold uppercase tracking-wider font-['SVN-Gilroy'] mb-2 text-[#2b1809]">
+              <h3 className="text-xl md:text-2xl font-bold uppercase tracking-wider font-svn-gilroy mb-2 text-[#2b1809]">
                 GRIP - TỔNG KHO TAY NẮM VIỆT NAM
               </h3>
-              <p className="text-[14px] md:text-[15px] font-medium opacity-90 leading-relaxed font-['SVN-Gilroy']">
+              <p className="text-[14px] md:text-[15px] font-medium opacity-90 leading-relaxed font-svn-gilroy">
                 Liên hệ ngay với chúng tôi để nhận báo giá dự án và ưu đãi đại lý tốt nhất.
               </p>
             </div>
@@ -74,7 +74,7 @@ export function MegaFooter() {
                   type="button"
                   onClick={handleSubscribeQuote}
                   disabled={isMutating}
-                  className="bg-[#2b1809] hover:bg-black text-white hover:text-[#c0a060] px-6 py-3 rounded-full font-bold transition-all shadow-md text-sm uppercase tracking-wider font-['SVN-Gilroy'] shrink-0 disabled:opacity-50 flex items-center gap-1.5"
+                  className="bg-[#2b1809] hover:bg-black text-white hover:text-[#c0a060] px-6 py-3 rounded-full font-bold transition-all shadow-md text-sm uppercase tracking-wider font-svn-gilroy shrink-0 disabled:opacity-50 flex items-center gap-1.5"
                 >
                   <Send className="w-4 h-4 text-white" />
                   {isMutating ? "Đang gửi..." : "ĐĂNG KÝ"}
@@ -132,7 +132,7 @@ export function MegaFooter() {
                   <Image src="/logo.svg" alt="GRIP Logo" fill className="object-contain filter brightness-110 contrast-110" />
                 </div>
               </div>
-              <p className="text-[#c0a060] font-bold text-[15px] uppercase tracking-wider font-['SVN-Gilroy'] mt-2">
+              <p className="text-[#c0a060] font-bold text-[15px] uppercase tracking-wider font-svn-gilroy mt-2">
                 TỔNG KHO TAY NẮM VIỆT NAM
               </p>
               <p className="text-neutral-400 leading-relaxed max-w-sm">
@@ -159,7 +159,7 @@ export function MegaFooter() {
             {config?.footerColumns && config.footerColumns.length > 0 ? (
               config.footerColumns.map((col) => (
                 <div key={col.id} className="space-y-4">
-                  <h4 className="text-white font-bold text-[15px] uppercase tracking-wider font-['SVN-Gilroy'] border-b border-[#9c702a]/30 pb-2">
+                  <h4 className="text-white font-bold text-[15px] uppercase tracking-wider font-svn-gilroy border-b border-[#9c702a]/30 pb-2">
                     {col.title}
                   </h4>
                   <ul className="space-y-2.5">
@@ -180,7 +180,7 @@ export function MegaFooter() {
               <>
                 {/* Fallback Column 2: Products */}
                 <div className="space-y-4">
-                  <h4 className="text-white font-bold text-[15px] uppercase tracking-wider font-['SVN-Gilroy'] border-b border-[#9c702a]/30 pb-2">
+                  <h4 className="text-white font-bold text-[15px] uppercase tracking-wider font-svn-gilroy border-b border-[#9c702a]/30 pb-2">
                     Sản Phẩm
                   </h4>
                   <ul className="space-y-2.5">
@@ -209,7 +209,7 @@ export function MegaFooter() {
 
                 {/* Fallback Column 3: Policies */}
                 <div className="space-y-4">
-                  <h4 className="text-white font-bold text-[15px] uppercase tracking-wider font-['SVN-Gilroy'] border-b border-[#9c702a]/30 pb-2">
+                  <h4 className="text-white font-bold text-[15px] uppercase tracking-wider font-svn-gilroy border-b border-[#9c702a]/30 pb-2">
                     Chính Sách
                   </h4>
                   <ul className="space-y-2.5">
@@ -238,7 +238,7 @@ export function MegaFooter() {
 
                 {/* Fallback Column 4: Guide & Support */}
                 <div className="space-y-4">
-                  <h4 className="text-white font-bold text-[15px] uppercase tracking-wider font-['SVN-Gilroy'] border-b border-[#9c702a]/30 pb-2">
+                  <h4 className="text-white font-bold text-[15px] uppercase tracking-wider font-svn-gilroy border-b border-[#9c702a]/30 pb-2">
                     Hỗ Trợ & Kết Nối
                   </h4>
                   <ul className="space-y-2.5">

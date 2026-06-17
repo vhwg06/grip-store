@@ -54,10 +54,10 @@ export function ProductListingContent() {
     <div className="flex flex-col w-full">
       {/* Top Header */}
       <div className="mb-6 text-center max-w-3xl mx-auto">
-        <h1 className="text-[28px] font-bold text-[#9c702a] font-['SVN-Gilroy'] uppercase mb-4">
+        <h1 className="text-[28px] font-bold text-[#9c702a] font-svn-gilroy uppercase mb-4">
           {q ? `Kết quả tìm kiếm cho "${q}"` : category ? `Danh mục sản phẩm` : "Danh Mục Sản Phẩm"}
         </h1>
-        <p className="text-[#2b1809] font-medium text-base leading-relaxed font-['SVN-Gilroy']">
+        <p className="text-[#2b1809] font-medium text-base leading-relaxed font-svn-gilroy">
           We&apos;ve been creating quality British entrance door hardware for over 150 years and continue to strive for perfection in everything we do. Our luxury door hardware is manufactured to the highest standard, from design through to production.
         </p>
       </div>
@@ -65,7 +65,7 @@ export function ProductListingContent() {
       {/* Search & Sort Container */}
       <div className="py-6 border-b border-t border-[#c0a060]/20 mb-8" data-testid="filter-panel">
         <div className="flex items-center justify-between mb-4">
-          <div className="text-sm font-['SVN-Gilroy']">
+          <div className="text-sm font-svn-gilroy">
             <span className="text-neutral-500">Trang chủ {'>'} </span>
             <span className="text-[#2b1809] font-medium">Tất cả sản phẩm</span>
           </div>
@@ -110,7 +110,7 @@ export function ProductListingContent() {
                 Tìm
               </button>
             </div>
-            <span className="text-sm font-medium text-[#191c1f] font-['SVN-Gilroy']">Lọc theo</span>
+            <span className="text-sm font-medium text-[#191c1f] font-svn-gilroy">Lọc theo</span>
             <div className="relative">
               <select
                 data-testid="sort-select"
@@ -142,7 +142,7 @@ export function ProductListingContent() {
         {/* Active Filters */}
         <div className="bg-[#f9f9f9] rounded flex items-center justify-between p-3 border border-neutral-100">
           <div className="flex items-center gap-3 flex-wrap">
-            <span className="text-sm font-medium text-[#6e6e6e] font-['SVN-Gilroy']">Bộ lọc đang áp dụng:</span>
+            <span className="text-sm font-medium text-[#6e6e6e] font-svn-gilroy">Bộ lọc đang áp dụng:</span>
             {selectedBrands.map((brand) => (
               <button
                 key={brand}
@@ -183,7 +183,7 @@ export function ProductListingContent() {
               </button>
             )}
           </div>
-          <div data-testid="result-count" className="text-sm font-semibold text-[#2b1809] font-['SVN-Gilroy']">
+          <div data-testid="result-count" className="text-sm font-semibold text-[#2b1809] font-svn-gilroy">
             {resultTotal} kết quả được tìm thấy.
           </div>
         </div>
@@ -191,10 +191,10 @@ export function ProductListingContent() {
 
       {/* Main Grid Title */}
       <div className="mb-8">
-        <h2 className="text-[28px] font-bold text-[#9c702a] font-['SVN-Gilroy'] uppercase mb-2">
+        <h2 className="text-[28px] font-bold text-[#9c702a] font-svn-gilroy uppercase mb-2">
           Sản Phẩm Nổi Bật
         </h2>
-        <p className="text-[#6e6e6e] font-medium text-sm font-['SVN-Gilroy']">
+        <p className="text-[#6e6e6e] font-medium text-sm font-svn-gilroy">
           Handcrafting the finest architectural hardware since 1868,<br/>
           available in over 25 luxury finishes and patinas.
         </p>

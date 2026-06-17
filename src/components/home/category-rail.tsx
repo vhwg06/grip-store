@@ -16,7 +16,7 @@ export function CategoryRail() {
           {slots.map((category, idx) => (
             <Link
               key={`slot-${idx}`}
-              href={category ? `/buy/products?category=${category.slug || category.id}` : "/buy/products"}
+              href={category ? `/products?category=${category.slug || category.id}` : "/products"}
               data-testid="category-icon"
               className="min-w-[200px] w-[200px] h-[235px] flex flex-col items-center justify-center bg-neutral-50 rounded-xl hover:shadow-md transition-all group snap-start border border-neutral-100"
             >

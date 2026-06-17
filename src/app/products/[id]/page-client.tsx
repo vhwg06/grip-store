@@ -89,7 +89,7 @@ export default function ProductDetailPageClient({ id }: { id: string }) {
             )}
 
             <div className="mb-8 border border-neutral-200 rounded-xl p-4 bg-neutral-50/50">
-              <h3 className="text-base font-bold text-[#2b1809] mb-3 uppercase tracking-wider font-['SVN-Gilroy']">Thông số kỹ thuật</h3>
+              <h3 className="text-base font-bold text-[#2b1809] mb-3 uppercase tracking-wider font-svn-gilroy">Thông số kỹ thuật</h3>
               <table data-testid="product-specs-table" className="w-full text-sm">
                 <tbody>
                   {product.specs && product.specs.length > 0 ? (

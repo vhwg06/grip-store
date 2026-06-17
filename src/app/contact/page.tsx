@@ -30,9 +30,8 @@ export default function ContactPage() {
                     <MapPin className="w-6 h-6" />
                   </div>
                   <div>
-                    <h3 className="font-bold text-lg mb-1">Địa chỉ</h3>
-                    <p className="text-neutral-600">Trụ sở: 123 Đường ABC, Quận XYZ, TP. Hà Nội</p>
-                    <p className="text-neutral-600">Showroom: 456 Đường DEF, Quận UVW, TP. HCM</p>
+                    <h3 className="font-bold text-lg mb-1">Địa chỉ văn phòng</h3>
+                    <p className="text-neutral-600">Số 05TH AVE, SunriseE, KDT The Manor Nguyễn Xiển, P.Đại Kim, Hoàng Mai, Hà Nội</p>
                   </div>
                 </div>
                 
@@ -41,9 +40,8 @@ export default function ContactPage() {
                     <Phone className="w-6 h-6" />
                   </div>
                   <div>
-                    <h3 className="font-bold text-lg mb-1">Điện thoại</h3>
-                    <p className="text-neutral-600">Hotline: 0987 654 321</p>
-                    <p className="text-neutral-600">CSKH: 1900 1234</p>
+                    <h3 className="font-bold text-lg mb-1">Số điện thoại liên hệ</h3>
+                    <p className="text-neutral-600">(+84) 985694444</p>
                   </div>
                 </div>
                 
@@ -53,8 +51,19 @@ export default function ContactPage() {
                   </div>
                   <div>
                     <h3 className="font-bold text-lg mb-1">Email</h3>
-                    <p className="text-neutral-600">Chăm sóc khách hàng: support@grip.vn</p>
-                    <p className="text-neutral-600">Liên hệ đối tác: partner@grip.vn</p>
+                    <p className="text-neutral-600">Giải đáp thắc mắc qua <a href="mailto:support@grip.com" className="text-primary hover:underline">support@grip.com</a></p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary flex-shrink-0">
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-lg mb-1">Giờ làm việc</h3>
+                    <p className="text-neutral-600"><span className="font-semibold">T2-T6:</span> 9:00 AM - 6:00 PM</p>
+                    <p className="text-neutral-600"><span className="font-semibold">T7:</span> 9:00 AM - 5:00 PM</p>
+                    <p className="text-neutral-600"><span className="font-semibold">CN:</span> NGHỈ</p>
                   </div>
                 </div>
               </div>

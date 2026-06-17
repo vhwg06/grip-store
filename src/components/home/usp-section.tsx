@@ -20,10 +20,10 @@ export function USPSection() {
               <div className="w-14 h-14 border border-[#c0a060]/30 rounded-full flex items-center justify-center mb-5 group-hover:bg-[#c0a060]/10 transition-all duration-300">
                 <usp.icon className="w-6 h-6 text-[#9c702a]" />
               </div>
-              <h3 className="font-bold text-[15px] text-[#2b1809] tracking-wider mb-2 font-['SVN-Gilroy']">
+              <h3 className="font-bold text-[15px] text-[#2b1809] tracking-wider mb-2 font-svn-gilroy">
                 {usp.title}
               </h3>
-              <p className="text-sm text-[#5c4d42] font-medium font-['SVN-Gilroy']">
+              <p className="text-sm text-[#5c4d42] font-medium font-svn-gilroy">
                 {usp.desc}
               </p>
             </div>

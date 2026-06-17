@@ -4,7 +4,7 @@ interface ContactMapProps {
 
 export function ContactMap({ mapUrl }: ContactMapProps) {
   // Default to a placeholder map if not provided
-  const defaultUrl = "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3724.096814183571!2d105.82653431533203!3d21.028811885998316!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3135ab748dc7ec15%3A0xf657d41f021759ea!2zVMO0aSBLaOG6o2ksIMSQ4buRbmcgxJBhLCBIw6AgTuG7mWksIFZpZXRuYW0!5e0!3m2!1sen!2s!4v1628134700000!5m2!1sen!2s";
+  const defaultUrl = "https://maps.google.com/maps?q=S%E1%BB%91%2005TH%20AVE%2C%20SunriseE%2C%20KDT%20The%20Manor%20Nguy%E1%BB%85n%20Xi%E1%BB%83n%2C%20P.%C4%90%E1%BA%A1i%20Kim%2C%20Ho%C3%A0ng%20Mai%2C%20H%C3%A0%20N%E1%BB%99i&t=&z=15&ie=UTF8&iwloc=&output=embed";
   
   return (
     <div className="w-full h-[400px] md:h-[500px] rounded-xl overflow-hidden border border-neutral-200 bg-neutral-100">

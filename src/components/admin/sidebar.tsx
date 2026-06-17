@@ -162,7 +162,7 @@ export function AdminSidebar({ username }: { username: string }) {
             <div className="md:hidden sticky top-0 z-40 w-full border-b bg-background/90 backdrop-blur">
                 <div className="flex items-center justify-between px-4 py-3">
                     <span className="font-bold">{t('common.adminTitle')}</span>
-                    <Sheet>
+                     <Sheet>
                         <SheetTrigger asChild>
                             <Button variant="outline" size="sm">
                                 <Menu className="h-4 w-4 mr-2" />
@@ -171,7 +171,7 @@ export function AdminSidebar({ username }: { username: string }) {
                         </SheetTrigger>
                         <SheetContent side="left" className="w-4/5 max-w-sm">
                             <div className="flex flex-1 flex-col gap-4 px-4 pb-4 pt-6">
-                                <SidebarContent closeOnNavigate showTitle={false} username={username} t={t} withTestIds={false} />
+                                <SidebarContent closeOnNavigate showTitle={false} username={username} t={t} withTestIds={true} />
                             </div>
                         </SheetContent>
                     </Sheet>
@@ -179,6 +179,7 @@ export function AdminSidebar({ username }: { username: string }) {
                 <nav data-testid={isMobileView ? "admin-nav" : undefined} className="flex items-center gap-2 overflow-x-auto px-4 pb-3">
                     <Link data-testid={isMobileView ? "admin-nav-settings" : undefined} href="/admin/settings" className="rounded-md border px-3 py-1.5 text-sm whitespace-nowrap">{t('common.storeSettings')}</Link>
                     <Link data-testid={isMobileView ? "admin-nav-products" : undefined} href="/admin/products" className="rounded-md border px-3 py-1.5 text-sm whitespace-nowrap">{t('common.productManagement')}</Link>
+                    <Link data-testid={isMobileView ? "admin-nav-banners" : undefined} href="/admin/banners" className="rounded-md border px-3 py-1.5 text-sm whitespace-nowrap">{t('common.bannerManagement')}</Link>
                     <Link data-testid={isMobileView ? "admin-nav-media" : undefined} href="/admin/media" className="rounded-md border px-3 py-1.5 text-sm whitespace-nowrap">Media</Link>
                     <Link data-testid={isMobileView ? "admin-nav-orders" : undefined} href="/admin/orders" className="rounded-md border px-3 py-1.5 text-sm whitespace-nowrap">{t('common.ordersRefunds')}</Link>
                     <Link data-testid={isMobileView ? "admin-nav-users" : undefined} href="/admin/users" className="rounded-md border px-3 py-1.5 text-sm whitespace-nowrap">{t('common.customers')}</Link>

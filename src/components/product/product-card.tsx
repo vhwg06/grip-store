@@ -83,17 +83,17 @@ export function ProductCard({
             className="object-cover group-hover:scale-105 transition-transform duration-500"
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center text-neutral-400 font-['SVN-Gilroy']">No Image</div>
+          <div className="w-full h-full flex items-center justify-center text-neutral-400 font-svn-gilroy">No Image</div>
         )}
       </div>
 
       {/* Details */}
       <div className="flex flex-col flex-1">
-        <div className="text-[12px] font-medium text-[#c0a060] font-['SVN-Gilroy'] leading-[1.2] mb-[23px] text-center uppercase tracking-wider">
+        <div className="text-[12px] font-medium text-[#c0a060] font-svn-gilroy leading-[1.2] mb-[23px] text-center uppercase tracking-wider">
           SKU: {product.sku || "2522"}
         </div>
         <Link href={buildExportRoutePath("/products", product.id)} className="block">
-          <h3 data-testid="product-title" className="text-[16px] font-semibold text-[#2b1809] font-['SVN-Gilroy'] leading-[1.2] text-center mb-[8px] line-clamp-2 group-hover:text-[#9c702a] transition-colors">
+          <h3 data-testid="product-title" className="text-[16px] font-semibold text-[#2b1809] font-svn-gilroy leading-[1.2] text-center mb-[8px] line-clamp-2 group-hover:text-[#9c702a] transition-colors">
             {product.name}
           </h3>
         </Link>
@@ -101,15 +101,15 @@ export function ProductCard({
         <div className="mt-auto pt-4 flex flex-col items-center">
           {product.compareAtPrice && parseFloat(product.compareAtPrice) > parseFloat(product.price) ? (
             <div data-testid="product-price" className="flex items-center gap-2 justify-center mb-4">
-              <span className="text-[16px] font-medium text-[#6e6e6e] line-through font-['SVN-Gilroy']">
+              <span className="text-[16px] font-medium text-[#6e6e6e] line-through font-svn-gilroy">
                 {formatPrice(product.compareAtPrice)}đ
               </span>
-              <span className="text-[16px] font-bold text-[#99782b] font-['SVN-Gilroy']">
+              <span className="text-[16px] font-bold text-[#99782b] font-svn-gilroy">
                 {formatPrice(product.price)}đ
               </span>
             </div>
           ) : (
-            <div data-testid="product-price" className="text-[16px] font-bold text-[#99782b] font-['SVN-Gilroy'] mb-4 text-center">
+            <div data-testid="product-price" className="text-[16px] font-bold text-[#99782b] font-svn-gilroy mb-4 text-center">
               {formatPrice(product.price)}đ
             </div>
           )}
@@ -117,7 +117,7 @@ export function ProductCard({
           <button
             data-testid="add-to-cart"
             onClick={handleAction}
-            className="w-full bg-[#9c702a] hover:bg-[#2b1809] text-white py-2 rounded-sm font-semibold text-[16px] font-['SVN-Gilroy'] transition-colors"
+            className="w-full bg-[#9c702a] hover:bg-[#2b1809] text-white py-2 rounded-sm font-semibold text-[16px] font-svn-gilroy transition-colors"
           >
             {variant === "home" ? "Khám phá" : "Thêm vào giỏ"}
           </button>
