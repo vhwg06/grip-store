@@ -17,6 +17,7 @@ test.describe("Figma Contract Admin @admin", () => {
     await expect(page.locator('[data-testid="admin-nav-orders"]')).toBeVisible();
     await expect(page.locator('[data-testid="admin-nav-users"]')).toBeVisible();
     await expect(page.locator('[data-testid="admin-nav-settings"]')).toBeVisible();
+    await expect(page.locator('[data-testid="admin-nav-reviews"]')).toBeVisible();
   });
 
   test("products admin route should expose table + actions", async ({ adminPage, page }) => {
@@ -31,4 +32,17 @@ test.describe("Figma Contract Admin @admin", () => {
     await expect(firstRow.locator('[data-testid="edit-btn"]')).toBeVisible();
     await expect(firstRow.locator('[data-testid="delete-btn"]')).toBeVisible();
   });
+
+  test("reviews admin route should expose queue + split actions + stats", async ({ adminPage, page }) => {
+    await adminPage.goto();
+    await adminPage.navigateTo("reviews");
+    await expect(page.locator('[data-testid="reviews-stats-pending"]')).toBeVisible();
+    await expect(page.locator('[data-testid="reviews-stats-featured"]')).toBeVisible();
+    await expect(page.locator('[data-testid="reviews-stats-hidden"]')).toBeVisible();
+    await expect(page.locator('[data-testid="reviews-queue-container"]')).toBeVisible();
+    await expect(page.locator('[data-testid="reviews-action-panel"]')).toBeVisible();
+    await expect(page.locator('[data-testid="reviews-context-panel"]')).toBeVisible();
+    await expect(page.locator('[data-testid="reviews-bulk-publish-btn"]')).toBeVisible();
+  });
 });
+
