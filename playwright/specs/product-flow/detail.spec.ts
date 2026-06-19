@@ -31,7 +31,7 @@ test.describe("Product Flow - Detail @product-flow", () => {
   test("PF-DETAIL-001 detail renders product core info", async ({ request, productDetailPage, page }) => {
     const productId = await getFirstProductIdOrNull(request);
     expect(productId, "No product available for detail flow test").toBeTruthy();
-    await productDetailPage.goto(productId);
+    await productDetailPage.goto(productId!);
     await expect(page.locator('[data-testid="product-detail-title"]')).toBeVisible();
     await expect(page.locator('[data-testid="product-detail-price"]')).toBeVisible();
   });
@@ -40,10 +40,10 @@ test.describe("Product Flow - Detail @product-flow", () => {
     const productId = await getFirstProductIdOrNull(request);
     expect(productId, "No product available for specs detail test").toBeTruthy();
     const client = new GoBackendClient(request);
-    const detail = await client.get<Record<string, unknown>>(`/v1/catalog/products/${productId}`);
+    const detail = await client.get<Record<string, unknown>>(`/v1/catalog/products/${productId!}`);
     expect(detail.ok).toBeTruthy();
     const specs = extractSpecsFromPayload(detail.data);
-    await productDetailPage.goto(productId);
+    await productDetailPage.goto(productId!);
     const specsTable = page.locator('[data-testid="product-specs-table"]');
     if (specs.length > 0) {
       await expect(specsTable).toBeVisible();
@@ -55,7 +55,7 @@ test.describe("Product Flow - Detail @product-flow", () => {
   test("PF-DETAIL-003 add-to-cart from detail increments cart count", async ({ request, productDetailPage, page }) => {
     const productId = await getFirstProductIdOrNull(request);
     expect(productId, "No product available for add-to-cart test").toBeTruthy();
-    await productDetailPage.goto(productId);
+    await productDetailPage.goto(productId!);
     const before = await readCartCount(page);
     await productDetailPage.addToCart();
     await expect(page.locator('[data-testid="cart-count"]')).toHaveText(String(before + 1));
@@ -64,7 +64,7 @@ test.describe("Product Flow - Detail @product-flow", () => {
   test("PF-DETAIL-004 quantity add-to-cart stores correct quantity", async ({ request, productDetailPage, page }) => {
     const productId = await getFirstProductIdOrNull(request);
     expect(productId, "No product available for quantity add-to-cart test").toBeTruthy();
-    await productDetailPage.goto(productId);
+    await productDetailPage.goto(productId!);
     const before = await readCartCount(page);
     await page.locator('button:has-text("+")').first().click().catch(() => undefined);
     await page.locator('[data-testid="add-to-cart-btn"]').click();

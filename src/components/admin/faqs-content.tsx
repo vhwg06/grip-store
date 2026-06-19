@@ -50,7 +50,7 @@ export function AdminFAQsContent() {
   // Filter and sort FAQs
   const filteredFAQs = useMemo(() => {
     return faqs
-      .filter((f) => {
+      .filter((f: any) => {
         // Tab filter
         if (activeTab === "ACTIVE" && !f.isActive) return false
         if (activeTab === "DRAFT" && f.isActive) return false
@@ -63,7 +63,7 @@ export function AdminFAQsContent() {
           f.answer.toLowerCase().includes(q)
         )
       })
-      .sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0))
+      .sort((a: any, b: any) => (a.sortOrder || 0) - (b.sortOrder || 0))
   }, [faqs, searchQuery, activeTab])
 
   // Handle Save (Create or Update)
@@ -207,7 +207,7 @@ export function AdminFAQsContent() {
                       : "text-[#71685a] hover:text-[#2d2617]"
                   }`}
                 >
-                  Active ({faqs.filter(f => f.isActive).length})
+                  Active ({faqs.filter((f: any) => f.isActive).length})
                 </button>
                 <button
                   onClick={() => setActiveTab("DRAFT")}
@@ -217,7 +217,7 @@ export function AdminFAQsContent() {
                       : "text-[#71685a] hover:text-[#2d2617]"
                   }`}
                 >
-                  Draft ({faqs.filter(f => !f.isActive).length})
+                  Draft ({faqs.filter((f: any) => !f.isActive).length})
                 </button>
               </div>
             </div>
@@ -229,7 +229,7 @@ export function AdminFAQsContent() {
               <div className="text-center py-12 text-muted-foreground italic">No FAQs found</div>
             ) : (
               <div className="space-y-2.5 max-h-[500px] overflow-y-auto pr-1">
-                {filteredFAQs.map((f) => {
+                {filteredFAQs.map((f: any) => {
                   const isSelected = selectedFaq?.id === f.id
                   return (
                     <div

@@ -23,7 +23,6 @@ interface Order {
     productName: string
     amount: string
     status: string | null
-    cardKey: string | null
     payee?: string | null
     createdAt: Date | string | null
     paidAt: Date | string | null
@@ -31,12 +30,11 @@ interface Order {
 
 interface OrderContentProps {
     order: Order
-    canViewKey: boolean
     isOwner: boolean
     refundRequest: { status: string | null; reason: string | null } | null
 }
 
-export function OrderContent({ order, canViewKey, isOwner, refundRequest }: OrderContentProps) {
+export function OrderContent({ order, isOwner, refundRequest }: OrderContentProps) {
     const { t } = useI18n()
     const [reason, setReason] = useState("")
     const [submitting, setSubmitting] = useState(false)
@@ -84,6 +82,7 @@ export function OrderContent({ order, canViewKey, isOwner, refundRequest }: Orde
             case 'paid': return isPayment ? t('payment.paidMessage') : t('order.stockDepleted')
             case 'cancelled': return t('order.cancelledMessage')
             case 'refunded': return t('order.orderRefunded')
+            case 'delivered': return t('order.status.delivered')
             default: return t('order.waitingPayment')
         }
     }
@@ -223,58 +222,23 @@ export function OrderContent({ order, canViewKey, isOwner, refundRequest }: Orde
                     <Separator className="bg-border/50" />
 
                     {/* Content Display */}
-                    {order.status === 'delivered' && !isPayment ? (
-                        canViewKey ? (
-                            <div className="space-y-4">
-                                <h3 className="font-semibold flex items-center gap-2">
-                                    <CheckCircle2 className="h-4 w-4 text-green-500" />
-                                    {t('order.yourContent')}
-                                </h3>
-                                {/* Terminal-style display */}
-                                <div className="relative group">
-                                    <div className="absolute -inset-0.5 bg-gradient-to-r from-primary/50 to-accent/50 rounded-xl blur opacity-20 group-hover:opacity-40 transition duration-300" />
-                                    <div className="relative p-4 bg-slate-950 rounded-xl font-mono text-sm text-slate-100 break-all whitespace-pre-wrap pr-14 border border-slate-800">
-                                        <div className="absolute top-2 left-4 flex gap-1.5">
-                                            <div className="w-2.5 h-2.5 rounded-full bg-red-500/80" />
-                                            <div className="w-2.5 h-2.5 rounded-full bg-yellow-500/80" />
-                                            <div className="w-2.5 h-2.5 rounded-full bg-green-500/80" />
-                                        </div>
-                                        <div className="mt-4">
-                                            {order.cardKey}
-                                        </div>
-                                        <div className="absolute top-3 right-3">
-                                            <CopyButton text={order.cardKey || ''} iconOnly />
-                                        </div>
-                                    </div>
-                                </div>
-                                <p className="text-xs text-muted-foreground flex items-center gap-1.5">
-                                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                    </svg>
-                                    {t('order.saveKeySecurely')}
-                                </p>
-                            </div>
-                        ) : (
-                            <div className="p-4 bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 rounded-xl flex gap-3 text-sm border border-yellow-500/20">
-                                <AlertCircle className="h-5 w-5 shrink-0" />
-                                <p>{t('order.loginToView')}</p>
-                            </div>
-                        )
-                    ) : (
-                        <div className={`flex items-center justify-between gap-3 p-4 rounded-xl border ${order.status === 'paid'
-                            ? (isPayment
-                                ? 'bg-green-500/10 text-green-600 dark:text-green-400 border-green-500/20'
-                                : 'bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/20')
-                            : 'bg-muted/20 text-muted-foreground border-border/30'
-                            }`}>
-                            <div className="flex items-center gap-3">
-                                {order.status === 'paid' ? (
-                                    isPayment ? <CheckCircle2 className="h-5 w-5" /> : <AlertCircle className="h-5 w-5" />
-                                ) : (
-                                    <Clock className="h-5 w-5" />
-                                )}
-                                <p className="text-sm">{getStatusMessage(order.status)}</p>
-                            </div>
+                    <div className={`flex items-center justify-between gap-3 p-4 rounded-xl border ${
+                        order.status === 'delivered' || (order.status === 'paid' && isPayment)
+                        ? 'bg-green-500/10 text-green-600 dark:text-green-400 border-green-500/20'
+                        : order.status === 'paid'
+                        ? 'bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/20'
+                        : 'bg-muted/20 text-muted-foreground border-border/30'
+                        }`}>
+                        <div className="flex items-center gap-3">
+                            {order.status === 'delivered' || (order.status === 'paid' && isPayment) ? (
+                                <CheckCircle2 className="h-5 w-5" />
+                            ) : order.status === 'paid' ? (
+                                <AlertCircle className="h-5 w-5" />
+                            ) : (
+                                <Clock className="h-5 w-5" />
+                            )}
+                            <p className="text-sm">{getStatusMessage(order.status)}</p>
+                        </div>
 
                             {isOwner && order.status === 'pending' && (
                                 <div className="flex gap-2">
@@ -333,7 +297,6 @@ export function OrderContent({ order, canViewKey, isOwner, refundRequest }: Orde
                                 </div>
                             )}
                         </div>
-                    )}
 
                     {isOwner && (order.status === 'paid' || order.status === 'delivered') && Number(order.amount) > 0 && (
                         <>

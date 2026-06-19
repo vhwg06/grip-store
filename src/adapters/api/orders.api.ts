@@ -24,7 +24,6 @@ function normalizeOrderSummary(order: Partial<OrderSummary>): OrderSummary {
 function normalizeOrderDetail(order: Partial<OrderDetail>): OrderDetail {
   return {
     ...normalizeOrderSummary(order),
-    cardKey: order.cardKey ?? null,
     payee: order.payee ?? null,
     paidAt: order.paidAt ?? null,
   }
@@ -57,7 +56,6 @@ export async function getOrder(id: string): Promise<OrderDetailResponse> {
 
   return {
     order: rawOrder ? normalizeOrderDetail(rawOrder) : null,
-    canViewKey: Boolean(value.canViewKey),
     isOwner: Boolean(value.isOwner),
     refundRequest: value.refundRequest ?? null,
   }

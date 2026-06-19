@@ -8,7 +8,6 @@ export function useOrder(id: string | null | undefined) {
 
   return {
     order: swr.data?.order ?? null,
-    canViewKey: Boolean(swr.data?.canViewKey),
     isOwner: Boolean(swr.data?.isOwner),
     refundRequest: swr.data?.refundRequest ?? null,
     isLoading: swr.isLoading,

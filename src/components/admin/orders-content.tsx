@@ -24,7 +24,6 @@ interface Order {
     productName: string
     amount: string
     status: string | null
-    cardKey: string | null
     tradeNo: string | null
     createdAt: Date | null
 }
@@ -270,7 +269,6 @@ export function AdminOrdersContent({
                             <TableHead>{t('admin.orders.amount')}</TableHead>
                             <TableHead>{t('admin.orders.status')}</TableHead>
                             <TableHead>{t('admin.orders.tradeNo')}</TableHead>
-                            <TableHead>{t('admin.orders.cardKey')}</TableHead>
                             <TableHead>{t('admin.orders.date')}</TableHead>
                             <TableHead className="text-right">{t('admin.orders.actions')}</TableHead>
                         </TableRow>
@@ -278,7 +276,7 @@ export function AdminOrdersContent({
                     <TableBody>
                         {orders.length === 0 ? (
                             <TableRow data-testid="admin-table-empty">
-                                <TableCell colSpan={10} className="text-center text-muted-foreground py-8">
+                                <TableCell colSpan={9} className="text-center text-muted-foreground py-8">
                                     No orders
                                 </TableCell>
                             </TableRow>
@@ -329,13 +327,6 @@ export function AdminOrdersContent({
                                 <TableCell>
                                     {order.tradeNo ? (
                                         <CopyButton text={order.tradeNo} truncate maxLength={12} />
-                                    ) : (
-                                        <span className="text-muted-foreground">-</span>
-                                    )}
-                                </TableCell>
-                                <TableCell>
-                                    {order.cardKey ? (
-                                        <CopyButton text={order.cardKey} truncate maxLength={15} />
                                     ) : (
                                         <span className="text-muted-foreground">-</span>
                                     )}

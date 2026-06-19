@@ -218,8 +218,7 @@ export function AdminRefundsContent({ requests }: { requests: any[] }) {
                         orderId: selectedRefund.orderId,
                         tradeNo: selectedRefund.tradeNo,
                         amount: selectedRefund.amount,
-                        status: selectedRefund.orderStatus,
-                        cardKey: selectedRefund.cardKey
+                        status: selectedRefund.orderStatus
                       }} />
                     )}
                   </div>

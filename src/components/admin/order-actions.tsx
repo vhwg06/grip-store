@@ -16,7 +16,7 @@ export function AdminOrderActions({ order }: { order: any }) {
 
   const status = order.status || 'pending'
   const canMarkPaid = status === 'pending'
-  const canMarkDelivered = status === 'paid' && !!order.cardKey
+  const canMarkDelivered = status === 'paid'
   const canCancel = status === 'pending'
 
   const handle = async (action: 'paid' | 'delivered' | 'cancel') => {

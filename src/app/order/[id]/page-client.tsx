@@ -7,7 +7,7 @@ import { useResolvedRouteParam } from "@/lib/route-param";
 
 export default function OrderPageClient({ id }: { id: string }) {
   const resolvedId = useResolvedRouteParam(id, "/order");
-  const { order, canViewKey, isOwner, refundRequest, isLoading } = useOrder(resolvedId);
+  const { order, isOwner, refundRequest, isLoading } = useOrder(resolvedId);
 
   if (isLoading) {
     return (
@@ -28,5 +28,5 @@ export default function OrderPageClient({ id }: { id: string }) {
     );
   }
 
-  return <OrderContent order={order} canViewKey={canViewKey} isOwner={isOwner} refundRequest={refundRequest} />;
+  return <OrderContent order={order} isOwner={isOwner} refundRequest={refundRequest} />;
 }

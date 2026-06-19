@@ -283,7 +283,7 @@ export async function getAdminUsers(params: { page?: number; q?: string; pageSiz
     ? value
     : (Array.isArray(value.items) ? value.items : (Array.isArray(value.users) ? value.users : []))
 
-  const items = rawItems.map((item) => ({
+  const items = rawItems.map((item: any) => ({
     userId: String(item.userId ?? item.user_id ?? ""),
     username: (item.username ?? item.user_name ?? null) as string | null,
     points: Number(item.points ?? 0),
