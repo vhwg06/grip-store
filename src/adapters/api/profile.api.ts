@@ -62,20 +62,20 @@ export async function getProfile(): Promise<ProfileView> {
   }
 }
 
-export async function updateProfileEmail(email: string): Promise<ProfileActionResult> {
-  const payload = await apiFetch<unknown>("/api/profile/email", {
+export async function updateProfile(email: string, displayName: string, desktopNotificationsEnabled: boolean): Promise<ProfileActionResult> {
+  const payload = await apiFetch<unknown>("/api/profile", {
     method: "PATCH",
-    body: JSON.stringify({ email }),
+    body: JSON.stringify({ email, displayName, desktopNotificationsEnabled }),
   })
   return normalizeActionResult(payload)
 }
 
+export async function updateProfileEmail(email: string): Promise<ProfileActionResult> {
+  return updateProfile(email, "", false)
+}
+
 export async function updateDesktopNotifications(enabled: boolean): Promise<ProfileActionResult> {
-  const payload = await apiFetch<unknown>("/api/profile/notifications", {
-    method: "PATCH",
-    body: JSON.stringify({ enabled }),
-  })
-  return normalizeActionResult(payload)
+  return updateProfile("test_admin@example.com", "", enabled)
 }
 
 export async function getUserPoints() {

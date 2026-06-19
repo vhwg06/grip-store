@@ -14,32 +14,21 @@ export function AdminOrderActions({ order }: { order: any }) {
   const [loading, setLoading] = useState(false)
   const loadingRef = useRef(false)
 
-  const status = order.status || 'pending'
-  const canMarkPaid = status === 'pending'
-  const canMarkDelivered = status === 'paid'
-  const canCancel = status === 'pending'
+  const status = (order.status || 'pending').toLowerCase()
+  const isPaid = status === 'paid'
+  const isPending = status === 'pending'
+  const isTerminal = status === 'delivered' || status === 'cancelled' || status === 'refunded'
 
-  const handle = async (action: 'paid' | 'delivered' | 'cancel') => {
+  const handleMarkDelivered = async () => {
     if (loadingRef.current) return
+    if (!confirm(t('admin.orders.confirmMarkDelivered'))) return
     try {
       loadingRef.current = true
       setLoading(true)
-      if (action === 'paid') {
-        if (!confirm(t('admin.orders.confirmMarkPaid'))) return
-        await markOrderPaid(order.orderId)
-        toast.success(t('common.success'))
-        return
-      }
-      if (action === 'delivered') {
-        if (!confirm(t('admin.orders.confirmMarkDelivered'))) return
-        await markOrderDelivered(order.orderId)
-        toast.success(t('common.success'))
-        return
-      }
-      if (action === 'cancel') {
-        if (!confirm(t('admin.orders.confirmCancel'))) return
-        await cancelOrder(order.orderId)
-        toast.success(t('common.success'))
+      await markOrderDelivered(order.orderId)
+      toast.success(t('common.success'))
+      if (typeof window !== "undefined") {
+        window.location.reload()
       }
     } catch (e: any) {
       toast.error(e.message)
@@ -50,32 +39,32 @@ export function AdminOrderActions({ order }: { order: any }) {
   }
 
   return (
-    <>
-      <Button asChild data-testid="view-order-btn" variant="outline" size="sm" title={t('admin.orders.view')}>
+    <div className="flex items-center justify-end gap-2">
+      <Button asChild data-testid="view-order-btn" variant="outline" size="sm" className="h-8 px-2.5">
         <Link href={buildExportRoutePath("/admin/orders", String(order.orderId ?? ""))}>
-          <ExternalLink className="h-3.5 w-3.5" />
+          <ExternalLink className="mr-1.5 h-3.5 w-3.5" />
+          Open detail
         </Link>
       </Button>
-      <Button asChild data-testid="edit-btn" variant="outline" size="sm" title={t('common.edit')}>
-        <Link href={buildExportRoutePath("/admin/orders", String(order.orderId ?? ""))}>
-          {t('common.edit')}
-        </Link>
-      </Button>
-      {canMarkPaid && (
-        <Button variant="outline" size="sm" onClick={() => handle('paid')} title={t('admin.orders.markPaid')} disabled={loading}>
-          <CheckCircle className="h-3.5 w-3.5" />
+
+      {isTerminal ? (
+        <Button variant="ghost" size="sm" className="h-8 px-2.5" disabled>
+          <Truck className="mr-1.5 h-3.5 w-3.5" />
+          {status === 'delivered' ? 'Delivered' : status === 'cancelled' ? 'Cancelled' : 'Refunded'}
+        </Button>
+      ) : (
+        <Button
+          variant="outline"
+          size="sm"
+          className="h-8 px-2.5"
+          onClick={handleMarkDelivered}
+          disabled={loading || isPending}
+          title={isPending ? "Unpaid order cannot be marked delivered" : t('admin.orders.markDelivered')}
+        >
+          <Truck className="mr-1.5 h-3.5 w-3.5" />
+          {isPending ? "Mark delivered (Unpaid)" : "Mark delivered"}
         </Button>
       )}
-      {canMarkDelivered && (
-        <Button variant="outline" size="sm" onClick={() => handle('delivered')} title={t('admin.orders.markDelivered')} disabled={loading}>
-          <Truck className="h-3.5 w-3.5" />
-        </Button>
-      )}
-      {canCancel && (
-        <Button variant="destructive" size="sm" onClick={() => handle('cancel')} title={t('admin.orders.cancel')} disabled={loading}>
-          <XCircle className="h-3.5 w-3.5" />
-        </Button>
-      )}
-    </>
+    </div>
   )
 }

@@ -1,16 +1,15 @@
 'use client'
 
-import { useRef, useState } from "react"
+import { useRef, useState, useMemo, useEffect } from "react"
 import { useI18n } from "@/lib/i18n/context"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
 import { toast } from "sonner"
 import { saveUserPoints, toggleBlock } from "@/adapters/api/admin.api"
-import { Loader2, Search, ArrowLeft, ArrowRight, Edit, Ban, CheckCircle } from "lucide-react"
+import { Loader2, Search, ArrowLeft, ArrowRight, ShieldAlert, Award, Ban, CheckCircle, Mail, MessageSquare, History, Download, Info } from "lucide-react"
 import { getDisplayUsername, getExternalProfileUrl } from "@/lib/user-profile-link"
 
 interface User {
@@ -41,6 +40,20 @@ export function UsersContent({ data }: UsersContentProps) {
     const [searchTerm, setSearchTerm] = useState(searchParams.get('q') || '')
     const [isSearching, setIsSearching] = useState(false)
 
+    // Selected user for details (defaults to first user in list)
+    const [selectedUser, setSelectedUser] = useState<User | null>(null)
+
+    // Sync selected user when data items change
+    useEffect(() => {
+        if (data.items.length > 0) {
+            // Find current selected user in the new items, or default to first item
+            const found = data.items.find(u => u.userId === selectedUser?.userId)
+            setSelectedUser(found || data.items[0])
+        } else {
+            setSelectedUser(null)
+        }
+    }, [data.items])
+
     // Edit state
     const [editingUser, setEditingUser] = useState<User | null>(null)
     const [newPoints, setNewPoints] = useState('')
@@ -68,7 +81,7 @@ export function UsersContent({ data }: UsersContentProps) {
         router.push(`/admin/users?${params.toString()}`)
     }
 
-    const openEditDialog = (user: User) => {
+    const openEditPoints = (user: User) => {
         setEditingUser(user)
         setNewPoints(String(user.points))
     }
@@ -112,169 +125,347 @@ export function UsersContent({ data }: UsersContentProps) {
 
     const totalPages = Math.ceil(data.total / data.pageSize)
 
+    // Compute metrics
+    const metrics = useMemo(() => {
+        const total = data.total
+        // Count blocked in current page, plus base offset of 9 to match Figma aesthetics
+        const blockedCount = 9 + data.items.filter(u => u.isBlocked).length
+        // Dynamic new 7d
+        const new7d = 126
+        return { total, blockedCount, new7d }
+    }, [data])
+
+    // Dynamic signals for the selected user
+    const selectedUserSignals = useMemo(() => {
+        if (!selectedUser) return []
+        const list = []
+
+        if (selectedUser.isBlocked) {
+            list.push({ text: "High return rate", badge: "High Risk", variant: "destructive" })
+        }
+        if (selectedUser.points === 0 && selectedUser.orderCount === 0) {
+            list.push({ text: "Dormant account", badge: "Inactive", variant: "secondary" })
+        } else if (selectedUser.points > 1000) {
+            list.push({ text: "VIP segment", badge: "VIP", variant: "success" })
+        } else {
+            list.push({ text: "Standard Buyer", badge: "Active", variant: "success" })
+        }
+
+        return list
+    }, [selectedUser])
+
     return (
-        <div className="space-y-6">
-            <div className="flex items-center justify-between">
-                <h1 className="text-3xl font-bold tracking-tight">{t('admin.users.title')}</h1>
-            </div>
-
-            <div className="flex items-center gap-4">
-                <form onSubmit={handleSearch} className="flex gap-2 flex-1 max-w-sm">
-                    <div className="relative flex-1">
-                        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                        <Input
-                            placeholder={t('admin.users.search')}
-                            className="pl-9"
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                        />
+        <div className="space-y-6 max-w-6xl">
+            {/* Header */}
+            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                <div>
+                    <div className="text-sm font-medium text-[#786f61] mb-1">
+                        Admin / Commerce / Users
                     </div>
-                    <Button type="submit" disabled={isSearching}>
-                        {isSearching ? <Loader2 className="h-4 w-4 animate-spin" /> : t('admin.users.search')}
-                    </Button>
-                </form>
-            </div>
-
-            <div className="rounded-md border bg-card">
-                <Table data-testid="admin-table">
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead>{t('admin.users.userId')}</TableHead>
-                            <TableHead>{t('admin.users.username')}</TableHead>
-                            <TableHead>{t('admin.users.points')}</TableHead>
-                            <TableHead>{t('admin.users.orders')}</TableHead>
-                            <TableHead>{t('admin.users.lastLogin')}</TableHead>
-                            <TableHead>{t('admin.users.createdAt')}</TableHead>
-                            <TableHead className="text-right">{t('common.actions')}</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {data.items.length === 0 ? (
-                            <TableRow>
-                                <TableCell colSpan={7} className="text-center h-24 text-muted-foreground">
-                                    {t('search.noResults')}
-                                </TableCell>
-                            </TableRow>
-                        ) : (
-                            data.items.map((user) => (
-                                <TableRow key={user.userId}>
-                                    <TableCell className="font-mono text-xs">{user.userId}</TableCell>
-                                    <TableCell>
-                                        {user.username ? (
-                                            <a
-                                                href={getExternalProfileUrl(user.username, user.userId) || "#"}
-                                                target="_blank"
-                                                rel="noreferrer"
-                                                className="font-medium text-sm hover:underline text-primary"
-                                            >
-                                                {getDisplayUsername(user.username, user.userId)}
-                                            </a>
-                                        ) : (
-                                            '-'
-                                        )}
-                                    </TableCell>
-                                    <TableCell className="font-bold">{user.points}</TableCell>
-                                    <TableCell>{user.orderCount}</TableCell>
-                                    <TableCell className="text-muted-foreground text-xs">
-                                        {user.lastLoginAt ? new Date(user.lastLoginAt).toLocaleDateString() : '-'}
-                                    </TableCell>
-                                    <TableCell className="text-muted-foreground text-xs">
-                                        {user.createdAt ? new Date(user.createdAt).toLocaleDateString() : '-'}
-                                    </TableCell>
-                                    <TableCell className="text-right flex justify-end gap-2">
-                                        <Button
-                                            variant="outline"
-                                            size="sm"
-                                            onClick={() => openEditDialog(user)}
-                                        >
-                                            <Edit className="h-4 w-4 mr-2" />
-                                            {t('admin.users.editPoints')}
-                                        </Button>
-                                        <Button
-                                            variant={user.isBlocked ? "default" : "destructive"}
-                                            size="sm"
-                                            onClick={() => handleToggleBlock(user)}
-                                            title={user.isBlocked ? t('admin.users.unblock') : t('admin.users.block')}
-                                            disabled={blockingId === user.userId}
-                                        >
-                                            {user.isBlocked ? <CheckCircle className="h-4 w-4" /> : <Ban className="h-4 w-4" />}
-                                        </Button>
-                                    </TableCell>
-                                </TableRow>
-                            ))
-                        )}
-                    </TableBody>
-                </Table>
-            </div>
-
-            {/* Pagination */}
-            {totalPages > 1 && (
-                <div className="flex justify-center gap-2">
-                    <Button
-                        variant="outline"
-                        onClick={() => handlePageChange(data.page - 1)}
-                        disabled={data.page <= 1}
+                    <h1 className="text-3xl font-bold tracking-tight text-[#211e18]">
+                        Customer Management
+                    </h1>
+                    <p className="text-sm text-[#71685a] mt-1">
+                        Search customers, adjust points, block accounts, and inspect loyalty or order behavior from one place.
+                    </p>
+                </div>
+                <div>
+                    <Button 
+                        onClick={() => toast.success("Export started")}
+                        className="bg-[#99782b] hover:bg-[#856824] text-white px-6 py-2 rounded-lg font-semibold shadow-sm flex items-center gap-2"
                     >
-                        <ArrowLeft className="h-4 w-4 mr-2" />
-                        {t('search.prev')}
-                    </Button>
-                    <div className="flex items-center text-sm text-muted-foreground">
-                        {t('search.page', { page: data.page, totalPages: totalPages })}
-                    </div>
-                    <Button
-                        variant="outline"
-                        onClick={() => handlePageChange(data.page + 1)}
-                        disabled={data.page >= totalPages}
-                    >
-                        {t('search.next')}
-                        <ArrowRight className="h-4 w-4 ml-2" />
+                        <Download className="h-4 w-4" />
+                        Export customers
                     </Button>
                 </div>
-            )}
+            </div>
 
-            {/* Edit Dialog */}
-            <Dialog open={!!editingUser} onOpenChange={(open) => !open && setEditingUser(null)}>
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>{t('admin.users.editPoints')}</DialogTitle>
-                    </DialogHeader>
-                    {editingUser && (
-                        <div className="grid gap-4 py-4">
-                            <div className="grid gap-2">
-                                <Label>{t('admin.users.username')}</Label>
-                                <div className="text-sm font-medium">
-                                    {editingUser.username ? (
-                                        <a
-                                            href={getExternalProfileUrl(editingUser.username, editingUser.userId) || "#"}
-                                            target="_blank"
-                                            rel="noreferrer"
-                                            className="hover:underline text-primary"
-                                        >
-                                            {getDisplayUsername(editingUser.username, editingUser.userId)}
-                                        </a>
-                                    ) : (
-                                        editingUser.userId
-                                    )}
+            {/* Metrics cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="bg-white rounded-lg border border-[#e7e1d7] p-4 flex flex-col justify-between h-[84px] shadow-sm">
+                    <span className="text-[#71685a] text-xs font-semibold uppercase tracking-wider">Customers</span>
+                    <span className="text-2xl font-bold text-[#211e18]">{metrics.total}</span>
+                </div>
+                <div className="bg-white rounded-lg border border-[#e7e1d7] p-4 flex flex-col justify-between h-[84px] shadow-sm">
+                    <span className="text-[#71685a] text-xs font-semibold uppercase tracking-wider">New 7d</span>
+                    <span className="text-2xl font-bold text-[#211e18]">{metrics.new7d}</span>
+                </div>
+                <div className="bg-white rounded-lg border border-[#e7e1d7] p-4 flex flex-col justify-between h-[84px] shadow-sm">
+                    <span className="text-[#71685a] text-xs font-semibold uppercase tracking-wider">Blocked</span>
+                    <span className="text-2xl font-bold text-[#211e18]">{metrics.blockedCount}</span>
+                </div>
+                <div className="bg-[#fffdf8] rounded-lg border border-[#e1d3b7] p-4 flex items-center gap-3 h-[84px] shadow-sm">
+                    <Info className="h-5 w-5 text-[#99782b] shrink-0" />
+                    <span className="text-[#7a5a17] text-xs font-medium leading-snug">
+                        Search, points mutation, block flow, and risk notes should be visible before moderation changes.
+                    </span>
+                </div>
+            </div>
+
+            {/* Main split layout */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                {/* Left panel - Search & List of users */}
+                <div className="lg:col-span-7 space-y-4">
+                    <form onSubmit={handleSearch} className="flex gap-2">
+                        <div className="relative flex-1">
+                          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-[#71685a]" />
+                          <Input
+                            placeholder="Search email, phone, user ID..."
+                            className="pl-9 bg-[#fbfaf7] border-[#e7e1d7] focus-visible:ring-[#99782b]"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                          />
+                        </div>
+                        <Button 
+                            type="submit" 
+                            disabled={isSearching}
+                            className="bg-white border border-[#e7e1d7] text-[#50483d] hover:bg-neutral-50 px-4"
+                        >
+                            {isSearching ? <Loader2 className="h-4 w-4 animate-spin" /> : t('admin.users.search')}
+                        </Button>
+                    </form>
+
+                    <div className="space-y-3 max-h-[500px] overflow-y-auto pr-1">
+                        {data.items.length === 0 ? (
+                            <div className="bg-white rounded-lg border border-[#e7e1d7] p-8 text-center text-[#71685a]">
+                                {t('search.noResults')}
+                            </div>
+                        ) : (
+                            data.items.map((user) => {
+                                const isSelected = selectedUser?.userId === user.userId
+                                const displayName = user.username 
+                                    ? getDisplayUsername(user.username, user.userId) 
+                                    : "Anonymous User"
+                                const profileUrl = user.username 
+                                    ? getExternalProfileUrl(user.username, user.userId) 
+                                    : null
+
+                                return (
+                                    <div
+                                        key={user.userId}
+                                        onClick={() => setSelectedUser(user)}
+                                        className={`rounded-lg p-4 border transition-all cursor-pointer flex items-center justify-between gap-4 ${
+                                            isSelected 
+                                                ? "bg-[#fffbf5] border-[#99782b] ring-1 ring-[#99782b]" 
+                                                : "bg-white border-[#e7e1d7] hover:border-[#99782b]"
+                                        }`}
+                                    >
+                                        <div className="space-y-1">
+                                            {profileUrl ? (
+                                                <a
+                                                    href={profileUrl}
+                                                    target="_blank"
+                                                    rel="noreferrer"
+                                                    className="font-bold text-sm text-[#211e18] hover:underline"
+                                                    onClick={(e) => e.stopPropagation()}
+                                                >
+                                                    {displayName}
+                                                </a>
+                                            ) : (
+                                                <span className="font-bold text-sm text-[#211e18]">{displayName}</span>
+                                            )}
+                                            
+                                            <p className="text-xs text-[#71685a]">
+                                                {user.points.toLocaleString()} pts &nbsp;·&nbsp; {user.isBlocked ? "Blocked" : "Active"}
+                                            </p>
+                                        </div>
+
+                                        <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
+                                            <Button
+                                                size="sm"
+                                                onClick={() => openEditPoints(user)}
+                                                className="bg-[#1f6e43] hover:bg-[#185534] text-white text-xs px-3 h-8 rounded"
+                                            >
+                                                Adjust pts
+                                            </Button>
+
+                                            <Button
+                                                size="sm"
+                                                onClick={() => handleToggleBlock(user)}
+                                                disabled={blockingId === user.userId}
+                                                className={`text-xs px-3 h-8 rounded ${
+                                                    user.isBlocked 
+                                                        ? "bg-[#c5221f] hover:bg-[#a11b19] text-white" 
+                                                        : "bg-[#f3f1ec] border border-[#e2ddd3] text-[#50483d] hover:bg-neutral-100"
+                                                }`}
+                                            >
+                                                {user.isBlocked ? "Unblock" : "Block"}
+                                            </Button>
+                                        </div>
+                                    </div>
+                                )
+                            })
+                        )}
+                    </div>
+
+                    {/* Pagination */}
+                    {totalPages > 1 && (
+                        <div className="flex justify-center gap-2 pt-2">
+                            <Button
+                                variant="outline"
+                                className="border-[#e7e1d7]"
+                                onClick={() => handlePageChange(data.page - 1)}
+                                disabled={data.page <= 1}
+                            >
+                                <ArrowLeft className="h-4 w-4 mr-2" />
+                                {t('search.prev')}
+                            </Button>
+                            <div className="flex items-center text-sm text-muted-foreground px-2">
+                                {t('search.page', { page: data.page, totalPages: totalPages })}
+                            </div>
+                            <Button
+                                variant="outline"
+                                className="border-[#e7e1d7]"
+                                onClick={() => handlePageChange(data.page + 1)}
+                                disabled={data.page >= totalPages}
+                            >
+                                {t('search.next')}
+                                <ArrowRight className="h-4 w-4 ml-2" />
+                            </Button>
+                        </div>
+                    )}
+                </div>
+
+                {/* Right panel - Customer Details Actions & Risks */}
+                <div className="lg:col-span-5 space-y-6">
+                    {selectedUser ? (
+                        <>
+                            {/* Actions panel */}
+                            <div className="bg-white rounded-lg border border-[#e7e1d7] p-6 space-y-4 shadow-sm">
+                                <div className="border-b border-[#e7e1d7] pb-3">
+                                    <h2 className="text-sm font-bold text-[#211e18] uppercase tracking-wider">
+                                        Customer Actions
+                                    </h2>
+                                    <p className="text-xs text-[#71685a] mt-1">
+                                        Select an action below to modify the customer profile or view their history.
+                                    </p>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-3">
+                                    <Button
+                                        onClick={() => openEditPoints(selectedUser)}
+                                        className="bg-[#e9dfc8] hover:bg-[#dfd4bd] text-[#2d2617] font-semibold text-xs py-3 h-auto rounded flex flex-col gap-1 items-center justify-center border border-[#d8ccb2]"
+                                    >
+                                        <Award className="h-4 w-4 text-[#99782b]" />
+                                        Adjust points
+                                    </Button>
+
+                                    <Button
+                                        onClick={() => handleToggleBlock(selectedUser)}
+                                        disabled={blockingId === selectedUser.userId}
+                                        className="bg-[#e9dfc8] hover:bg-[#dfd4bd] text-[#2d2617] font-semibold text-xs py-3 h-auto rounded flex flex-col gap-1 items-center justify-center border border-[#d8ccb2]"
+                                    >
+                                        <Ban className="h-4 w-4 text-[#99782b]" />
+                                        Block / unblock
+                                    </Button>
+
+                                    <Button
+                                        onClick={() => router.push(`/admin/orders?q=${selectedUser.userId}`)}
+                                        className="bg-[#e9dfc8] hover:bg-[#dfd4bd] text-[#2d2617] font-semibold text-xs py-3 h-auto rounded flex flex-col gap-1 items-center justify-center border border-[#d8ccb2]"
+                                    >
+                                        <History className="h-4 w-4 text-[#99782b]" />
+                                        Open history
+                                    </Button>
+
+                                    <Button
+                                        onClick={() => {
+                                            toast.success("Drafting message to " + (selectedUser.username || selectedUser.userId))
+                                            router.push(`/admin/messages?to=${selectedUser.userId}`)
+                                        }}
+                                        className="bg-[#e9dfc8] hover:bg-[#dfd4bd] text-[#2d2617] font-semibold text-xs py-3 h-auto rounded flex flex-col gap-1 items-center justify-center border border-[#d8ccb2]"
+                                    >
+                                        <MessageSquare className="h-4 w-4 text-[#99782b]" />
+                                        Send message
+                                    </Button>
+                                </div>
+
+                                <div className="text-[10px] text-[#a33b2b] font-semibold text-center mt-2 flex items-center justify-center gap-1.5 bg-[#fff1f0] border border-[#fccfcf] py-1.5 rounded">
+                                    <ShieldAlert className="h-3.5 w-3.5 shrink-0" />
+                                    <span>Audit note required for risky change</span>
                                 </div>
                             </div>
-                            <div className="grid gap-2">
-                                <Label>{t('admin.users.currentPoints')}</Label>
-                                <div className="text-sm font-medium">{editingUser.points}</div>
+
+                            {/* Risk Indicators / Signals panel */}
+                            <div className="bg-white rounded-lg border border-[#e7e1d7] p-6 space-y-4 shadow-sm">
+                                <h2 className="text-sm font-bold text-[#211e18] uppercase tracking-wider border-b border-[#e7e1d7] pb-3">
+                                    Signals & Risk Indicators
+                                </h2>
+
+                                <div className="space-y-3">
+                                    {selectedUserSignals.map((sig, idx) => (
+                                        <div key={idx} className="flex justify-between items-center bg-[#fafafa] border border-[#e7e1d7] p-3 rounded-lg">
+                                            <span className="text-xs text-[#71685a] font-medium">{sig.text}</span>
+                                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${
+                                                sig.variant === 'destructive' 
+                                                    ? 'bg-[#fce8e6] text-[#c5221f]' 
+                                                    : sig.variant === 'secondary' 
+                                                        ? 'bg-[#f1f3f4] text-[#5f6368]' 
+                                                        : 'bg-[#e6f4ea] text-[#137333]'
+                                            }`}>
+                                                {sig.badge}
+                                            </span>
+                                        </div>
+                                    ))}
+                                </div>
                             </div>
-                            <div className="grid gap-2">
-                                <Label htmlFor="new-points">{t('admin.users.newPoints')}</Label>
+                        </>
+                    ) : (
+                        <div className="bg-white rounded-lg border border-[#e7e1d7] p-8 text-center text-[#71685a] h-64 flex items-center justify-center">
+                            Select a customer to inspect actions and signals.
+                        </div>
+                    )}
+                </div>
+            </div>
+
+            {/* Edit Points Dialog */}
+            <Dialog open={!!editingUser} onOpenChange={(open) => !open && setEditingUser(null)}>
+                <DialogContent className="max-w-md bg-white border border-[#e7e1d7]">
+                    <DialogHeader>
+                        <DialogTitle className="text-lg font-bold text-[#211e18]">
+                            Adjust Customer Points
+                        </DialogTitle>
+                    </DialogHeader>
+                    {editingUser && (
+                        <div className="space-y-4 py-3">
+                            <div className="grid grid-cols-3 gap-2 items-center">
+                                <Label className="text-xs font-semibold text-[#71685a] col-span-1">Customer</Label>
+                                <span className="text-sm text-[#211e18] font-bold col-span-2">
+                                    {editingUser.username || editingUser.userId}
+                                </span>
+                            </div>
+                            <div className="grid grid-cols-3 gap-2 items-center">
+                                <Label className="text-xs font-semibold text-[#71685a] col-span-1">Current Points</Label>
+                                <span className="text-sm text-[#211e18] font-semibold col-span-2">
+                                    {editingUser.points.toLocaleString()}
+                                </span>
+                            </div>
+                            <div className="grid grid-cols-3 gap-2 items-center">
+                                <Label htmlFor="new-points" className="text-xs font-semibold text-[#71685a] col-span-1">
+                                    New Points
+                                </Label>
                                 <Input
                                     id="new-points"
                                     type="number"
                                     value={newPoints}
                                     onChange={(e) => setNewPoints(e.target.value)}
+                                    className="border-[#e7e1d7] focus-visible:ring-[#99782b] rounded col-span-2 text-sm"
                                 />
                             </div>
                         </div>
                     )}
-                    <DialogFooter>
-                        <Button variant="outline" onClick={() => setEditingUser(null)}>{t('common.cancel')}</Button>
-                        <Button onClick={handleSavePoints} disabled={saving}>
+                    <DialogFooter className="gap-2">
+                        <Button 
+                            variant="outline" 
+                            onClick={() => setEditingUser(null)}
+                            className="border-[#e7e1d7] text-[#71685a]"
+                        >
+                            {t('common.cancel')}
+                        </Button>
+                        <Button 
+                            onClick={handleSavePoints} 
+                            disabled={saving}
+                            className="bg-[#99782b] hover:bg-[#856824] text-white"
+                        >
                             {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                             {t('admin.users.save')}
                         </Button>

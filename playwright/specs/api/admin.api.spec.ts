@@ -85,8 +85,10 @@ test.describe("Admin API @api", () => {
       expect(response.status).toBe(403);
     });
 
-    test("returns 401 without auth", async () => {
-      const response = await client.get("/v1/admin/products");
+    test("returns 401 without auth", async ({ playwright }) => {
+      const unauthContext = await playwright.request.newContext();
+      const unauthClient = new GoBackendClient(unauthContext);
+      const response = await unauthClient.get("/v1/admin/products");
       expect(response.status).toBe(401);
     });
 

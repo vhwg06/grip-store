@@ -3,6 +3,7 @@
 import useSWR from "swr"
 import {
   getProfile,
+  updateProfile,
   updateDesktopNotifications,
   updateProfileEmail,
 } from "@/adapters/api/profile.api"
@@ -15,6 +16,7 @@ export function useProfile() {
     isLoading: swr.isLoading,
     error: swr.error ?? null,
     refresh: swr.mutate,
+    updateProfile,
     updateProfileEmail,
     updateDesktopNotifications,
   }

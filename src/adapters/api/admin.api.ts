@@ -385,6 +385,14 @@ export async function getAdminCollect() {
   return apiFetch<AdminCollectPayload>("/api/admin/collect")
 }
 
+export async function saveAdminCollect(payLink: string, payee: string): Promise<AdminActionResult> {
+  const payload = await apiFetch<unknown>("/api/admin/collect", {
+    method: "PUT",
+    body: JSON.stringify({ payLink, payee }),
+  })
+  return normalizeActionResult(payload)
+}
+
 export async function getAdminNotificationSettings() {
   return apiFetch<{ settings: AdminNotificationsSettings }>("/api/admin/notifications")
 }
@@ -421,15 +429,15 @@ export async function reorderProduct(id: string, newOrder: number) {
 
 
 export async function markOrderPaid(orderId: string) {
-  return postJson(`/api/admin/orders/${encodeURIComponent(orderId)}/mark-paid`)
+  return patchJson(`/api/admin/orders/${encodeURIComponent(orderId)}`, { status: "paid" })
 }
 
 export async function markOrderDelivered(orderId: string) {
-  return postJson(`/api/admin/orders/${encodeURIComponent(orderId)}/mark-delivered`)
+  return patchJson(`/api/admin/orders/${encodeURIComponent(orderId)}`, { status: "delivered" })
 }
 
 export async function cancelOrder(orderId: string) {
-  return postJson(`/api/admin/orders/${encodeURIComponent(orderId)}/cancel`)
+  return patchJson(`/api/admin/orders/${encodeURIComponent(orderId)}`, { status: "cancelled" })
 }
 
 export async function updateOrderEmail(orderId: string, email: string | null) {
@@ -461,11 +469,11 @@ export async function proxyRefund(orderId: string) {
 }
 
 export async function adminApproveRefund(requestId: number, adminNote?: string) {
-  return postJson(`/api/admin/refunds/${encodeURIComponent(String(requestId))}/approve`, { adminNote })
+  return postJson(`/api/admin/refunds/${encodeURIComponent(String(requestId))}/approve`, { note: adminNote, adminNote })
 }
 
 export async function adminRejectRefund(requestId: number, adminNote?: string) {
-  return postJson(`/api/admin/refunds/${encodeURIComponent(String(requestId))}/reject`, { adminNote })
+  return postJson(`/api/admin/refunds/${encodeURIComponent(String(requestId))}/reject`, { note: adminNote, adminNote })
 }
 
 export async function getPendingRefundRequestCount() {
@@ -714,5 +722,5 @@ export async function getAdminOrderDetails(id: string) {
 }
 
 export async function updateAdminOrderStatus(id: string, status: string, note?: string) {
-  return patchJson(`/api/admin/orders/${encodeURIComponent(id)}/status`, { status, note })
+  return patchJson(`/api/admin/orders/${encodeURIComponent(id)}`, { status: status.toLowerCase(), note })
 }
