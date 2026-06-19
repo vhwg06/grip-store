@@ -61,15 +61,17 @@ test.describe("Orders API @api", () => {
       });
     });
 
-    test("supports pagination metadata", async () => {
+    test("supports pagination metadata", async ({ request }) => {
       test.skip(!token, "TEST_USER_TOKEN not set");
 
-      const response = await client.get("/v1/orders?page=1&limit=5", {
+      const GO_BACKEND_URL = process.env.GO_BACKEND_URL ?? "http://localhost:8080";
+      const response = await request.get(`${GO_BACKEND_URL}/v1/orders?page=1&limit=5`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      expect(response.status).toBe(200);
-      expect(response.data).toHaveProperty("meta");
+      expect(response.status()).toBe(200);
+      const body = await response.json();
+      expect(body).toHaveProperty("meta");
     });
 
     test("returns 401 without auth", async () => {

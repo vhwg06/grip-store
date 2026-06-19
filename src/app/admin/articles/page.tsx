@@ -5,9 +5,5 @@ export const metadata = {
 };
 
 export default function AdminArticlesPage() {
-  return (
-    <div className="container mx-auto p-6">
-      <AdminArticlesContent />
-    </div>
-  );
+  return <AdminArticlesContent />;
 }

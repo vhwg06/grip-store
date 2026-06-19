@@ -1,13 +1,9 @@
-import { ArticleForm } from "@/components/admin/article-form";
+import { redirect } from "next/navigation";
 
 export const metadata = {
   title: "Thêm Bài viết | Admin GRIP",
 };
 
 export default function NewArticlePage() {
-  return (
-    <div className="container mx-auto p-6">
-      <ArticleForm />
-    </div>
-  );
+  redirect("/admin/articles?compose=new");
 }
