@@ -31,7 +31,8 @@ function qs(params: Record<string, string | number | boolean | null | undefined>
 }
 
 function normalizeActionResult(payload: unknown): AdminActionResult {
-  const value = (payload ?? {}) as Record<string, any>
+  const raw = (payload ?? {}) as Record<string, any>
+  const value = raw.data ? raw.data : raw
   return {
     ...value,
     success: value.success !== false && value.ok !== false,
@@ -103,12 +104,64 @@ export async function checkAdmin() {
 }
 
 export async function getAdminDashboard(): Promise<AdminDashboardPayload> {
-  const payload = await apiFetch<Partial<AdminDashboardPayload>>("/api/admin/dashboard")
+  const response = await apiFetch<{ data: any }>("/api/admin/store-settings")
+  const data = response.data || response
+
+  const config = data.config || {}
+  const brand = config.brand || {}
+  const contact = config.contact || {}
+  const homepage = config.homepage || {}
+  const footer = config.footer || {}
+  const visibility = config.visibility || {}
+  const registry = config.registry || {}
+  const floatingSupport = config.floatingSupport || []
+
+  // Map camelCase backend config to snake_case keys used by frontend pages
+  const settingsMap: Record<string, string> = {
+    "shop_name": brand.shopName || "",
+    "shop_description": brand.shopDescription || "",
+    "shop_logo": brand.shopLogo || "",
+    "theme_color": brand.themeColor || "purple",
+
+    "contact_address": contact.stickyBarAddress || "",
+    "contact_hotline": contact.stickyBarHotline || "",
+    "contact_email": contact.contactEmail || "",
+
+    "homepage_blocks": Array.isArray(homepage.blocks)
+      ? homepage.blocks.map((b: any) => b.key === "latest_news" ? "latest-news" : (b.key === "featured_products" ? "products" : b.key)).join(",")
+      : "hero,categories,latest-news",
+    "homepage_news_count": String(homepage.newsCount ?? 6),
+
+    "shop_footer": JSON.stringify(footer.columns || []),
+    "social_links": JSON.stringify({
+      ...footer.socialLinks,
+      copyright: footer.copyright || "",
+      zalo: (floatingSupport.find((a: any) => a.key === "zalo" && a.enabled)?.target) || "",
+      messenger: (floatingSupport.find((a: any) => a.key === "messenger" && a.enabled)?.target) || "",
+      hotlineCall: (floatingSupport.find((a: any) => a.key === "hotline" && a.enabled)?.target) || "",
+      scrollToTop: String(Boolean(floatingSupport.find((a: any) => a.key === "scroll_to_top")?.enabled))
+    }),
+
+    "noindex_enabled": String(Boolean(visibility.noIndexEnabled)),
+
+    "wishlist_enabled": String(Boolean(visibility.wishlistEnabled)),
+    "checkin_enabled": String(Boolean(visibility.checkinEnabled)),
+    "checkin_reward": String(visibility.checkinReward ?? 1),
+
+    "registry_opt_in": String(Boolean(registry.joined)),
+    "registry_hide_nav": String(Boolean(registry.hideNav))
+  }
+
   return {
-    stats: payload.stats ?? {},
-    settingsMap: payload.settingsMap ?? {},
-    visitorCount: Number(payload.visitorCount ?? 0),
-    registryEnabled: Boolean(payload.registryEnabled),
+    stats: data.stats || {
+      today: { count: 0, revenue: 0 },
+      week: { count: 0, revenue: 0 },
+      month: { count: 0, revenue: 0 },
+      total: { count: 0, revenue: 0 }
+    },
+    settingsMap,
+    visitorCount: Number(data.visitorCount ?? 0),
+    registryEnabled: Boolean(registry.enabled),
   }
 }
 
@@ -133,8 +186,8 @@ export async function getAdminProducts(): Promise<AdminProductsPayload> {
     image: item?.image ?? item?.image_url ?? null,
     images: Array.isArray(item?.images) ? item.images : [],
     categoryId: item?.categoryId != null
-      ? Number(item.categoryId)
-      : (item?.category_id != null ? Number(item.category_id) : null),
+      ? (isNaN(Number(item.categoryId)) ? item.categoryId : Number(item.categoryId))
+      : (item?.category_id != null ? (isNaN(Number(item.category_id)) ? item.category_id : Number(item.category_id)) : null),
     brandId: item?.brandId != null ? Number(item.brandId) : null,
     sku: item?.sku ?? null,
     isHot: Boolean(item?.isHot ?? item?.is_hot),
@@ -168,23 +221,64 @@ export async function getAdminProductForm(id?: string) {
   const path = id
     ? `/api/admin/products/${encodeURIComponent(id)}/form`
     : "/api/admin/products/new"
-  return apiFetch<{ product?: AdminProductForm; categories: AdminCategory[] }>(path)
+  const raw = await apiFetch<{ product?: any; categories: any[] }>(path)
+  const p = raw?.product
+  const normalizedProduct = p
+    ? {
+        id: String(p.id ?? ""),
+        name: String(p.title ?? p.name ?? ""),
+        description: p.description ?? null,
+        price: String(p.price ?? "0"),
+        compareAtPrice: p.compare_price != null
+          ? String(p.compare_price)
+          : (p.compareAtPrice != null ? String(p.compareAtPrice) : null),
+        image: p.image_url ?? p.image ?? null,
+        images: Array.isArray(p.images) ? p.images : [],
+        categoryId: p.category_id ?? p.categoryId ?? null,
+        category: p.category ?? null,
+        brandId: p.brand_id != null
+          ? Number(p.brand_id)
+          : (p.brandId != null ? Number(p.brandId) : null),
+        sku: p.sku ?? null,
+        isHot: Boolean(p.is_hot ?? p.isHot),
+        isShared: Boolean(p.is_shared ?? p.isShared),
+        isActive: Boolean(p.is_active ?? p.isActive),
+        purchaseLimit: p.purchase_limit != null
+          ? Number(p.purchase_limit)
+          : (p.purchaseLimit != null ? Number(p.purchaseLimit) : null),
+        purchaseWarning: p.purchase_warning ?? p.purchaseWarning ?? null,
+        visibilityLevel: Number(p.visibility_level ?? p.visibilityLevel ?? -1),
+        stock: Number(p.stock_count ?? p.stock ?? 0),
+        sold: Number(p.sold_count ?? p.sold ?? 0),
+        usageGuide: p.usageGuide ?? p.usage_guide ?? null,
+        bundledGifts: p.bundledGifts ?? p.bundled_gifts ?? null,
+        sortOrder: Number(p.sort_order ?? p.sortOrder ?? 0),
+        specs: Array.isArray(p.specs) ? p.specs : [],
+      }
+    : undefined
+  const normalizedCategories = (raw?.categories ?? []).map((c: any) => ({
+    id: c.id,
+    name: c.name ?? "",
+    slug: c.slug ?? "",
+    icon: c.icon ?? null,
+    sortOrder: Number(c.sort_order ?? c.sortOrder ?? 0),
+    parentId: c.parent_id ?? c.parentId ?? null,
+    isActive: Boolean(c.is_active ?? c.isActive ?? true),
+  }))
+  return { product: normalizedProduct, categories: normalizedCategories }
 }
 
 export async function getAdminCategories() {
-  const payload = await apiFetch<{ categories?: AdminCategory[] } | AdminCategory[]>("/api/admin/categories")
-  return Array.isArray(payload) ? payload : payload.categories ?? []
+  const payload = await apiFetch<any>("/api/admin/categories")
+  const raw = payload?.data || payload
+  return Array.isArray(raw) ? raw : raw.categories ?? []
 }
 
-export async function getAdminCards(productId: string) {
-  return apiFetch<{ productId: string; productName: string; unusedCards: any[]; apiConfig: any }>(
-    `/api/admin/products/${encodeURIComponent(productId)}/cards`,
-  )
-}
 
 export async function getAdminUsers(params: { page?: number; q?: string; pageSize?: number }) {
   const payload = await apiFetch<unknown>(`/api/admin/users${qs(params)}`)
-  const value = (payload ?? {}) as Record<string, any>
+  const raw = (payload ?? {}) as Record<string, any>
+  const value = raw.data || raw
   const rawItems = Array.isArray(value)
     ? value
     : (Array.isArray(value.items) ? value.items : (Array.isArray(value.users) ? value.users : []))
@@ -218,21 +312,23 @@ export async function getAdminOrder(id: string) {
 }
 
 export async function getAdminRefunds() {
-  const payload = await apiFetch<{ requests?: any[] } | any[]>("/api/admin/refunds")
-  return Array.isArray(payload) ? payload : payload.requests ?? []
+  const payload = await apiFetch<any>("/api/admin/refunds")
+  const raw = payload?.data || payload
+  return Array.isArray(raw) ? raw : raw.requests ?? []
 }
 
 export async function getAdminReviews() {
   const payload = await apiFetch<any>("/api/admin/reviews")
-  if (Array.isArray(payload)) {
+  const raw = payload?.data || payload
+  if (Array.isArray(raw)) {
     return {
-      reviews: payload,
+      reviews: raw,
       stats: { pending: 0, featured: 0, hidden: 0 }
     }
   }
   return {
-    reviews: payload?.reviews ?? [],
-    stats: payload?.stats ?? { pending: 0, featured: 0, hidden: 0 }
+    reviews: raw?.reviews ?? [],
+    stats: raw?.stats ?? { pending: 0, featured: 0, hidden: 0 }
   }
 }
 
@@ -285,6 +381,13 @@ export async function getAdminNotificationSettings() {
 }
 
 export async function saveProduct(formData: FormData) {
+  const id = formData.get("id") as string | null
+  if (id && id.trim()) {
+    return apiFetch<unknown>(`/api/admin/products/${encodeURIComponent(id.trim())}`, {
+      method: "PATCH",
+      body: formData,
+    }).then(normalizeActionResult)
+  }
   return apiFetch<unknown>("/api/admin/products", {
     method: "POST",
     body: formData,
@@ -307,36 +410,6 @@ export async function reorderProduct(id: string, newOrder: number) {
   return patchJson(`/api/admin/products/${encodeURIComponent(id)}/order`, { sortOrder: newOrder })
 }
 
-export async function addCards(formData: FormData) {
-  return apiFetch<unknown>("/api/admin/cards", {
-    method: "POST",
-    body: formData,
-  }).then(normalizeActionResult)
-}
-
-export async function deleteCard(cardId: number) {
-  return deleteJson(`/api/admin/cards/${encodeURIComponent(String(cardId))}`)
-}
-
-export async function deleteCards(cardIds: number[]) {
-  return deleteJson("/api/admin/cards", { cardIds })
-}
-
-export async function saveCardsApiConfig(productId: string, apiUrl: string, apiToken: string, enabled: boolean) {
-  return patchJson(`/api/admin/products/${encodeURIComponent(productId)}/cards/api`, {
-    apiUrl,
-    apiToken,
-    enabled,
-  })
-}
-
-export async function setCardsApiEnabled(productId: string, enabled: boolean, apiUrl?: string, apiToken?: string) {
-  return patchJson(`/api/admin/products/${encodeURIComponent(productId)}/cards/api/enabled`, { enabled, apiUrl, apiToken })
-}
-
-export async function pullCardFromApi(productId: string) {
-  return postJson(`/api/admin/products/${encodeURIComponent(productId)}/cards/pull`)
-}
 
 export async function markOrderPaid(orderId: string) {
   return postJson(`/api/admin/orders/${encodeURIComponent(orderId)}/mark-paid`)
@@ -468,8 +541,56 @@ export const saveCheckinReward = (value: string) => saveSetting("checkin_reward"
 export const saveCheckinEnabled = (enabled: boolean) => saveSetting("checkin_enabled", enabled)
 export const saveWishlistEnabled = (enabled: boolean) => saveSetting("wishlist_enabled", enabled)
 export const saveNoIndex = (enabled: boolean) => saveSetting("noindex_enabled", enabled)
-export const saveRefundReclaimCards = (enabled: boolean) => saveSetting("refund_reclaim_cards", enabled)
 export const saveRegistryHideNav = (enabled: boolean) => saveSetting("registry_hide_nav", enabled)
+
+export async function saveBrandSettings(brand: { shopName: string; shopDescription: string; shopLogo: string; themeColor: string }) {
+  return apiFetch<unknown>("/api/admin/store-settings/brand", {
+    method: "PUT",
+    body: JSON.stringify(brand),
+  }).then(normalizeActionResult)
+}
+
+export async function saveContactSettings(contact: { stickyBarAddress: string; stickyBarHotline: string; contactEmail: string }) {
+  return apiFetch<unknown>("/api/admin/store-settings/contact", {
+    method: "PUT",
+    body: JSON.stringify(contact),
+  }).then(normalizeActionResult)
+}
+
+export async function saveHomepageSettings(homepage: { blocks: Array<{ key: string; enabled: boolean; order: number }>; newsCount: number }) {
+  return apiFetch<unknown>("/api/admin/store-settings/homepage", {
+    method: "PUT",
+    body: JSON.stringify(homepage),
+  }).then(normalizeActionResult)
+}
+
+export async function saveFooterSettings(footer: { columns: any[]; copyright: string; socialLinks: Record<string, string> }) {
+  return apiFetch<unknown>("/api/admin/store-settings/footer", {
+    method: "PUT",
+    body: JSON.stringify(footer),
+  }).then(normalizeActionResult)
+}
+
+export async function saveFloatingSupportSettings(actions: Array<{ key: string; enabled: boolean; target: string | null }>) {
+  return apiFetch<unknown>("/api/admin/store-settings/floating-support", {
+    method: "PUT",
+    body: JSON.stringify({ actions }),
+  }).then(normalizeActionResult)
+}
+
+export async function saveVisibilitySettings(visibility: { noIndexEnabled: boolean; wishlistEnabled: boolean; checkinEnabled: boolean; checkinReward: number }) {
+  return apiFetch<unknown>("/api/admin/store-settings/visibility", {
+    method: "PUT",
+    body: JSON.stringify(visibility),
+  }).then(normalizeActionResult)
+}
+
+export async function saveRegistrySettings(registry: { joined: boolean; hideNav: boolean }) {
+  return apiFetch<unknown>("/api/admin/store-settings/registry", {
+    method: "PUT",
+    body: JSON.stringify(registry),
+  }).then(normalizeActionResult)
+}
 
 export async function saveNotificationSettings(formData: FormData) {
   const payload = await apiFetch<Partial<AdminNotificationsSettings> & AdminActionResult>("/api/admin/notifications", {
@@ -502,14 +623,16 @@ export async function deleteReview(reviewId: number) {
 }
 
 export async function getAdminArticles() {
-  const payload = await apiFetch<{ articles?: AdminArticle[] } | AdminArticle[]>("/api/admin/articles")
-  const items = Array.isArray(payload) ? payload : payload.articles ?? []
+  const payload = await apiFetch<any>("/api/admin/articles")
+  const raw = payload?.data || payload
+  const items = Array.isArray(raw) ? raw : raw.articles ?? []
   return items.map(normalizeAdminArticle)
 }
 
 export async function getAdminArticle(id: string) {
   const payload = await apiFetch<any>(`/api/admin/articles/${encodeURIComponent(id)}`)
-  return normalizeAdminArticle(payload)
+  const raw = payload?.data || payload
+  return normalizeAdminArticle(raw)
 }
 
 export async function saveArticle(formData: FormData) {
@@ -526,14 +649,15 @@ export async function deleteArticle(id: string) {
 export async function getAdminBanners() {
   const payload = await apiFetch<any>("/api/admin/banners")
   if (!payload) return []
-  const items: any[] = Array.isArray(payload)
-    ? payload
-    : Array.isArray(payload?.banners)
-      ? payload.banners
-      : Array.isArray(payload?.data)
-        ? payload.data
-        : Array.isArray(payload?.data?.banners)
-          ? payload.data.banners
+  const raw = payload.data || payload
+  const items: any[] = Array.isArray(raw)
+    ? raw
+    : Array.isArray(raw?.banners)
+      ? raw.banners
+      : Array.isArray(raw?.data)
+        ? raw.data
+        : Array.isArray(raw?.data?.banners)
+          ? raw.data.banners
           : []
   return items.map(normalizeAdminBanner)
 }
@@ -550,8 +674,9 @@ export async function deleteBanner(id: number) {
 }
 
 export async function getAdminFAQs() {
-  const payload = await apiFetch<{ faqs?: AdminFAQ[] } | AdminFAQ[]>("/api/admin/faqs")
-  return Array.isArray(payload) ? payload : payload.faqs ?? []
+  const payload = await apiFetch<any>("/api/admin/faqs")
+  const raw = payload?.data || payload
+  return Array.isArray(raw) ? raw : raw.faqs ?? []
 }
 
 export async function saveFAQ(formData: FormData) {
@@ -566,8 +691,9 @@ export async function deleteFAQ(id: number) {
 }
 
 export async function getAdminLeads() {
-  const payload = await apiFetch<{ leads?: AdminLead[] } | AdminLead[]>("/api/admin/leads")
-  return Array.isArray(payload) ? payload : payload.leads ?? []
+  const payload = await apiFetch<any>("/api/admin/leads")
+  const raw = payload?.data || payload
+  return Array.isArray(raw) ? raw : raw.leads ?? []
 }
 
 export async function updateAdminLead(id: string, updates: Partial<AdminLead>) {

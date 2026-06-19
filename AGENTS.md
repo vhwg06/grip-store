@@ -150,3 +150,12 @@ Apply it as an admin-appropriate design audit, not as marketing-style visual exc
 ### Artifact Rule
 
 Each admin module should maintain its own folder under `/specs/<module>/` and Phase 1 artifacts must remain aligned with `/specs/admin-module-map.md`.
+
+---
+
+## 🚫 No Mocking / Hardcoding Rule
+
+**Never use mock or fake data in the codebase.**
+- All UI components must display and interact with real data fetched from the backend (server-side state).
+- Do not use client-side mocking (e.g., hardcoded arrays, E2E conditional mock states, etc.).
+- If specific data is required for tests or layout verification (such as products, reviews, categories, etc.), it must be seeded directly in the backend database using SQL migration files, scripts, or official backend APIs (e.g., in `/Users/cynus/Desktop/go-grip`).

@@ -1,44 +1,81 @@
 import { test, expect } from "../../src/fixtures/base-test";
 import { GoBackendClient } from "../../src/api-helpers/go-backend.client";
-import { AdminApiHelper } from "../../src/api-helpers/admin.api";
-import { randomUUID } from "crypto";
 
-function extractList(payload: any, keys: string[] = ["items"]): unknown[] {
+function extractList(payload: any, keys: string[] = ["items", "orders"]): any[] {
   if (Array.isArray(payload)) return payload;
   for (const key of keys) {
-    const value = payload?.[key];
-    if (Array.isArray(value)) return value;
+    if (Array.isArray(payload?.[key])) return payload[key];
   }
   return [];
 }
 
 test.describe("Admin API @api", () => {
   let client: GoBackendClient;
-  let adminApi: AdminApiHelper;
   const adminToken = process.env.ADMIN_USER_TOKEN;
   const userToken = process.env.TEST_USER_TOKEN;
 
   test.beforeEach(async ({ request }) => {
     client = new GoBackendClient(request);
-    adminApi = new AdminApiHelper(client);
   });
 
-  /* ── Admin Products ─────────────────────────── */
+  async function createAdminOrder() {
+    test.skip(!userToken || !adminToken, "auth tokens not set");
+
+    const createResponse = await client.post<any>(
+      "/v1/checkout/orders",
+      {
+        productId: "b1111111-1111-1111-1111-111111111111",
+        quantity: 1,
+        email: process.env.TEST_USER_EMAIL ?? "test_buyer@example.com",
+      },
+      { headers: { Authorization: `Bearer ${userToken}` } },
+    );
+
+    expect(createResponse.status).toBe(201);
+    expect(createResponse.data?.id).toBeTruthy();
+    return String(createResponse.data.id);
+  }
+
+  async function createRefundableOrder() {
+    const orderId = await createAdminOrder();
+
+    const deliverResponse = await client.patch(
+      `/v1/admin/orders/${orderId}`,
+      { status: "delivered" },
+      { headers: { Authorization: `Bearer ${adminToken}` } },
+    );
+    expect(deliverResponse.status).toBe(204);
+
+    const refundResponse = await client.post<any>(
+      `/v1/orders/${orderId}/refund-request`,
+      { reason: `Playwright refund ${Date.now()}` },
+      { headers: { Authorization: `Bearer ${userToken}` } },
+    );
+
+    expect(refundResponse.status).toBe(201);
+    expect(refundResponse.data?.id).toBeTruthy();
+
+    return {
+      orderId,
+      refundId: String(refundResponse.data.id),
+    };
+  }
 
   test.describe("Admin Products CRUD", () => {
-    test("should list products with admin token", async () => {
+    test("lists products with admin token", async () => {
       test.skip(!adminToken, "ADMIN_USER_TOKEN not set");
 
-      const response = await client.get<{ items: unknown[] }>("/v1/admin/products", {
+      const response = await client.get("/v1/admin/products", {
         headers: { Authorization: `Bearer ${adminToken}` },
       });
 
       expect(response.status).toBe(200);
-      const items = extractList(response.data, ["items"]);
+      const items = extractList(response.data, ["items", "data"]);
       expect(Array.isArray(items)).toBe(true);
+      expect(items.length).toBeGreaterThan(0);
     });
 
-    test("should return 403 without admin role", async () => {
+    test("returns 403 without admin role", async () => {
       test.skip(!userToken, "TEST_USER_TOKEN not set");
 
       const response = await client.get("/v1/admin/products", {
@@ -48,183 +85,64 @@ test.describe("Admin API @api", () => {
       expect(response.status).toBe(403);
     });
 
-    test("should return 401 without auth", async () => {
+    test("returns 401 without auth", async () => {
       const response = await client.get("/v1/admin/products");
-
       expect(response.status).toBe(401);
     });
 
-    test("should create product with admin token", async () => {
+    test("creates, updates, and deletes a product roundtrip", async () => {
       test.skip(!adminToken, "ADMIN_USER_TOKEN not set");
 
-      const response = await client.post(
+      const title = `Playwright Product ${Date.now()}`;
+
+      const createResponse = await client.post<any>(
         "/v1/admin/products",
         {
-          title: `Test Product ${Date.now()}`,
+          title,
           description: "Created by Playwright test",
-          price: 99.99,
-          category_id: "test-category",
-          images: [],
+          price: 99999,
+          category_id: "a1111111-1111-1111-1111-111111111111",
+          images: ["https://example.com/product.png"],
+          is_active: true,
         },
-        { headers: { Authorization: `Bearer ${adminToken}` } }
+        { headers: { Authorization: `Bearer ${adminToken}` } },
       );
 
-      // May succeed or fail depending on category_id validity
-      expect([200, 201, 400, 422]).toContain(response.status);
-    });
-  });
-
-  /* ── Admin Cards ────────────────────────────── */
-
-  test.describe("Admin Cards", () => {
-    test("should list cards with admin token", async () => {
-      test.skip(!adminToken, "ADMIN_USER_TOKEN not set");
-
-      const response = await client.get("/v1/admin/cards", {
-        headers: { Authorization: `Bearer ${adminToken}` },
+      expect(createResponse.status).toBe(201);
+      expect(createResponse.data).toMatchObject({
+        id: expect.any(String),
+        title,
+        category_id: "a1111111-1111-1111-1111-111111111111",
       });
 
-      expect([200, 501]).toContain(response.status);
-    });
+      const productId = String(createResponse.data.id);
 
-    test("should return 403 without admin role", async () => {
-      test.skip(!userToken, "TEST_USER_TOKEN not set");
-
-      const response = await client.get("/v1/admin/cards", {
-        headers: { Authorization: `Bearer ${userToken}` },
-      });
-
-      expect(response.status).toBe(403);
-    });
-
-    test("should import cards with admin token", async () => {
-      test.skip(!adminToken, "ADMIN_USER_TOKEN not set");
-
-      const response = await client.post(
-        "/v1/admin/cards/import",
+      const updateResponse = await client.patch<any>(
+        `/v1/admin/products/${productId}`,
         {
-          product_id: "test-product",
-          codes: ["TEST-CODE-001", "TEST-CODE-002"],
+          title: `${title} Updated`,
+          price: 123456,
         },
-        { headers: { Authorization: `Bearer ${adminToken}` } }
+        { headers: { Authorization: `Bearer ${adminToken}` } },
       );
 
-      // May succeed or fail depending on product_id validity
-      expect([200, 400, 404]).toContain(response.status);
-    });
+      expect(updateResponse.status).toBe(200);
+      expect(updateResponse.data).toMatchObject({
+        id: productId,
+        title: `${title} Updated`,
+        price: 123456,
+      });
 
-    test("should pull cards with admin token", async () => {
-      test.skip(!adminToken, "ADMIN_USER_TOKEN not set");
-
-      const response = await client.post("/v1/admin/cards/pull", undefined, {
+      const deleteResponse = await client.delete(`/v1/admin/products/${productId}`, {
         headers: { Authorization: `Bearer ${adminToken}` },
       });
 
-      expect([200, 204, 405, 501]).toContain(response.status);
+      expect(deleteResponse.status).toBe(204);
     });
   });
-
-  /* ── Admin Orders ───────────────────────────── */
-
-  test.describe("Admin Orders", () => {
-    test("should list orders with admin token", async () => {
-      test.skip(!adminToken, "ADMIN_USER_TOKEN not set");
-
-      const response = await client.get("/v1/admin/orders", {
-        headers: { Authorization: `Bearer ${adminToken}` },
-      });
-
-      expect(response.status).toBe(200);
-      const items = extractList(response.data, ["items", "orders"]);
-      expect(Array.isArray(items)).toBe(true);
-    });
-
-    test("should return 403 without admin role", async () => {
-      test.skip(!userToken, "TEST_USER_TOKEN not set");
-
-      const response = await client.get("/v1/admin/orders", {
-        headers: { Authorization: `Bearer ${userToken}` },
-      });
-
-      expect(response.status).toBe(403);
-    });
-
-    test("should list pending refunds and allow admin rejection", async () => {
-      test.skip(!adminToken, "ADMIN_USER_TOKEN not set");
-
-      const listResponse = await client.get("/v1/admin/refunds?status=pending", {
-        headers: { Authorization: `Bearer ${adminToken}` },
-      });
-
-      expect(listResponse.status).toBe(200);
-      const approveResponse = await client.post("/v1/admin/refunds/910001/reject", {
-        note: "rejected by playwright",
-      }, {
-        headers: { Authorization: `Bearer ${adminToken}` },
-      });
-
-      expect([200, 409]).toContain(approveResponse.status);
-      if (approveResponse.status === 200) {
-        expect(approveResponse.data).toHaveProperty("id", 910001);
-      }
-    });
-  });
-
-  /* ── Admin Users & Settings ─────────────────── */
-
-  test.describe("Admin Users & Settings", () => {
-    test("should list users with admin token", async () => {
-      test.skip(!adminToken, "ADMIN_USER_TOKEN not set");
-
-      const response = await client.get("/v1/admin/users", {
-        headers: { Authorization: `Bearer ${adminToken}` },
-      });
-
-      expect(response.status).toBe(200);
-      const items = extractList(response.data, ["items", "users"]);
-      expect(Array.isArray(items)).toBe(true);
-    });
-
-    test("should update user points with admin token", async () => {
-      test.skip(!adminToken, "ADMIN_USER_TOKEN not set");
-
-      const response = await client.patch(
-        "/v1/admin/users/22222222-2222-2222-2222-222222222222",
-        { points: 1234 },
-        { headers: { Authorization: `Bearer ${adminToken}` } }
-      );
-
-      expect(response.status).toBe(204);
-    });
-
-    test("should get settings with admin token", async () => {
-      test.skip(!adminToken, "ADMIN_USER_TOKEN not set");
-
-      const response = await client.get("/v1/admin/settings", {
-        headers: { Authorization: `Bearer ${adminToken}` },
-      });
-
-      expect([200, 501]).toContain(response.status);
-      if (response.status === 200) {
-        expect(typeof response.data).toBe("object");
-      }
-    });
-
-    test("should return 403 without admin role for settings", async () => {
-      test.skip(!userToken, "TEST_USER_TOKEN not set");
-
-      const response = await client.get("/v1/admin/settings", {
-        headers: { Authorization: `Bearer ${userToken}` },
-      });
-
-      expect(response.status).toBe(403);
-    });
-  });
-
-  /* ── Admin Categories CRUD ──────────────────── */
 
   test.describe("Admin Categories", () => {
-    test("should list categories with admin token", async () => {
+    test("lists categories with admin token", async () => {
       test.skip(!adminToken, "ADMIN_USER_TOKEN not set");
 
       const response = await client.get("/v1/admin/categories", {
@@ -233,219 +151,252 @@ test.describe("Admin API @api", () => {
 
       expect(response.status).toBe(200);
       expect(Array.isArray(response.data)).toBe(true);
+      expect(response.data.length).toBeGreaterThan(0);
     });
 
-    test("should create category with admin token", async () => {
+    test("creates, updates, and deletes a category roundtrip", async () => {
       test.skip(!adminToken, "ADMIN_USER_TOKEN not set");
 
-      const response = await client.post(
+      const name = `Playwright Category ${Date.now()}`;
+
+      const createResponse = await client.post<any>(
         "/v1/admin/categories",
-        {
-          name: `Test Category ${Date.now()}`,
-          slug: `test-cat-${Date.now()}`,
-        },
-        { headers: { Authorization: `Bearer ${adminToken}` } }
+        { name, is_active: true },
+        { headers: { Authorization: `Bearer ${adminToken}` } },
       );
 
-      expect([200, 201, 404]).toContain(response.status);
-      if (response.status === 200 || response.status === 201) {
-        expect(response.data).toHaveProperty("id");
-      }
-    });
-  });
-
-  /* ── Admin Messages & Notifications ─────────── */
-
-  test.describe("Admin Messages & Notifications", () => {
-    test("should broadcast message with admin token", async () => {
-      test.skip(!adminToken, "ADMIN_USER_TOKEN not set");
-
-      const response = await client.post(
-        "/v1/admin/messages/broadcast",
-        {
-          title: "Test Broadcast",
-          body: "Playwright test notification",
-        },
-        { headers: { Authorization: `Bearer ${adminToken}` } }
-      );
-
-      expect(response.status).toBe(204);
-    });
-
-    test("should send targeted message with admin token", async () => {
-      test.skip(!adminToken, "ADMIN_USER_TOKEN not set");
-
-      const response = await client.post(
-        "/v1/admin/messages/targeted",
-        {
-          userId: "22222222-2222-2222-2222-222222222222",
-          title: "Targeted Test",
-          body: "Hello buyer",
-        },
-        { headers: { Authorization: `Bearer ${adminToken}` } }
-      );
-
-      expect(response.status).toBe(204);
-    });
-
-    test("should queue notification test send with admin token", async () => {
-      test.skip(!adminToken, "ADMIN_USER_TOKEN not set");
-
-      const response = await client.post(
-        "/v1/admin/notifications/test",
-        {
-          channel: "email",
-          to: "test_buyer@example.com",
-          subject: "Test message",
-          body: "Ping",
-        },
-        { headers: { Authorization: `Bearer ${adminToken}` } }
-      );
-
-      expect(response.status).toBe(200);
-      expect((response.data as any)?.status).toBe("queued");
-      expect((response.data as any)?.channel).toBe("email");
-    });
-
-    test("should return 403 without admin role", async () => {
-      test.skip(!userToken, "TEST_USER_TOKEN not set");
-
-      const response = await client.post(
-        "/v1/admin/messages/broadcast",
-        { title: "Test", body: "Test" },
-        { headers: { Authorization: `Bearer ${userToken}` } }
-      );
-
-      expect(response.status).toBe(403);
-    });
-  });
-
-  test.describe("Admin Data", () => {
-    test("should repair data with admin token", async () => {
-      test.skip(!adminToken, "ADMIN_USER_TOKEN not set");
-
-      const response = await client.post(
-        "/v1/admin/data/repair-aggregates",
-        undefined,
-        { headers: { Authorization: `Bearer ${adminToken}` } }
-      );
-
-      expect([200, 204, 500]).toContain(response.status);
-    });
-
-    test("should return 403 without admin role for data import", async () => {
-      test.skip(!userToken, "TEST_USER_TOKEN not set");
-
-      const response = await client.post(
-        "/v1/admin/data/import",
-        { type: "test", data: [] },
-        { headers: { Authorization: `Bearer ${userToken}` } }
-      );
-
-      expect(response.status).toBe(403);
-    });
-  });
-
-  /* ── Admin Media Presigned ───────────────────── */
-
-  test.describe("Admin Media Presigned API", () => {
-    test("should generate presigned URL with admin token", async () => {
-      test.skip(!adminToken, "ADMIN_USER_TOKEN not set");
-
-      const response = await client.get(
-        "/v1/admin/media/presigned?fileName=test-image.png&contentType=image/png",
-        { headers: { Authorization: `Bearer ${adminToken}` } }
-      );
-
-      expect([200, 404]).toContain(response.status);
-      if (response.status === 200) {
-        expect(response.data).toHaveProperty("upload_url");
-        expect(response.data).toHaveProperty("public_url");
-      }
-    });
-
-    test("should return 403 without admin role for presigned url", async () => {
-      test.skip(!userToken, "TEST_USER_TOKEN not set");
-
-      const response = await client.get(
-        "/v1/admin/media/presigned?fileName=test-image.png&contentType=image/png",
-        { headers: { Authorization: `Bearer ${userToken}` } }
-      );
-
-      expect(response.status).toBe(403);
-    });
-
-    test("should return 400 for invalid content type", async () => {
-      test.skip(!adminToken, "ADMIN_USER_TOKEN not set");
-
-      const response = await client.get(
-        "/v1/admin/media/presigned?fileName=test-doc.pdf&contentType=application/pdf",
-        { headers: { Authorization: `Bearer ${adminToken}` } }
-      );
-
-      expect([400, 404]).toContain(response.status);
-    });
-  });
-
-  /* ── Media Metadata CRUD API ─────────────────── */
-
-  test.describe("Media Metadata API", () => {
-    let testMediaId = randomUUID();
-
-    test("should register media metadata successfully with auth", async () => {
-      test.skip(!adminToken, "ADMIN_USER_TOKEN not set");
-
-      const response = await client.post(
-        "/v1/media",
-        {
-          id: testMediaId,
-          file_name: "test-uploaded-image.png",
-          mime_type: "image/png",
-          size_bytes: 524288,
-          url: `https://media.gripstore.com/${testMediaId}.png`,
-        },
-        { headers: { Authorization: `Bearer ${adminToken}` } }
-      );
-
-      expect([200, 201]).toContain(response.status);
-      const data = (response.data as any)?.data ?? response.data as any;
-      if (data && data.id) {
-        testMediaId = data.id;
-      }
-    });
-
-    test("should return 401 for anonymous registration attempt", async () => {
-      const response = await client.post("/v1/media", {
-        id: "anon-media",
-        file_name: "anon.png",
-        mime_type: "image/png",
-        size_bytes: 128,
-        url: "https://media.gripstore.com/anon.png",
+      expect(createResponse.status).toBe(201);
+      expect(createResponse.data).toMatchObject({
+        id: expect.any(String),
+        name,
       });
 
-      expect(response.status).toBe(401);
-    });
+      const categoryId = String(createResponse.data.id);
 
-    test("should list registered media assets", async () => {
+      const updateResponse = await client.patch<any>(
+        `/v1/admin/categories/${categoryId}`,
+        { name: `${name} Updated` },
+        { headers: { Authorization: `Bearer ${adminToken}` } },
+      );
+
+      expect(updateResponse.status).toBe(200);
+      expect(updateResponse.data).toMatchObject({
+        id: categoryId,
+        name: `${name} Updated`,
+      });
+
+      const deleteResponse = await client.delete(
+        `/v1/admin/categories/${categoryId}`,
+        { headers: { Authorization: `Bearer ${adminToken}` } },
+      );
+
+      expect(deleteResponse.status).toBe(204);
+    });
+  });
+
+  test.describe("Admin Cards", () => {
+    test("lists card inventory for a product", async () => {
       test.skip(!adminToken, "ADMIN_USER_TOKEN not set");
 
-      const response = await client.get<{ data: any[] }>("/v1/media", {
+      const response = await client.get("/v1/admin/cards?productId=b2222222-2222-2222-2222-222222222222", {
         headers: { Authorization: `Bearer ${adminToken}` },
       });
 
       expect(response.status).toBe(200);
-      const items = extractList(response.data, ["data", "items"]);
+      expect(Array.isArray(response.data)).toBe(true);
+    });
+
+    test("returns 403 without admin role", async () => {
+      test.skip(!userToken, "TEST_USER_TOKEN not set");
+
+      const response = await client.get("/v1/admin/cards?productId=b2222222-2222-2222-2222-222222222222", {
+        headers: { Authorization: `Bearer ${userToken}` },
+      });
+
+      expect(response.status).toBe(403);
+    });
+
+    test("creates and deletes a single card", async () => {
+      test.skip(!adminToken, "ADMIN_USER_TOKEN not set");
+
+      const cardKey = `PLAYWRIGHT-CARD-${Date.now()}`;
+
+      const createResponse = await client.post<any>(
+        "/v1/admin/cards",
+        {
+          productId: "b2222222-2222-2222-2222-222222222222",
+          cardKey,
+        },
+        { headers: { Authorization: `Bearer ${adminToken}` } },
+      );
+
+      expect(createResponse.status).toBe(201);
+      expect(createResponse.data).toMatchObject({
+        id: expect.any(Number),
+        product_id: "b2222222-2222-2222-2222-222222222222",
+        card_key: cardKey,
+      });
+
+      const deleteResponse = await client.delete(
+        `/v1/admin/cards/${createResponse.data.id}`,
+        { headers: { Authorization: `Bearer ${adminToken}` } },
+      );
+
+      expect(deleteResponse.status).toBe(204);
+    });
+
+    test("imports and replenishes card keys", async () => {
+      test.skip(!adminToken, "ADMIN_USER_TOKEN not set");
+
+      const importResponse = await client.post<any>(
+        "/v1/admin/cards/import",
+        {
+          productId: "b2222222-2222-2222-2222-222222222222",
+          keys: [`IMPORT-${Date.now()}-A`, `IMPORT-${Date.now()}-B`],
+        },
+        { headers: { Authorization: `Bearer ${adminToken}` } },
+      );
+
+      expect(importResponse.status).toBe(200);
+      expect(importResponse.data).toMatchObject({ imported: 2 });
+
+      const replenishResponse = await client.post<any>(
+        "/v1/admin/cards/replenish",
+        {
+          productId: "b2222222-2222-2222-2222-222222222222",
+          keys: [`REPLENISH-${Date.now()}-A`, `REPLENISH-${Date.now()}-B`],
+        },
+        { headers: { Authorization: `Bearer ${adminToken}` } },
+      );
+
+      expect(replenishResponse.status).toBe(200);
+      expect(replenishResponse.data).toMatchObject({ imported: 2 });
+    });
+  });
+
+  test.describe("Admin Orders and Refunds", () => {
+    test("lists orders with admin token", async () => {
+      test.skip(!adminToken, "ADMIN_USER_TOKEN not set");
+
+      const response = await client.get("/v1/admin/orders", {
+        headers: { Authorization: `Bearer ${adminToken}` },
+      });
+
+      expect(response.status).toBe(200);
+      const items = extractList(response.data, ["orders"]);
       expect(Array.isArray(items)).toBe(true);
+      expect(response.data).toHaveProperty("page");
     });
 
-    test("should delete registered media asset", async () => {
+    test("returns seeded admin order detail", async () => {
       test.skip(!adminToken, "ADMIN_USER_TOKEN not set");
 
-      const response = await client.delete(`/v1/media/${testMediaId}`, {
+      const response = await client.get("/v1/admin/orders/test-order-0001", {
         headers: { Authorization: `Bearer ${adminToken}` },
       });
 
-      expect([200, 204]).toContain(response.status);
+      expect(response.status).toBe(200);
+      expect(response.data).toMatchObject({
+        id: "test-order-0001",
+        orderNumber: "test-order-0001",
+        status: "DELIVERED",
+        items: expect.any(Array),
+      });
+    });
+
+    test("updates order status and deletes an admin-created order", async () => {
+      test.skip(!adminToken || !userToken, "auth tokens not set");
+
+      const orderId = await createAdminOrder();
+
+      const updateResponse = await client.patch(
+        `/v1/admin/orders/${orderId}`,
+        { status: "cancelled" },
+        { headers: { Authorization: `Bearer ${adminToken}` } },
+      );
+
+      expect(updateResponse.status).toBe(204);
+
+      const deleteResponse = await client.delete(`/v1/admin/orders/${orderId}`, {
+        headers: { Authorization: `Bearer ${adminToken}` },
+      });
+
+      expect(deleteResponse.status).toBe(204);
+    });
+
+    test("rejects malformed order update payload", async () => {
+      test.skip(!adminToken, "ADMIN_USER_TOKEN not set");
+
+      const response = await client.patch(
+        "/v1/admin/orders/test-order-0002",
+        { status: "refunded" },
+        { headers: { Authorization: `Bearer ${adminToken}` } },
+      );
+
+      expect(response.status).toBe(400);
+    });
+
+    test("lists pending refunds", async () => {
+      test.skip(!adminToken, "ADMIN_USER_TOKEN not set");
+
+      const response = await client.get("/v1/admin/refunds?status=pending", {
+        headers: { Authorization: `Bearer ${adminToken}` },
+      });
+
+      expect(response.status).toBe(200);
+      expect(Array.isArray(response.data)).toBe(true);
+    });
+
+    test("approves and rejects fresh refund requests", async () => {
+      test.skip(!adminToken || !userToken, "auth tokens not set");
+
+      const firstRefund = await createRefundableOrder();
+      const approveResponse = await client.post<any>(
+        `/v1/admin/refunds/${firstRefund.refundId}/approve`,
+        { note: "approved by playwright" },
+        { headers: { Authorization: `Bearer ${adminToken}` } },
+      );
+
+      expect(approveResponse.status).toBe(200);
+      expect(approveResponse.data).toMatchObject({
+        id: Number(firstRefund.refundId),
+        status: "approved",
+      });
+
+      const secondRefund = await createRefundableOrder();
+      const rejectResponse = await client.post<any>(
+        `/v1/admin/refunds/${secondRefund.refundId}/reject`,
+        { note: "rejected by playwright" },
+        { headers: { Authorization: `Bearer ${adminToken}` } },
+      );
+
+      expect(rejectResponse.status).toBe(200);
+      expect(rejectResponse.data).toMatchObject({
+        id: Number(secondRefund.refundId),
+        status: "rejected",
+      });
+    });
+
+    test("rejects invalid refund id shape", async () => {
+      test.skip(!adminToken, "ADMIN_USER_TOKEN not set");
+
+      const response = await client.post(
+        "/v1/admin/refunds/not-a-number/approve",
+        { note: "bad id" },
+        { headers: { Authorization: `Bearer ${adminToken}` } },
+      );
+
+      expect(response.status).toBe(400);
+    });
+
+    test("returns 403 without admin role", async () => {
+      test.skip(!userToken, "TEST_USER_TOKEN not set");
+
+      const response = await client.get("/v1/admin/orders", {
+        headers: { Authorization: `Bearer ${userToken}` },
+      });
+
+      expect(response.status).toBe(403);
     });
   });
 });

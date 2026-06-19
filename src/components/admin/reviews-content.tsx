@@ -8,7 +8,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { toast } from "sonner"
-import { approveReview, hideReview, featureReview, bulkPublishReviews } from "@/adapters/api/admin.api"
+import { approveReview, hideReview, featureReview, bulkPublishReviews, deleteReview } from "@/adapters/api/admin.api"
 import { Star, ShieldCheck, AlertTriangle, ExternalLink, Image as ImageIcon, CheckCircle, EyeOff, LayoutGrid } from "lucide-react"
 
 interface ReviewRow {
@@ -128,6 +128,23 @@ export function AdminReviewsContent({ reviews: initialReviews, stats }: { review
     }
   }
 
+  const handleDelete = async (r: ReviewRow) => {
+    if (!window.confirm("Are you sure you want to delete this review?")) return
+    setActionLoading(true)
+    try {
+      await deleteReview(r.id)
+      setReviews((prev) => prev.filter((item) => item.id !== r.id))
+      if (selectedReview?.id === r.id) {
+        setSelectedReview(reviews.find((item) => item.id !== r.id) || null)
+      }
+      toast.success(t('common.success'))
+    } catch (e: any) {
+      toast.error(e.message || "Failed to delete review")
+    } finally {
+      setActionLoading(false)
+    }
+  }
+
   const handleBulkPublish = async () => {
     if (checkedIds.length === 0) return
     setLoading(true)
@@ -151,25 +168,38 @@ export function AdminReviewsContent({ reviews: initialReviews, stats }: { review
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header and Search */}
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight text-foreground font-svn-gilroy">Review Moderation</h1>
-          <p className="text-sm text-muted-foreground mt-1">Manage and moderate customer reviews and ratings</p>
+    <div className="w-[1056px] space-y-6">
+      {/* Page Title to satisfy Figma contract */}
+      <div>
+        <div className="flex items-center gap-1.5 text-xs text-[#787774] mb-1 font-medium mt-[26px]">
+          <span>Admin</span>
+          <span>/</span>
+          <span>Commerce</span>
+          <span>/</span>
+          <span className="text-foreground font-medium">Reviews</span>
         </div>
-        <div className="flex items-center gap-3">
+        <h1 className="text-[32px] font-bold tracking-tight text-[#211e18] font-svn-gilroy mt-[57px] leading-none">
+          Review Moderation
+        </h1>
+        <p className="text-sm text-[#71685a] mt-[12px]">
+          Moderate product reviews, highlight high-signal feedback, and quarantine suspicious or abusive content.
+        </p>
+      </div>
+
+      {/* Header Search and Action controls */}
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mt-[36px]">
+        <div className="flex items-center gap-3 w-full md:w-auto">
           <Input
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search reviews by product, user or comment..."
-            className="w-full md:w-[360px]"
+            className="w-full md:w-[360px] bg-white border-[#e7e1d7] rounded-lg"
           />
           <Button
             data-testid="reviews-bulk-publish-btn"
             onClick={handleBulkPublish}
             disabled={loading || checkedIds.length === 0}
-            className="shrink-0"
+            className="shrink-0 bg-[#99782b] hover:bg-[#99782b]/90 text-white rounded-lg text-xs font-semibold h-8"
           >
             {loading ? "Publishing..." : `Publish Selected (${checkedIds.length})`}
           </Button>
@@ -180,7 +210,7 @@ export function AdminReviewsContent({ reviews: initialReviews, stats }: { review
       <div className="grid gap-4 md:grid-cols-4">
         <Card data-testid="reviews-stats-pending" className="border-border/60 shadow-sm relative overflow-hidden bg-gradient-to-br from-amber-500/5 to-amber-500/10">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-amber-600 dark:text-amber-500">Pending Reviews</CardTitle>
+            <CardTitle className="text-sm font-medium text-amber-600 dark:text-amber-500">Pending</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold tracking-tight text-amber-700 dark:text-amber-500">{stats.pending}</div>
@@ -190,7 +220,7 @@ export function AdminReviewsContent({ reviews: initialReviews, stats }: { review
 
         <Card data-testid="reviews-stats-featured" className="border-border/60 shadow-sm relative overflow-hidden bg-gradient-to-br from-indigo-500/5 to-indigo-500/10">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-indigo-600 dark:text-indigo-500">Featured Reviews</CardTitle>
+            <CardTitle className="text-sm font-medium text-indigo-600 dark:text-indigo-500">Featured</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold tracking-tight text-indigo-700 dark:text-indigo-500">{stats.featured}</div>
@@ -200,7 +230,7 @@ export function AdminReviewsContent({ reviews: initialReviews, stats }: { review
 
         <Card data-testid="reviews-stats-hidden" className="border-border/60 shadow-sm relative overflow-hidden bg-gradient-to-br from-neutral-500/5 to-neutral-500/10">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-neutral-600 dark:text-neutral-500">Hidden Reviews</CardTitle>
+            <CardTitle className="text-sm font-medium text-neutral-600 dark:text-neutral-500">Hidden</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold tracking-tight text-neutral-700 dark:text-neutral-500">{stats.hidden}</div>
@@ -322,14 +352,14 @@ export function AdminReviewsContent({ reviews: initialReviews, stats }: { review
           {/* Detail Context Card */}
           <Card data-testid="reviews-context-panel" className="border-border/60 shadow-sm">
             <CardHeader className="border-b pb-3.5 bg-muted/10">
-              <CardTitle className="text-base font-bold font-svn-gilroy">Review Details</CardTitle>
+              <CardTitle className="text-base font-bold font-svn-gilroy">Context</CardTitle>
             </CardHeader>
             <CardContent className="pt-4 space-y-4">
               {selectedReview ? (
                 <>
                   {/* Product Info */}
                   <div className="space-y-1">
-                    <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground block">Product</span>
+                    <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground block">Product link</span>
                     <a
                       data-testid="context-product-link"
                       href={`/products/${selectedReview.product_id ?? selectedReview.productId}`}
@@ -344,7 +374,7 @@ export function AdminReviewsContent({ reviews: initialReviews, stats }: { review
 
                   {/* Buyer Profile */}
                   <div className="space-y-1">
-                    <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground block">Buyer Profile</span>
+                    <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground block">Buyer profile</span>
                     <div data-testid="context-buyer-profile" className="flex items-center gap-2 bg-muted/30 p-2.5 rounded-lg border">
                       <div className="min-w-0">
                         <p className="text-sm font-bold text-foreground truncate">{selectedReview.username}</p>
@@ -355,7 +385,7 @@ export function AdminReviewsContent({ reviews: initialReviews, stats }: { review
 
                   {/* Order Info */}
                   <div className="space-y-1">
-                    <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground block">Order Info</span>
+                    <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground block">Order ID</span>
                     <p data-testid="context-order-id" className="text-sm font-bold text-foreground font-mono">
                       {selectedReview.order_id ?? selectedReview.orderId ?? "N/A"}
                     </p>
@@ -390,7 +420,7 @@ export function AdminReviewsContent({ reviews: initialReviews, stats }: { review
                   {/* Attachments */}
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Attachments</span>
+                      <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Image Preview</span>
                       <span data-testid="context-attachment-count" className="text-xs font-bold text-foreground">
                         {selectedReview.attachments?.length || 0} files
                       </span>
@@ -431,7 +461,7 @@ export function AdminReviewsContent({ reviews: initialReviews, stats }: { review
           {/* Action Panel Card */}
           <Card data-testid="reviews-action-panel" className="border-border/60 shadow-sm bg-muted/5">
             <CardHeader className="border-b pb-3.5">
-              <CardTitle className="text-base font-bold font-svn-gilroy">Moderation Actions</CardTitle>
+              <CardTitle className="text-base font-bold font-svn-gilroy">Moderation</CardTitle>
             </CardHeader>
             <CardContent className="pt-4 flex flex-col gap-2">
               <Button
@@ -442,7 +472,7 @@ export function AdminReviewsContent({ reviews: initialReviews, stats }: { review
                 className="w-full flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white"
               >
                 <CheckCircle className="w-4 h-4 shrink-0" />
-                Approve & Publish
+                Approve
               </Button>
               <Button
                 data-testid="review-action-feature"
@@ -452,7 +482,7 @@ export function AdminReviewsContent({ reviews: initialReviews, stats }: { review
                 className="w-full flex items-center justify-center gap-2 border-indigo-500/30 text-indigo-600 hover:bg-indigo-50 hover:text-indigo-700 dark:hover:bg-indigo-950/20"
               >
                 <LayoutGrid className="w-4 h-4 shrink-0" />
-                {selectedReview?.status === "FEATURED" ? "Unfeature Review" : "Feature Review"}
+                Feature review
               </Button>
               <Button
                 data-testid="review-action-hide"
@@ -462,7 +492,16 @@ export function AdminReviewsContent({ reviews: initialReviews, stats }: { review
                 className="w-full flex items-center justify-center gap-2 border-border/60 hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30"
               >
                 <EyeOff className="w-4 h-4 shrink-0" />
-                Hide from Public
+                Hide
+              </Button>
+              <Button
+                data-testid="review-action-delete"
+                variant="destructive"
+                onClick={() => selectedReview && handleDelete(selectedReview)}
+                disabled={actionLoading || !selectedReview}
+                className="w-full flex items-center justify-center gap-2"
+              >
+                Delete
               </Button>
             </CardContent>
           </Card>

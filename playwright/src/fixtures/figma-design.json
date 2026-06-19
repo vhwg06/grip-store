@@ -1,0 +1,102 @@
+{
+  "sidebar": {
+    "brandTitle": "GRIP Admin",
+    "brandSubtitle": "Admin operations",
+    "sectionCms": "CMS",
+    "sectionCommerce": "COMMERCE",
+    "navItems": [
+      { "id": "settings", "label": "Store Settings", "url": "/admin/settings" },
+      { "id": "banners", "label": "Banners", "url": "/admin/banners" },
+      { "id": "articles", "label": "Articles", "url": "/admin/articles" },
+      { "id": "product-content", "label": "Product Content", "url": "/admin/products" },
+      { "id": "about", "label": "About-Us", "url": "/admin/settings" },
+      { "id": "media", "label": "Media Library", "url": "/admin/media" },
+      { "id": "products", "label": "Products", "url": "/admin/products" },
+      { "id": "orders", "label": "Orders & Refunds", "url": "/admin/orders" },
+      { "id": "users", "label": "Users", "url": "/admin/users" },
+      { "id": "reviews", "label": "Reviews", "url": "/admin/reviews" },
+      { "id": "messages", "label": "Messages", "url": "/admin/messages" },
+      { "id": "notifications", "label": "Notifications", "url": "/admin/notifications" },
+      { "id": "announcements", "label": "Announcements", "url": "/admin/announcement" },
+      { "id": "data", "label": "Data", "url": "/admin/data" },
+      { "id": "collect", "label": "Collect", "url": "/admin/collect" },
+      { "id": "categories", "label": "Categories", "url": "/admin/categories" },
+      { "id": "leads", "label": "Leads", "url": "/admin/leads" },
+      { "id": "profile", "label": "Profile", "url": "/admin/profile" }
+    ]
+  },
+  "settings": {
+    "title": "Store Settings",
+    "subtitle": "Storefront configuration for brand, contact, homepage layout, footer, support channels, and visibility rules.",
+    "statusStrip": "Brand identity: 4 editable fields   |   Homepage: 3 active modules   |   Support: 4 active channels   |   Grouped save boundaries enabled",
+    "headings": {
+      "brand": "Brand identity + logo",
+      "contact": "Contact + discovery",
+      "homepage": "Homepage composition",
+      "footer": "Footer & Social Links",
+      "support": "Floating Support Settings",
+      "visibility": "Discovery & visibility",
+      "registry": "Registry & legacy controls"
+    },
+    "buttons": {
+      "saveBrand": "Save brand",
+      "saveContact": "Save contact",
+      "saveHomepage": "Save homepage",
+      "saveFooter": "Save Footer & Socials",
+      "saveSupport": "Save support",
+      "chooseMedia": "Choose media asset"
+    },
+    "labels": {
+      "shopName": "Shop name",
+      "description": "Description",
+      "themeColor": "Theme color",
+      "shopLogo": "Shop logo",
+      "address": "Address",
+      "hotline": "Hotline",
+      "email": "Support email",
+      "mapsUrl": "Google Maps Embed URL",
+      "copyright": "Footer Copyright",
+      "facebookUrl": "Facebook URL",
+      "instagramUrl": "Instagram URL",
+      "tiktokUrl": "TikTok URL",
+      "zalo": "Zalo Chat Widget",
+      "messenger": "Facebook Messenger",
+      "hotlineCall": "Hotline Call Button",
+      "scrollToTop": "Scroll To Top Button"
+    },
+    "notes": {
+      "homepageBlocks": "Homepage blocks[]: Hero / Featured grips / News strip. Duplicate block type is blocked before save.",
+      "validationNote": "Invalid email or negative homepageNewsCount keeps the affected save group blocked.",
+      "newsCount": "News count: 3 (standard storefront news strip limit)",
+      "mapMessage": "No map preview available. Please enter a valid embed URL."
+    }
+  },
+  "reviews": {
+    "title": "Review Moderation",
+    "subtitle": "Moderate product reviews, highlight high-signal feedback, and quarantine suspicious or abusive content.",
+    "alertText": "Moderation needs image context before publish.",
+    "primaryButtonText": "Publish selected",
+    "headings": {
+      "moderation": "Moderation",
+      "context": "Context"
+    },
+    "metrics": {
+      "pending": "Pending\n31",
+      "featured": "Featured\n18",
+      "hidden": "Hidden\n7"
+    },
+    "actions": {
+      "approve": "Approve",
+      "hide": "Hide",
+      "feature": "Feature review",
+      "delete": "Delete"
+    },
+    "context": {
+      "productLink": "Product link",
+      "buyerProfile": "Buyer profile",
+      "orderId": "Order ID",
+      "attachmentCount": "Attachment count",
+      "imagePreview": "Image Preview"
+    }
+  }
+}

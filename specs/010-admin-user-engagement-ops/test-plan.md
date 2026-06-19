@@ -2,14 +2,17 @@
 
 ## Active Scope
 
+- `GET /v1/notifications`
+- `GET /v1/notifications/unread-count`
+- `POST /v1/notifications/:id/read`
+- `POST /v1/notifications/read-all`
+- `DELETE /v1/notifications`
+- `POST /v1/admin/notifications/test`
+
+## Out of Scope
+
 - `/admin/users`
 - `/admin/messages`
-- `/admin/notifications`
-
-## Parked Routes
-
-The following routes are outside the current active package and should not be counted in this test plan:
-
 - `/admin/leads`
 - `/admin/announcement`
 - `/admin/collect`
@@ -18,36 +21,30 @@ The following routes are outside the current active package and should not be co
 
 ## API Coverage
 
-- users list and moderation mutations
-- messages send/clear/delete/read
-- notification settings/test sends
-- validation/auth failures
-
-## E2E Coverage
-
-- admin can complete moderation flow on users route
-- admin can compose, preview, and confirm send on messages route
-- admin can edit notification channel settings and test-send from notifications route
+- authenticated inbox list
+- authenticated unread count
+- mark single notification read
+- mark all notifications read
+- clear notification inbox
+- admin raw notification test-send
+- 401 for missing auth on buyer routes
+- 401/403 boundary on admin route
+- 400 for invalid notification ID shape
 
 ## Integration Coverage
 
-- adapter request payload shaping for users/messages/notifications
-- response normalization and error mapping into UI-safe state
+- request/response mapping for notification handlers
+- permission enforcement
+- invalid-input error mapping
 
-## UI / Route Workflow Coverage
+## E2E Coverage
 
-- users list and actions
-- messages compose/history/inbox
-- notification settings forms
-
-## Optional Figma Parity / Visual Contract Assertions
-
-- users route keeps search, row-action, risk-state, and moderation CTA hierarchy
-- messages route keeps audience, preview, confirm-send, and blocked-send state presentation
-- notifications route keeps channel edit, test CTA, and failure-note presentation
+- buyer inbox renders list or empty state
+- buyer can trigger read actions
+- buyer can clear inbox
 
 ## Gate Rules
 
-- tests should assert backend-owned permissions and side effects
-- figma review must pass for active scope before UI contract is treated as final
-- Figma parity assertions must not be used to define behavior; they only protect UI contract
+- active `010` completion is measured only against notification contracts
+- admin users/messages tests must not be counted toward `010` readiness
+- tests must assert backend-owned status codes and side effects, not permissive fallbacks

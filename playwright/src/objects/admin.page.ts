@@ -7,6 +7,10 @@ export class AdminPage extends BasePage {
       state: "visible",
       timeout: 12_000,
     });
+    const loading = this.page.locator('[data-item-id="loading-placeholder"]');
+    if (await loading.count() > 0) {
+      await loading.waitFor({ state: "hidden", timeout: 15_000 });
+    }
   }
 
   async navigateTo(section: string) {
@@ -18,6 +22,10 @@ export class AdminPage extends BasePage {
       state: "visible",
       timeout: 12_000,
     });
+    const loading = this.page.locator('[data-item-id="loading-placeholder"]');
+    if (await loading.count() > 0) {
+      await loading.waitFor({ state: "hidden", timeout: 15_000 });
+    }
   }
 
   async getTableRows(): Promise<number> {

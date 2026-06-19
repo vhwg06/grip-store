@@ -1,40 +1,43 @@
 # Feature Specification: Admin User Engagement Operations
 
-**Feature Branch**: `010-admin-user-engagement-ops`
-**Created**: 2026-06-18
-**Status**: Phase 1 source of truth
+**Feature Branch**: `010-admin-user-engagement-ops`  
+**Created**: 2026-06-18  
+**Status**: Active Phase 1 source of truth
 
 ## Module Intent
 
-Module này khóa active Phase 1 package cho admin user engagement ở 3 route:
+Module `010-admin-user-engagement-ops` is narrowed to notification use cases only.
 
-- users
-- messages
-- notifications
+Active Phase 1 package for this module covers:
 
-Phase split bắt buộc:
+- buyer notification inbox operations
+- admin raw notification test-send contract
 
-- **Phase 1**: chốt đủ `use-cases.md`, `spec.md`, `contracts.md`, `figma-review.md`, `test-plan.md`, `tasks.md`
-- **Phase 2**: nhận input từ spec, use cases, defined tests, và task buckets đã khóa trong Phase 1
+Everything related to admin users and admin messages is explicitly removed from this active module package and must not be counted toward completion for `010`.
 
 ## Actors
 
 - `Admin / Support / Operations`
-- `Customer / Lead`
+- `Authenticated Customer`
 - `QA / Developer`
 
-## Route / Screen Inventory
+## Route / Contract Inventory
 
-| Route / screen | Purpose | Current state |
+| Route / contract | Purpose | Active state |
 |---|---|---|
-| `/admin/users` | user list and moderation | route đã tồn tại |
-| `/admin/messages` | admin-to-user/broadcast messaging | route đã tồn tại |
-| `/admin/notifications` | notification channel settings | route đã tồn tại |
+| `/v1/notifications` | buyer inbox list | active |
+| `/v1/notifications/unread-count` | buyer unread count | active |
+| `/v1/notifications/:id/read` | mark one notification as read | active |
+| `/v1/notifications/read-all` | mark all notifications as read | active |
+| `/v1/notifications` `DELETE` | clear buyer inbox | active |
+| `/v1/admin/notifications/test` | admin raw test-send | active |
 
-## Existing But Parked Routes
+## Removed From Active Scope
 
-The following routes remain in code but are parked from the current active Phase 1 package and current Figma-reviewed active scope:
+The following routes may still exist in codebase inventory, but they are not part of active `010` completion:
 
+- `/admin/users`
+- `/admin/messages`
 - `/admin/leads`
 - `/admin/announcement`
 - `/admin/collect`
@@ -43,140 +46,70 @@ The following routes remain in code but are parked from the current active Phase
 
 ## In Scope
 
-- user listing/block/points moderation
-- admin messages/broadcast/history/inbox
-- notification settings/test sends
+- authenticated buyer can read notification inbox
+- authenticated buyer can read unread count
+- authenticated buyer can mark one notification as read
+- authenticated buyer can mark all notifications as read
+- authenticated buyer can clear inbox
+- admin can call raw notification test-send endpoint
+- auth, role, and invalid-input failures for the above contracts
 
 ## Out of Scope
 
+- user moderation
+- admin messaging or broadcast workflows
+- notification channel settings UI
 - parked routes listed above
-- storefront settings in `005`
-- content/catalog/order modules
-- app code changes trong Phase 1
-
-## Phase 1 Output Contract
-
-Phase 1 for this module must output:
-
-- product / behavior definition:
-  - use cases
-  - spec
-  - backend ownership review
-  - figma adaptation review
-  - current code audit
-- test definition:
-  - API tests
-  - E2E tests
-  - integration tests
-  - UI / route workflow tests
-  - nếu cần: Figma parity / visual contract assertions
-- implementation backlog:
-  - FE tasks
-  - BE tasks
-  - DB migration tasks
-  - contract / API tasks
-  - test implementation tasks
-  - nếu cần: seed / fixture tasks
-
-## Route-Level Use Cases
-
-See `use-cases.md` for normative use-case wording.
-
-## Current Code Audit
-
-### Current FE surface
-
-- routes for users/messages/notifications/leads/announcement/collect/profile/data all exist.
-- active Phase 1 package only targets users/messages/notifications.
-- parked routes are acknowledged for module inventory but are not active test-definition or Figma-gate inputs in this package.
-
-### Current contract visibility
-
-- admin-facing adapters already expose reads/mutations across the broader engagement area.
-- active package still needs contract boundaries rewritten around users/messages/notifications only.
-- generic `playwright/specs/admin/settings.spec.ts` still mixes unrelated admin areas and should not remain the effective spec boundary for this module.
-
-### Gaps discovered
-
-- active module boundary was previously too broad and mixed parked routes into the same Phase 1 package
-- tests are not yet split cleanly into user moderation, messaging, and notifications tracks
-- backend ownership for permissions, counts, targeting, and send/test semantics is not explicit enough in current docs
-
-## Figma Adaptation Requirements
-
-Review theo `gpt-taste` protocol với trọng tâm tool clarity:
-
-- messaging, notifications, and user moderation must feel distinct
-- forms and tables require readable spacing and unambiguous CTA hierarchy
-- no decorative clutter that obscures operational meaning
-
-Figma role in this module:
-
-- locks components/layout/state presentation for `/admin/users`, `/admin/messages`, `/admin/notifications`
-- does not define business behavior or backend ownership
-- parked routes are not counted inside current Figma-reviewed active scope
-
-## API / Contract Expectations
-
-- `/v1/admin/users`
-- `/v1/admin/messages`
-- `/v1/admin/notifications`
+- FE/BE app code edits as part of Phase 1 spec output itself
 
 ## Backend Ownership
 
 ### Backend owns
 
-- user block/points mutation rules
-- broadcast/send targeting semantics
-- notification test send behavior
-- unread/history counts and message integrity
-- authorization and auditability
+- inbox pagination and notification payload shape
+- unread count calculation
+- mark-read, mark-all-read, and clear semantics
+- numeric notification ID validation
+- admin authorization for raw notification test-send
+- request validation and response status contract
 
 ### Frontend owns only
 
-- render tables/forms/tooling
-- local input state
-- submit admin intent
-- loading/success/error states
-- navigation
+- rendering inbox list, empty state, and loading state
+- triggering buyer/admin intent
+- presenting success/error responses
 
 ## Test Definition Summary
 
 ### API tests
 
-- user list/mutations
-- message send/clear/delete/read operations
-- notification settings/test sends
-- validation/auth failures
-
-### E2E / UI / Route workflow tests
-
-- user list render and moderation actions
-- message compose/history/inbox flows
-- notification settings form and tests
+- buyer inbox read operations
+- buyer inbox mutation operations
+- admin raw notification test-send
+- auth/role/invalid-input failures
 
 ### Integration tests
 
-- adapter-level users/messages/notifications request/response handling
-- error mapping and permission failure rendering
+- adapter request/response mapping for notification endpoints
+- permission enforcement and error mapping
 
-### Optional Figma parity assertions
+### E2E / UI workflow tests
 
-- route-level CTA hierarchy remains aligned for users/messages/notifications
-- list/composer/channel state presentation does not regress from approved Figma contract
+- buyer inbox render and read actions
+- admin notification raw send trigger if route exists
 
 ## Edge Cases
 
-- empty user/message history states safe render
-- invalid notification config/test targets rejected by backend
-- user moderation outcomes remain backend authoritative
+- empty inbox still returns success payload
+- unread count remains valid after mark-all-read or clear
+- non-numeric notification IDs are rejected
+- unauthenticated buyers are rejected on all buyer notification routes
+- non-admin callers are rejected on admin raw notification route
 
 ## Success Criteria
 
-- active module package is explicitly narrowed to users/messages/notifications
-- five parked routes are documented and removed from the current Figma-reviewed active scope
-- backend ownership is explicit for permissions, targeting, and send/test operations
-- Phase 1 output reflects spec + use cases + test definitions + implementation tasks as the required input set for Phase 2
-- Phase 1 output không chứa app code FE/BE
-- Phase 2 chỉ được bắt đầu từ tasks đã chốt ở Phase 1
-- Phase 2 chỉ complete khi toàn bộ test đã define pass
+- active module package is explicitly limited to notification use cases only
+- `/admin/users` and `/admin/messages` are no longer treated as part of active `010`
+- API tests fully cover the active notification contract set
+- backend readiness for `010` is judged only by notification API test results
+- Phase 2 completion for `010` requires all active notification API tests to pass

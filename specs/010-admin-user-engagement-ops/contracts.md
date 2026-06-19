@@ -1,30 +1,23 @@
 # Contracts: Admin User Engagement Operations
 
-Active Phase 1 scope for module `010-admin-user-engagement-ops` only expects contract groups for:
+Active module `010-admin-user-engagement-ops` expects only the following contract groups:
 
-## Users
+## Buyer Notifications
 
-- list/search/paginate
-- block/unblock
-- points update
+- inbox list
+- unread count
+- mark single notification read
+- mark all notifications read
+- clear inbox
 
-## Messages
+## Admin Raw Notification
 
-- compose/send
-- history/inbox read models
-- delete/clear/read semantics
+- test-send endpoint
+- auth/role enforcement
+- queue acknowledgement payload
 
-## Notifications
+## Explicitly Excluded
 
-- settings read/update
-- test send endpoints
-
-## Parked Routes
-
-The following routes still exist in code but are outside the current active Phase 1 contract package:
-
-- `/admin/leads`
-- `/admin/announcement`
-- `/admin/collect`
-- `/admin/profile`
-- `/admin/data`
+- admin users list or moderation
+- admin messages compose/send/history
+- parked admin utility routes

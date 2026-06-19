@@ -29,6 +29,7 @@ export default function AdminSettingsPage() {
     const contactAddress = settingsMap['contact_address'] || null
     const contactHotline = settingsMap['contact_hotline'] || null
     const contactEmail = settingsMap['contact_email'] || null
+    const contactMapsUrl = settingsMap['contact_maps_url'] || null
 
     return (
         <AdminSettingsContent
@@ -50,7 +51,6 @@ export default function AdminSettingsPage() {
             wishlistEnabled={settingsMap['wishlist_enabled'] === 'true'}
             noIndexEnabled={settingsMap['noindex_enabled'] === 'true'}
             registryOptIn={settingsMap['registry_opt_in'] === 'true'}
-            refundReclaimCards={settingsMap['refund_reclaim_cards'] !== 'false'}
             registryHideNav={settingsMap['registry_hide_nav'] === 'true'}
             registryEnabled={Boolean(data?.registryEnabled)}
             currentVersion={APP_VERSION}
@@ -61,6 +61,7 @@ export default function AdminSettingsPage() {
             contactAddress={contactAddress}
             contactHotline={contactHotline}
             contactEmail={contactEmail}
+            contactMapsUrl={contactMapsUrl}
         />
     )
 }

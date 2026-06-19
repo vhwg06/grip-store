@@ -21,7 +21,7 @@ export interface AdminProduct {
   compareAtPrice: string | null
   image: string | null
   images: string[]
-  categoryId: number | null
+  categoryId: string | number | null
   brandId: number | null
   sku: string | null
   isHot: boolean
@@ -44,7 +44,7 @@ export interface AdminProductForm {
   description: string | null
   price: string
   compareAtPrice: string | null
-  categoryId: number | null
+  categoryId: string | number | null
   brandId: number | null
   sku: string | null
   isHot: boolean
