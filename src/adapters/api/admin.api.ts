@@ -223,8 +223,45 @@ export async function getAdminRefunds() {
 }
 
 export async function getAdminReviews() {
-  const payload = await apiFetch<{ reviews?: any[] } | any[]>("/api/admin/reviews")
-  return Array.isArray(payload) ? payload : payload.reviews ?? []
+  const payload = await apiFetch<any>("/api/admin/reviews")
+  if (Array.isArray(payload)) {
+    return {
+      reviews: payload,
+      stats: { pending: 0, featured: 0, hidden: 0 }
+    }
+  }
+  return {
+    reviews: payload?.reviews ?? [],
+    stats: payload?.stats ?? { pending: 0, featured: 0, hidden: 0 }
+  }
+}
+
+export async function approveReview(id: number) {
+  return apiFetch<unknown>(`/api/admin/reviews/${id}/approve`, {
+    method: "PUT",
+    body: JSON.stringify({}),
+  }).then(normalizeActionResult)
+}
+
+export async function hideReview(id: number) {
+  return apiFetch<unknown>(`/api/admin/reviews/${id}/hide`, {
+    method: "PUT",
+    body: JSON.stringify({}),
+  }).then(normalizeActionResult)
+}
+
+export async function featureReview(id: number, isFeatured: boolean) {
+  return apiFetch<unknown>(`/api/admin/reviews/${id}/feature`, {
+    method: "PUT",
+    body: JSON.stringify({ isFeatured }),
+  }).then(normalizeActionResult)
+}
+
+export async function bulkPublishReviews(ids: number[]) {
+  return apiFetch<unknown>("/api/admin/reviews/publish-selected", {
+    method: "POST",
+    body: JSON.stringify({ ids }),
+  }).then(normalizeActionResult)
 }
 
 export async function getAdminMessages(): Promise<AdminMessagesPayload> {

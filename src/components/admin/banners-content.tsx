@@ -27,6 +27,7 @@ export function AdminBannersContent() {
   const [ctaLink, setCtaLink] = useState("")
   const [sortOrder, setSortOrder] = useState("0")
   const [isActive, setIsActive] = useState(true)
+  const [targetPage, setTargetPage] = useState("homepage")
   
   const [saving, setSaving] = useState(false)
   const [deletingId, setDeletingId] = useState<number | null>(null)
@@ -48,6 +49,7 @@ export function AdminBannersContent() {
       formData.set('ctaLink', ctaLink)
       formData.set('sortOrder', sortOrder)
       formData.set('isActive', String(isActive))
+      formData.set('page', targetPage)
       
       await saveBanner(formData)
       toast.success(t('common.success'))
@@ -133,7 +135,22 @@ export function AdminBannersContent() {
             <Input id="banner-sort" type="number" value={sortOrder} onChange={(e) => setSortOrder(e.target.value)} placeholder=" " />
             <Label htmlFor="banner-sort" className="floating-label">Thứ tự hiển thị</Label>
           </div>
-          <div className="flex items-center space-x-2">
+          <div className="flex flex-col space-y-1.5">
+            <Label htmlFor="banner-target-page" className="text-xs font-semibold">Trang hiển thị</Label>
+            <select
+              id="banner-target-page"
+              data-testid="banner-target-page-select"
+              value={targetPage}
+              onChange={(e) => setTargetPage(e.target.value)}
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <option value="homepage">Trang chủ (Homepage)</option>
+              <option value="news">Tin tức (News)</option>
+              <option value="about-us">Về chúng tôi (About Us)</option>
+              <option value="products">Sản phẩm (Products)</option>
+            </select>
+          </div>
+          <div className="flex items-center space-x-2 pt-5">
             <Checkbox
               id="banner-active"
               checked={isActive}

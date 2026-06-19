@@ -16,5 +16,5 @@ export default function AdminReviewsPage() {
     )
   }
 
-  return <AdminReviewsContent reviews={data} />
+  return <AdminReviewsContent reviews={data.reviews} stats={data.stats} />
 }

@@ -8,10 +8,19 @@ import { ThemeColorProvider } from './theme-color-provider'
 import { CartProvider } from '@/application/context/CartContext'
 import type { Locale } from '@/lib/i18n/shared'
 
+import { usePublicSettings } from '@/application/hooks/useCatalog'
+
 interface ProvidersProps {
     children: React.ReactNode
     themeColor?: string | null
     initialLocale?: Locale
+}
+
+function RobotsMeta() {
+    const { settings } = usePublicSettings()
+    const noIndex = settings?.noindexEnabled || (settings as any)?.noindex_enabled === 'true' || (settings as any)?.noindex_enabled === true
+    if (!noIndex) return null
+    return <meta name="robots" content="noindex" />
 }
 
 export function Providers({ children, themeColor, initialLocale = 'en' }: ProvidersProps) {
@@ -28,6 +37,7 @@ export function Providers({ children, themeColor, initialLocale = 'en' }: Provid
                         <CartProvider>
                             {children}
                             <Toaster position="top-center" richColors />
+                            <RobotsMeta />
                         </CartProvider>
                     </AuthProvider>
                 </I18nProvider>

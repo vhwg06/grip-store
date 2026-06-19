@@ -26,6 +26,10 @@ export default function AdminSettingsPage() {
     const lowStockThreshold = Number.parseInt(settingsMap['low_stock_threshold'] || '5', 10) || 5
     const checkinReward = Number.parseInt(settingsMap['checkin_reward'] || '10', 10) || 10
 
+    const contactAddress = settingsMap['contact_address'] || null
+    const contactHotline = settingsMap['contact_hotline'] || null
+    const contactEmail = settingsMap['contact_email'] || null
+
     return (
         <AdminSettingsContent
             stats={data?.stats ?? {
@@ -54,6 +58,9 @@ export default function AdminSettingsPage() {
             floatingButtonUrl={settingsMap['floating_button_url'] || ''}
             socialLinks={settingsMap['social_links'] || ''}
             homepageBlocks={settingsMap['homepage_blocks'] || ''}
+            contactAddress={contactAddress}
+            contactHotline={contactHotline}
+            contactEmail={contactEmail}
         />
     )
 }

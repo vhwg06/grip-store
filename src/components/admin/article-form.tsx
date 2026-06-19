@@ -8,6 +8,8 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Textarea } from "@/components/ui/textarea"
 import { useEffect, useState } from "react"
+import { useEditor, EditorContent } from '@tiptap/react'
+import StarterKit from '@tiptap/starter-kit'
 import { toast } from "sonner"
 import { useRouter } from "next/navigation"
 import MediaUploader from "@/components/admin/media-uploader"
@@ -16,14 +18,29 @@ export function ArticleForm({ article }: { article?: any }) {
     const router = useRouter()
     const [loading, setLoading] = useState(false)
     const [featuredImage, setFeaturedImage] = useState(article?.featuredImage || "")
+    const [content, setContent] = useState(article?.content || "")
+
+    const editor = useEditor({
+        extensions: [StarterKit],
+        content: article?.content || "",
+        onUpdate: ({ editor }) => {
+            setContent(editor.getText() || editor.getHTML() || "")
+        },
+    })
 
     useEffect(() => {
         setFeaturedImage(article?.featuredImage || "")
-    }, [article?.id, article?.featuredImage])
+        if (editor && article) {
+            editor.commands.setContent(article.content || "")
+            setContent(article.content || "")
+        }
+    }, [article?.id, article?.featuredImage, editor, article])
 
     async function handleSubmit(formData: FormData) {
         setLoading(true)
         try {
+            // Ensure editor content is correctly set in form submission
+            formData.set("content", content)
             await saveArticle(formData)
             toast.success("Đã lưu bài viết")
             router.push('/admin/articles')
@@ -66,15 +83,17 @@ export function ArticleForm({ article }: { article?: any }) {
                     </div>
 
                     <div className="grid gap-2">
-                        <Label htmlFor="content">Nội dung (Markdown)</Label>
-                        <Textarea
-                            id="content"
-                            name="content"
-                            defaultValue={article?.content}
-                            placeholder="Sử dụng markdown để định dạng bài viết..."
-                            className="min-h-[300px] font-mono text-sm"
-                            required
-                        />
+                        <Label htmlFor="content-editor">Nội dung (Rich Text)</Label>
+                        <div className="border rounded-md p-1 min-h-[300px] bg-background">
+                            <EditorContent
+                                editor={editor}
+                                id="content-editor"
+                                data-testid="article-content-editor"
+                                className="min-h-[290px] px-3 py-2 focus-visible:outline-none"
+                            />
+                        </div>
+                        {/* Hidden input to hold state in case standard form submission requires it */}
+                        <input type="hidden" name="content" value={content} />
                     </div>
 
                     <div data-testid="article-featured-media" className="grid gap-2">

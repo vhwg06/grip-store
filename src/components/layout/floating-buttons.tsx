@@ -23,6 +23,7 @@ export function FloatingButtons() {
           href={config.socialLinks.zalo} 
           target="_blank" 
           rel="noreferrer"
+          data-testid="floating-button-zalo"
           className="w-12 h-12 bg-blue-500 text-white rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform"
         >
           <MessageCircle className="w-6 h-6" />

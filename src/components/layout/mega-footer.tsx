@@ -108,6 +108,7 @@ export function MegaFooter() {
                     href={config.socialLinks.facebook} 
                     target="_blank" 
                     rel="noreferrer" 
+                    data-testid="footer-social-facebook"
                     className="w-10 h-10 rounded-full bg-[#2b1809]/10 hover:bg-[#2b1809] flex items-center justify-center text-[#2b1809] hover:text-white transition-all border border-[#2b1809]/20"
                     title="Facebook"
                   >
@@ -150,7 +151,7 @@ export function MegaFooter() {
                 </div>
                 <div className="flex items-center gap-3">
                   <Mail className="w-5 h-5 text-[#c0a060] shrink-0" />
-                  <span className="text-neutral-300">Email: {email}</span>
+                  <span className="text-neutral-300" data-testid="footer-contact-email">Email: {email}</span>
                 </div>
               </div>
             </div>

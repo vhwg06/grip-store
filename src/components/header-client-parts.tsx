@@ -22,13 +22,13 @@ export function HeaderLogo({ adminName, shopNameOverride, shopLogoOverride }: { 
     return (
         <Link href="/" className="flex items-center gap-2 min-w-0 group text-muted-foreground hover:text-primary transition-colors duration-200 hover:-translate-y-0.5">
             {logoUrl ? (
-                <img src={logoUrl} alt="Logo" className="h-8 w-8 rounded-lg object-contain" />
+                <img src={logoUrl} alt="Logo" className="h-8 w-8 rounded-lg object-contain" data-testid="site-header-logo-image" />
             ) : (
                 <div className="h-8 w-8 rounded-lg bg-foreground flex items-center justify-center transition-all duration-300 shadow-sm group-hover:shadow-md">
                     <ShoppingBag className="h-4 w-4 text-background" />
                 </div>
             )}
-            <span className="text-xs sm:text-sm font-semibold tracking-tight truncate max-w-[160px] sm:max-w-[220px] md:max-w-none">
+            <span className="text-xs sm:text-sm font-semibold tracking-tight truncate max-w-[160px] sm:max-w-[220px] md:max-w-none" data-testid="site-header-logo-text">
                 {override || shopName}
             </span>
         </Link>

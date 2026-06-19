@@ -9,11 +9,11 @@ export function StickyBar() {
   return (
     <div className="bg-primary text-primary-foreground py-1.5 px-4 text-xs font-semibold h-8 flex items-center justify-between z-50 relative">
       <div className="container mx-auto flex justify-between items-center max-w-[1190px]">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2" data-testid="sticky-bar-address">
           <MapPin className="w-3.5 h-3.5" />
           <span>{config?.contactAddress || "Hà Nội, Việt Nam"}</span>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2" data-testid="sticky-bar-hotline">
           <Phone className="w-3.5 h-3.5" />
           <span>Hotline: {config?.contactHotline || "1900 xxxx"}</span>
         </div>

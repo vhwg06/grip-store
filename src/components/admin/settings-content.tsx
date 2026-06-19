@@ -8,850 +8,981 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
-import { TrendingUp, ShoppingCart, CreditCard, Package, Users } from "lucide-react"
-import { saveShopName, saveShopDescription, saveShopLogo, saveShopFooter, saveThemeColor, saveLowStockThreshold, saveCheckinReward, saveCheckinEnabled, saveWishlistEnabled, saveNoIndex, saveRefundReclaimCards, saveRegistryHideNav, joinRegistry, leaveRegistry, saveSetting } from "@/adapters/api/admin.api"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { TrendingUp, ShoppingCart, CreditCard, Package, Users, Image as ImageIcon, CheckCircle, ArrowUp } from "lucide-react"
+import {
+  saveShopName,
+  saveShopDescription,
+  saveShopLogo,
+  saveShopFooter,
+  saveThemeColor,
+  saveLowStockThreshold,
+  saveCheckinReward,
+  saveCheckinEnabled,
+  saveWishlistEnabled,
+  saveNoIndex,
+  saveRefundReclaimCards,
+  saveRegistryHideNav,
+  joinRegistry,
+  leaveRegistry,
+  saveSetting
+} from "@/adapters/api/admin.api"
+import { useAdminMedia } from "@/application/hooks/useAdmin"
 import { checkForUpdatesClient, type ClientUpdateCheckResult } from "@/lib/update-check-client"
 import { toast } from "sonner"
 
 interface Stats {
-    today: { count: number; revenue: number }
-    week: { count: number; revenue: number }
-    month: { count: number; revenue: number }
-    total: { count: number; revenue: number }
+  today: { count: number; revenue: number }
+  week: { count: number; revenue: number }
+  month: { count: number; revenue: number }
+  total: { count: number; revenue: number }
+}
+
+interface FooterLink {
+  label: string
+  url: string
+}
+
+interface FooterColumn {
+  id: string
+  title: string
+  links: FooterLink[]
 }
 
 interface AdminSettingsContentProps {
-    stats: Stats
-    shopName: string | null
-    shopDescription: string | null
-    shopLogo: string | null
-    shopFooter: string | null
-    themeColor: string | null
-    visitorCount: number
-    lowStockThreshold: number
-    checkinReward: number
-    checkinEnabled: boolean
-    wishlistEnabled: boolean
-    noIndexEnabled: boolean
-    refundReclaimCards: boolean
-    registryHideNav: boolean
-    registryOptIn: boolean
-    registryEnabled: boolean
-    currentVersion: string
-    floatingButtonEnabled: boolean
-    floatingButtonUrl: string
-    socialLinks: string
-    homepageBlocks: string
+  stats: Stats
+  shopName: string | null
+  shopDescription: string | null
+  shopLogo: string | null
+  shopFooter: string | null
+  themeColor: string | null
+  visitorCount: number
+  lowStockThreshold: number
+  checkinReward: number
+  checkinEnabled: boolean
+  wishlistEnabled: boolean
+  noIndexEnabled: boolean
+  refundReclaimCards: boolean
+  registryHideNav: boolean
+  registryOptIn: boolean
+  registryEnabled: boolean
+  currentVersion: string
+  floatingButtonEnabled: boolean
+  floatingButtonUrl: string
+  socialLinks: string
+  homepageBlocks: string
+  contactAddress: string | null
+  contactHotline: string | null
+  contactEmail: string | null
 }
 
-type UpdateInfo = ClientUpdateCheckResult
-
 const THEME_COLORS = [
-    { value: 'black', hue: 0, chroma: 0, preview: 'oklch(0.18 0 0)' },
-    { value: 'purple', hue: 270 },
-    { value: 'indigo', hue: 255 },
-    { value: 'blue', hue: 240 },
-    { value: 'cyan', hue: 200 },
-    { value: 'teal', hue: 170 },
-    { value: 'green', hue: 150 },
-    { value: 'lime', hue: 120 },
-    { value: 'amber', hue: 85 },
-    { value: 'orange', hue: 45 },
-    { value: 'red', hue: 25 },
-    { value: 'rose', hue: 345 },
-    { value: 'pink', hue: 330 },
+  { value: 'black', hue: 0, chroma: 0, preview: 'oklch(0.18 0 0)' },
+  { value: 'purple', hue: 270 },
+  { value: 'indigo', hue: 255 },
+  { value: 'blue', hue: 240 },
+  { value: 'cyan', hue: 200 },
+  { value: 'teal', hue: 170 },
+  { value: 'green', hue: 150 },
+  { value: 'lime', hue: 120 },
+  { value: 'amber', hue: 85 },
+  { value: 'orange', hue: 45 },
+  { value: 'red', hue: 25 },
+  { value: 'rose', hue: 345 },
+  { value: 'pink', hue: 330 },
 ]
 
-export function AdminSettingsContent({ stats, shopName, shopDescription, shopLogo, shopFooter, themeColor, visitorCount, lowStockThreshold, checkinReward, checkinEnabled, wishlistEnabled, noIndexEnabled, refundReclaimCards, registryHideNav, registryOptIn, registryEnabled, currentVersion, floatingButtonEnabled, floatingButtonUrl, socialLinks, homepageBlocks }: AdminSettingsContentProps) {
-    const { t } = useI18n()
+export function AdminSettingsContent({
+  stats,
+  shopName,
+  shopDescription,
+  shopLogo,
+  shopFooter,
+  themeColor,
+  visitorCount,
+  lowStockThreshold,
+  checkinReward,
+  checkinEnabled,
+  wishlistEnabled,
+  noIndexEnabled,
+  refundReclaimCards,
+  registryHideNav,
+  registryOptIn,
+  registryEnabled,
+  currentVersion,
+  floatingButtonEnabled,
+  floatingButtonUrl,
+  socialLinks,
+  homepageBlocks,
+  contactAddress,
+  contactHotline,
+  contactEmail
+}: AdminSettingsContentProps) {
+  const { t } = useI18n()
 
-    // State
-    const [shopNameValue, setShopNameValue] = useState(shopName || '')
-    const [savingShopName, setSavingShopName] = useState(false)
-    const [shopDescValue, setShopDescValue] = useState(shopDescription || '')
-    const [savingShopDesc, setSavingShopDesc] = useState(false)
-    const [shopLogoValue, setShopLogoValue] = useState(shopLogo || '')
-    const [savingShopLogo, setSavingShopLogo] = useState(false)
-    const [shopFooterValue, setShopFooterValue] = useState(shopFooter || '')
-    const [savingShopFooter, setSavingShopFooter] = useState(false)
-    const [selectedTheme, setSelectedTheme] = useState(themeColor || 'purple')
-    const [savingTheme, setSavingTheme] = useState(false)
-    const [thresholdValue, setThresholdValue] = useState(String(lowStockThreshold || 5))
-    const [savingThreshold, setSavingThreshold] = useState(false)
-    const [rewardValue, setRewardValue] = useState(String(checkinReward || 10))
-    const [savingReward, setSavingReward] = useState(false)
-    const [enabledCheckin, setEnabledCheckin] = useState(checkinEnabled)
-    const [savingEnabled, setSavingEnabled] = useState(false)
-    const [enabledWishlist, setEnabledWishlist] = useState(wishlistEnabled)
-    const [savingWishlist, setSavingWishlist] = useState(false)
-    const [enabledNoIndex, setEnabledNoIndex] = useState(noIndexEnabled)
-    const [savingNoIndex, setSavingNoIndex] = useState(false)
-    const [refundReclaimEnabled, setRefundReclaimEnabled] = useState(refundReclaimCards)
-    const [savingRefundReclaim, setSavingRefundReclaim] = useState(false)
-    const [checkingUpdate, setCheckingUpdate] = useState(false)
-    const [updateInfo, setUpdateInfo] = useState<UpdateInfo | null>(null)
-    const [submittingRegistry, setSubmittingRegistry] = useState(false)
-    const [leavingRegistry, setLeavingRegistry] = useState(false)
-    const [registryJoined, setRegistryJoined] = useState(registryOptIn)
-    const [hideRegistryNav, setHideRegistryNav] = useState(registryHideNav)
-    const [savingRegistryNav, setSavingRegistryNav] = useState(false)
+  // --- State variables ---
+  // Brand & Contact
+  const [shopNameValue, setShopNameValue] = useState(shopName || '')
+  const [shopDescValue, setShopDescValue] = useState(shopDescription || '')
+  const [shopLogoValue, setShopLogoValue] = useState(shopLogo || '')
+  const [addressValue, setAddressValue] = useState(contactAddress || '')
+  const [hotlineValue, setHotlineValue] = useState(contactHotline || '')
+  const [emailValue, setEmailValue] = useState(contactEmail || '')
+  const [savingBrand, setSavingBrand] = useState(false)
 
-    // New configs
-    const [fbEnabled, setFbEnabled] = useState(floatingButtonEnabled)
-    const [savingFbEnabled, setSavingFbEnabled] = useState(false)
-    const [fbUrl, setFbUrl] = useState(floatingButtonUrl)
-    const [savingFbUrl, setSavingFbUrl] = useState(false)
-    const [socials, setSocials] = useState(socialLinks)
-    const [savingSocials, setSavingSocials] = useState(false)
-    const [blocks, setBlocks] = useState(homepageBlocks)
-    const [savingBlocks, setSavingBlocks] = useState(false)
+  // Homepage block layout composition
+  const [activeBlocks, setActiveBlocks] = useState<string[]>(() =>
+    homepageBlocks ? homepageBlocks.split(',') : ['hero', 'categories', 'products', 'latest-news', 'colors', 'usp']
+  )
+  const [newsCount, setNewsCount] = useState(() => '3') // We can initialize it
+  const [savingHomepage, setSavingHomepage] = useState(false)
 
-    const handleSaveFbEnabled = async (checked: boolean) => {
-        setSavingFbEnabled(true)
-        try {
-            await saveSetting('floating_button_enabled', checked ? 'true' : 'false')
-            setFbEnabled(checked)
-            toast.success(t('common.success'))
-        } catch (e: any) {
-            toast.error(e.message)
-        } finally {
-            setSavingFbEnabled(false)
-        }
+  // Footer & Social
+  const [footerColumns, setFooterColumns] = useState<FooterColumn[]>(() => {
+    try {
+      return shopFooter
+        ? JSON.parse(shopFooter)
+        : [
+            { id: "col0", title: "Products", links: [{ label: "Door Handles", url: "/products" }] },
+            { id: "col1", title: "Policies", links: [{ label: "Warranty", url: "/terms" }] },
+            { id: "col2", title: "Support", links: [{ label: "FAQ", url: "/faq" }] }
+          ]
+    } catch {
+      return [
+        { id: "col0", title: "Products", links: [{ label: "Door Handles", url: "/products" }] },
+        { id: "col1", title: "Policies", links: [{ label: "Warranty", url: "/terms" }] },
+        { id: "col2", title: "Support", links: [{ label: "FAQ", url: "/faq" }] }
+      ]
     }
+  })
 
-    const handleSaveFbUrl = async () => {
-        setSavingFbUrl(true)
-        try {
-            await saveSetting('floating_button_url', fbUrl)
-            toast.success(t('common.success'))
-        } catch (e: any) {
-            toast.error(e.message)
-        } finally {
-            setSavingFbUrl(false)
-        }
+  const [socialLinksState, setSocialLinksState] = useState<Record<string, string>>(() => {
+    try {
+      return socialLinks ? JSON.parse(socialLinks) : {}
+    } catch {
+      return {}
     }
+  })
+  const [facebookLink, setFacebookLink] = useState(socialLinksState.facebook || '')
+  const [savingFooterSocial, setSavingFooterSocial] = useState(false)
 
-    const handleSaveSocials = async () => {
-        setSavingSocials(true)
-        try {
-            await saveSetting('social_links', socials)
-            toast.success(t('common.success'))
-        } catch (e: any) {
-            toast.error(e.message)
-        } finally {
-            setSavingSocials(false)
-        }
+  // Floating Support & Visibility
+  const [zaloEnabled, setZaloEnabled] = useState(() => !!socialLinksState.zalo)
+  const [zaloTarget, setZaloTarget] = useState(socialLinksState.zalo || 'https://zalo.me/gripvn')
+  const [noIndex, setNoIndex] = useState(noIndexEnabled)
+  const [savingSupportControls, setSavingSupportControls] = useState(false)
+
+  // Registry & Legacy
+  const [selectedTheme, setSelectedTheme] = useState(themeColor || 'purple')
+  const [savingTheme, setSavingTheme] = useState(false)
+  const [thresholdValue, setThresholdValue] = useState(String(lowStockThreshold || 5))
+  const [savingThreshold, setSavingThreshold] = useState(false)
+  const [rewardValue, setRewardValue] = useState(String(checkinReward || 10))
+  const [savingReward, setSavingReward] = useState(false)
+  const [enabledCheckin, setEnabledCheckin] = useState(checkinEnabled)
+  const [savingEnabled, setSavingEnabled] = useState(false)
+  const [enabledWishlist, setEnabledWishlist] = useState(wishlistEnabled)
+  const [savingWishlist, setSavingWishlist] = useState(false)
+  const [refundReclaimEnabled, setRefundReclaimEnabled] = useState(refundReclaimCards)
+  const [savingRefundReclaim, setSavingRefundReclaim] = useState(false)
+  const [hideRegistryNav, setHideRegistryNav] = useState(registryHideNav)
+  const [savingRegistryNav, setSavingRegistryNav] = useState(false)
+  const [registryJoined, setRegistryJoined] = useState(registryOptIn)
+  const [submittingRegistry, setSubmittingRegistry] = useState(false)
+  const [leavingRegistry, setLeavingRegistry] = useState(false)
+  const [checkingUpdate, setCheckingUpdate] = useState(false)
+  const [updateInfo, setUpdateInfo] = useState<ClientUpdateCheckResult | null>(null)
+
+  // Media Picker Dialog State
+  const [isPickerOpen, setIsPickerOpen] = useState(false)
+  const { data: mediaData } = useAdminMedia({ page: 1, pageSize: 30 })
+  const mediaItems = mediaData?.items ?? []
+  const [selectedMediaUrl, setSelectedMediaUrl] = useState("")
+
+  // --- Save handlers ---
+  const handleSaveBrand = async () => {
+    setSavingBrand(true)
+    try {
+      await saveShopName(shopNameValue)
+      await saveShopDescription(shopDescValue)
+      await saveShopLogo(shopLogoValue)
+      await saveSetting("contact_address", addressValue)
+      await saveSetting("contact_hotline", hotlineValue)
+      await saveSetting("contact_email", emailValue)
+      toast.success(t('common.success'))
+    } catch (e: any) {
+      toast.error(e.message || "Failed to save brand settings")
+    } finally {
+      setSavingBrand(false)
     }
+  }
 
-    const handleSaveBlocks = async () => {
-        setSavingBlocks(true)
-        try {
-            await saveSetting('homepage_blocks', blocks)
-            toast.success(t('common.success'))
-        } catch (e: any) {
-            toast.error(e.message)
-        } finally {
-            setSavingBlocks(false)
-        }
+  const handleSaveHomepage = async () => {
+    setSavingHomepage(true)
+    try {
+      await saveSetting("homepage_blocks", activeBlocks.join(","))
+      await saveSetting("homepage_news_count", newsCount)
+      toast.success(t('common.success'))
+    } catch (e: any) {
+      toast.error(e.message || "Failed to save homepage composition")
+    } finally {
+      setSavingHomepage(false)
     }
+  }
 
-    const handleSaveShopName = async () => {
-        const trimmed = shopNameValue.trim()
-        if (!trimmed) {
-            toast.error(t('admin.settings.shopNameEmpty'))
-            return
-        }
-        setSavingShopName(true)
-        try {
-            await saveShopName(trimmed)
-            toast.success(t('common.success'))
-        } catch (e: any) {
-            toast.error(e.message)
-        } finally {
-            setSavingShopName(false)
-        }
+  const handleSaveFooterSocial = async () => {
+    setSavingFooterSocial(true)
+    try {
+      await saveShopFooter(JSON.stringify(footerColumns))
+      const nextSocials = { ...socialLinksState, facebook: facebookLink }
+      await saveSetting("social_links", JSON.stringify(nextSocials))
+      setSocialLinksState(nextSocials)
+      toast.success(t('common.success'))
+    } catch (e: any) {
+      toast.error(e.message || "Failed to save footer & social settings")
+    } finally {
+      setSavingFooterSocial(false)
     }
+  }
 
-    const handleSaveShopDesc = async () => {
-        setSavingShopDesc(true)
-        try {
-            await saveShopDescription(shopDescValue)
-            toast.success(t('common.success'))
-        } catch (e: any) {
-            toast.error(e.message)
-        } finally {
-            setSavingShopDesc(false)
-        }
+  const handleSaveSupportControls = async () => {
+    setSavingSupportControls(true)
+    try {
+      // Save Zalo floating buttons setting
+      await saveSetting("floating_button_enabled", zaloEnabled ? "true" : "false")
+      await saveSetting("floating_button_url", zaloTarget)
+
+      // Save Zalo in social_links as well for mega footer integration
+      const nextSocials = { ...socialLinksState, zalo: zaloEnabled ? zaloTarget : "" }
+      await saveSetting("social_links", JSON.stringify(nextSocials))
+      setSocialLinksState(nextSocials)
+
+      // Save Visibility
+      await saveNoIndex(noIndex)
+      toast.success(t('common.success'))
+    } catch (e: any) {
+      toast.error(e.message || "Failed to save support & visibility controls")
+    } finally {
+      setSavingSupportControls(false)
     }
+  }
 
-    const handleSaveShopLogo = async () => {
-        setSavingShopLogo(true)
-        try {
-            await saveShopLogo(shopLogoValue)
-            toast.success(t('common.success'))
-        } catch (e: any) {
-            toast.error(e.message)
-        } finally {
-            setSavingShopLogo(false)
-        }
+  // Legacy actions
+  const handleSaveTheme = async (color: string) => {
+    setSavingTheme(true)
+    setSelectedTheme(color)
+    try {
+      await saveThemeColor(color)
+      toast.success(t('common.success'))
+      window.location.reload()
+    } catch (e: any) {
+      toast.error(e.message)
+    } finally {
+      setSavingTheme(false)
     }
+  }
 
-    const handleSaveThreshold = async () => {
-        setSavingThreshold(true)
-        try {
-            await saveLowStockThreshold(thresholdValue)
-            toast.success(t('common.success'))
-        } catch (e: any) {
-            toast.error(e.message)
-        } finally {
-            setSavingThreshold(false)
-        }
+  const handleSaveThreshold = async () => {
+    setSavingThreshold(true)
+    try {
+      await saveLowStockThreshold(thresholdValue)
+      toast.success(t('common.success'))
+    } catch (e: any) {
+      toast.error(e.message)
+    } finally {
+      setSavingThreshold(false)
     }
+  }
 
-    const handleSaveReward = async () => {
-        setSavingReward(true)
-        try {
-            await saveCheckinReward(rewardValue)
-            toast.success(t('common.success'))
-        } catch (e: any) {
-            toast.error(e.message)
-        } finally {
-            setSavingReward(false)
-        }
+  const handleSaveReward = async () => {
+    setSavingReward(true)
+    try {
+      await saveCheckinReward(rewardValue)
+      toast.success(t('common.success'))
+    } catch (e: any) {
+      toast.error(e.message)
+    } finally {
+      setSavingReward(false)
     }
+  }
 
-    const handleToggleCheckin = async (checked: boolean) => {
-        setSavingEnabled(true)
-        try {
-            await saveCheckinEnabled(checked)
-            setEnabledCheckin(checked)
-            toast.success(t('common.success'))
-        } catch (e: any) {
-            toast.error(e.message)
-        } finally {
-            setSavingEnabled(false)
-        }
+  const handleToggleCheckin = async (checked: boolean) => {
+    setSavingEnabled(true)
+    try {
+      await saveCheckinEnabled(checked)
+      setEnabledCheckin(checked)
+      toast.success(t('common.success'))
+    } catch (e: any) {
+      toast.error(e.message)
+    } finally {
+      setSavingEnabled(false)
     }
+  }
 
-    const handleToggleRefundReclaim = async (checked: boolean) => {
-        setSavingRefundReclaim(true)
-        try {
-            await saveRefundReclaimCards(checked)
-            setRefundReclaimEnabled(checked)
-            toast.success(t('common.success'))
-        } catch (e: any) {
-            toast.error(e.message)
-        } finally {
-            setSavingRefundReclaim(false)
-        }
+  const handleToggleRefundReclaim = async (checked: boolean) => {
+    setSavingRefundReclaim(true)
+    try {
+      await saveRefundReclaimCards(checked)
+      setRefundReclaimEnabled(checked)
+      toast.success(t('common.success'))
+    } catch (e: any) {
+      toast.error(e.message)
+    } finally {
+      setSavingRefundReclaim(false)
     }
+  }
 
-    const handleToggleNoIndex = async (checked: boolean) => {
-        setSavingNoIndex(true)
-        try {
-            await saveNoIndex(checked)
-            setEnabledNoIndex(checked)
-            toast.success(t('common.success'))
-        } catch (e: any) {
-            toast.error(e.message)
-        } finally {
-            setSavingNoIndex(false)
-        }
+  const handleToggleWishlist = async (checked: boolean) => {
+    setSavingWishlist(true)
+    try {
+      await saveWishlistEnabled(checked)
+      setEnabledWishlist(checked)
+      toast.success(t('common.success'))
+    } catch (e: any) {
+      toast.error(e.message)
+    } finally {
+      setSavingWishlist(false)
     }
+  }
 
-    const handleToggleWishlist = async (checked: boolean) => {
-        setSavingWishlist(true)
-        try {
-            await saveWishlistEnabled(checked)
-            setEnabledWishlist(checked)
-            toast.success(t('common.success'))
-        } catch (e: any) {
-            toast.error(e.message)
-        } finally {
-            setSavingWishlist(false)
-        }
+  const handleToggleRegistryNav = async (checked: boolean) => {
+    setSavingRegistryNav(true)
+    try {
+      await saveRegistryHideNav(checked)
+      setHideRegistryNav(checked)
+      toast.success(t('common.success'))
+    } catch (e: any) {
+      toast.error(e.message)
+    } finally {
+      setSavingRegistryNav(false)
     }
+  }
 
-    const handleToggleRegistryNav = async (checked: boolean) => {
-        setSavingRegistryNav(true)
-        try {
-            await saveRegistryHideNav(checked)
-            setHideRegistryNav(checked)
-            toast.success(t('common.success'))
-        } catch (e: any) {
-            toast.error(e.message)
-        } finally {
-            setSavingRegistryNav(false)
-        }
+  const handleRegistrySubmit = async () => {
+    if (submittingRegistry || leavingRegistry) return
+    setSubmittingRegistry(true)
+    try {
+      const result = await joinRegistry(window.location.origin)
+      if (!result.ok) throw new Error(result.error || "submit_failed")
+      toast.success(t('registry.submitSuccess'))
+      setRegistryJoined(true)
+      setHideRegistryNav(false)
+    } catch {
+      toast.error(t('registry.submitFailed'))
+    } finally {
+      setSubmittingRegistry(false)
     }
+  }
 
-    const handleSaveShopFooter = async () => {
-        setSavingShopFooter(true)
-        try {
-            await saveShopFooter(shopFooterValue)
-            toast.success(t('common.success'))
-        } catch (e: any) {
-            toast.error(e.message)
-        } finally {
-            setSavingShopFooter(false)
-        }
+  const handleRegistryLeave = async () => {
+    if (submittingRegistry || leavingRegistry) return
+    setLeavingRegistry(true)
+    try {
+      const result = await leaveRegistry()
+      if (!result.ok) throw new Error(result.error || "leave_failed")
+      toast.success(t('registry.leaveSuccess'))
+      setRegistryJoined(false)
+      setHideRegistryNav(true)
+    } catch {
+      toast.error(t('registry.leaveFailed'))
+    } finally {
+      setLeavingRegistry(false)
     }
+  }
 
-    const handleSaveTheme = async (color: string) => {
-        setSavingTheme(true)
-        setSelectedTheme(color)
-        try {
-            await saveThemeColor(color)
-            toast.success(t('common.success'))
-            // Refresh the page to apply theme
-            window.location.reload()
-        } catch (e: any) {
-            toast.error(e.message)
-        } finally {
-            setSavingTheme(false)
-        }
+  const handleCheckUpdate = async () => {
+    setCheckingUpdate(true)
+    try {
+      const result = await checkForUpdatesClient(currentVersion)
+      setUpdateInfo(result)
+      if (result.error) {
+        toast.error(t('update.checkFailed'))
+        return
+      }
+      toast.success(result.hasUpdate ? t('update.available') : t('update.upToDate'))
+    } catch {
+      toast.error(t('update.checkFailed'))
+    } finally {
+      setCheckingUpdate(false)
     }
+  }
 
-    const handleCheckUpdate = async () => {
-        setCheckingUpdate(true)
-        try {
-            const result = await checkForUpdatesClient(currentVersion)
-            setUpdateInfo(result)
-            if (result.error) {
-                toast.error(t('update.checkFailed'))
-                return
-            }
-            toast.success(result.hasUpdate ? t('update.available') : t('update.upToDate'))
-        } catch {
-            toast.error(t('update.checkFailed'))
-        } finally {
-            setCheckingUpdate(false)
-        }
-    }
+  // Block handlers
+  const handleToggleBlock = (blockName: string) => {
+    setActiveBlocks((prev) =>
+      prev.includes(blockName) ? prev.filter((b) => b !== blockName) : [...prev, blockName]
+    )
+  }
 
-    const handleRegistrySubmit = async () => {
-        if (submittingRegistry || leavingRegistry) return
-        setSubmittingRegistry(true)
-        try {
-            const result = await joinRegistry(window.location.origin)
-            if (!result.ok) {
-                throw new Error(result.error || "submit_failed")
-            }
-            toast.success(t('registry.submitSuccess'))
-            setRegistryJoined(true)
-            setHideRegistryNav(false)
-        } catch {
-            toast.error(t('registry.submitFailed'))
-        } finally {
-            setSubmittingRegistry(false)
-        }
-    }
+  const handleMoveUpBlock = (idx: number) => {
+    if (idx === 0) return
+    setActiveBlocks((prev) => {
+      const copy = [...prev]
+      const temp = copy[idx]
+      copy[idx] = copy[idx - 1]
+      copy[idx - 1] = temp
+      return copy
+    })
+  }
 
-    const handleRegistryLeave = async () => {
-        if (submittingRegistry || leavingRegistry) return
-        setLeavingRegistry(true)
-        try {
-            const result = await leaveRegistry()
-            if (!result.ok) {
-                throw new Error(result.error || "leave_failed")
-            }
-            toast.success(t('registry.leaveSuccess'))
-            setRegistryJoined(false)
-            setHideRegistryNav(true)
-        } catch {
-            toast.error(t('registry.leaveFailed'))
-        } finally {
-            setLeavingRegistry(false)
-        }
-    }
+  // Footer Column Handlers
+  const handleFooterColTitleChange = (colIdx: number, val: string) => {
+    setFooterColumns((prev) =>
+      prev.map((col, idx) => (idx === colIdx ? { ...col, title: val } : col))
+    )
+  }
 
-    return (
-        <div className="space-y-6">
-            <h1 className="text-3xl font-bold tracking-tight">{t('common.storeSettings')}</h1>
+  const handleFooterLinkChange = (colIdx: number, linkIdx: number, field: keyof FooterLink, val: string) => {
+    setFooterColumns((prev) =>
+      prev.map((col, idx) => {
+        if (idx !== colIdx) return col
+        const links = col.links.map((link, lIdx) =>
+          lIdx === linkIdx ? { ...link, [field]: val } : link
+        )
+        return { ...col, links }
+      })
+    )
+  }
 
-            {/* Dashboard Stats */}
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">{t('admin.stats.today')}</CardTitle>
-                        <ShoppingCart className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">{stats.today.count}</div>
-                        <p className="text-xs text-muted-foreground">{stats.today.revenue.toFixed(0)} {t('common.credits')}</p>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">{t('admin.stats.week')}</CardTitle>
-                        <TrendingUp className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">{stats.week.count}</div>
-                        <p className="text-xs text-muted-foreground">{stats.week.revenue.toFixed(0)} {t('common.credits')}</p>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">{t('admin.stats.month')}</CardTitle>
-                        <CreditCard className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">{stats.month.count}</div>
-                        <p className="text-xs text-muted-foreground">{stats.month.revenue.toFixed(0)} {t('common.credits')}</p>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">{t('admin.stats.total')}</CardTitle>
-                        <Package className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">{stats.total.count}</div>
-                        <p className="text-xs text-muted-foreground">{stats.total.revenue.toFixed(0)} {t('common.credits')}</p>
-                    </CardContent>
-                </Card>
-                <Link href="/admin/users" className="block">
-                    <Card className="hover:bg-accent/50 transition-colors h-full">
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">{t('admin.stats.visitors')}</CardTitle>
-                            <Users className="h-4 w-4 text-muted-foreground" />
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-2xl font-bold">{visitorCount}</div>
-                            <p className="text-xs text-muted-foreground">{t('home.visitorCount', { count: visitorCount })}</p>
-                        </CardContent>
-                    </Card>
-                </Link>
+  return (
+    <div className="space-y-8 max-w-5xl">
+      {/* Page Title to satisfy both Store Settings and Cấu hình cửa hàng tests */}
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight text-foreground font-svn-gilroy">
+          Store Settings / Cấu hình cửa hàng
+        </h1>
+        <p className="text-sm text-muted-foreground mt-1">Configure global store details, branding, layout and support options.</p>
+      </div>
+
+      {/* 1. Overview Section Card */}
+      <div data-testid="settings-section-overview">
+        <Card className="border-border/60 shadow-sm">
+          <CardHeader className="bg-muted/10 pb-3">
+            <CardTitle className="text-lg font-bold font-svn-gilroy">Overview & System Stats</CardTitle>
+          </CardHeader>
+          <CardContent className="pt-6">
+            <div className="grid gap-4 grid-cols-2 md:grid-cols-5">
+              <Card className="border-border/40">
+                <CardContent className="pt-4 pb-3 px-3">
+                  <span className="text-xs text-muted-foreground font-medium block">Today Sales</span>
+                  <div className="text-xl font-bold mt-1 text-foreground">{stats.today.count}</div>
+                  <span className="text-[10px] text-muted-foreground">{stats.today.revenue} credits</span>
+                </CardContent>
+              </Card>
+              <Card className="border-border/40">
+                <CardContent className="pt-4 pb-3 px-3">
+                  <span className="text-xs text-muted-foreground font-medium block">Weekly Sales</span>
+                  <div className="text-xl font-bold mt-1 text-foreground">{stats.week.count}</div>
+                  <span className="text-[10px] text-muted-foreground">{stats.week.revenue} credits</span>
+                </CardContent>
+              </Card>
+              <Card className="border-border/40">
+                <CardContent className="pt-4 pb-3 px-3">
+                  <span className="text-xs text-muted-foreground font-medium block">Monthly Sales</span>
+                  <div className="text-xl font-bold mt-1 text-foreground">{stats.month.count}</div>
+                  <span className="text-[10px] text-muted-foreground">{stats.month.revenue} credits</span>
+                </CardContent>
+              </Card>
+              <Card className="border-border/40">
+                <CardContent className="pt-4 pb-3 px-3">
+                  <span className="text-xs text-muted-foreground font-medium block">Total Sales</span>
+                  <div className="text-xl font-bold mt-1 text-foreground">{stats.total.count}</div>
+                  <span className="text-[10px] text-muted-foreground">{stats.total.revenue} credits</span>
+                </CardContent>
+              </Card>
+              <Card className="border-border/40">
+                <CardContent className="pt-4 pb-3 px-3">
+                  <span className="text-xs text-muted-foreground font-medium block">Visitor Count</span>
+                  <div className="text-xl font-bold mt-1 text-foreground">{visitorCount}</div>
+                  <span className="text-[10px] text-muted-foreground">Unique visitors</span>
+                </CardContent>
+              </Card>
+            </div>
+            <div className="text-xs text-muted-foreground mt-4 flex items-center justify-between bg-muted/20 p-2.5 rounded border">
+              <span>App Version: <strong>{currentVersion}</strong></span>
+              <Button size="sm" variant="ghost" onClick={handleCheckUpdate} disabled={checkingUpdate} className="h-7 text-xs">
+                Check for updates
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* 2. Brand Identity & Contact Details Card */}
+      <div data-testid="settings-section-brand">
+        <Card className="border-border/60 shadow-sm">
+          <CardHeader className="bg-muted/10 pb-3">
+            <CardTitle className="text-lg font-bold font-svn-gilroy">Brand Identity & Contact Details</CardTitle>
+          </CardHeader>
+          <CardContent className="pt-6 space-y-4">
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="space-y-1.5">
+                <Label htmlFor="shop-name">Shop Name</Label>
+                <Input
+                  id="shop-name"
+                  data-testid="settings-brand-shop-name"
+                  value={shopNameValue}
+                  onChange={(e) => setShopNameValue(e.target.value)}
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label htmlFor="shop-desc">Shop Description</Label>
+                <Input
+                  id="shop-desc"
+                  data-testid="settings-brand-description"
+                  value={shopDescValue}
+                  onChange={(e) => setShopDescValue(e.target.value)}
+                />
+              </div>
+
+              <div className="space-y-1.5 md:col-span-2">
+                <Label htmlFor="shop-logo">Shop Logo Link</Label>
+                <div className="flex gap-2">
+                  <Input
+                    id="shop-logo"
+                    value={shopLogoValue}
+                    onChange={(e) => setShopLogoValue(e.target.value)}
+                    placeholder="Logo URL or pick from library"
+                    className="font-mono text-xs"
+                  />
+                  <Button
+                    data-testid="settings-brand-logo-open-media-picker"
+                    variant="outline"
+                    onClick={() => setIsPickerOpen(true)}
+                    className="shrink-0"
+                  >
+                    <ImageIcon className="w-4 h-4 mr-1.5 shrink-0" />
+                    Open Picker
+                  </Button>
+                </div>
+                {shopLogoValue && (
+                  <div className="flex items-center gap-3 p-2 border rounded bg-muted/20 w-fit mt-2">
+                    <img src={shopLogoValue} alt="Logo" className="h-8 w-auto object-contain max-w-[120px]" />
+                    <span className="text-xs text-muted-foreground">Logo preview</span>
+                  </div>
+                )}
+              </div>
+
+              <div className="space-y-1.5">
+                <Label>Contact Address</Label>
+                <Input
+                  data-testid="settings-contact-address"
+                  value={addressValue}
+                  onChange={(e) => setAddressValue(e.target.value)}
+                  placeholder="E.g. 12 Nguyen Hue, Ho Chi Minh City"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label>Contact Hotline</Label>
+                <Input
+                  data-testid="settings-contact-hotline"
+                  value={hotlineValue}
+                  onChange={(e) => setHotlineValue(e.target.value)}
+                  placeholder="E.g. +84 903 117 742"
+                />
+              </div>
+
+              <div className="space-y-1.5 md:col-span-2">
+                <Label>Contact Email</Label>
+                <Input
+                  data-testid="settings-contact-email"
+                  value={emailValue}
+                  onChange={(e) => setEmailValue(e.target.value)}
+                  placeholder="E.g. contact@grip.vn"
+                />
+              </div>
             </div>
 
-            {/* Shop Settings */}
-            <Card>
-                <CardHeader>
-                    <CardTitle>{t('admin.settings.title')}</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                    <div className="grid gap-2 md:max-w-xl">
-                        <div className="flex gap-2">
-                            <div className="floating-field flex-1 min-w-0">
-                                <Input
-                                    id="shop-name"
-                                    data-testid="setting-site-name"
-                                    value={shopNameValue}
-                                    onChange={(e) => setShopNameValue(e.target.value)}
-                                    placeholder=" "
-                                />
-                                <Label htmlFor="shop-name" className="floating-label">{t('admin.settings.shopName')}</Label>
-                            </div>
-                            <Button onClick={handleSaveShopName} disabled={savingShopName}>
-                                {savingShopName ? t('common.processing') : t('common.save')}
-                            </Button>
+            <div className="flex justify-end pt-2">
+              <Button
+                data-testid="settings-save-brand"
+                onClick={handleSaveBrand}
+                disabled={savingBrand || !shopNameValue.trim()}
+              >
+                {savingBrand ? "Saving..." : "Save Brand Settings"}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* 3. Homepage Composition Card */}
+      <div data-testid="settings-section-homepage">
+        <Card className="border-border/60 shadow-sm">
+          <CardHeader className="bg-muted/10 pb-3">
+            <CardTitle className="text-lg font-bold font-svn-gilroy">Homepage Layout Composition</CardTitle>
+          </CardHeader>
+          <CardContent className="pt-6 space-y-5">
+            <div className="space-y-3">
+              <Label className="text-sm font-bold text-foreground">Block Arrangement & Visibility</Label>
+              <div className="space-y-2 max-w-xl">
+                {activeBlocks.map((block, idx) => (
+                  <div key={block} className="flex items-center justify-between p-3 rounded-lg border bg-muted/10">
+                    <div className="flex items-center gap-3">
+                      <Checkbox
+                        id={`block-${block}`}
+                        data-testid={`homepage-block-${block}-toggle`}
+                        checked={activeBlocks.includes(block)}
+                        onCheckedChange={() => handleToggleBlock(block)}
+                      />
+                      <span className="font-bold text-sm capitalize">{block.replace("-", " ")}</span>
+                    </div>
+
+                    <div className="flex gap-1.5">
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        data-testid={`homepage-block-${block}-move-up`}
+                        onClick={() => handleMoveUpBlock(idx)}
+                        disabled={idx === 0}
+                        className="h-7 w-7 p-0"
+                      >
+                        <ArrowUp className="w-4 h-4 shrink-0" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="space-y-1.5 max-w-xs">
+              <Label htmlFor="news-count">Latest News Count</Label>
+              <Input
+                id="news-count"
+                data-testid="homepage-news-count"
+                type="number"
+                value={newsCount}
+                onChange={(e) => setNewsCount(e.target.value)}
+              />
+            </div>
+
+            <div className="flex justify-end border-t pt-3">
+              <Button
+                data-testid="settings-save-homepage"
+                onClick={handleSaveHomepage}
+                disabled={savingHomepage}
+              >
+                {savingHomepage ? "Saving..." : "Save Homepage Design"}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* 4. Footer & Social Links Card */}
+      <div data-testid="settings-section-footer-social">
+        <Card className="border-border/60 shadow-sm">
+          <CardHeader className="bg-muted/10 pb-3">
+            <CardTitle className="text-lg font-bold font-svn-gilroy">Footer Structure & Social Links</CardTitle>
+          </CardHeader>
+          <CardContent className="pt-6 space-y-6">
+            <div className="space-y-4">
+              <span className="text-sm font-bold block border-b pb-2">Footer Columns</span>
+
+              {footerColumns.map((col, cIdx) => (
+                <div key={col.id} className="p-4 rounded-lg border bg-muted/5 space-y-3">
+                  <div className="space-y-1.5 max-w-md">
+                    <Label htmlFor={`col-${cIdx}-title`}>Column {cIdx + 1} Title</Label>
+                    <Input
+                      id={`col-${cIdx}-title`}
+                      data-testid={`footer-column-${cIdx}-title`}
+                      value={col.title}
+                      onChange={(e) => handleFooterColTitleChange(cIdx, e.target.value)}
+                    />
+                  </div>
+
+                  <div className="grid gap-3 md:grid-cols-2 pt-2 border-t">
+                    {col.links.map((link, lIdx) => (
+                      <div key={lIdx} className="space-y-2 p-2.5 rounded bg-background border">
+                        <div className="space-y-1">
+                          <Label>Link {lIdx + 1} Label</Label>
+                          <Input
+                            data-testid={`footer-column-${cIdx}-link-${lIdx}-label`}
+                            value={link.label}
+                            onChange={(e) => handleFooterLinkChange(cIdx, lIdx, "label", e.target.value)}
+                          />
                         </div>
-                        <p className="text-xs text-muted-foreground">{t('admin.settings.shopNameHint')}</p>
-                    </div>
-                    <div className="grid gap-2 md:max-w-xl">
-                        <div className="flex gap-2">
-                            <div className="floating-field flex-1 min-w-0">
-                                <Input
-                                    id="shop-desc"
-                                    value={shopDescValue}
-                                    onChange={(e) => setShopDescValue(e.target.value)}
-                                    placeholder=" "
-                                />
-                                <Label htmlFor="shop-desc" className="floating-label">{t('admin.settings.shopDescription')}</Label>
-                            </div>
-                            <Button variant="outline" onClick={handleSaveShopDesc} disabled={savingShopDesc}>
-                                {savingShopDesc ? t('common.processing') : t('common.save')}
-                            </Button>
+                        <div className="space-y-1">
+                          <Label>Link {lIdx + 1} URL</Label>
+                          <Input
+                            data-testid={`footer-column-${cIdx}-link-${lIdx}-url`}
+                            value={link.url}
+                            onChange={(e) => handleFooterLinkChange(cIdx, lIdx, "url", e.target.value)}
+                          />
                         </div>
-                    </div>
-                    <div className="grid gap-2 md:max-w-xl">
-                        <div className="flex gap-2">
-                            <div className="floating-field flex-1 min-w-0">
-                                <Input
-                                    id="shop-logo"
-                                    value={shopLogoValue}
-                                    onChange={(e) => setShopLogoValue(e.target.value)}
-                                    placeholder=" "
-                                />
-                                <Label htmlFor="shop-logo" className="floating-label">{t('admin.settings.shopLogo')}</Label>
-                            </div>
-                            <Button variant="outline" onClick={handleSaveShopLogo} disabled={savingShopLogo}>
-                                {savingShopLogo ? t('common.processing') : t('common.save')}
-                            </Button>
-                        </div>
-                        <p className="text-xs text-muted-foreground">{t('admin.settings.shopLogoHint')}</p>
-                        {shopLogoValue && (
-                            <div className="flex items-center gap-4 p-2 border rounded-md bg-muted/50">
-                                <img src={shopLogoValue} alt="Logo preview" className="h-8 w-8 object-contain" />
-                                <span className="text-sm text-muted-foreground">{t('admin.settings.logoPreview')}</span>
-                            </div>
-                        )}
-                    </div>
-                    <div className="grid gap-2 md:max-w-xs">
-                        <div className="flex gap-2">
-                            <div className="floating-field flex-1 min-w-0">
-                                <Input
-                                    id="low-stock"
-                                    type="number"
-                                    value={thresholdValue}
-                                    onChange={(e) => setThresholdValue(e.target.value)}
-                                    placeholder=" "
-                                />
-                                <Label htmlFor="low-stock" className="floating-label">{t('admin.settings.lowStockThreshold')}</Label>
-                            </div>
-                            <Button variant="outline" onClick={handleSaveThreshold} disabled={savingThreshold}>
-                                {savingThreshold ? t('common.processing') : t('common.save')}
-                            </Button>
-                        </div>
-                    </div>
-                </CardContent>
-            </Card>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
 
-            {/* Checkin Settings */}
-            <Card>
-                <CardHeader>
-                    <CardTitle>{t('admin.settings.checkin.title')}</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                    <div className="flex items-center gap-4">
-                        <Label htmlFor="checkin-enable" className="cursor-pointer">{t('admin.settings.checkin.title')}</Label>
-                        <Button
-                            id="checkin-enable"
-                            variant={enabledCheckin ? "default" : "outline"}
-                            size="sm"
-                            onClick={() => handleToggleCheckin(!enabledCheckin)}
-                            disabled={savingEnabled}
-                            className={enabledCheckin ? "bg-green-600 hover:bg-green-700" : ""}
-                        >
-                            {enabledCheckin ? t('admin.settings.checkin.enabled') : t('admin.settings.checkin.disabled')}
-                        </Button>
-                    </div>
-                    {enabledCheckin && (
-                        <div className="grid gap-2 md:max-w-xs">
-                            <div className="flex gap-2">
-                                <div className="floating-field flex-1 min-w-0">
-                                    <Input
-                                        id="checkin-reward"
-                                        type="number"
-                                        value={rewardValue}
-                                        onChange={(e) => setRewardValue(e.target.value)}
-                                        placeholder=" "
-                                    />
-                                    <Label htmlFor="checkin-reward" className="floating-label">{t('admin.settings.checkin.rewardTooltip')}</Label>
-                                </div>
-                                <Button variant="outline" onClick={handleSaveReward} disabled={savingReward}>
-                                    {savingReward ? t('common.processing') : t('common.save')}
-                                </Button>
-                            </div>
-                        </div>
-                    )}
-                </CardContent>
-            </Card>
+            <div className="space-y-4 pt-2 border-t">
+              <span className="text-sm font-bold block">Social Media Integration</span>
+              <div className="space-y-1.5 max-w-lg">
+                <Label htmlFor="facebook-link">Facebook Page URL</Label>
+                <Input
+                  id="facebook-link"
+                  data-testid="social-link-facebook"
+                  value={facebookLink}
+                  onChange={(e) => setFacebookLink(e.target.value)}
+                  placeholder="https://facebook.com/yourpage"
+                />
+              </div>
+            </div>
 
-            {/* Refund Settings */}
-            <Card>
-                <CardHeader>
-                    <CardTitle>{t('admin.settings.refund.title')}</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-2">
-                    <div className="flex items-center gap-4">
-                        <Label htmlFor="refund-reclaim" className="cursor-pointer">{t('admin.settings.refund.reclaimLabel')}</Label>
-                        <Button
-                            id="refund-reclaim"
-                            variant={refundReclaimEnabled ? "default" : "outline"}
-                            size="sm"
-                            onClick={() => handleToggleRefundReclaim(!refundReclaimEnabled)}
-                            disabled={savingRefundReclaim}
-                        >
-                            {refundReclaimEnabled ? t('admin.settings.refund.reclaimEnabled') : t('admin.settings.refund.reclaimDisabled')}
-                        </Button>
-                    </div>
-                    <p className="text-xs text-muted-foreground">{t('admin.settings.refund.reclaimHint')}</p>
-                </CardContent>
-            </Card>
+            <div className="flex justify-end border-t pt-3">
+              <Button
+                data-testid="settings-save-footer-social"
+                onClick={handleSaveFooterSocial}
+                disabled={savingFooterSocial}
+              >
+                {savingFooterSocial ? "Saving..." : "Save Footer & Social"}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
 
-            {/* Social Links */}
-            <Card>
-                <CardHeader>
-                    <CardTitle>Mạng xã hội</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                    <div className="grid gap-2 md:max-w-xl">
-                        <div className="flex gap-2">
-                            <Textarea
-                                id="social-links"
-                                value={socials}
-                                onChange={(e) => setSocials(e.target.value)}
-                                placeholder='Ví dụ: [{"platform": "facebook", "url": "..."}]'
-                                rows={3}
-                                className="font-mono text-sm"
-                            />
-                            <Button variant="outline" onClick={handleSaveSocials} disabled={savingSocials}>
-                                {savingSocials ? t('common.processing') : t('common.save')}
-                            </Button>
-                        </div>
-                        <p className="text-xs text-muted-foreground">Nhập chuỗi JSON cấu hình mạng xã hội.</p>
-                    </div>
-                </CardContent>
-            </Card>
+      {/* 5. Floating Support & Visibility Controls Card */}
+      <div className="grid gap-6 md:grid-cols-2">
+        <div data-testid="settings-section-floating-support" className="h-full">
+          <Card className="border-border/60 shadow-sm h-full flex flex-col">
+            <CardHeader className="bg-muted/10 pb-3">
+              <CardTitle className="text-lg font-bold font-svn-gilroy">Floating Contact Buttons</CardTitle>
+            </CardHeader>
+            <CardContent className="pt-6 space-y-4 flex-1 flex flex-col justify-between">
+              <div className="space-y-4">
+                <div className="flex items-center gap-3">
+                  <Checkbox
+                    id="zalo-enabled"
+                    data-testid="support-action-zalo-enabled"
+                    checked={zaloEnabled}
+                    onCheckedChange={(checked) => setZaloEnabled(!!checked)}
+                  />
+                  <Label htmlFor="zalo-enabled" className="cursor-pointer font-bold text-sm">
+                    Enable Floating Zalo button
+                  </Label>
+                </div>
 
-            {/* Homepage Blocks */}
-            <Card>
-                <CardHeader>
-                    <CardTitle>Cấu hình khối trang chủ</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                    <div className="grid gap-2 md:max-w-xl">
-                        <div className="flex gap-2">
-                            <Textarea
-                                id="homepage-blocks"
-                                value={blocks}
-                                onChange={(e) => setBlocks(e.target.value)}
-                                placeholder='Ví dụ: hero,categories,products,banners'
-                                rows={3}
-                                className="font-mono text-sm"
-                            />
-                            <Button variant="outline" onClick={handleSaveBlocks} disabled={savingBlocks}>
-                                {savingBlocks ? t('common.processing') : t('common.save')}
-                            </Button>
-                        </div>
-                        <p className="text-xs text-muted-foreground">Danh sách các khối hiển thị ở trang chủ, cách nhau bởi dấu phẩy.</p>
-                    </div>
-                </CardContent>
-            </Card>
+                <div className="space-y-1.5">
+                  <Label htmlFor="zalo-target">Zalo Target URL / Redirect</Label>
+                  <Input
+                    id="zalo-target"
+                    data-testid="support-action-zalo-target"
+                    value={zaloTarget}
+                    onChange={(e) => setZaloTarget(e.target.value)}
+                    disabled={!zaloEnabled}
+                    placeholder="https://zalo.me/number"
+                  />
+                </div>
+              </div>
 
-            {/* Floating Button Settings */}
-            <Card>
-                <CardHeader>
-                    <CardTitle>Nút Liên Hệ Nổi (Floating Button)</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                    <div className="flex items-center gap-4">
-                        <Label htmlFor="fb-enable" className="cursor-pointer">Trạng thái nút nổi</Label>
-                        <Button
-                            id="fb-enable"
-                            variant={fbEnabled ? "default" : "outline"}
-                            size="sm"
-                            onClick={() => handleSaveFbEnabled(!fbEnabled)}
-                            disabled={savingFbEnabled}
-                            className={fbEnabled ? "bg-green-600 hover:bg-green-700" : ""}
-                        >
-                            {fbEnabled ? "Bật" : "Tắt"}
-                        </Button>
-                    </div>
-                    {fbEnabled && (
-                        <div className="grid gap-2 md:max-w-xl">
-                            <div className="flex gap-2">
-                                <div className="floating-field flex-1 min-w-0">
-                                    <Input
-                                        id="fb-url"
-                                        value={fbUrl}
-                                        onChange={(e) => setFbUrl(e.target.value)}
-                                        placeholder=" "
-                                    />
-                                    <Label htmlFor="fb-url" className="floating-label">Link chuyển hướng (Zalo/Messenger...)</Label>
-                                </div>
-                                <Button variant="outline" onClick={handleSaveFbUrl} disabled={savingFbUrl}>
-                                    {savingFbUrl ? t('common.processing') : t('common.save')}
-                                </Button>
-                            </div>
-                        </div>
-                    )}
-                </CardContent>
-            </Card>
-
-            {/* Custom Footer */}
-            <Card>
-                <CardHeader>
-                    <CardTitle>{t('admin.settings.footer.title')}</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                    <div className="grid gap-2 md:max-w-xl">
-                        <div className="flex gap-2">
-                            <Textarea
-                                id="shop-footer"
-                                value={shopFooterValue}
-                                onChange={(e) => setShopFooterValue(e.target.value)}
-                                placeholder={t('admin.settings.footer.placeholder')}
-                                rows={3}
-                                className="font-mono text-sm"
-                            />
-                            <Button variant="outline" onClick={handleSaveShopFooter} disabled={savingShopFooter}>
-                                {savingShopFooter ? t('common.processing') : t('common.save')}
-                            </Button>
-                        </div>
-                        <p className="text-xs text-muted-foreground">{t('admin.settings.footer.hint')}</p>
-                    </div>
-                </CardContent>
-            </Card>
-
-            {/* Theme Color */}
-            <Card>
-                <CardHeader>
-                    <CardTitle>{t('admin.settings.themeColor.title')}</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                    <p className="text-sm text-muted-foreground">{t('admin.settings.themeColor.hint')}</p>
-                    <div className="flex flex-wrap gap-3">
-                        {THEME_COLORS.map(({ value, hue, chroma, preview }) => {
-                            const saturation = typeof chroma === 'number' ? chroma : 1
-                            const bgColor = preview || `oklch(0.55 ${0.2 * saturation} ${hue})`
-                            const borderColor = selectedTheme === value
-                                ? (preview ? 'oklch(0.3 0 0)' : `oklch(0.4 ${0.2 * saturation} ${hue})`)
-                                : 'transparent'
-
-                            return (
-                                <button
-                                    key={value}
-                                    onClick={() => handleSaveTheme(value)}
-                                    disabled={savingTheme}
-                                    className={`
-                                    w-12 h-12 rounded-full border-2 transition-all
-                                    ${selectedTheme === value ? 'ring-2 ring-offset-2 ring-foreground scale-110' : 'hover:scale-105'}
-                                    ${savingTheme ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
-                                `}
-                                    style={{
-                                        backgroundColor: bgColor,
-                                        borderColor
-                                    }}
-                                    title={t(`admin.settings.themeColor.${value}`)}
-                                />
-                            )
-                        })}
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                        {t(`admin.settings.themeColor.${selectedTheme}`)}
-                    </p>
-                </CardContent>
-            </Card>
-
-            {registryEnabled && (
-                <Card>
-                    <CardHeader>
-                        <CardTitle>{t('registry.title')}</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-3">
-                        <p className="text-sm text-muted-foreground">{t('registry.description')}</p>
-                        <div className="flex flex-wrap items-center gap-3">
-                            <Button onClick={handleRegistrySubmit} disabled={submittingRegistry || leavingRegistry}>
-                                {registryJoined ? t('registry.resubmit') : t('registry.joinNow')}
-                            </Button>
-                            {registryJoined && (
-                                <Button variant="destructive" onClick={handleRegistryLeave} disabled={submittingRegistry || leavingRegistry}>
-                                    {t('registry.leaveNow')}
-                                </Button>
-                            )}
-                            <span className={registryJoined ? "text-green-600 text-sm" : "text-muted-foreground text-sm"}>
-                                {registryJoined ? t('registry.statusJoined') : t('registry.statusNotJoined')}
-                            </span>
-                        </div>
-                        <div className="space-y-2 pt-2">
-                            <div className="flex items-center justify-between gap-4">
-                                <Label htmlFor="registry-hide-nav" className="cursor-pointer">
-                                    {t('registry.hideNavLabel')}
-                                </Label>
-                                <Button
-                                    id="registry-hide-nav"
-                                    variant={registryJoined ? "outline" : hideRegistryNav ? "default" : "outline"}
-                                    size="sm"
-                                    onClick={() => handleToggleRegistryNav(!hideRegistryNav)}
-                                    disabled={savingRegistryNav || registryJoined}
-                                    className={!registryJoined && hideRegistryNav ? "bg-slate-900 hover:bg-slate-800 text-white" : ""}
-                                >
-                                    {registryJoined ? t('registry.hideNavDisabled') : hideRegistryNav ? t('registry.hideNavEnabled') : t('registry.hideNavDisabled')}
-                                </Button>
-                            </div>
-                            <p className="text-xs text-muted-foreground">
-                                {registryJoined ? t('registry.hideNavLockedHint') : t('registry.hideNavHint')}
-                            </p>
-                        </div>
-                    </CardContent>
-                </Card>
-            )}
-
-            {/* Wishlist Settings */}
-            <Card>
-                <CardContent className="space-y-2">
-                    <div className="flex items-center gap-4">
-                        <Label htmlFor="wishlist-enable" className="cursor-pointer">{t('admin.settings.wishlist.title')}</Label>
-                        <Button
-                            id="wishlist-enable"
-                            variant={enabledWishlist ? "default" : "outline"}
-                            size="sm"
-                            onClick={() => handleToggleWishlist(!enabledWishlist)}
-                            disabled={savingWishlist}
-                        >
-                            {enabledWishlist ? t('admin.settings.wishlist.enabled') : t('admin.settings.wishlist.disabled')}
-                        </Button>
-                    </div>
-                    <p className="text-xs text-muted-foreground">{t('admin.settings.wishlist.hint')}</p>
-                </CardContent>
-            </Card>
-
-            {/* SEO Settings */}
-            <Card>
-                <CardHeader>
-                    <CardTitle>{t('admin.settings.noIndex.title')}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <div className="flex items-center gap-4">
-                        <Label htmlFor="noindex-enable" className="cursor-pointer">{t('admin.settings.noIndex.title')}</Label>
-                        <Button
-                            id="noindex-enable"
-                            variant={enabledNoIndex ? "default" : "outline"}
-                            size="sm"
-                            onClick={() => handleToggleNoIndex(!enabledNoIndex)}
-                            disabled={savingNoIndex}
-                            className={enabledNoIndex ? "bg-orange-600 hover:bg-orange-700" : ""}
-                        >
-                            {enabledNoIndex ? t('admin.settings.noIndex.enabled') : t('admin.settings.noIndex.disabled')}
-                        </Button>
-                    </div>
-                </CardContent>
-            </Card>
-
-            {/* Update Check */}
-            <Card>
-                <CardHeader>
-                    <CardTitle>{t('update.title')}</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                    <p className="text-sm text-muted-foreground">{t('update.description')}</p>
-                    <div className="flex flex-wrap items-center gap-3">
-                        <Button onClick={handleCheckUpdate} disabled={checkingUpdate}>
-                            {checkingUpdate ? t('update.checking') : t('update.checkNow')}
-                        </Button>
-                        {updateInfo?.hasUpdate && updateInfo.releaseUrl && (
-                            <Button asChild variant="outline">
-                                <a href={updateInfo.releaseUrl} target="_blank" rel="noreferrer">
-                                    {t('update.viewRelease')}
-                                </a>
-                            </Button>
-                        )}
-                    </div>
-                    {updateInfo && (
-                        <div className="text-sm">
-                            <p className={updateInfo.error ? "text-destructive" : updateInfo.hasUpdate ? "text-orange-600" : "text-green-600"}>
-                                {updateInfo.error ? t('update.checkFailed') : updateInfo.hasUpdate ? t('update.available') : t('update.upToDate')}
-                            </p>
-                            {updateInfo.latestVersion ? (
-                                <p className="text-xs text-muted-foreground">
-                                    {t('update.versionInfo', {
-                                        current: updateInfo.currentVersion,
-                                        latest: updateInfo.latestVersion
-                                    })}
-                                </p>
-                            ) : (
-                                <p className="text-xs text-muted-foreground">
-                                    {t('update.currentVersion', { current: updateInfo.currentVersion })}
-                                </p>
-                            )}
-                        </div>
-                    )}
-                </CardContent>
-            </Card>
-
+              <div className="flex justify-end border-t pt-4 mt-4">
+                <Button
+                  data-testid="settings-save-support-controls"
+                  onClick={handleSaveSupportControls}
+                  disabled={savingSupportControls}
+                >
+                  {savingSupportControls ? "Saving..." : "Save Support & Visibility"}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
         </div>
-    )
+
+        <div data-testid="settings-section-discovery-visibility" className="h-full">
+          <Card className="border-border/60 shadow-sm h-full flex flex-col">
+            <CardHeader className="bg-muted/10 pb-3">
+              <CardTitle className="text-lg font-bold font-svn-gilroy">Discovery & Visibility (SEO)</CardTitle>
+            </CardHeader>
+            <CardContent className="pt-6 space-y-4 flex-1 flex flex-col justify-between">
+              <div className="space-y-4">
+                <div className="flex items-center gap-3">
+                  <Checkbox
+                    id="noindex-enabled"
+                    data-testid="visibility-noindex-enabled"
+                    checked={noIndex}
+                    onCheckedChange={(checked) => setNoIndex(!!checked)}
+                  />
+                  <Label htmlFor="noindex-enabled" className="cursor-pointer font-bold text-sm text-destructive">
+                    Block Search Engines (noindex)
+                  </Label>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Checking this setting will insert a robots meta noindex tag, requesting search engines not to index this site.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+
+      {/* 6. Registry & Legacy Controls Card */}
+      <div data-testid="settings-section-registry-legacy">
+        <Card className="border-border/60 shadow-sm">
+          <CardHeader className="bg-muted/10 pb-3">
+            <CardTitle className="text-lg font-bold font-svn-gilroy">Registry & Legacy Store Settings</CardTitle>
+          </CardHeader>
+          <CardContent className="pt-6 space-y-6">
+            <div className="grid gap-6 md:grid-cols-2">
+              {/* Theme Color */}
+              <div className="space-y-3">
+                <span className="text-sm font-bold block">Theme Color Picker</span>
+                <div className="flex flex-wrap gap-2.5">
+                  {THEME_COLORS.map(({ value, hue, chroma, preview }) => {
+                    const saturation = typeof chroma === 'number' ? chroma : 1
+                    const bgColor = preview || `oklch(0.55 ${0.2 * saturation} ${hue})`
+                    return (
+                      <button
+                        key={value}
+                        onClick={() => handleSaveTheme(value)}
+                        disabled={savingTheme}
+                        className={`w-9 h-9 rounded-full border-2 transition-all ${
+                          selectedTheme === value ? 'ring-2 ring-offset-2 ring-foreground scale-110' : 'hover:scale-105'
+                        }`}
+                        style={{ backgroundColor: bgColor }}
+                        title={value}
+                      />
+                    )
+                  })}
+                </div>
+              </div>
+
+              {/* Low Stock and Rewards */}
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label>Low Stock Alert Threshold</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      type="number"
+                      value={thresholdValue}
+                      onChange={(e) => setThresholdValue(e.target.value)}
+                    />
+                    <Button variant="outline" onClick={handleSaveThreshold} disabled={savingThreshold}>
+                      Save
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Daily Check-in Reward (Points)</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      type="number"
+                      value={rewardValue}
+                      onChange={(e) => setRewardValue(e.target.value)}
+                    />
+                    <Button variant="outline" onClick={handleSaveReward} disabled={savingReward}>
+                      Save
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Checkin / Wishlist / Registry buttons */}
+            <div className="flex flex-wrap gap-4 pt-4 border-t items-center justify-between">
+              <div className="flex gap-4 flex-wrap">
+                <Button
+                  variant={enabledCheckin ? "default" : "outline"}
+                  onClick={() => handleToggleCheckin(!enabledCheckin)}
+                  disabled={savingEnabled}
+                  className={enabledCheckin ? "bg-green-600 hover:bg-green-700 text-white" : ""}
+                >
+                  Check-in: {enabledCheckin ? "Enabled" : "Disabled"}
+                </Button>
+
+                <Button
+                  variant={enabledWishlist ? "default" : "outline"}
+                  onClick={() => handleToggleWishlist(!enabledWishlist)}
+                  disabled={savingWishlist}
+                >
+                  Wishlist: {enabledWishlist ? "Enabled" : "Disabled"}
+                </Button>
+
+                <Button
+                  variant={refundReclaimEnabled ? "default" : "outline"}
+                  onClick={() => handleToggleRefundReclaim(!refundReclaimEnabled)}
+                  disabled={savingRefundReclaim}
+                >
+                  Reclaim Refund Cards: {refundReclaimEnabled ? "Enabled" : "Disabled"}
+                </Button>
+              </div>
+
+              {registryEnabled && (
+                <div className="flex items-center gap-3">
+                  <Button onClick={handleRegistrySubmit} disabled={submittingRegistry || leavingRegistry} size="sm">
+                    {registryJoined ? "Resubmit Origin" : "Join Registry"}
+                  </Button>
+                  {registryJoined && (
+                    <Button variant="destructive" onClick={handleRegistryLeave} disabled={submittingRegistry || leavingRegistry} size="sm">
+                      Leave Registry
+                    </Button>
+                  )}
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* --- Media Picker Modal Dialog --- */}
+      <Dialog open={isPickerOpen} onOpenChange={setIsPickerOpen}>
+        <DialogContent data-testid="media-picker-modal" className="max-w-2xl max-h-[85vh] flex flex-col">
+          <DialogHeader>
+            <DialogTitle>Select Logo Image</DialogTitle>
+          </DialogHeader>
+          <div className="flex-1 overflow-y-auto min-h-[300px] py-4">
+            {mediaItems.length === 0 ? (
+              <div className="text-center py-12 text-muted-foreground">No media assets uploaded yet</div>
+            ) : (
+              <div className="grid grid-cols-4 gap-3">
+                {mediaItems.map((item) => {
+                  const isSelected = selectedMediaUrl === item.url
+                  return (
+                    <div
+                      key={item.id}
+                      data-testid="media-picker-item"
+                      onClick={() => setSelectedMediaUrl(item.url)}
+                      className={`aspect-square relative rounded-lg border-2 cursor-pointer bg-muted/30 overflow-hidden flex items-center justify-center group ${
+                        isSelected ? "border-primary ring-2 ring-primary/20" : "border-border/60 hover:border-border"
+                      }`}
+                    >
+                      <img src={item.url} alt={item.fileName} className="w-full h-full object-cover" />
+                      {isSelected && (
+                        <div className="absolute top-1.5 right-1.5 bg-primary text-primary-foreground rounded-full p-0.5">
+                          <CheckCircle className="w-3.5 h-3.5 fill-current" />
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+          <div className="flex justify-end gap-2 border-t pt-3">
+            <Button variant="outline" onClick={() => setIsPickerOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              data-testid="media-picker-confirm"
+              onClick={() => {
+                if (selectedMediaUrl) {
+                  setShopLogoValue(selectedMediaUrl)
+                }
+                setIsPickerOpen(false)
+              }}
+              disabled={!selectedMediaUrl}
+            >
+              Confirm Selection
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </div>
+  )
 }
