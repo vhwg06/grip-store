@@ -200,7 +200,7 @@
         "payeeLabel": "Payee",
         "qrAlt": "Payment QR code",
         "itemLabel": "Payment Item",
-        "paidMessage": "Payment received. No delivery or card is required."
+        "paidMessage": "Payment received. No delivery is required."
     },
     "orders": {
         "title": "My Orders",
@@ -281,13 +281,6 @@
                 "disabled": "Disabled",
                 "hint": "Show the wishlist entry on the homepage and allow users to submit/vote."
             },
-            "refund": {
-                "title": "Refund Settings",
-                "reclaimLabel": "Reclaim card keys on refund",
-                "reclaimEnabled": "Enabled",
-                "reclaimDisabled": "Disabled",
-                "reclaimHint": "When enabled, refunded card keys return to stock; disable to avoid reselling used keys."
-            },
             "footer": {
                 "title": "Custom Footer",
                 "placeholder": "e.g. Contact: xxx@example.com",
@@ -363,7 +356,7 @@
             },
             "email": {
                 "title": "Email Notifications",
-                "desc": "Automatically send card keys to buyers via email after purchase (powered by Resend)",
+                "desc": "Automatically send order details to buyers via email after purchase (powered by Resend)",
                 "enabled": "Enable email sending",
                 "apiKey": "Resend API Key",
                 "apiKeyHint": "Get your API Key from:",
@@ -482,7 +475,6 @@
             "hide": "Hide",
             "show": "Show",
             "actions": "Actions",
-            "manageCards": "Cards",
             "confirmDelete": "Are you sure you want to delete this product?"
         },
         "users": {
@@ -512,7 +504,6 @@
             "amount": "Amount",
             "status": "Status",
             "tradeNo": "Trade No",
-            "cardKey": "Card Key",
             "date": "Date",
             "actions": "Actions",
             "searchPlaceholder": "Search by order / user / email / product / trade...",
@@ -565,37 +556,7 @@
             "proxyFailedTryManual": "Server refund failed. Please verify on the payment platform and then click \"Mark Refunded\".",
             "tryManual": "Manual Refund"
         },
-        "cards": {
-            "title": "Manage Stock",
-            "addCards": "Add Cards",
-            "placeholder": "Enter card keys, separated by newlines or commas...",
-            "expiryLabel": "Card expiry (optional)",
-            "expiryHours": "Hours",
-            "expiryMinutes": "Minutes",
-            "expiryHint": "Only positive integers. Leave empty for no expiry.",
-            "expiryInvalid": "Invalid expiry duration. Use hours and minutes (0-59).",
-            "available": "Available",
-            "used": "Used",
-            "noCards": "No cards",
-            "batchDelete": "Batch Delete",
-            "selectAll": "Select All",
-            "selectedCount": "Selected: {{count}}",
-            "confirmBatchDelete": "Confirm delete {{count}} items?",
-            "confirmAddTitle": "Confirm adding cards",
-            "confirmAddDescription": "You are about to add {{count}} card(s). Continue?",
-            "apiTitle": "Card API Auto Refill",
-            "apiHint": "After saving, the system will try to pull 1 card immediately. It will also auto-refill 1 card after each successful delivery.",
-            "apiUrl": "API URL",
-            "apiToken": "API Token (optional)",
-            "apiTokenPlaceholder": "Leave empty to skip Authorization header",
-            "apiEnabled": "Enabled",
-            "apiDisabled": "Disabled",
-            "apiPullOne": "Pull 1 Card",
-            "apiPullSuccess": "Pulled 1 card from API",
-            "apiPullFailed": "API pull failed",
-            "apiAutoPulled": "Config saved and 1 card was auto-pulled",
-            "apiAutoPullFailed": "Config saved but auto-pull failed"
-        },
+
         "productForm": {
             "addTitle": "Add New Product",
             "editTitle": "Edit Product",

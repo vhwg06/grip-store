@@ -268,10 +268,19 @@ export async function getAdminProductForm(id?: string) {
   return { product: normalizedProduct, categories: normalizedCategories }
 }
 
-export async function getAdminCategories() {
+export async function getAdminCategories(): Promise<AdminCategory[]> {
   const payload = await apiFetch<any>("/api/admin/categories")
   const raw = payload?.data || payload
-  return Array.isArray(raw) ? raw : raw.categories ?? []
+  const list = Array.isArray(raw) ? raw : raw.categories ?? []
+  return list.map((c: any) => ({
+    id: c.id,
+    name: c.name ?? "",
+    slug: c.slug ?? "",
+    icon: c.icon ?? null,
+    sortOrder: Number(c.sort_order ?? c.sortOrder ?? 0),
+    parentId: c.parent_id ?? c.parentId ?? null,
+    isActive: Boolean(c.is_active ?? c.isActive ?? true),
+  }))
 }
 
 
@@ -690,7 +699,7 @@ export async function deleteFAQ(id: number) {
   return deleteJson(`/api/admin/faqs/${encodeURIComponent(String(id))}`)
 }
 
-export async function getAdminLeads() {
+export async function getAdminLeads(): Promise<AdminLead[]> {
   const payload = await apiFetch<any>("/api/admin/leads")
   const raw = payload?.data || payload
   return Array.isArray(raw) ? raw : raw.leads ?? []

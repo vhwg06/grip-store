@@ -224,7 +224,6 @@ export function AdminSettingsContent({
   const [savingEnabled, setSavingEnabled] = useState(false)
   const [enabledWishlist, setEnabledWishlist] = useState(wishlistEnabled)
   const [savingWishlist, setSavingWishlist] = useState(false)
-  const [savingRefundReclaim, setSavingRefundReclaim] = useState(false)
   const [hideRegistryNav, setHideRegistryNav] = useState(registryHideNav)
   const [savingRegistryNav, setSavingRegistryNav] = useState(false)
   const [registryJoined, setRegistryJoined] = useState(registryOptIn)

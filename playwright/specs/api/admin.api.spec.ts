@@ -145,7 +145,7 @@ test.describe("Admin API @api", () => {
     test("lists categories with admin token", async () => {
       test.skip(!adminToken, "ADMIN_USER_TOKEN not set");
 
-      const response = await client.get("/v1/admin/categories", {
+      const response = await client.get<any>("/v1/admin/categories", {
         headers: { Authorization: `Bearer ${adminToken}` },
       });
 

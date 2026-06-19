@@ -59,6 +59,7 @@ export interface CatalogSettings {
   checkinEnabled: boolean
   checkinReward: number
   lowStockThreshold: number
+  homepageBlocks?: string | null
 }
 
 export interface CatalogProductsResponse {
