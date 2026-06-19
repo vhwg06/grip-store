@@ -148,6 +148,26 @@ test.describe("Admin API @api", () => {
 
       expect(response.status).toBe(403);
     });
+
+    test("should list pending refunds and allow admin rejection", async () => {
+      test.skip(!adminToken, "ADMIN_USER_TOKEN not set");
+
+      const listResponse = await client.get("/v1/admin/refunds?status=pending", {
+        headers: { Authorization: `Bearer ${adminToken}` },
+      });
+
+      expect(listResponse.status).toBe(200);
+      const approveResponse = await client.post("/v1/admin/refunds/910001/reject", {
+        note: "rejected by playwright",
+      }, {
+        headers: { Authorization: `Bearer ${adminToken}` },
+      });
+
+      expect([200, 409]).toContain(approveResponse.status);
+      if (approveResponse.status === 200) {
+        expect(approveResponse.data).toHaveProperty("id", 910001);
+      }
+    });
   });
 
   /* ── Admin Users & Settings ─────────────────── */
@@ -163,6 +183,18 @@ test.describe("Admin API @api", () => {
       expect(response.status).toBe(200);
       const items = extractList(response.data, ["items", "users"]);
       expect(Array.isArray(items)).toBe(true);
+    });
+
+    test("should update user points with admin token", async () => {
+      test.skip(!adminToken, "ADMIN_USER_TOKEN not set");
+
+      const response = await client.patch(
+        "/v1/admin/users/22222222-2222-2222-2222-222222222222",
+        { points: 1234 },
+        { headers: { Authorization: `Bearer ${adminToken}` } }
+      );
+
+      expect(response.status).toBe(204);
     });
 
     test("should get settings with admin token", async () => {
@@ -222,31 +254,65 @@ test.describe("Admin API @api", () => {
     });
   });
 
-  /* ── Admin Notifications & Data ─────────────── */
+  /* ── Admin Messages & Notifications ─────────── */
 
-  test.describe("Admin Notifications", () => {
-    test("should broadcast notification with admin token", async () => {
+  test.describe("Admin Messages & Notifications", () => {
+    test("should broadcast message with admin token", async () => {
       test.skip(!adminToken, "ADMIN_USER_TOKEN not set");
 
       const response = await client.post(
-        "/v1/admin/notifications/broadcast",
+        "/v1/admin/messages/broadcast",
         {
           title: "Test Broadcast",
-          content: "Playwright test notification",
-          target: "admins",
+          body: "Playwright test notification",
         },
         { headers: { Authorization: `Bearer ${adminToken}` } }
       );
 
-      expect([200, 204, 404]).toContain(response.status);
+      expect(response.status).toBe(204);
+    });
+
+    test("should send targeted message with admin token", async () => {
+      test.skip(!adminToken, "ADMIN_USER_TOKEN not set");
+
+      const response = await client.post(
+        "/v1/admin/messages/targeted",
+        {
+          userId: "22222222-2222-2222-2222-222222222222",
+          title: "Targeted Test",
+          body: "Hello buyer",
+        },
+        { headers: { Authorization: `Bearer ${adminToken}` } }
+      );
+
+      expect(response.status).toBe(204);
+    });
+
+    test("should queue notification test send with admin token", async () => {
+      test.skip(!adminToken, "ADMIN_USER_TOKEN not set");
+
+      const response = await client.post(
+        "/v1/admin/notifications/test",
+        {
+          channel: "email",
+          to: "test_buyer@example.com",
+          subject: "Test message",
+          body: "Ping",
+        },
+        { headers: { Authorization: `Bearer ${adminToken}` } }
+      );
+
+      expect(response.status).toBe(200);
+      expect((response.data as any)?.status).toBe("queued");
+      expect((response.data as any)?.channel).toBe("email");
     });
 
     test("should return 403 without admin role", async () => {
       test.skip(!userToken, "TEST_USER_TOKEN not set");
 
       const response = await client.post(
-        "/v1/admin/notifications/broadcast",
-        { title: "Test", content: "Test", target: "all" },
+        "/v1/admin/messages/broadcast",
+        { title: "Test", body: "Test" },
         { headers: { Authorization: `Bearer ${userToken}` } }
       );
 

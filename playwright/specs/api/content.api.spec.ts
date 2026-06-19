@@ -185,4 +185,191 @@ test.describe("Content API Contract @api", () => {
     await client.delete(`/v1/content/articles/${idB}`, { headers: { Authorization: `Bearer ${adminToken}` } });
     await client.delete(`/v1/content/articles/${idC}`, { headers: { Authorization: `Bearer ${adminToken}` } });
   });
+
+  test("should allow admin to manage banners and reflect only active slides publicly in sort order", async () => {
+    test.skip(!adminToken, "ADMIN_USER_TOKEN not set");
+    const suffix = Date.now();
+
+    const firstBanner = {
+      title: `Banner A ${suffix}`,
+      subtitle: "First",
+      image: "https://cdn.example.com/banner-a.png",
+      mobileImage: "https://cdn.example.com/banner-a-mobile.png",
+      ctaText: "Shop A",
+      ctaLink: "/products?a",
+      sortOrder: 20,
+      isActive: true,
+    };
+    const secondBanner = {
+      title: `Banner B ${suffix}`,
+      subtitle: "Second",
+      image: "https://cdn.example.com/banner-b.png",
+      mobileImage: "https://cdn.example.com/banner-b-mobile.png",
+      ctaText: "Shop B",
+      ctaLink: "/products?b",
+      sortOrder: 10,
+      isActive: false,
+    };
+
+    const createA = await client.post("/v1/admin/banners", firstBanner, {
+      headers: { Authorization: `Bearer ${adminToken}` },
+    });
+    const createB = await client.post("/v1/admin/banners", secondBanner, {
+      headers: { Authorization: `Bearer ${adminToken}` },
+    });
+    expect(createA.status).toBe(200);
+    expect(createB.status).toBe(200);
+
+    const adminListResp = await client.get<any>("/v1/admin/banners", {
+      headers: { Authorization: `Bearer ${adminToken}` },
+    });
+    expect(adminListResp.status).toBe(200);
+    const adminBanners = adminListResp.data as any[];
+    expect(Array.isArray(adminBanners)).toBe(true);
+    const ourAdminBanners = adminBanners.filter((item) => [firstBanner.title, secondBanner.title].includes(item.title));
+    expect(ourAdminBanners.length).toBe(2);
+    expect(ourAdminBanners[0].title).toBe(secondBanner.title);
+    expect(ourAdminBanners[1].title).toBe(firstBanner.title);
+
+    const bannerA = ourAdminBanners.find((item) => item.title === firstBanner.title);
+    const bannerB = ourAdminBanners.find((item) => item.title === secondBanner.title);
+    expect(bannerA).toBeTruthy();
+    expect(bannerB).toBeTruthy();
+
+    const activateB = await client.post("/v1/admin/banners", {
+      ...bannerB,
+      isActive: true,
+      sortOrder: 5,
+    }, {
+      headers: { Authorization: `Bearer ${adminToken}` },
+    });
+    expect(activateB.status).toBe(200);
+
+    const publicHomepageResp = await client.get<any>("/v1/public/homepage");
+    expect(publicHomepageResp.status).toBe(200);
+    const blocks = (publicHomepageResp.data as any)?.data ?? publicHomepageResp.data as any;
+    expect(Array.isArray(blocks)).toBe(true);
+    const bannerBlock = blocks.find((block: any) => block.block_type === "banner");
+    expect(bannerBlock).toBeTruthy();
+    expect(Array.isArray(bannerBlock.config?.slides)).toBe(true);
+    const ourPublicSlides = bannerBlock.config.slides.filter((slide: any) => [firstBanner.title, secondBanner.title].includes(slide.title));
+    expect(ourPublicSlides.map((slide: any) => slide.title)).toEqual([secondBanner.title, firstBanner.title]);
+    expect(ourPublicSlides.every((slide: any) => slide.isActive === true)).toBe(true);
+
+    const deleteA = await client.delete(`/v1/admin/banners/${bannerA.id}`, {
+      headers: { Authorization: `Bearer ${adminToken}` },
+    });
+    const deleteB = await client.delete(`/v1/admin/banners/${bannerB.id}`, {
+      headers: { Authorization: `Bearer ${adminToken}` },
+    });
+    expect(deleteA.status).toBe(200);
+    expect(deleteB.status).toBe(200);
+  });
+
+  test("should allow admin to CRUD FAQs and expose only active ordered entries publicly", async () => {
+    test.skip(!adminToken, "ADMIN_USER_TOKEN not set");
+    const suffix = Date.now();
+
+    const createB = await client.post("/v1/admin/faqs", {
+      question: `How long is shipping? ${suffix}`,
+      answer: "2 days",
+      sortOrder: 20,
+      isActive: false,
+    }, {
+      headers: { Authorization: `Bearer ${adminToken}` },
+    });
+    const createA = await client.post("/v1/admin/faqs", {
+      question: `Do you ship internationally? ${suffix}`,
+      answer: "Yes",
+      sortOrder: 10,
+      isActive: true,
+    }, {
+      headers: { Authorization: `Bearer ${adminToken}` },
+    });
+    expect(createA.status).toBe(200);
+    expect(createB.status).toBe(200);
+
+    const adminListResp = await client.get<any>("/v1/admin/faqs", {
+      headers: { Authorization: `Bearer ${adminToken}` },
+    });
+    expect(adminListResp.status).toBe(200);
+    const adminFAQs = adminListResp.data as any[];
+    const ourFAQs = adminFAQs.filter((item) => [
+      `Do you ship internationally? ${suffix}`,
+      `How long is shipping? ${suffix}`,
+    ].includes(item.question));
+    expect(ourFAQs.map((item) => item.question)).toEqual([
+      `Do you ship internationally? ${suffix}`,
+      `How long is shipping? ${suffix}`,
+    ]);
+
+    const visibleFAQ = ourFAQs.find((item) => item.question === `Do you ship internationally? ${suffix}`);
+    const hiddenFAQ = ourFAQs.find((item) => item.question === `How long is shipping? ${suffix}`);
+    expect(visibleFAQ).toBeTruthy();
+    expect(hiddenFAQ).toBeTruthy();
+    const updateHidden = await client.post("/v1/admin/faqs", {
+      ...hiddenFAQ,
+      answer: "3 days",
+      sortOrder: 5,
+      isActive: true,
+    }, {
+      headers: { Authorization: `Bearer ${adminToken}` },
+    });
+    expect(updateHidden.status).toBe(200);
+
+    const publicResp = await client.get<any>("/v1/faqs/active");
+    expect(publicResp.status).toBe(200);
+    expect(Array.isArray(publicResp.data?.items)).toBe(true);
+    const ourPublicFAQs = publicResp.data.items.filter((item: any) => [
+      `Do you ship internationally? ${suffix}`,
+      `How long is shipping? ${suffix}`,
+    ].includes(item.question));
+    expect(ourPublicFAQs.map((item: any) => item.question)).toEqual([
+      `How long is shipping? ${suffix}`,
+      `Do you ship internationally? ${suffix}`,
+    ]);
+
+    const deleteA = await client.delete(`/v1/admin/faqs/${visibleFAQ.id}`, {
+      headers: { Authorization: `Bearer ${adminToken}` },
+    });
+    const deleteB = await client.delete(`/v1/admin/faqs/${hiddenFAQ.id}`, {
+      headers: { Authorization: `Bearer ${adminToken}` },
+    });
+    expect(deleteA.status).toBe(200);
+    expect(deleteB.status).toBe(200);
+  });
+
+  test("should persist about page content and gallery for public reflection", async () => {
+    test.skip(!adminToken, "ADMIN_USER_TOKEN not set");
+
+    const createResp = await client.post("/v1/content/pages", {
+      title: "About Grip",
+      slug: "about",
+      body: "About body",
+      gallery: ["https://cdn.example.com/a.png", "https://cdn.example.com/b.png"],
+      template_key: "about-us",
+      status: "published",
+    }, {
+      headers: { Authorization: `Bearer ${adminToken}` },
+    });
+    expect(createResp.status).toBe(201);
+
+    const updateResp = await client.patch("/v1/content/pages/about", {
+      title: "About Grip Updated",
+      slug: "about",
+      body: "Updated body",
+      gallery: ["https://cdn.example.com/c.png"],
+      template_key: "about-us",
+      status: "published",
+    }, {
+      headers: { Authorization: `Bearer ${adminToken}` },
+    });
+    expect(updateResp.status).toBe(200);
+
+    const publicResp = await client.get<any>("/v1/public/content/pages/about");
+    expect(publicResp.status).toBe(200);
+    expect(publicResp.data?.title).toBe("About Grip Updated");
+    expect(publicResp.data?.body).toBe("Updated body");
+    expect(publicResp.data?.gallery).toEqual(["https://cdn.example.com/c.png"]);
+  });
 });

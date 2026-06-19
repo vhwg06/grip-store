@@ -4,7 +4,7 @@ import path from "path";
 const USER_STATE_PATH = path.resolve(__dirname, ".auth/user.json");
 const ADMIN_STATE_PATH = path.resolve(__dirname, ".auth/admin.json");
 
-const BASE_URL = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+const BASE_URL = process.env.PLAYWRIGHT_BASE_URL ?? "http://localhost:3000";
 
 async function tryLoginAndPersistState(page: any, email: string, password: string, statePath: string) {
   await page.goto(`${BASE_URL}/login`);

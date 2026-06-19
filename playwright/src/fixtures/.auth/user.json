@@ -3,47 +3,57 @@
     {
       "name": "grip-store-locale",
       "value": "en",
-      "domain": "localhost",
+      "domain": "grip.vn",
       "path": "/",
-      "expires": 1813138557.719904,
+      "expires": 1813378007.014073,
       "httpOnly": false,
       "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "__osh_v",
+      "value": "b291a9ab-ca91-4ecb-a584-73297f549583",
+      "domain": "grip.vn",
+      "path": "/",
+      "expires": 1784434007.238497,
+      "httpOnly": true,
+      "secure": true,
       "sameSite": "Lax"
     },
     {
       "name": "grip_store_access_token",
-      "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc19hZG1pbiI6ZmFsc2UsInVzZXJuYW1lIjoidGVzdF9idXllciIsInN1YiI6IjIyMjIyMjIyLTIyMjItMjIyMi0yMjIyLTIyMjIyMjIyMjIyMiIsImV4cCI6MTc4MTY4ODk1OH0.-RQt4b_Y35HxAizsXgQfJh4nFamozAyU9unk_JHF2N8",
-      "domain": "localhost",
+      "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc19hZG1pbiI6ZmFsc2UsInVzZXJuYW1lIjoidGVzdF9idXllciIsInN1YiI6IjIyMjIyMjIyLTIyMjItMjIyMi0yMjIyLTIyMjIyMjIyMjIyMiIsImV4cCI6MTc4MTkyODQwN30.nWtPuQFLD4hRAeMeQG-j7HN_rXDcudX__ltp546cYDo",
+      "domain": "grip.vn",
       "path": "/",
       "expires": -1,
       "httpOnly": false,
-      "secure": false,
+      "secure": true,
       "sameSite": "Lax"
     },
     {
       "name": "grip_store_refresh_token",
-      "value": "77f46945-a982-4c9a-9f41-7742d07cc65f",
-      "domain": "localhost",
+      "value": "5cecd9a7-3fdb-47fb-aa80-f00e397abc2b",
+      "domain": "grip.vn",
       "path": "/",
-      "expires": 1784194558,
+      "expires": 1784434007,
       "httpOnly": false,
-      "secure": false,
+      "secure": true,
       "sameSite": "Lax"
     },
     {
       "name": "grip_store_access_token_expires_at",
-      "value": "1781606158295",
-      "domain": "localhost",
+      "value": "1781845607507",
+      "domain": "grip.vn",
       "path": "/",
       "expires": -1,
       "httpOnly": false,
-      "secure": false,
+      "secure": true,
       "sameSite": "Lax"
     }
   ],
   "origins": [
     {
-      "origin": "http://localhost:3000",
+      "origin": "https://grip.vn",
       "localStorage": [
         {
           "name": "grip-cart",

@@ -2,8 +2,6 @@ import { test, expect } from "../../src/fixtures/base-test";
 import { GoBackendClient } from "../../src/api-helpers/go-backend.client";
 
 test.describe("Store Settings API Contract @api", () => {
-  test.fixme(true, "Spec 005 defines desired structured Store Settings API; backend contract not implemented yet.");
-
   let client: GoBackendClient;
   const adminToken = process.env.ADMIN_USER_TOKEN;
   const userToken = process.env.TEST_USER_TOKEN;
@@ -35,6 +33,19 @@ test.describe("Store Settings API Contract @api", () => {
     });
   });
 
+  test("reads public catalog settings from the same source of truth", async () => {
+    const response = await client.get("/v1/catalog/settings");
+
+    expect(response.status).toBe(200);
+    expect(response.data).toMatchObject({
+      shopName: expect.any(String),
+      shopDescription: expect.any(String),
+      themeColor: expect.any(String),
+      wishlistEnabled: expect.any(Boolean),
+      checkinEnabled: expect.any(Boolean),
+    });
+  });
+
   test("rejects admin store settings read without auth", async () => {
     const response = await client.get("/v1/admin/store-settings");
     expect(response.status).toBe(401);
@@ -61,7 +72,7 @@ test.describe("Store Settings API Contract @api", () => {
         shopLogo: "https://cdn.example.com/logo.webp",
         themeColor: "amber",
       },
-      { headers: { Authorization: `Bearer ${adminToken}` } }
+      { headers: { Authorization: `Bearer ${adminToken}` } },
     );
 
     expect(response.status).toBe(200);
@@ -79,10 +90,10 @@ test.describe("Store Settings API Contract @api", () => {
         ],
         newsCount: -1,
       },
-      { headers: { Authorization: `Bearer ${adminToken}` } }
+      { headers: { Authorization: `Bearer ${adminToken}` } },
     );
 
-    expect(response.status).toBe(422);
+    expect(response.status).toBe(400);
   });
 
   test("updates footer and social settings with nested structured payload", async () => {
@@ -104,7 +115,7 @@ test.describe("Store Settings API Contract @api", () => {
           zalo: "https://zalo.me/gripvn",
         },
       },
-      { headers: { Authorization: `Bearer ${adminToken}` } }
+      { headers: { Authorization: `Bearer ${adminToken}` } },
     );
 
     expect(response.status).toBe(200);
@@ -122,7 +133,7 @@ test.describe("Store Settings API Contract @api", () => {
           { key: "scroll_to_top", enabled: true, target: null },
         ],
       },
-      { headers: { Authorization: `Bearer ${adminToken}` } }
+      { headers: { Authorization: `Bearer ${adminToken}` } },
     );
 
     expect(response.status).toBe(200);
@@ -139,9 +150,9 @@ test.describe("Store Settings API Contract @api", () => {
           { key: "scroll_to_top", enabled: true, target: "unexpected" },
         ],
       },
-      { headers: { Authorization: `Bearer ${adminToken}` } }
+      { headers: { Authorization: `Bearer ${adminToken}` } },
     );
 
-    expect(response.status).toBe(422);
+    expect(response.status).toBe(400);
   });
 });

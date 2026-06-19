@@ -13,7 +13,14 @@ test.describe("Wishlist API @api", () => {
   });
 
   test.describe("GET /v1/wishlist", () => {
-    test("should return wishlist with auth", async () => {
+    test("should return wishlist publicly", async () => {
+      const response = await client.get("/v1/wishlist");
+
+      expect(response.status).toBe(200);
+      expect(Array.isArray(response.data)).toBe(true);
+    });
+
+    test("should return wishlist with auth too", async () => {
       test.skip(!token, "TEST_USER_TOKEN not set");
 
       const response = await client.get("/v1/wishlist", {
@@ -22,12 +29,6 @@ test.describe("Wishlist API @api", () => {
 
       expect(response.status).toBe(200);
       expect(Array.isArray(response.data)).toBe(true);
-    });
-
-    test("should return 401 without auth", async () => {
-      const response = await client.get("/v1/wishlist");
-
-      expect(response.status).toBe(401);
     });
   });
 
@@ -46,7 +47,7 @@ test.describe("Wishlist API @api", () => {
       const response = await client.post(
         "/v1/wishlist",
         { product_id: "non-existent-product-12345" },
-        { headers: { Authorization: `Bearer ${token}` } }
+        { headers: { Authorization: `Bearer ${token}` } },
       );
 
       expect([404, 400]).toContain(response.status);

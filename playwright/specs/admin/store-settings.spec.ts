@@ -5,7 +5,6 @@ test.describe("Admin Store Settings Spec Coverage @admin", () => {
     storageState: "./playwright/src/fixtures/.auth/admin.json",
   });
 
-  test.fixme(true, "Spec 005 exists, but Store Settings redesign is not implemented yet.");
 
   test.beforeEach(async ({ adminPage }) => {
     await adminPage.goto();

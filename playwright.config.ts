@@ -6,11 +6,15 @@ import fs from "fs";
 dotenv.config({ path: ".env.local" });
 dotenv.config({ path: path.resolve(__dirname, "playwright/.env.test") });
 
+const GO_GRIP_ROOT =
+  process.env.GO_GRIP_ROOT ?? path.resolve(__dirname, "../go-grip");
+
 const BASE_URL = process.env.PLAYWRIGHT_BASE_URL ?? "http://localhost:3000";
 const GO_BACKEND_URL = process.env.GO_BACKEND_URL ?? "http://127.0.0.1:8080";
 const CI_EXTERNAL_BACKEND = process.env.CI_EXTERNAL_BACKEND === "true";
-const IS_LOCAL_BACKEND =
-  /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(GO_BACKEND_URL);
+const IS_LOCAL_BACKEND = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(
+  GO_BACKEND_URL,
+);
 const USE_EXTERNAL_BACKEND = CI_EXTERNAL_BACKEND || !IS_LOCAL_BACKEND;
 const FIREFOX_AVAILABLE = fs.existsSync(firefox.executablePath());
 const WEBKIT_AVAILABLE = fs.existsSync(webkit.executablePath());
@@ -18,13 +22,13 @@ const WEBKIT_AVAILABLE = fs.existsSync(webkit.executablePath());
 if (!FIREFOX_AVAILABLE) {
   // Keep suite stable in restricted environments where browser binaries cannot be downloaded.
   console.warn(
-    "[playwright-config] Firefox project disabled: browser binary not found."
+    "[playwright-config] Firefox project disabled: browser binary not found.",
   );
 }
 
 if (!WEBKIT_AVAILABLE) {
   console.warn(
-    "[playwright-config] WebKit project disabled: browser binary not found."
+    "[playwright-config] WebKit project disabled: browser binary not found.",
   );
 }
 
@@ -116,7 +120,6 @@ export default defineConfig({
     },
   },
 
-
   projects: [
     /* Global setup — authenticates test users, saves storageState */
     {
@@ -150,8 +153,9 @@ export default defineConfig({
       ]
     : [
         {
-          command:
-            "cd /workspaces/go-grip && set -a && if [ -f .env ]; then . ./.env; else . ./.env.example; fi && set +a && CGO_ENABLED=0 go run -tags migrate ./cmd/app",
+          command: `cd ${JSON.stringify(
+            GO_GRIP_ROOT,
+          )} && docker compose up -d db && set -a && if [ -f .env ]; then . ./.env; else . ./.env.example; fi && set +a && export ADMIN_USERS=\${ADMIN_USERS:-test_admin} && CGO_ENABLED=0 go run -tags migrate ./cmd/app`,
           url: `${GO_BACKEND_URL}/healthz`,
           reuseExistingServer: !process.env.CI,
           timeout: 120_000,
