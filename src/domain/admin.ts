@@ -110,6 +110,7 @@ export interface AdminBanner {
   mobileImage: string | null
   ctaText: string | null
   ctaLink: string | null
+  targetPage: string | null
   sortOrder: number
   isActive: boolean
 }
@@ -121,8 +122,18 @@ export interface AdminBannerForm {
   mobileImage: string | null
   ctaText: string | null
   ctaLink: string | null
+  targetPage: string | null
   sortOrder: number
   isActive: boolean
+}
+
+export interface AdminContentPage {
+  title: string
+  slug: string
+  body: string
+  gallery: string[]
+  templateKey: string
+  status: string
 }
 
 export interface AdminFAQ {

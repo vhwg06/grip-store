@@ -23,6 +23,7 @@ export interface MediaAsset {
   sizeBytes: number;
   url: string;
   createdAt: string | null;
+  usedBy: string[];
 }
 
 export interface MediaListParams {
@@ -57,6 +58,15 @@ function normalizeMediaAsset(raw: any): MediaAsset {
     sizeBytes: Number(raw?.sizeBytes ?? raw?.size_bytes ?? raw?.size ?? 0),
     url: String(raw?.url ?? raw?.publicUrl ?? raw?.public_url ?? ""),
     createdAt: raw?.createdAt ?? raw?.created_at ?? null,
+    usedBy: Array.isArray(raw?.usedBy)
+      ? raw.usedBy.filter((item: unknown) => typeof item === "string")
+      : Array.isArray(raw?.used_by)
+        ? raw.used_by.filter((item: unknown) => typeof item === "string")
+        : Array.isArray(raw?.references)
+          ? raw.references
+              .map((item: any) => item?.label ?? item?.name ?? item?.type ?? "")
+              .filter((item: unknown) => typeof item === "string" && item.length > 0)
+          : [],
   }
 }
 

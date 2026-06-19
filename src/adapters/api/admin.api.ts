@@ -15,6 +15,7 @@ import type {
   AdminCategory,
   AdminArticle,
   AdminBanner,
+  AdminContentPage,
   AdminFAQ,
   AdminLead,
   AdminOrderDetails
@@ -73,8 +74,20 @@ function normalizeAdminBanner(raw: any): AdminBanner {
     mobileImage: firstString(raw?.mobileImage, raw?.mobileImageUrl, raw?.mobile_image, raw?.mobile_image_url) || null,
     ctaText: raw?.ctaText ?? raw?.cta_text ?? null,
     ctaLink: raw?.ctaLink ?? raw?.cta_url ?? null,
+    targetPage: raw?.targetPage ?? raw?.page ?? raw?.target_page ?? null,
     sortOrder: Number(raw?.sortOrder ?? raw?.sort_order ?? 0),
     isActive: Boolean(raw?.isActive ?? raw?.is_active),
+  }
+}
+
+function normalizeAdminContentPage(raw: any): AdminContentPage {
+  return {
+    title: String(raw?.title ?? ""),
+    slug: String(raw?.slug ?? "about"),
+    body: String(raw?.body ?? ""),
+    gallery: Array.isArray(raw?.gallery) ? raw.gallery.filter((item: unknown) => typeof item === "string") : [],
+    templateKey: String(raw?.templateKey ?? raw?.template_key ?? "about-us"),
+    status: String(raw?.status ?? "published"),
   }
 }
 
@@ -694,6 +707,38 @@ export async function getAdminFAQs() {
   const payload = await apiFetch<any>("/api/admin/faqs")
   const raw = payload?.data || payload
   return Array.isArray(raw) ? raw : raw.faqs ?? []
+}
+
+export async function getAdminAboutPage() {
+  const payload = await apiFetch<any>("/api/public/content/pages/about")
+  const raw = payload?.data || payload
+  return normalizeAdminContentPage(raw)
+}
+
+export async function saveAdminAboutPage(page: AdminContentPage) {
+  const payload = {
+    title: page.title,
+    slug: page.slug || "about",
+    body: page.body,
+    gallery: page.gallery,
+    template_key: page.templateKey || "about-us",
+    status: page.status || "published",
+  }
+
+  try {
+    return await apiFetch<unknown>("/api/content/pages/about", {
+      method: "PATCH",
+      body: JSON.stringify(payload),
+    }).then(normalizeActionResult)
+  } catch (error: any) {
+    const message = String(error?.message || "")
+    if (!message.toLowerCase().includes("404")) throw error
+
+    return apiFetch<unknown>("/api/content/pages", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }).then(normalizeActionResult)
+  }
 }
 
 export async function saveFAQ(formData: FormData) {
