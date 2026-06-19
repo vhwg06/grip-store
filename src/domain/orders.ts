@@ -11,7 +11,6 @@ export interface OrderSummary {
 }
 
 export interface OrderDetail extends OrderSummary {
-  cardKey: string | null
   payee?: string | null
   paidAt: string | null
 }
@@ -23,7 +22,6 @@ export interface RefundRequestState {
 
 export interface OrderDetailResponse {
   order: OrderDetail | null
-  canViewKey: boolean
   isOwner: boolean
   refundRequest: RefundRequestState | null
 }
