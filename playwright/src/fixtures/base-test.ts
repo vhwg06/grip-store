@@ -13,6 +13,7 @@ import {
   WishlistPage,
 } from "../objects";
 import { GoBackendClient } from "../api-helpers/go-backend.client";
+import { loginForToken } from "../api-helpers/auth.helpers";
 
 /**
  * Custom Fixtures — injected into every spec via `test`.
@@ -37,23 +38,6 @@ type CustomFixtures = {
 
 let cachedUserToken: string | null = null;
 let cachedAdminToken: string | null = null;
-
-async function loginForToken(request: any, email: string, password: string): Promise<string | null> {
-  const response = await request.post("/v1/auth/login", {
-    data: { email, password },
-  });
-  if (!response.ok()) return null;
-  const payload = await response.json();
-  return (
-    payload?.token ??
-    payload?.access_token ??
-    payload?.accessToken ??
-    payload?.data?.token ??
-    payload?.data?.access_token ??
-    payload?.data?.accessToken ??
-    null
-  );
-}
 
 export const test = base.extend<CustomFixtures>({
   ensureAuthTokens: [async ({ request }, use) => {

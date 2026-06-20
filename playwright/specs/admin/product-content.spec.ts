@@ -10,5 +10,8 @@ test.describe("Admin Product Content @admin", () => {
     await page.waitForLoadState("networkidle");
 
     await expect(page.locator('[data-testid="admin-nav-cards"]')).toBeVisible();
+    await page.locator('[data-testid="admin-nav-cards"]').click();
+    await expect(page).toHaveURL(/\/admin\/cards/);
+    await expect(page.getByRole("heading", { name: /cards/i })).toBeVisible();
   });
 });

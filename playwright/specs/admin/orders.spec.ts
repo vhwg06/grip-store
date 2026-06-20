@@ -1,40 +1,6 @@
 import { test, expect } from "../../src/fixtures/base-test";
-
-const BACKEND_URL = process.env.GO_BACKEND_URL ?? "https://grip.vn/api";
+import { BACKEND_URL, getAdminToken, getUserToken } from "../../src/api-helpers/auth.helpers";
 const CHECKOUT_PRODUCT_ID = "b2222222-2222-2222-2222-222222222222";
-
-async function loginForToken(request: any, email: string, password: string) {
-  const response = await request.post(`${BACKEND_URL}/v1/auth/login`, {
-    data: { email, password },
-  });
-  expect(response.ok()).toBeTruthy();
-  const payload = await response.json();
-  return (
-    payload?.data?.accessToken ??
-    payload?.data?.access_token ??
-    payload?.data?.token ??
-    payload?.accessToken ??
-    payload?.access_token ??
-    payload?.token ??
-    null
-  ) as string | null;
-}
-
-async function getAdminToken(request: any) {
-  return loginForToken(
-    request,
-    process.env.ADMIN_USER_EMAIL ?? "test_admin@example.com",
-    process.env.ADMIN_USER_PASSWORD ?? "Password123!",
-  );
-}
-
-async function getUserToken(request: any) {
-  return loginForToken(
-    request,
-    process.env.TEST_USER_EMAIL ?? "test_buyer@example.com",
-    process.env.TEST_USER_PASSWORD ?? "Password123!",
-  );
-}
 
 async function createPendingOrderViaApi(request: any) {
   const userToken = await getUserToken(request);
@@ -106,8 +72,11 @@ test.describe("Admin Orders @admin", () => {
   test("UC-ORD-03 submits a valid pending-to-paid transition from the admin queue", async ({ page, request }) => {
     const orderId = await createPendingOrderViaApi(request);
 
+    const listResponse = page.waitForResponse(
+      (response: any) => response.url().includes("/v1/admin/orders") && response.status() === 200,
+    );
     await page.goto(`/admin/orders?q=${orderId}`);
-    await page.waitForLoadState("networkidle");
+    await listResponse;
 
     const row = page.locator('[data-testid="order-row"]').filter({ hasText: orderId }).first();
     await expect(row).toBeVisible();
@@ -127,8 +96,11 @@ test.describe("Admin Orders @admin", () => {
   });
 
   test("UC-ORD-05 renders refund relevance for an order that has a pending refund request", async ({ page }) => {
+    const listResponse = page.waitForResponse(
+      (response: any) => response.url().includes("/v1/admin/orders") && response.status() === 200,
+    );
     await page.goto("/admin/orders?q=test-order-0001");
-    await page.waitForLoadState("networkidle");
+    await listResponse;
 
     const row = page.locator('[data-testid="order-row"]').filter({ hasText: "test-order-0001" }).first();
     await expect(row).toBeVisible();
@@ -143,7 +115,9 @@ test.describe("Admin Orders @admin", () => {
   test("UC-ORD-06 keeps incomplete-context order detail readable with safe fallbacks", async ({ page }) => {
     await page.goto("/admin/orders/test-order-0002");
     await expect(page.locator('[data-testid="order-detail"]')).toBeVisible();
+    await expect(page.getByRole("button", { name: "Mark delivered" })).toBeDisabled();
     await expect(page.getByText("Awaiting fulfillment (missing tracking ID - safe fallback)")).toBeVisible();
+    await expect(page.getByText(/missing shipping address/i)).toBeVisible();
     await expect(page.getByText("COD / QR Transfer")).toBeVisible();
     await expect(page.getByText("Thu Duc, Ho Chi Minh City")).toBeVisible();
   });

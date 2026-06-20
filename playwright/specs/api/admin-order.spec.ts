@@ -1,44 +1,6 @@
 import { test, expect } from "../../src/fixtures/base-test";
-
-const BACKEND_URL = process.env.GO_BACKEND_URL ?? "https://grip.vn/api";
+import { BACKEND_URL, getAdminToken, getUserToken } from "../../src/api-helpers/auth.helpers";
 const CHECKOUT_PRODUCT_ID = "b2222222-2222-2222-2222-222222222222";
-
-async function loginForToken(request: any, email: string, password: string) {
-  const response = await request.post(`${BACKEND_URL}/v1/auth/login`, {
-    data: { email, password },
-  });
-  expect(response.ok()).toBeTruthy();
-  const payload = await response.json();
-  return (
-    payload?.data?.accessToken ??
-    payload?.data?.access_token ??
-    payload?.data?.token ??
-    payload?.accessToken ??
-    payload?.access_token ??
-    payload?.token ??
-    null
-  ) as string | null;
-}
-
-async function getAdminToken(request: any) {
-  const token = await loginForToken(
-    request,
-    process.env.ADMIN_USER_EMAIL ?? "test_admin@example.com",
-    process.env.ADMIN_USER_PASSWORD ?? "Password123!",
-  );
-  expect(token).toBeTruthy();
-  return token as string;
-}
-
-async function getUserToken(request: any) {
-  const token = await loginForToken(
-    request,
-    process.env.TEST_USER_EMAIL ?? "test_buyer@example.com",
-    process.env.TEST_USER_PASSWORD ?? "Password123!",
-  );
-  expect(token).toBeTruthy();
-  return token as string;
-}
 
 async function adminGet(request: any, path: string) {
   const token = await getAdminToken(request);
@@ -105,6 +67,28 @@ function extractOrders(payload: any) {
 }
 
 test.describe("Admin Order API @api", () => {
+  test("UC-ORD-01 rejects unauthenticated admin order reads", async ({ request }) => {
+    const response = await request.get(`${BACKEND_URL}/v1/admin/orders?page=1&pageSize=20`);
+    expect(response.status()).toBe(401);
+  });
+
+  test("UC-ORD-01 rejects non-admin order reads", async ({ request }) => {
+    const token = await getUserToken(request);
+    const response = await request.get(`${BACKEND_URL}/v1/admin/orders?page=1&pageSize=20`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    expect(response.status()).toBe(403);
+  });
+
+  test("UC-ORD-03 rejects invalid transition PENDING to DELIVERED", async ({ request }) => {
+    const orderId = await createPendingOrder(request);
+
+    const invalidTransition = await adminPatch(request, `/v1/admin/orders/${orderId}`, {
+      status: "delivered",
+    });
+    expect([400, 409, 422]).toContain(invalidTransition.status());
+  });
+
   test("UC-ORD-04 resolves customer-linked purchase history from the customer commerce identifier", async ({ request }) => {
     const adminToken = await getAdminToken(request);
 
@@ -169,5 +153,26 @@ test.describe("Admin Order API @api", () => {
       status: "CANCELLED",
       timestamp: expect.any(String),
     });
+  });
+
+  test("UC-ORD-03 preserves ordered timeline entries after a valid transition", async ({ request }) => {
+    const orderId = await createPendingOrder(request);
+
+    const paid = await adminPatch(request, `/v1/admin/orders/${orderId}`, {
+      status: "paid",
+    });
+    expect(paid.status()).toBe(204);
+
+    const detail = await adminGet(request, `/v1/admin/orders/${orderId}`);
+    expect(detail.ok()).toBeTruthy();
+    const payload = await detail.json();
+    expect(payload.timeline).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ status: "PENDING" }),
+        expect.objectContaining({ status: "PAID" }),
+      ]),
+    );
+    expect(payload.timeline[0].status).toBe("PENDING");
+    expect(payload.timeline[1].status).toBe("PAID");
   });
 });

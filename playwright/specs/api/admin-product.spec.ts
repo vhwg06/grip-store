@@ -1,6 +1,5 @@
 import { test, expect } from "../../src/fixtures/base-test";
-
-const BACKEND_URL = process.env.GO_BACKEND_URL ?? "https://grip.vn/api";
+import { BACKEND_URL, getUserToken } from "../../src/api-helpers/auth.helpers";
 const DEFAULT_CATEGORY_ID = "a1111111-1111-1111-1111-111111111111";
 
 async function getAdminToken(): Promise<string | null> {
@@ -56,6 +55,19 @@ async function getProductForm(request: any, id: string) {
 }
 
 test.describe("Admin Product API @api", () => {
+  test("UC-PROD-01 rejects unauthenticated product-admin reads", async ({ request }) => {
+    const response = await request.get(`${BACKEND_URL}/v1/admin/products`);
+    expect(response.status()).toBe(401);
+  });
+
+  test("UC-PROD-01 rejects non-admin product-admin reads", async ({ request }) => {
+    const token = await getUserToken(request);
+    const response = await request.get(`${BACKEND_URL}/v1/admin/products`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    expect(response.status()).toBe(403);
+  });
+
   test("UC-PROD-01 reviews catalog state for triage", async ({ request }) => {
     const response = await adminGet(request, "/v1/admin/products");
     expect(response.ok()).toBeTruthy();

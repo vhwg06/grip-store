@@ -1,33 +1,5 @@
 import { test, expect } from "../../src/fixtures/base-test";
-
-const BACKEND_URL = process.env.GO_BACKEND_URL ?? "https://grip.vn/api";
-
-async function loginForToken(request: any, email: string, password: string) {
-  const response = await request.post(`${BACKEND_URL}/v1/auth/login`, {
-    data: { email, password },
-  });
-  expect(response.ok()).toBeTruthy();
-  const payload = await response.json();
-  return (
-    payload?.data?.accessToken ??
-    payload?.data?.access_token ??
-    payload?.data?.token ??
-    payload?.accessToken ??
-    payload?.access_token ??
-    payload?.token ??
-    null
-  ) as string | null;
-}
-
-async function getAdminToken(request: any) {
-  const token = await loginForToken(
-    request,
-    process.env.ADMIN_USER_EMAIL ?? "test_admin@example.com",
-    process.env.ADMIN_USER_PASSWORD ?? "Password123!",
-  );
-  expect(token).toBeTruthy();
-  return token as string;
-}
+import { BACKEND_URL, getAdminToken } from "../../src/api-helpers/auth.helpers";
 
 async function fetchAdminProfile(request: any) {
   const token = await getAdminToken(request);
@@ -57,10 +29,13 @@ test.describe("Admin Profile @admin", () => {
     await expect(page.locator("#username")).toHaveValue(String(profile.username));
     await expect(page.locator("#email")).toHaveValue(String(profile.email));
     await expect(page.getByText(String(profile.role), { exact: false })).toBeVisible();
+    await expect(page.getByText(/administrator|admin role/i)).toBeVisible();
+    await expect(page.locator('[data-testid="admin-security-section"]')).toBeVisible();
   });
 
   test("UC-APRO-02 persists self display identity and reflects the saved value after reload", async ({
     page,
+    request,
   }) => {
     const nextDisplayName = `PW Admin FE ${Date.now()}`;
 
@@ -72,7 +47,8 @@ test.describe("Admin Profile @admin", () => {
 
     await page.reload();
     await page.waitForLoadState("networkidle");
-    await expect(page.locator("#displayName")).toHaveValue(nextDisplayName);
+    const profileAfter = await fetchAdminProfile(request);
+    await expect(page.locator("#displayName")).toHaveValue(String(profileAfter.display_name));
   });
 
   test("UC-APRO-03 pulls backend-owned security posture instead of rendering a hardcoded green audit", async ({

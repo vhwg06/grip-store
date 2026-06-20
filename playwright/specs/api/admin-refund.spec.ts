@@ -1,44 +1,6 @@
 import { test, expect } from "../../src/fixtures/base-test";
-
-const BACKEND_URL = process.env.GO_BACKEND_URL ?? "https://grip.vn/api";
+import { BACKEND_URL, getAdminToken, getUserToken } from "../../src/api-helpers/auth.helpers";
 const CHECKOUT_PRODUCT_ID = "b2222222-2222-2222-2222-222222222222";
-
-async function loginForToken(request: any, email: string, password: string) {
-  const response = await request.post(`${BACKEND_URL}/v1/auth/login`, {
-    data: { email, password },
-  });
-  expect(response.ok()).toBeTruthy();
-  const payload = await response.json();
-  return (
-    payload?.data?.accessToken ??
-    payload?.data?.access_token ??
-    payload?.data?.token ??
-    payload?.accessToken ??
-    payload?.access_token ??
-    payload?.token ??
-    null
-  ) as string | null;
-}
-
-async function getAdminToken(request: any) {
-  const token = await loginForToken(
-    request,
-    process.env.ADMIN_USER_EMAIL ?? "test_admin@example.com",
-    process.env.ADMIN_USER_PASSWORD ?? "Password123!",
-  );
-  expect(token).toBeTruthy();
-  return token as string;
-}
-
-async function getUserToken(request: any) {
-  const token = await loginForToken(
-    request,
-    process.env.TEST_USER_EMAIL ?? "test_buyer@example.com",
-    process.env.TEST_USER_PASSWORD ?? "Password123!",
-  );
-  expect(token).toBeTruthy();
-  return token as string;
-}
 
 async function adminGet(request: any, path: string) {
   const token = await getAdminToken(request);
@@ -97,6 +59,19 @@ async function createRefundRequest(request: any, reason: string) {
 }
 
 test.describe("Admin Refund API @api", () => {
+  test("UC-REF-01 rejects unauthenticated refund queue reads", async ({ request }) => {
+    const response = await request.get(`${BACKEND_URL}/v1/admin/refunds?status=pending`);
+    expect(response.status()).toBe(401);
+  });
+
+  test("UC-REF-01 rejects non-admin refund queue reads", async ({ request }) => {
+    const token = await getUserToken(request);
+    const response = await request.get(`${BACKEND_URL}/v1/admin/refunds?status=pending`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    expect(response.status()).toBe(403);
+  });
+
   test("UC-REF-01 reviews the pending refund queue", async ({ request }) => {
     const response = await adminGet(request, "/v1/admin/refunds?status=pending");
     expect(response.ok()).toBeTruthy();
@@ -177,5 +152,19 @@ test.describe("Admin Refund API @api", () => {
       admin_note: expect.any(String),
       order_status: expect.any(String),
     });
+  });
+
+  test("UC-REF-03 duplicate approve is idempotent", async ({ request }) => {
+    const created = await createRefundRequest(request, `pw idempotent ${Date.now()}`);
+
+    const first = await adminPost(request, `/v1/admin/refunds/${created.refundId}/approve`, {
+      note: "first approval",
+    });
+    expect(first.ok()).toBeTruthy();
+
+    const second = await adminPost(request, `/v1/admin/refunds/${created.refundId}/approve`, {
+      note: "second approval",
+    });
+    expect([409, 422]).toContain(second.status());
   });
 });

@@ -1,31 +1,8 @@
 import { test, expect } from "../../src/fixtures/base-test";
-
-const BACKEND_URL = process.env.GO_BACKEND_URL ?? "https://grip.vn/api";
-
-async function loginForToken(request: any, email: string, password: string) {
-  const response = await request.post(`${BACKEND_URL}/v1/auth/login`, {
-    data: { email, password },
-  });
-  expect(response.ok()).toBeTruthy();
-  const payload = await response.json();
-  return (
-    payload?.data?.accessToken ??
-    payload?.data?.access_token ??
-    payload?.data?.token ??
-    payload?.accessToken ??
-    payload?.access_token ??
-    payload?.token ??
-    null
-  ) as string | null;
-}
+import { BACKEND_URL, getAdminToken } from "../../src/api-helpers/auth.helpers";
 
 async function sendBroadcastNotification(request: any, title: string) {
-  const token = await loginForToken(
-    request,
-    process.env.ADMIN_USER_EMAIL ?? "test_admin@example.com",
-    process.env.ADMIN_USER_PASSWORD ?? "Password123!",
-  );
-  expect(token).toBeTruthy();
+  const token = await getAdminToken(request);
 
   const response = await request.post(`${BACKEND_URL}/v1/admin/messages/broadcast`, {
     headers: {
@@ -51,8 +28,16 @@ test.describe("Admin Noty @admin", () => {
   });
 
   test("UC-NOTY-01 renders outbound readiness controls for notification channels", async ({ page }) => {
+    const responses: number[] = [];
+    page.on("response", (response) => {
+      if (response.url().includes("/v1/admin/notifications")) {
+        responses.push(response.status());
+      }
+    });
+
     await page.getByRole("button", { name: "Channel Settings" }).click();
 
+    expect(responses.length).toBeGreaterThan(0);
     await expect(page.getByText("Admin Trigger Toggles")).toBeVisible();
     await expect(page.getByText(/configure credentials to receive instant system actions/i)).toBeVisible();
     await expect(page.getByText(/telegram bot configuration/i)).toBeVisible();
@@ -81,10 +66,17 @@ test.describe("Admin Noty @admin", () => {
   }) => {
     const title = `PW API Noty List ${Date.now()}`;
     await sendBroadcastNotification(request, title);
+    const listResponses: number[] = [];
+    page.on("response", (response) => {
+      if (response.url().includes("/v1/admin/messages")) {
+        listResponses.push(response.status());
+      }
+    });
 
     await page.reload();
     await page.waitForLoadState("networkidle");
 
+    expect(listResponses.length).toBeGreaterThan(0);
     await expect(page.getByRole("cell", { name: title })).toBeVisible();
   });
 
@@ -94,10 +86,17 @@ test.describe("Admin Noty @admin", () => {
   }) => {
     const title = `PW API Noty History ${Date.now()}`;
     await sendBroadcastNotification(request, title);
+    const listResponses: number[] = [];
+    page.on("response", (response) => {
+      if (response.url().includes("/v1/admin/messages")) {
+        listResponses.push(response.status());
+      }
+    });
 
     await page.reload();
     await page.waitForLoadState("networkidle");
 
+    expect(listResponses.length).toBeGreaterThan(0);
     await expect(page.getByRole("button", { name: /history/i })).toBeVisible();
     await expect(page.getByText(title)).toBeVisible();
     await expect(page.getByText(/failed|sent|queued|scheduled/i)).toBeVisible();

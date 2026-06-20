@@ -110,6 +110,8 @@ test.describe("Admin Product @admin", () => {
 
   test("UC-PROD-02 creates a product draft from the admin create flow", async ({ page }) => {
     const suffix = `${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+    const token = await getAdminToken();
+    test.skip(!token, "ADMIN_USER_TOKEN is required");
 
     await page.goto("/admin/product/new");
     await page.waitForLoadState("networkidle");
@@ -123,6 +125,16 @@ test.describe("Admin Product @admin", () => {
 
     await expect(page).toHaveURL(/\/admin\/product\/edit\/placeholder\?id=/);
     await expect(page.locator('[data-testid="field-title"]')).toHaveValue(`Playwright Draft ${suffix}`);
+
+    const productId = new URL(page.url()).searchParams.get("id");
+    expect(productId).toBeTruthy();
+
+    const verify = await page.request.get(`${BACKEND_URL}/v1/admin/products/${productId}/form`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    expect(verify.ok()).toBeTruthy();
+    const formPayload = await verify.json();
+    expect(formPayload.product.title).toContain(suffix);
   });
 
   test("UC-PROD-03 submits commercial state changes from the list quick action", async ({ page, request }) => {
@@ -145,6 +157,16 @@ test.describe("Admin Product @admin", () => {
     expect(response.ok()).toBeTruthy();
     const payload = await response.json();
     expect(payload.product.is_active).toBe(false);
+
+    await row.locator('[data-testid="toggle-btn"]').click();
+    await page.waitForLoadState("networkidle");
+
+    const revertResponse = await request.get(`${BACKEND_URL}/v1/admin/products/${created.id}/form`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    expect(revertResponse.ok()).toBeTruthy();
+    const revertedPayload = await revertResponse.json();
+    expect(revertedPayload.product.is_active).toBe(true);
   });
 
   test("UC-PROD-04 submits category reordering semantics from the admin editor", async ({ page, request }) => {

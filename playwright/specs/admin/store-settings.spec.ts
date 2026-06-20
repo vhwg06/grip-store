@@ -1,5 +1,6 @@
 import type { Page } from "@playwright/test";
 import { test, expect } from "../../src/fixtures/base-test";
+import { BACKEND_URL, getAdminToken } from "../../src/api-helpers/auth.helpers";
 
 test.describe("Admin Store Settings Spec Coverage @admin", () => {
   test.use({
@@ -18,6 +19,7 @@ test.describe("Admin Store Settings Spec Coverage @admin", () => {
   test("UC-SET-01 submits storefront identity intent through brand and contact groups and reflects the new identity publicly", async ({
     page,
     homepagePage,
+    request,
   }) => {
     await expect(page.getByRole("heading", { name: "Store Settings" })).toBeVisible();
     await expect(page.locator('[data-testid="settings-section-brand"]')).toBeVisible();
@@ -33,6 +35,11 @@ test.describe("Admin Store Settings Spec Coverage @admin", () => {
     await page.locator('[data-testid="settings-contact-email"]').fill("playwright-identity@grip.vn");
     await page.locator('[data-testid="settings-save-contact"]').click();
     await expectSuccessToast(page);
+
+    const siteConfig = await request.get(`${BACKEND_URL}/v1/site-config`);
+    expect(siteConfig.ok()).toBeTruthy();
+    const siteConfigPayload = await siteConfig.json();
+    expect(siteConfigPayload.brand.shopName).toBe("playwright-storefront-identity");
 
     await homepagePage.goto();
 
@@ -98,9 +105,22 @@ test.describe("Admin Store Settings Spec Coverage @admin", () => {
     await expect(page.locator('[data-testid="floating-button-zalo"]')).toHaveAttribute("href", /zalo\.me\/playwright-grip/);
   });
 
-  test("UC-SET-05 exposes banner and about presence controls inside store settings", async ({ page }) => {
+  test("UC-SET-05 exposes banner and about presence controls inside store settings", async ({ page, request }) => {
     await expect(page.locator('[data-testid="settings-banner-presence-toggle"]')).toBeVisible();
     await expect(page.locator('[data-testid="settings-about-presence-toggle"]')).toBeVisible();
+    await expect(page.locator('[data-testid="settings-banner-presence-toggle"]')).toBeDisabled();
+    await expect(page.locator('[data-testid="settings-about-presence-toggle"]')).toBeDisabled();
+
+    const token = await getAdminToken(request);
+    const response = await request.get(`${BACKEND_URL}/v1/admin/store-settings`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    expect(response.ok()).toBeTruthy();
+    const payload = await response.json();
+    expect(payload.config).toMatchObject({
+      bannerPresence: expect.any(Object),
+      aboutPresence: expect.any(Object),
+    });
   });
 
   test("UC-SET-06 exposes registry and legacy commitment controls as an intentional storefront policy surface", async ({

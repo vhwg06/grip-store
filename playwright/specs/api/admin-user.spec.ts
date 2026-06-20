@@ -1,35 +1,7 @@
 import { test, expect } from "../../src/fixtures/base-test";
-
-const BACKEND_URL = process.env.GO_BACKEND_URL ?? "https://grip.vn/api";
+import { BACKEND_URL, getAdminToken } from "../../src/api-helpers/auth.helpers";
 const TEST_USER_ID = "22222222-2222-2222-2222-222222222222";
 const TEST_ADMIN_ID = "11111111-1111-1111-1111-111111111111";
-
-async function loginForToken(request: any, email: string, password: string) {
-  const response = await request.post(`${BACKEND_URL}/v1/auth/login`, {
-    data: { email, password },
-  });
-  expect(response.ok()).toBeTruthy();
-  const payload = await response.json();
-  return (
-    payload?.data?.accessToken ??
-    payload?.data?.access_token ??
-    payload?.data?.token ??
-    payload?.accessToken ??
-    payload?.access_token ??
-    payload?.token ??
-    null
-  ) as string | null;
-}
-
-async function getAdminToken(request: any) {
-  const token = await loginForToken(
-    request,
-    process.env.ADMIN_USER_EMAIL ?? "test_admin@example.com",
-    process.env.ADMIN_USER_PASSWORD ?? "Password123!",
-  );
-  expect(token).toBeTruthy();
-  return token as string;
-}
 
 async function adminGet(request: any, path: string) {
   const token = await getAdminToken(request);

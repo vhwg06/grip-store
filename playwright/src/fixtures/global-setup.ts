@@ -1,26 +1,7 @@
 import { request as playwrightRequest, type FullConfig } from "@playwright/test";
-
-type LoginPayload = {
-  token?: string;
-  access_token?: string;
-  accessToken?: string;
-  data?: {
-    token?: string;
-    access_token?: string;
-    accessToken?: string;
-  };
-};
+import { BACKEND_URL, extractAccessToken } from "../api-helpers/auth.helpers";
 
 async function loginForToken(baseUrl: string, email: string, password: string): Promise<string | null> {
-  const normalizeToken = (payload: LoginPayload | null | undefined) =>
-    payload?.token ??
-    payload?.access_token ??
-    payload?.accessToken ??
-    payload?.data?.token ??
-    payload?.data?.access_token ??
-    payload?.data?.accessToken ??
-    null;
-
   try {
     const api = await playwrightRequest.newContext({ baseURL: baseUrl });
     const response = await api.post("/v1/auth/login", {
@@ -30,16 +11,16 @@ async function loginForToken(baseUrl: string, email: string, password: string): 
       await api.dispose();
       return null;
     }
-    const payload = (await response.json()) as LoginPayload;
+    const payload = await response.json();
     await api.dispose();
-    return normalizeToken(payload);
+    return extractAccessToken(payload);
   } catch {
     return null;
   }
 }
 
 export default async function globalSetup(_config: FullConfig) {
-  const backendUrl = process.env.GO_BACKEND_URL ?? "http://127.0.0.1:8080";
+  const backendUrl = BACKEND_URL;
 
   if (!process.env.TEST_USER_TOKEN) {
     const userCandidates: Array<[string, string]> = [

@@ -16,17 +16,22 @@ test.describe("Admin User @admin", () => {
       .filter({
         has: page.getByRole("link", { name: "test_buyer" }),
       })
-      .filter({
-        has: page.getByText("1,200 pts", { exact: false }),
-      })
       .first();
   }
 
   test("UC-USER-01 presents an account-centric management root", async ({ page }) => {
     await expect(page.getByRole("heading", { name: "User Management" })).toBeVisible();
     await expect(page.getByText(/account\/system/i)).toBeVisible();
-    await expect(page.getByPlaceholder("Search account email, username, or user ID...")).toBeVisible();
+    const search = page.getByPlaceholder("Search account email, username, or user ID...");
+    await expect(search).toBeVisible();
     await expect(page.getByText(/loyalty or order behavior/i)).toBeHidden();
+
+    const responsePromise = page.waitForResponse(
+      (response: any) => response.url().includes("/v1/admin/users") && response.status() === 200,
+    );
+    await search.fill("test_admin");
+    await responsePromise;
+    await expect(page.locator('[data-testid="user-row"]')).toHaveCount(1);
   });
 
   test("UC-USER-02 reads account state without switching into customer-domain actions", async ({ page }) => {
