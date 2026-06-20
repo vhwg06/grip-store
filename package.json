@@ -6,6 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "prod": "npm run env:prod && npm run build && npm run start",
     "lint": "eslint",
     "env:dev": "bash ./scripts/switch-env.sh dev",
     "env:prod": "bash ./scripts/switch-env.sh prod",

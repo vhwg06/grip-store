@@ -93,6 +93,7 @@ export function MediaLibrary({ selectable = false, onSelect }: MediaLibraryProps
           sizeBytes: file.size,
           url: presigned.public_url,
           createdAt: null,
+          usedBy: [],
         })
       }
     } catch (e: any) {

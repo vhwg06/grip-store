@@ -652,7 +652,7 @@ export async function deleteReview(reviewId: number) {
   return deleteJson(`/api/admin/reviews/${encodeURIComponent(String(reviewId))}`)
 }
 
-export async function getAdminArticles() {
+export async function getAdminArticles(): Promise<AdminArticle[]> {
   const payload = await apiFetch<any>("/api/admin/articles")
   const raw = payload?.data || payload
   const items = Array.isArray(raw) ? raw : raw.articles ?? []
