@@ -3,6 +3,8 @@ import { test, expect } from "../../src/fixtures/base-test";
 import { BACKEND_URL, getAdminToken } from "../../src/api-helpers/auth.helpers";
 
 test.describe("Admin Store Settings Spec Coverage @admin", () => {
+  test.describe.configure({ mode: "serial" });
+
   test.use({
     storageState: "./playwright/src/fixtures/.auth/admin.json",
   });
