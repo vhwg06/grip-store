@@ -101,4 +101,10 @@ test.describe("Admin Noty @admin", () => {
     await expect(page.getByText(title)).toBeVisible();
     await expect(page.getByText(/failed|sent|queued|scheduled/i)).toBeVisible();
   });
+
+  test("UC-NOTY-03 renders empty search state gracefully", async ({ page }) => {
+    await page.getByPlaceholder("Search campaigns by title...").fill("nonexistent-campaign-12345xyz");
+    await expect(page.getByText("No campaigns match your filters.")).toBeVisible();
+    await expect(page.locator('[data-testid="error-boundary"]')).toHaveCount(0);
+  });
 });

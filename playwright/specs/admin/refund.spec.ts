@@ -153,4 +153,10 @@ test.describe("Admin Refund @admin", () => {
     await expect(page.getByText(/approved/i)).toBeVisible();
     await expect(page.getByText(String(approved.admin_note), { exact: false })).toBeVisible();
   });
+
+  test("UC-REF-01 renders empty state gracefully", async ({ page }) => {
+    await searchRefund(page, "nonexistent-refund-12345xyz");
+    await expect(page.getByText("No refund requests in queue matching the filters.")).toBeVisible();
+    await expect(page.locator('[data-testid="error-boundary"]')).toHaveCount(0);
+  });
 });

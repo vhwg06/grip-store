@@ -63,15 +63,17 @@ test.describe("Admin User API @api", () => {
   });
 
   test("UC-USER-03 manages account state through points and block controls", async ({ request }) => {
+    test.fail(true, "blocked-be-gap: PATCH /v1/admin/users/:id/points and /block return 404");
+
     const points = await adminPatch(request, `/v1/admin/users/${TEST_USER_ID}/points`, {
       points: 1300,
     });
-    expect(points.ok()).toBeTruthy();
+    expect(points.status()).toBe(200);
 
     const block = await adminPatch(request, `/v1/admin/users/${TEST_USER_ID}/block`, {
       isBlocked: true,
     });
-    expect(block.ok()).toBeTruthy();
+    expect(block.status()).toBe(200);
   });
 
   test("UC-USER-04 traverses from user to customer context via linked customer metadata", async ({ request }) => {

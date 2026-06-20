@@ -138,4 +138,11 @@ test.describe("Admin Review Moderation E2E @admin", () => {
     await expect(reviewCard).toBeHidden();
     await expect(page.locator('[data-testid="reviews-queue-container"]')).toContainText("No reviews found");
   });
+
+  test("UC-REV-01 renders empty state gracefully", async ({ page }) => {
+    await openReviews(page);
+    await searchForReview(page, "nonexistent-review-12345xyz");
+    await expect(page.locator('[data-testid="reviews-queue-container"]')).toContainText("No reviews found");
+    await expect(page.locator('[data-testid="error-boundary"]')).toHaveCount(0);
+  });
 });

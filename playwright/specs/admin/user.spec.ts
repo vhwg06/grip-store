@@ -54,6 +54,33 @@ test.describe("Admin User @admin", () => {
     await expect(page.getByRole("button", { name: "Block / unblock" })).toBeVisible();
   });
 
+  test("UC-USER-03 submits points adjustment (blocked-be-gap)", async ({ page }) => {
+    test.fail(true, "blocked-be-gap: PATCH /v1/admin/users/:id/points returns 404");
+
+    await buyerRow(page).click();
+    await page.getByRole("button", { name: "Adjust points" }).click();
+    
+    // Fill new points
+    await page.locator("#new-points").fill("1500");
+    await page.getByRole("button", { name: "Save" }).click();
+
+    // Verify success toast appears if fixed, otherwise fails due to 404
+    await expect(page.locator(".toast-success, [role='status']").first()).toBeVisible();
+  });
+
+  test("UC-USER-03 submits block mutation (blocked-be-gap)", async ({ page }) => {
+    test.fail(true, "blocked-be-gap: PATCH /v1/admin/users/:id/block returns 404");
+
+    // Dismiss dialog automatically by accepting it
+    page.on("dialog", dialog => dialog.accept());
+
+    await buyerRow(page).click();
+    await page.getByRole("button", { name: "Block / unblock" }).click();
+
+    // Verify success toast appears if fixed, otherwise fails due to 404
+    await expect(page.locator(".toast-success, [role='status']").first()).toBeVisible();
+  });
+
   test("UC-USER-04 exposes a domain handoff from account context into customer context", async ({ page }) => {
     await buyerRow(page).click();
 

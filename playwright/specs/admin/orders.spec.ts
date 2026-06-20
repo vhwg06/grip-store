@@ -121,4 +121,16 @@ test.describe("Admin Orders @admin", () => {
     await expect(page.getByText("COD / QR Transfer")).toBeVisible();
     await expect(page.getByText("Thu Duc, Ho Chi Minh City")).toBeVisible();
   });
+
+  test("UC-ORD-01 renders empty state gracefully", async ({ page }) => {
+    const listResponse = page.waitForResponse(
+      (response: any) => response.url().includes("/v1/admin/orders") && response.status() === 200,
+    );
+    await page.goto("/admin/orders?q=nonexistent-order-12345xyz");
+    await listResponse;
+    await page.waitForLoadState("networkidle");
+
+    await expect(page.getByText("No orders found")).toBeVisible();
+    await expect(page.locator('[data-testid="error-boundary"]')).toHaveCount(0);
+  });
 });

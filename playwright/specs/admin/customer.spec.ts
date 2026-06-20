@@ -108,4 +108,16 @@ test.describe("Admin Customer @admin", () => {
     await expect(page).toHaveURL(new RegExp(`/admin/orders\\?q=${buyerCustomerId}`));
     await expect(page.locator('[data-testid="order-row"]').filter({ hasText: "test-order-0001" }).first()).toBeVisible();
   });
+
+  test("UC-CUS-01 renders empty search state gracefully", async ({ page }) => {
+    const responsePromise = page.waitForResponse(
+      (response: any) => response.url().includes("/v1/admin/users") && response.status() === 200,
+    );
+    await page.getByPlaceholder("Search email, phone, user ID...").fill("nonexistent-customer-12345xyz");
+    await page.getByRole("button", { name: "Search" }).click();
+    await responsePromise;
+
+    await expect(page.getByText("No results")).toBeVisible();
+    await expect(page.locator('[data-testid="error-boundary"]')).toHaveCount(0);
+  });
 });
