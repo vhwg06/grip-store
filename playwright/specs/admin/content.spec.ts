@@ -31,8 +31,8 @@ test.describe("Admin Content @admin", () => {
     await page.waitForLoadState("networkidle");
 
     await expect(page.getByRole("heading", { name: "Article Management" })).toBeVisible();
-    await expect(page.getByRole("button", { name: /published/i })).toBeVisible();
-    await expect(page.getByRole("button", { name: /draft/i })).toBeVisible();
+    await expect(page.getByTestId("articles-list-container").getByRole("button", { name: "Published" })).toBeVisible();
+    await expect(page.getByTestId("articles-list-container").getByRole("button", { name: "Draft" })).toBeVisible();
     await expect(page.getByRole("button", { name: "Save draft" })).toBeVisible();
     await expect(page.getByText(/draft remains hidden until you publish changes/i)).toBeVisible();
   });
@@ -54,8 +54,8 @@ test.describe("Admin Content @admin", () => {
 
     await expect(page.getByRole("heading", { name: "About-Us Content" })).toBeVisible();
     await expect(page.getByText(/banner ownership stays in banner management/i)).toBeVisible();
-    await expect(page.getByText("Company introduction")).toBeVisible();
-    await expect(page.getByText("Gallery order")).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Company introduction" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Gallery order" })).toBeVisible();
     await expect(page.getByRole("button", { name: "Save page" })).toBeVisible();
   });
 
@@ -65,8 +65,8 @@ test.describe("Admin Content @admin", () => {
 
     await expect(page.getByRole("heading", { name: "Product Media & Content" })).toBeVisible();
     await expect(page.getByText(/without drifting into core catalog editing/i)).toBeVisible();
-    await expect(page.getByText("Media")).toBeVisible();
-    await expect(page.getByText("Rich content")).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Media", exact: true })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Rich content" })).toBeVisible();
     await expect(page.getByRole("button", { name: "Save content" })).toBeVisible();
   });
 });
