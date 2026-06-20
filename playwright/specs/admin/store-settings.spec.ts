@@ -272,14 +272,12 @@ test.describe("Admin Store Settings Spec Coverage @admin", () => {
 
   test("UC-SET-05 negative path: banner/about presence toggle and save failure", async ({ page }) => {
     // INVARIANT: save operation cho presence controls phải fail an toàn khi server từ chối cập nhật
-    test.fail(true, "blocked-be-gap: bannerPresence/aboutPresence missing or disabled in UI");
     await expect(page.locator('[data-testid="settings-banner-presence-toggle"]')).toBeVisible();
     await expect(page.locator('[data-testid="settings-banner-presence-toggle"]')).toBeDisabled();
   });
 
   test("UC-SET-06 negative path: rejects invalid registry origin payload", async ({ page }) => {
     // INVARIANT: registry commit với invalid payload phải bị chặn và hiển thị error, không silent succeed
-    test.fail(true, "blocked-be-gap: registry commit button or UI flow not ready");
     await expect(page.locator('[data-testid="settings-section-registry-legacy"]')).toBeVisible();
     
     const commitBtn = page.getByRole("button", { name: /Join Registry|Resubmit Origin/i });
