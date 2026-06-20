@@ -170,8 +170,8 @@ function SidebarContent({ closeOnNavigate = false, showTitle = true, username, t
           <NavLink href="/admin/settings" testId={withTestIds ? "admin-nav-settings" : undefined} icon={<Settings className="mr-2 h-4 w-4 shrink-0" />} label="Store Settings" closeOnNavigate={closeOnNavigate} isActive={isSettingsActive} />
           <NavLink href="/admin/banners" testId={withTestIds ? "admin-nav-banners" : undefined} icon={<BannersIcon className="mr-2 h-4 w-4 shrink-0" />} label="Banners" closeOnNavigate={closeOnNavigate} isActive={pathname === "/admin/banners"} />
           <NavLink href="/admin/articles" testId={withTestIds ? "admin-nav-articles" : undefined} icon={<FileText className="mr-2 h-4 w-4 shrink-0" />} label="Articles" closeOnNavigate={closeOnNavigate} isActive={pathname === "/admin/articles" || pathname.startsWith("/admin/article/")} />
-          <NavLink href="/admin/products" testId={withTestIds ? "admin-nav-product-content" : undefined} icon={<FolderTree className="mr-2 h-4 w-4 shrink-0" />} label="Product Content" closeOnNavigate={closeOnNavigate} isActive={pathname === "/admin/product-content"} />
-          <NavLink href="/admin/settings" testId={withTestIds ? "admin-nav-about" : undefined} icon={<Info className="mr-2 h-4 w-4 shrink-0" />} label="About-Us" closeOnNavigate={closeOnNavigate} isActive={pathname === "/admin/about"} />
+          <NavLink href="/admin/product-content" testId={withTestIds ? "admin-nav-product-content" : undefined} icon={<FolderTree className="mr-2 h-4 w-4 shrink-0" />} label="Product Content" closeOnNavigate={closeOnNavigate} isActive={pathname === "/admin/product-content"} />
+          <NavLink href="/admin/about" testId={withTestIds ? "admin-nav-about" : undefined} icon={<Info className="mr-2 h-4 w-4 shrink-0" />} label="About-Us" closeOnNavigate={closeOnNavigate} isActive={pathname === "/admin/about"} />
           <NavLink href="/admin/media" testId={withTestIds ? "admin-nav-media" : undefined} icon={<Images className="mr-2 h-4 w-4 shrink-0" />} label="Media Library" closeOnNavigate={closeOnNavigate} isActive={pathname === "/admin/media"} />
         </div>
 

@@ -5,9 +5,5 @@ export const metadata = {
 };
 
 export default function AdminBannersPage() {
-  return (
-    <div className="container mx-auto p-6">
-      <AdminBannersContent />
-    </div>
-  );
+  return <AdminBannersContent />;
 }
