@@ -11,7 +11,7 @@ async function fetchAdminProfile(request: any) {
   return payload?.data ?? payload;
 }
 
-test.describe("Admin Profile @admin", () => {
+test.describe("Admin Profile @admin P3", () => {
   test.use({
     storageState: "./playwright/src/fixtures/.auth/admin.json",
   });
@@ -20,6 +20,10 @@ test.describe("Admin Profile @admin", () => {
     page,
     request,
   }) => {
+    // GOAL: Admin Reads Own Profile Identity: xác nhận current admin identity đang được trình bày đúng.
+    // PRIORITY: P3
+    // RELATED DOMAINS: none
+    // SCENARIO: SC-APRO-01 Main flow
     // INVARIANT: FE phải render actual identity từ /v1/profile — không phải scaffolding fallback
     const profile = await fetchAdminProfile(request);
 
@@ -39,6 +43,10 @@ test.describe("Admin Profile @admin", () => {
     page,
     request,
   }) => {
+    // GOAL: Admin Maintains Own Display Identity: cập nhật cách current admin được nhận diện trong hệ thống vận hành.
+    // PRIORITY: P3
+    // RELATED DOMAINS: none
+    // SCENARIO: SC-APRO-02 Main flow
     // INVARIANT: profile display name update must persist and survive page reloads
     const nextDisplayName = `PW Admin FE ${Date.now()}`;
 
@@ -57,6 +65,10 @@ test.describe("Admin Profile @admin", () => {
   test("UC-APRO-03 pulls backend-owned security posture instead of rendering a hardcoded green audit", async ({
     page,
   }) => {
+    // GOAL: Admin Maintains Security Posture: giữ current admin account ở trạng thái đáng tin cậy.
+    // PRIORITY: P3
+    // RELATED DOMAINS: none
+    // SCENARIO: SC-APRO-03 Main flow
     const securityResponses: number[] = [];
 
     page.on("response", (response) => {
@@ -75,6 +87,10 @@ test.describe("Admin Profile @admin", () => {
   test("UC-APRO-04 pulls recent-access trust state from the backend instead of static session rows", async ({
     page,
   }) => {
+    // GOAL: Admin Reviews Recent Access Trust: xác minh các phiên truy cập gần đây có còn đáng tin cậy không.
+    // PRIORITY: P3
+    // RELATED DOMAINS: none
+    // SCENARIO: SC-APRO-04 Main flow
     const sessionResponses: number[] = [];
 
     page.on("response", (response) => {

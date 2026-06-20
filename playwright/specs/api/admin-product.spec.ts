@@ -46,13 +46,21 @@ async function getProductForm(request: any, id: string) {
   return response.json();
 }
 
-test.describe("Admin Product API @api", () => {
+test.describe("Admin Product API @api P1 P2", () => {
   test("UC-PROD-01 rejects unauthenticated product-admin reads", async ({ request }) => {
+    // GOAL: Admin Reviews Product Catalog: hiểu catalog hiện tại để chọn sản phẩm cần tạo mới, chỉnh sửa, sắp xếp, hoặc kiểm tra.
+    // PRIORITY: P1
+    // RELATED DOMAINS: review
+    // SCENARIO: SC-PROD-01 Exception flow
     const response = await request.get(`${BACKEND_URL}/v1/admin/products`);
     expect(response.status()).toBe(401);
   });
 
   test("UC-PROD-01 rejects non-admin product-admin reads", async ({ request }) => {
+    // GOAL: Admin Reviews Product Catalog: hiểu catalog hiện tại để chọn sản phẩm cần tạo mới, chỉnh sửa, sắp xếp, hoặc kiểm tra.
+    // PRIORITY: P1
+    // RELATED DOMAINS: review
+    // SCENARIO: SC-PROD-01 Exception flow
     const token = await getUserToken(request);
     const response = await request.get(`${BACKEND_URL}/v1/admin/products`, {
       headers: { Authorization: `Bearer ${token}` },
@@ -61,6 +69,10 @@ test.describe("Admin Product API @api", () => {
   });
 
   test("UC-PROD-01 reviews catalog state for triage", async ({ request }) => {
+    // GOAL: Admin Reviews Product Catalog: hiểu catalog hiện tại để chọn sản phẩm cần tạo mới, chỉnh sửa, sắp xếp, hoặc kiểm tra.
+    // PRIORITY: P1
+    // RELATED DOMAINS: review
+    // SCENARIO: SC-PROD-01 Main flow
     const response = await adminGet(request, "/v1/admin/products");
     expect(response.ok()).toBeTruthy();
 
@@ -91,6 +103,10 @@ test.describe("Admin Product API @api", () => {
   });
 
   test("UC-PROD-06 exposes distinct health signals for operator review", async ({ request }) => {
+    // GOAL: Admin Reviews Product Health Signals: nhận diện product nào đang cần chú ý vì thiếu media, low stock, hidden state, hoặc commercial inconsistency.
+    // PRIORITY: P1
+    // RELATED DOMAINS: none
+    // SCENARIO: SC-PROD-06 Main flow
     const response = await adminGet(request, "/v1/admin/products");
     expect(response.ok()).toBeTruthy();
 
@@ -131,6 +147,10 @@ test.describe("Admin Product API @api", () => {
   });
 
   test("UC-PROD-02 creates a sellable catalog entity", async ({ request }) => {
+    // GOAL: Admin Creates A Product: đưa một product mới vào catalog với business meaning đầy đủ.
+    // PRIORITY: P1
+    // RELATED DOMAINS: review
+    // SCENARIO: SC-PROD-02 Main flow
     const suffix = `${Date.now()}-${Math.floor(Math.random() * 1000)}`;
     const created = await createProduct(request, suffix);
 
@@ -147,6 +167,10 @@ test.describe("Admin Product API @api", () => {
   });
 
   test("UC-PROD-03 updates product commercial state", async ({ request }) => {
+    // GOAL: Admin Updates Product Commercial State: thay đổi nội dung hoặc trạng thái thương mại của product đang có.
+    // PRIORITY: P1
+    // RELATED DOMAINS: review
+    // SCENARIO: SC-PROD-03 Main flow
     const suffix = `${Date.now()}-${Math.floor(Math.random() * 1000)}`;
     const created = await createProduct(request, suffix);
 
@@ -172,6 +196,10 @@ test.describe("Admin Product API @api", () => {
   });
 
   test("UC-PROD-04 maintains category structure with hierarchy and position semantics", async ({ request }) => {
+    // GOAL: Admin Maintains Category Structure: giữ category tree đúng để catalog có cấu trúc thương mại rõ ràng.
+    // PRIORITY: P1
+    // RELATED DOMAINS: none
+    // SCENARIO: SC-PROD-04 Main flow
     const suffix = `${Date.now()}-${Math.floor(Math.random() * 1000)}`;
 
     const rootResponse = await adminPost(request, "/v1/admin/categories", {
@@ -218,6 +246,10 @@ test.describe("Admin Product API @api", () => {
   });
 
   test("UC-PROD-05 exposes product-linked card inventory in product context", async ({ request }) => {
+    // GOAL: Admin Manages Product-Linked Cards: quản lý card hoặc inventory-like artifact gắn với một product.
+    // PRIORITY: P2
+    // RELATED DOMAINS: none
+    // SCENARIO: SC-PROD-05 Main flow
     test.fail(true, "blocked-be-gap: product-linked cards endpoint /v1/admin/cards unavailable on production API");
     const response = await adminGet(request, "/v1/admin/cards");
     expect(response.ok()).toBeTruthy();

@@ -44,7 +44,7 @@ async function createCategoryViaApi(request: any, suffix: string, position: numb
   return payload.data as { id: string; name: string; position: number };
 }
 
-test.describe("Admin Product @admin", () => {
+test.describe("Admin Product @admin P1", () => {
   test.use({
     storageState: "./playwright/src/fixtures/.auth/admin.json",
   });
@@ -55,6 +55,10 @@ test.describe("Admin Product @admin", () => {
   });
 
   test("UC-PROD-01 renders catalog triage and can open product context", async ({ page }) => {
+    // GOAL: Admin Reviews Product Catalog: hiểu catalog hiện tại để chọn sản phẩm cần tạo mới, chỉnh sửa, sắp xếp, hoặc kiểm tra.
+    // PRIORITY: P1
+    // RELATED DOMAINS: review
+    // SCENARIO: SC-PROD-01 Main flow
     await expect(page.getByRole("heading", { name: "Product Management" })).toBeVisible();
     await expect(page.locator('[data-testid="admin-table"]')).toBeVisible();
     await expect(page.getByRole("button", { name: "Visible" })).toBeVisible();
@@ -70,6 +74,10 @@ test.describe("Admin Product @admin", () => {
   });
 
   test("UC-PROD-06 renders health-signal review surfaces", async ({ page, request }) => {
+    // GOAL: Admin Reviews Product Health Signals: nhận diện product nào đang cần chú ý vì thiếu media, low stock, hidden state, hoặc commercial inconsistency.
+    // PRIORITY: P1
+    // RELATED DOMAINS: none
+    // SCENARIO: SC-PROD-06 Main flow
     const token = await getAdminToken();
     test.skip(!token, "ADMIN_USER_TOKEN is required");
 
@@ -109,6 +117,10 @@ test.describe("Admin Product @admin", () => {
   });
 
   test("UC-PROD-02 creates a product draft from the admin create flow", async ({ page }) => {
+    // GOAL: Admin Creates A Product: đưa một product mới vào catalog với business meaning đầy đủ.
+    // PRIORITY: P1
+    // RELATED DOMAINS: review
+    // SCENARIO: SC-PROD-02 Main flow
     const suffix = `${Date.now()}-${Math.floor(Math.random() * 1000)}`;
     const token = await getAdminToken();
     test.skip(!token, "ADMIN_USER_TOKEN is required");
@@ -138,6 +150,10 @@ test.describe("Admin Product @admin", () => {
   });
 
   test("UC-PROD-03 submits commercial state changes from the list quick action", async ({ page, request }) => {
+    // GOAL: Admin Updates Product Commercial State: thay đổi nội dung hoặc trạng thái thương mại của product đang có.
+    // PRIORITY: P1
+    // RELATED DOMAINS: review
+    // SCENARIO: SC-PROD-03 Main flow
     const suffix = `${Date.now()}-${Math.floor(Math.random() * 1000)}`;
     const created = await createProductViaApi(request, suffix);
     const token = await getAdminToken();
@@ -170,6 +186,10 @@ test.describe("Admin Product @admin", () => {
   });
 
   test("UC-PROD-04 submits category reordering semantics from the admin editor", async ({ page, request }) => {
+    // GOAL: Admin Maintains Category Structure: giữ category tree đúng để catalog có cấu trúc thương mại rõ ràng.
+    // PRIORITY: P1
+    // RELATED DOMAINS: none
+    // SCENARIO: SC-PROD-04 Main flow
     const upper = await createCategoryViaApi(request, `${Date.now()}-a`, 20);
     const lower = await createCategoryViaApi(request, `${Date.now()}-b`, 30);
     const token = await getAdminToken();

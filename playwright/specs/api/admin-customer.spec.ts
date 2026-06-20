@@ -36,13 +36,21 @@ function extractUsers(payload: any) {
   return [];
 }
 
-test.describe("Admin Customer API @api", () => {
+test.describe("Admin Customer API @api P1", () => {
   test("UC-CUS-01 rejects unauthenticated customer-root reads", async ({ request }) => {
+    // GOAL: Admin Finds A Customer Record: tìm đúng khách hàng cần hỗ trợ hoặc cần điều tra.
+    // PRIORITY: P1
+    // RELATED DOMAINS: order
+    // SCENARIO: SC-CUS-01 Exception flow
     const response = await request.get(`${BACKEND_URL}/v1/admin/users?q=test_buyer&page=1&pageSize=20`);
     expect(response.status()).toBe(401);
   });
 
   test("UC-CUS-01 rejects non-admin customer-root reads", async ({ request }) => {
+    // GOAL: Admin Finds A Customer Record: tìm đúng khách hàng cần hỗ trợ hoặc cần điều tra.
+    // PRIORITY: P1
+    // RELATED DOMAINS: order
+    // SCENARIO: SC-CUS-01 Exception flow
     const token = await getUserToken(request);
     const response = await request.get(`${BACKEND_URL}/v1/admin/users?q=test_buyer&page=1&pageSize=20`, {
       headers: { Authorization: `Bearer ${token}` },
@@ -51,6 +59,10 @@ test.describe("Admin Customer API @api", () => {
   });
 
   test("UC-CUS-01 finds a customer record by commerce identity query", async ({ request }) => {
+    // GOAL: Admin Finds A Customer Record: tìm đúng khách hàng cần hỗ trợ hoặc cần điều tra.
+    // PRIORITY: P1
+    // RELATED DOMAINS: order
+    // SCENARIO: SC-CUS-01 Main flow
     const response = await adminGet(request, "/v1/admin/users?q=test_buyer&page=1&pageSize=20");
     expect(response.ok()).toBeTruthy();
 
@@ -62,6 +74,10 @@ test.describe("Admin Customer API @api", () => {
   });
 
   test("UC-CUS-02 returns a customer summary with commerce indicators", async ({ request }) => {
+    // GOAL: Admin Reads Customer Profile Summary: hiểu customer này là ai trong bối cảnh commerce của hệ thống.
+    // PRIORITY: P1
+    // RELATED DOMAINS: order
+    // SCENARIO: SC-CUS-02 Main flow
     const response = await adminGet(request, "/v1/admin/users?q=test_buyer&page=1&pageSize=20");
     expect(response.ok()).toBeTruthy();
 
@@ -79,6 +95,10 @@ test.describe("Admin Customer API @api", () => {
   });
 
   test("UC-CUS-03 exposes linked commerce context from the customer root", async ({ request }) => {
+    // GOAL: Admin Reads Customer Commerce Context: hiểu toàn bộ ngữ cảnh commerce của customer để hỗ trợ xử lý.
+    // PRIORITY: P1
+    // RELATED DOMAINS: order
+    // SCENARIO: SC-CUS-03 Main flow
     const response = await adminGet(request, "/v1/admin/users?q=test_buyer&page=1&pageSize=20");
     expect(response.ok()).toBeTruthy();
 
@@ -92,6 +112,10 @@ test.describe("Admin Customer API @api", () => {
   });
 
   test("UC-CUS-04 keeps customer identity distinct from user-account identity", async ({ request }) => {
+    // GOAL: Admin Distinguishes Customer From User Account: tránh nhầm lẫn giữa commerce identity và account/system identity.
+    // PRIORITY: P1
+    // RELATED DOMAINS: user
+    // SCENARIO: SC-CUS-04 Main flow
     const response = await adminGet(request, "/v1/admin/users?page=1&pageSize=20");
     expect(response.ok()).toBeTruthy();
 
@@ -101,6 +125,10 @@ test.describe("Admin Customer API @api", () => {
   });
 
   test("UC-CUS-05 returns a valid customer root even with empty commerce history", async ({ request }) => {
+    // GOAL: Admin Reads A Customer With No Commerce History: xác nhận một customer vẫn là customer hợp lệ ngay cả khi chưa có order, refund, hay review history.
+    // PRIORITY: P1
+    // RELATED DOMAINS: user
+    // SCENARIO: SC-CUS-05 Main flow
     const created = await registerEmptyHistoryUser(request);
 
     const response = await adminGet(request, `/v1/admin/users?q=${encodeURIComponent(created.email)}&page=1&pageSize=20`);

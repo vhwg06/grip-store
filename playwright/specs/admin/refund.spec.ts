@@ -54,7 +54,7 @@ async function searchRefund(page: any, query: string) {
   await page.waitForTimeout(300);
 }
 
-test.describe("Admin Refund @admin", () => {
+test.describe("Admin Refund @admin P2", () => {
   test.use({
     storageState: "./playwright/src/fixtures/.auth/admin.json",
   });
@@ -65,6 +65,10 @@ test.describe("Admin Refund @admin", () => {
   });
 
   test("UC-REF-01 reviews the refund queue and opens evidence", async ({ page }) => {
+    // GOAL: Admin Reviews Refund Queue: xác định refund request nào cần xử lý và request nào chỉ cần theo dõi.
+    // PRIORITY: P2
+    // RELATED DOMAINS: order
+    // SCENARIO: SC-REF-01 Main flow
     // INVARIANT: refund queue là operational decision surface — chỉ hiển thị pending requests
     // INVARIANT: request đã có decision không được bị hiểu như request còn pending
     await expect(page.getByRole("heading", { name: "Refund Requests" })).toBeVisible();
@@ -82,6 +86,10 @@ test.describe("Admin Refund @admin", () => {
   });
 
   test("UC-REF-02 reads refund evidence before deciding", async ({ page, request }) => {
+    // GOAL: Admin Reads Refund Evidence Before Deciding: đọc đủ dữ kiện cần thiết trước khi approve hoặc reject.
+    // PRIORITY: P2
+    // RELATED DOMAINS: order
+    // SCENARIO: SC-REF-02 Main flow
     // INVARIANT: evidence review là bước nghiệp vụ bắt buộc trước decision — panel phải expose actual values
     // INVARIANT: refund decision không được ra chỉ từ queue row
     test.fail(true, "blocked-be-gap: checkout /v1/checkout/orders returns 500");
@@ -99,6 +107,10 @@ test.describe("Admin Refund @admin", () => {
   });
 
   test("UC-REF-03 approves a refund from the admin decision surface", async ({ page, request }) => {
+    // GOAL: Admin Approves A Refund: chấp nhận refund request khi dữ kiện hỗ trợ cho refund outcome đó.
+    // PRIORITY: P2
+    // RELATED DOMAINS: order
+    // SCENARIO: SC-REF-03 Main flow
     // INVARIANT: approved refund phải disappear khỏi pending queue (reconciled out)
     // INVARIANT: duplicate approve không được tạo extra transition
     test.fail(true, "blocked-be-gap: checkout /v1/checkout/orders returns 500");
@@ -127,6 +139,10 @@ test.describe("Admin Refund @admin", () => {
   });
 
   test("UC-REF-04 rejects a refund from the admin decision surface", async ({ page, request }) => {
+    // GOAL: Admin Rejects A Refund: từ chối refund request khi dữ kiện không đủ hoặc không phù hợp.
+    // PRIORITY: P2
+    // RELATED DOMAINS: order
+    // SCENARIO: SC-REF-04 Exception flow
     // INVARIANT: reject phải kết thúc pending decision state — không thể reject thêm lần 2
     // INVARIANT: rejected refund vẫn phải để lại decision history (admin_note)
     test.fail(true, "blocked-be-gap: checkout /v1/checkout/orders returns 500");
@@ -155,6 +171,10 @@ test.describe("Admin Refund @admin", () => {
   });
 
   test("UC-REF-05 reviews a refund that is already decided", async ({ page, request }) => {
+    // GOAL: Admin Reviews A Refund That Is Already Decided: hiểu historical refund outcome trước khi xử lý downstream operational questions.
+    // PRIORITY: P2
+    // RELATED DOMAINS: none
+    // SCENARIO: SC-REF-05 Main flow
     test.fail(true, "blocked-both: approved refunds tab does not list resolved refunds from API");
     const approvedPayload = await fetchRefunds(request, "approved");
     const approvedItems = Array.isArray(approvedPayload?.data) ? approvedPayload.data : [];
@@ -169,12 +189,20 @@ test.describe("Admin Refund @admin", () => {
   });
 
   test("UC-REF-01 alternate: renders empty state gracefully", async ({ page }) => {
+    // GOAL: Admin Reviews Refund Queue: xác định refund request nào cần xử lý và request nào chỉ cần theo dõi.
+    // PRIORITY: P2
+    // RELATED DOMAINS: order
+    // SCENARIO: SC-REF-01 Alternate flow
     await searchRefund(page, "nonexistent-refund-12345xyz");
     await expect(page.getByText("No refund requests in queue matching the filters.")).toBeVisible();
     await expect(page.locator('[data-testid="error-boundary"]')).toHaveCount(0);
   });
 
   test("UC-REF-01 exception: approved refund does not appear in pending queue", async ({ page, request }) => {
+    // GOAL: Admin Reviews Refund Queue: xác định refund request nào cần xử lý và request nào chỉ cần theo dõi.
+    // PRIORITY: P2
+    // RELATED DOMAINS: order
+    // SCENARIO: SC-REF-01 Exception flow
     // INVARIANT: approved refund must not be present in the pending queue
     test.fail(true, "blocked-be-gap: checkout /v1/checkout/orders returns 500");
     const created = await createRefundRequest(request, `approved-disappear ${Date.now()}`);
@@ -196,6 +224,10 @@ test.describe("Admin Refund @admin", () => {
   });
 
   test("UC-REF-04 exception: cannot reject an already-decided refund", async ({ page, request }) => {
+    // GOAL: Admin Rejects A Refund: từ chối refund request khi dữ kiện không đủ hoặc không phù hợp.
+    // PRIORITY: P2
+    // RELATED DOMAINS: order
+    // SCENARIO: SC-REF-04 Exception flow
     // INVARIANT: a refund with a final decision cannot be rejected again
     test.fail(true, "blocked-be-gap: checkout /v1/checkout/orders returns 500");
     const created = await createRefundRequest(request, `reject-already-decided ${Date.now()}`);
@@ -217,4 +249,34 @@ test.describe("Admin Refund @admin", () => {
 
     await expect(page.getByRole("button", { name: "Reject request" })).toBeHidden();
   });
+
+  test("UC-REF-03 alternate: admin adds decision note before approving refund", async ({ page, request }) => {
+    // GOAL: Admin Approves A Refund: chấp nhận refund request khi dữ kiện hỗ trợ cho refund outcome đó.
+    // PRIORITY: P2
+    // RELATED DOMAINS: order, payment
+    // SCENARIO: SC-REF-02 Alternate flow
+    test.fail(true, "blocked-be-gap: checkout /v1/checkout/orders returns 500");
+    const created = await createRefundRequest(request, `approve-with-note ${Date.now()}`);
+
+    await page.goto(`/admin/refunds`);
+    await page.waitForLoadState("networkidle");
+    await searchRefund(page, created.orderId);
+
+    const refundCard = page.getByText(created.orderId, { exact: false }).first();
+    await expect(refundCard).toBeVisible();
+    await refundCard.click();
+
+    const noteInput = page.locator('[data-testid="refund-decision-note"]');
+    await expect(noteInput).toBeVisible();
+    await noteInput.fill("Persisted decision note from test");
+
+    await page.getByRole("button", { name: "Approve request" }).click();
+    await expect(page.locator(".toast-success, [data-type='success'], [role='status']").first()).toBeVisible();
+
+    await page.getByRole("tab", { name: "History" }).click();
+    await searchRefund(page, created.orderId);
+    await page.getByText(created.orderId, { exact: false }).first().click();
+    await expect(page.getByText("Persisted decision note from test")).toBeVisible();
+  });
 });
+

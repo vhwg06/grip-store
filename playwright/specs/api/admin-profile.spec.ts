@@ -16,8 +16,12 @@ async function adminPatch(request: any, path: string, data: Record<string, unkno
   });
 }
 
-test.describe("Admin Profile API @api", () => {
+test.describe("Admin Profile API @api P3", () => {
   test("UC-APRO-01 reads current admin identity from the self-profile contract", async ({ request }) => {
+    // GOAL: Admin Reads Own Profile Identity: xác nhận current admin identity đang được trình bày đúng.
+    // PRIORITY: P3
+    // RELATED DOMAINS: none
+    // SCENARIO: SC-APRO-01 Main flow
     const response = await adminGet(request, "/v1/profile");
     expect(response.ok()).toBeTruthy();
 
@@ -33,6 +37,10 @@ test.describe("Admin Profile API @api", () => {
   });
 
   test("UC-APRO-02 updates the current admin display identity without changing permissions", async ({ request }) => {
+    // GOAL: Admin Maintains Own Display Identity: cập nhật cách current admin được nhận diện trong hệ thống vận hành.
+    // PRIORITY: P3
+    // RELATED DOMAINS: none
+    // SCENARIO: SC-APRO-02 Main flow
     const before = await adminGet(request, "/v1/profile");
     expect(before.ok()).toBeTruthy();
     const beforeJson = await before.json();
@@ -61,6 +69,10 @@ test.describe("Admin Profile API @api", () => {
   });
 
   test("UC-APRO-03 exposes backend-owned security posture for the current admin", async ({ request }) => {
+    // GOAL: Admin Maintains Security Posture: giữ current admin account ở trạng thái đáng tin cậy.
+    // PRIORITY: P3
+    // RELATED DOMAINS: none
+    // SCENARIO: SC-APRO-03 Main flow
     const response = await adminGet(request, "/v1/profile/security");
     expect(response.ok()).toBeTruthy();
 
@@ -74,6 +86,10 @@ test.describe("Admin Profile API @api", () => {
   });
 
   test("UC-APRO-04 exposes recent-access trust signals for the current admin", async ({ request }) => {
+    // GOAL: Admin Reviews Recent Access Trust: xác minh các phiên truy cập gần đây có còn đáng tin cậy không.
+    // PRIORITY: P3
+    // RELATED DOMAINS: none
+    // SCENARIO: SC-APRO-04 Main flow
     const response = await adminGet(request, "/v1/profile/sessions");
     expect(response.ok()).toBeTruthy();
 

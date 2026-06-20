@@ -35,7 +35,7 @@ function userAuth() {
   return token ? { Authorization: `Bearer ${token}` } : undefined;
 }
 
-test.describe("Store Settings API Contract @api", () => {
+test.describe("Store Settings API Contract @api P1 P2", () => {
   let client: GoBackendClient;
 
   test.beforeEach(async ({ request }) => {
@@ -57,6 +57,10 @@ test.describe("Store Settings API Contract @api", () => {
   }
 
   test("UC-SET-01 reads storefront identity from the structured admin and public read models", async () => {
+    // GOAL: Admin Maintains Storefront Identity: giữ cho storefront thể hiện đúng identity kinh doanh hiện tại.
+    // PRIORITY: P1
+    // RELATED DOMAINS: none
+    // SCENARIO: SC-SET-01 Main flow
     test.skip(!process.env.ADMIN_USER_TOKEN, "ADMIN_USER_TOKEN not set");
 
     const [adminResponse, siteConfigResponse, catalogSettingsResponse] = await Promise.all([
@@ -90,6 +94,10 @@ test.describe("Store Settings API Contract @api", () => {
   });
 
   test("UC-SET-01 updates brand and contact facts and reflects the new storefront identity publicly", async () => {
+    // GOAL: Admin Maintains Storefront Identity: giữ cho storefront thể hiện đúng identity kinh doanh hiện tại.
+    // PRIORITY: P1
+    // RELATED DOMAINS: none
+    // SCENARIO: SC-SET-01 Main flow
     test.skip(!process.env.ADMIN_USER_TOKEN, "ADMIN_USER_TOKEN not set");
 
     const brandPayload = {
@@ -137,6 +145,10 @@ test.describe("Store Settings API Contract @api", () => {
   });
 
   test("UC-SET-01 rejects storefront identity reads without valid admin authorization", async () => {
+    // GOAL: Admin Maintains Storefront Identity: giữ cho storefront thể hiện đúng identity kinh doanh hiện tại.
+    // PRIORITY: P1
+    // RELATED DOMAINS: none
+    // SCENARIO: SC-SET-01 Exception flow
     const unauthenticated = await client.get("/v1/admin/store-settings");
     expect(unauthenticated.status).toBe(401);
 
@@ -148,6 +160,10 @@ test.describe("Store Settings API Contract @api", () => {
   });
 
   test("UC-SET-02 accepts a homepage composition decision and rejects ordering conflicts", async () => {
+    // GOAL: Admin Composes Homepage Surface: quyết định storefront homepage đang ưu tiên giới thiệu nội dung gì.
+    // PRIORITY: P1
+    // RELATED DOMAINS: none
+    // SCENARIO: SC-SET-02 Exception flow
     test.skip(!process.env.ADMIN_USER_TOKEN, "ADMIN_USER_TOKEN not set");
 
     const validPayload = {
@@ -199,6 +215,10 @@ test.describe("Store Settings API Contract @api", () => {
   });
 
   test("UC-SET-03 accepts discovery and visibility rules and rejects invalid behavioral combinations", async () => {
+    // GOAL: Admin Controls Public Discovery And Visibility Rules: điều chỉnh cách storefront được discover và cách một số capability xuất hiện công khai.
+    // PRIORITY: P1
+    // RELATED DOMAINS: none
+    // SCENARIO: SC-SET-03 Exception flow
     test.skip(!process.env.ADMIN_USER_TOKEN, "ADMIN_USER_TOKEN not set");
 
     const payload = {
@@ -251,6 +271,10 @@ test.describe("Store Settings API Contract @api", () => {
   });
 
   test("UC-SET-04 updates footer and support commitments and reflects them through storefront-facing settings", async () => {
+    // GOAL: Admin Maintains Storefront Support And Footer Presence: kiểm soát các điểm chạm hỗ trợ và navigation/public references trên storefront.
+    // PRIORITY: P1
+    // RELATED DOMAINS: none
+    // SCENARIO: SC-SET-04 Main flow
     test.skip(!process.env.ADMIN_USER_TOKEN, "ADMIN_USER_TOKEN not set");
 
     const footerPayload = {
@@ -324,6 +348,10 @@ test.describe("Store Settings API Contract @api", () => {
   });
 
   test("UC-SET-05 exposes banner and about presence controls as part of the store-settings contract", async () => {
+    // GOAL: Admin Maintains Banner And About Presence Through Store Settings: kiểm soát các reference thuộc banner/about trong phạm vi storefront behavior.
+    // PRIORITY: P2
+    // RELATED DOMAINS: none
+    // SCENARIO: SC-SET-05 Main flow
     test.fail(true, "blocked-be-gap: bannerPresence/aboutPresence missing in config");
     test.skip(!process.env.ADMIN_USER_TOKEN, "ADMIN_USER_TOKEN not set");
 
@@ -339,6 +367,10 @@ test.describe("Store Settings API Contract @api", () => {
   });
 
   test("UC-SET-06 updates registry commitments and reflects the resulting storefront policy state", async () => {
+    // GOAL: Admin Maintains Registry And Legacy Storefront Commitments: giữ các storefront commitments cũ hoặc registry-related commitments ở trạng thái đúng với business policy hiện tại.
+    // PRIORITY: P2
+    // RELATED DOMAINS: none
+    // SCENARIO: SC-SET-06 Main flow
     test.skip(!process.env.ADMIN_USER_TOKEN, "ADMIN_USER_TOKEN not set");
 
     const payload = {

@@ -31,12 +31,16 @@ function queueItemByText(page: any, text: string) {
   return page.locator('[data-testid="review-queue-item"]').filter({ hasText: text }).first();
 }
 
-test.describe("Admin Review Moderation E2E @admin", () => {
+test.describe("Admin Review Moderation E2E @admin P2", () => {
   test.use({
     storageState: "./playwright/src/fixtures/.auth/admin.json",
   });
 
   test("UC-REV-01 reviews the moderation queue", async ({ page, request }) => {
+    // GOAL: Admin Reviews Moderation Queue: xác định review nào cần moderation và review nào đã ở public-eligible state.
+    // PRIORITY: P2
+    // RELATED DOMAINS: product
+    // SCENARIO: SC-REV-01 Main flow
     const pending = await fetchReviews(request, "PENDING");
     expect(pending.length).toBeGreaterThan(0);
     const target = pending[0];
@@ -55,6 +59,10 @@ test.describe("Admin Review Moderation E2E @admin", () => {
   });
 
   test("UC-REV-02 moderates a single review", async ({ page, request }) => {
+    // GOAL: Admin Moderates A Single Review: đưa một review sang state phù hợp với business moderation policy.
+    // PRIORITY: P2
+    // RELATED DOMAINS: product
+    // SCENARIO: SC-REV-02 Main flow
     // INVARIANT: approve, hide, delete, feature không đồng nghĩa nhau — mỗi action có public visibility consequence khác nhau
     // INVARIANT: hide → button disabled sau khi executed (không thể hide thêm lần nữa)
     const approved = await fetchReviews(request, "APPROVED");
@@ -78,6 +86,10 @@ test.describe("Admin Review Moderation E2E @admin", () => {
   });
 
   test("UC-REV-03 bulk publishes selected pending reviews", async ({ page, request }) => {
+    // GOAL: Admin Bulk Publishes Eligible Reviews: xử lý nhiều review pending cùng lúc khi chúng cùng đủ điều kiện public.
+    // PRIORITY: P2
+    // RELATED DOMAINS: none
+    // SCENARIO: SC-REV-03 Main flow
     const pending = await fetchReviews(request, "PENDING");
     expect(pending.length).toBeGreaterThanOrEqual(2);
 
@@ -101,6 +113,10 @@ test.describe("Admin Review Moderation E2E @admin", () => {
   });
 
   test("UC-REV-04 reads moderation context for a selected review", async ({ page, request }) => {
+    // GOAL: Admin Reads Review Context Before Moderation: hiểu product, customer, order, attachments liên quan trước khi quyết định moderation.
+    // PRIORITY: P2
+    // RELATED DOMAINS: product
+    // SCENARIO: SC-REV-04 Main flow
     const reviews = await fetchReviews(request);
     expect(reviews.length).toBeGreaterThan(0);
     const target = reviews[0];
@@ -123,6 +139,10 @@ test.describe("Admin Review Moderation E2E @admin", () => {
   });
 
   test("UC-REV-05 removes a review from the moderation surface", async ({ page, request }) => {
+    // GOAL: Admin Removes A Review From The Moderation Surface: loại bỏ một review khỏi moderation surface khi review đó không nên tiếp tục tồn tại như review artifact.
+    // PRIORITY: P2
+    // RELATED DOMAINS: product
+    // SCENARIO: SC-REV-05 Main flow
     // INVARIANT: delete khác hide vì delete chấm dứt artifact thay vì chỉ đổi public meaning
     // INVARIANT: sau delete, review không còn tồn tại trong moderation surface
     const hidden = await fetchReviews(request, "HIDDEN");
@@ -144,9 +164,89 @@ test.describe("Admin Review Moderation E2E @admin", () => {
   });
 
   test("UC-REV-01 alternate: renders empty state gracefully", async ({ page }) => {
+    // GOAL: Admin Reviews Moderation Queue: xác định review nào cần moderation và review nào đã ở public-eligible state.
+    // PRIORITY: P2
+    // RELATED DOMAINS: product
+    // SCENARIO: SC-REV-01 Alternate flow
     await openReviews(page);
     await searchForReview(page, "nonexistent-review-12345xyz");
     await expect(page.locator('[data-testid="reviews-queue-container"]')).toContainText("No reviews found");
     await expect(page.locator('[data-testid="error-boundary"]')).toHaveCount(0);
   });
+
+  test("UC-REV-02 alternate: approves a single pending review from the moderation surface", async ({ page, request }) => {
+    // GOAL: Admin Moderates A Single Review: đưa một review sang state phù hợp với business moderation policy.
+    // PRIORITY: P2
+    // RELATED DOMAINS: product, customer, order
+    // SCENARIO: SC-REV-02 Alternate flow
+    const pending = await fetchReviews(request, "PENDING");
+    expect(pending.length).toBeGreaterThan(0);
+    const target = pending[0];
+
+    await openReviews(page);
+    await searchForReview(page, String(target.comment ?? target.username));
+
+    const reviewCard = queueItemByText(page, String(target.comment ?? target.username));
+    await expect(reviewCard).toBeVisible();
+    await reviewCard.click();
+
+    const approveButton = page.locator('[data-testid="review-action-approve"]');
+    await expect(approveButton).toBeEnabled();
+    await approveButton.click();
+
+    await expect(page.locator('[data-testid="reviews-context-panel"]')).toContainText("APPROVED");
+    await expect(approveButton).toBeDisabled();
+    await expect(reviewCard).toContainText("APPROVED");
+  });
+
+  test("UC-REV-02 alternate: features an approved review to elevate its prominence", async ({ page, request }) => {
+    // GOAL: Admin Moderates A Single Review: đưa một review sang state phù hợp với business moderation policy.
+    // PRIORITY: P2
+    // RELATED DOMAINS: product, customer, order
+    // SCENARIO: SC-REV-04 Alternate flow
+    const approved = await fetchReviews(request, "APPROVED");
+    expect(approved.length).toBeGreaterThan(0);
+    const target = approved[0];
+
+    await openReviews(page);
+    await searchForReview(page, String(target.comment ?? target.username));
+
+    const reviewCard = queueItemByText(page, String(target.comment ?? target.username));
+    await expect(reviewCard).toBeVisible();
+    await reviewCard.click();
+
+    const featureButton = page.locator('[data-testid="review-action-feature"]');
+    await expect(featureButton).toBeEnabled();
+    await featureButton.click();
+
+    await expect(page.locator('[data-testid="reviews-context-panel"]')).toContainText("FEATURED");
+    await expect(featureButton).toBeDisabled();
+  });
+
+  test("UC-REV-03 alternate: bulk publish with partial valid selection only applies to eligible reviews", async ({ page, request }) => {
+    // GOAL: Admin Bulk Publishes Eligible Reviews: xử lý nhiều review pending cùng lúc khi chúng cùng đủ điều kiện public.
+    // PRIORITY: P2
+    // RELATED DOMAINS: none
+    // SCENARIO: SC-REV-05 Alternate flow
+    const pending = await fetchReviews(request, "PENDING");
+    const hidden = await fetchReviews(request, "HIDDEN");
+    expect(pending.length).toBeGreaterThan(0);
+    expect(hidden.length).toBeGreaterThan(0);
+
+    await openReviews(page);
+
+    const pendingCard = queueItemByText(page, String(pending[0].comment ?? pending[0].username));
+    const hiddenCard = queueItemByText(page, String(hidden[0].comment ?? hidden[0].username));
+
+    await pendingCard.locator('[data-testid="review-item-checkbox"]').check();
+    await hiddenCard.locator('[data-testid="review-item-checkbox"]').check();
+
+    const bulkButton = page.locator('[data-testid="reviews-bulk-publish-btn"]');
+    await expect(bulkButton).toHaveText("Publish Selected (2)");
+    await bulkButton.click();
+
+    await expect(pendingCard).toContainText("APPROVED");
+    await expect(hiddenCard).toContainText("HIDDEN");
+  });
 });
+

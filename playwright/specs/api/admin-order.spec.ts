@@ -66,13 +66,21 @@ function extractOrders(payload: any) {
   return [];
 }
 
-test.describe("Admin Order API @api", () => {
+test.describe("Admin Order API @api P1 P2", () => {
   test("UC-ORD-01 rejects unauthenticated admin order reads", async ({ request }) => {
+    // GOAL: Admin Reviews Order Queue: xác định order nào cần được xử lý tiếp và order nào chỉ cần theo dõi.
+    // PRIORITY: P1
+    // RELATED DOMAINS: customer
+    // SCENARIO: SC-ORD-01 Exception flow
     const response = await request.get(`${BACKEND_URL}/v1/admin/orders?page=1&pageSize=20`);
     expect(response.status()).toBe(401);
   });
 
   test("UC-ORD-01 rejects non-admin order reads", async ({ request }) => {
+    // GOAL: Admin Reviews Order Queue: xác định order nào cần được xử lý tiếp và order nào chỉ cần theo dõi.
+    // PRIORITY: P1
+    // RELATED DOMAINS: customer
+    // SCENARIO: SC-ORD-01 Exception flow
     const token = await getUserToken(request);
     const response = await request.get(`${BACKEND_URL}/v1/admin/orders?page=1&pageSize=20`, {
       headers: { Authorization: `Bearer ${token}` },
@@ -81,6 +89,10 @@ test.describe("Admin Order API @api", () => {
   });
 
   test("UC-ORD-03 rejects invalid transition PENDING to DELIVERED", async ({ request }) => {
+    // GOAL: Admin Performs An Allowed Order Transition: thay đổi order từ trạng thái hiện tại sang trạng thái vận hành kế tiếp hợp lệ.
+    // PRIORITY: P1
+    // RELATED DOMAINS: refund
+    // SCENARIO: SC-ORD-03 Exception flow
     // INVARIANT: PENDING → DELIVERED bị cấm vì vi phạm order lifecycle rules
     // Expected: 400/409/422, không phải 204
     test.fail(true, "blocked-be-gap: backend accepts PENDING -> DELIVERED transition shortcut");
@@ -93,6 +105,10 @@ test.describe("Admin Order API @api", () => {
   });
 
   test("UC-ORD-04 resolves customer-linked purchase history from the customer commerce identifier", async ({ request }) => {
+    // GOAL: Admin Reads Purchase History For A Customer: hiểu lịch sử mua hàng của một customer để hỗ trợ xử lý order hiện tại hoặc ra quyết định hỗ trợ.
+    // PRIORITY: P1
+    // RELATED DOMAINS: customer
+    // SCENARIO: SC-ORD-04 Main flow
     test.fail(true, "blocked-be-gap: customer-linked order history does not resolve from customer ID");
     const adminToken = await getAdminToken(request);
 
@@ -121,6 +137,10 @@ test.describe("Admin Order API @api", () => {
   });
 
   test("UC-ORD-05 exposes refund relevance in order context", async ({ request }) => {
+    // GOAL: Admin Verifies Refund Relevance On An Order: biết order có đang hoặc đã đi qua refund flow hay không trước khi tiếp tục xử lý order.
+    // PRIORITY: P2
+    // RELATED DOMAINS: refund
+    // SCENARIO: SC-ORD-05 Main flow
     test.fail(true, "blocked-be-gap: checkout /v1/checkout/orders endpoint returns 500");
     const orderId = await createRefundRelevantOrder(request);
 
@@ -135,6 +155,10 @@ test.describe("Admin Order API @api", () => {
   });
 
   test("UC-ORD-06 keeps order detail readable when optional context is incomplete", async ({ request }) => {
+    // GOAL: Admin Reads An Order Even When Operational Data Is Incomplete: vẫn hiểu được order enough to act safely khi một phần dữ liệu phụ trợ không đầy đủ.
+    // PRIORITY: P2
+    // RELATED DOMAINS: none
+    // SCENARIO: SC-ORD-06 Main flow
     const response = await adminGet(request, "/v1/admin/orders/test-order-0002");
     expect(response.ok()).toBeTruthy();
 
@@ -161,6 +185,10 @@ test.describe("Admin Order API @api", () => {
   });
 
   test("UC-ORD-03 preserves ordered timeline entries after a valid transition", async ({ request }) => {
+    // GOAL: Admin Performs An Allowed Order Transition: thay đổi order từ trạng thái hiện tại sang trạng thái vận hành kế tiếp hợp lệ.
+    // PRIORITY: P1
+    // RELATED DOMAINS: refund
+    // SCENARIO: SC-ORD-03 Main flow
     // INVARIANT: timeline phải ordered theo chronological progression
     // INVARIANT: PENDING xuất hiện trước PAID — bất kỳ order nào cũng phải bắt đầu từ PENDING
     test.fail(true, "blocked-be-gap: checkout /v1/checkout/orders endpoint returns 500");
@@ -185,12 +213,20 @@ test.describe("Admin Order API @api", () => {
   });
 
   test("UC-ORD-01 exception: returns 404 for nonexistent order ID", async ({ request }) => {
+    // GOAL: Admin Reviews Order Queue: xác định order nào cần được xử lý tiếp và order nào chỉ cần theo dõi.
+    // PRIORITY: P1
+    // RELATED DOMAINS: customer
+    // SCENARIO: SC-ORD-01 Exception flow
     // INVARIANT (from SC-ORD-01): order id không còn hợp lệ khi admin mở detail phải trả 404
     const response = await adminGet(request, "/v1/admin/orders/nonexistent-order-99999");
     expect(response.status()).toBe(404);
   });
 
   test("UC-ORD-04 alternate: empty purchase history is a valid resolved state", async ({ request }) => {
+    // GOAL: Admin Reads Purchase History For A Customer: hiểu lịch sử mua hàng của một customer để hỗ trợ xử lý order hiện tại hoặc ra quyết định hỗ trợ.
+    // PRIORITY: P1
+    // RELATED DOMAINS: customer
+    // SCENARIO: SC-ORD-04 Alternate flow
     // INVARIANT (from SC-ORD-04): absence of history vẫn là kết quả hợp lệ
     // INVARIANT: purchase history là read behavior hỗ trợ decision-making
     const { username } = await registerFreshBuyer(request);

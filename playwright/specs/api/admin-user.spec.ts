@@ -27,8 +27,12 @@ function findUser(users: any[], id: string) {
   return users.find((item: any) => item.id === id || item.userId === id || item.user_id === id);
 }
 
-test.describe("Admin User API @api", () => {
+test.describe("Admin User API @api P2", () => {
   test("UC-USER-01 finds an account from account-centric search", async ({ request }) => {
+    // GOAL: Admin Finds An Account: xác định account nào cần được kiểm tra hoặc quản trị.
+    // PRIORITY: P2
+    // RELATED DOMAINS: customer
+    // SCENARIO: SC-USER-01 Main flow
     const response = await adminGet(request, "/v1/admin/users?q=test_admin&page=1&pageSize=20");
     expect(response.ok()).toBeTruthy();
 
@@ -44,6 +48,10 @@ test.describe("Admin User API @api", () => {
   });
 
   test("UC-USER-02 reads account state with explicit account fields", async ({ request }) => {
+    // GOAL: Admin Reads Account State: hiểu account đang ở trạng thái nào trong hệ thống.
+    // PRIORITY: P2
+    // RELATED DOMAINS: none
+    // SCENARIO: SC-USER-02 Main flow
     const response = await adminGet(request, "/v1/admin/users?page=1&pageSize=20");
     expect(response.ok()).toBeTruthy();
 
@@ -63,6 +71,10 @@ test.describe("Admin User API @api", () => {
   });
 
   test("UC-USER-03 manages account state through points and block controls", async ({ request }) => {
+    // GOAL: Admin Manages Account State: thay đổi account state ở phạm vi admin được phép.
+    // PRIORITY: P2
+    // RELATED DOMAINS: none
+    // SCENARIO: SC-USER-03 Main flow
     test.fail(true, "blocked-be-gap: PATCH /v1/admin/users/:id/points and /block return 404");
 
     const points = await adminPatch(request, `/v1/admin/users/${TEST_USER_ID}/points`, {
@@ -77,6 +89,10 @@ test.describe("Admin User API @api", () => {
   });
 
   test("UC-USER-04 traverses from user to customer context via linked customer metadata", async ({ request }) => {
+    // GOAL: Admin Traverses From User To Customer Context: khi concern chuyển từ account sang commerce, admin đi đúng sang customer root.
+    // PRIORITY: P2
+    // RELATED DOMAINS: customer
+    // SCENARIO: SC-USER-04 Main flow
     const response = await adminGet(request, "/v1/admin/users?page=1&pageSize=20");
     expect(response.ok()).toBeTruthy();
 
@@ -96,6 +112,10 @@ test.describe("Admin User API @api", () => {
   });
 
   test("UC-USER-05 keeps account control distinct from commerce support in the API contract", async ({ request }) => {
+    // GOAL: Admin Distinguishes Account Control From Commerce Support: tránh dùng account-management actions để giải quyết commerce issues.
+    // PRIORITY: P2
+    // RELATED DOMAINS: none
+    // SCENARIO: SC-USER-05 Main flow
     const response = await adminGet(request, "/v1/admin/users?page=1&pageSize=20");
     expect(response.ok()).toBeTruthy();
 

@@ -1,11 +1,15 @@
 import { test, expect } from "../../src/fixtures/base-test";
 
-test.describe("Admin Content @admin", () => {
+test.describe("Admin Content @admin P2", () => {
   test.use({
     storageState: "./playwright/src/fixtures/.auth/admin.json",
   });
 
   test("UC-CONT-01 renders the media library as a shared reusable content source", async ({ page }) => {
+    // GOAL: Admin Curates Media Library: giữ một thư viện media có thể tái sử dụng an toàn trên nhiều bề mặt nội dung.
+    // PRIORITY: P2
+    // RELATED DOMAINS: none
+    // SCENARIO: SC-CONT-01 Main flow
     await page.goto("/admin/media");
     await page.waitForLoadState("networkidle");
 
@@ -16,6 +20,10 @@ test.describe("Admin Content @admin", () => {
   });
 
   test("UC-CONT-02 renders banner presence controls by page context", async ({ page }) => {
+    // GOAL: Admin Maintains Banner Presence: quyết định banner nào đang đại diện cho một page context cụ thể.
+    // PRIORITY: P2
+    // RELATED DOMAINS: store-setting
+    // SCENARIO: SC-CONT-02 Main flow
     await page.goto("/admin/banners");
     await page.waitForLoadState("networkidle");
 
@@ -27,6 +35,10 @@ test.describe("Admin Content @admin", () => {
   });
 
   test("UC-CONT-03 renders draft and published article management semantics", async ({ page }) => {
+    // GOAL: Admin Publishes Editorial Articles: tạo, chỉnh, và xuất bản bài viết như một knowledge/public content stream.
+    // PRIORITY: P2
+    // RELATED DOMAINS: none
+    // SCENARIO: SC-CONT-03 Main flow
     await page.goto("/admin/articles");
     await page.waitForLoadState("networkidle");
 
@@ -38,6 +50,10 @@ test.describe("Admin Content @admin", () => {
   });
 
   test("UC-CONT-04 renders FAQ ordering and public-visibility rules", async ({ page }) => {
+    // GOAL: Admin Maintains FAQ Knowledge: giữ tập FAQ phản ánh đúng knowledge mà storefront cần trả lời công khai.
+    // PRIORITY: P2
+    // RELATED DOMAINS: none
+    // SCENARIO: SC-CONT-04 Main flow
     await page.goto("/admin/faqs");
     await page.waitForLoadState("networkidle");
 
@@ -49,6 +65,10 @@ test.describe("Admin Content @admin", () => {
   });
 
   test("UC-CONT-05 renders About narrative editing separately from banner ownership", async ({ page }) => {
+    // GOAL: Admin Maintains About Narrative: giữ phần About như company narrative chính thức của storefront.
+    // PRIORITY: P2
+    // RELATED DOMAINS: none
+    // SCENARIO: SC-CONT-05 Main flow
     await page.goto("/admin/about");
     await page.waitForLoadState("networkidle");
 
@@ -60,6 +80,10 @@ test.describe("Admin Content @admin", () => {
   });
 
   test("UC-CONT-06 renders product editorial controls separately from catalog editing", async ({ page }) => {
+    // GOAL: Admin Maintains Product Editorial Content: làm giàu product detail bằng media và rich content mà không đổi commercial state.
+    // PRIORITY: P2
+    // RELATED DOMAINS: product
+    // SCENARIO: SC-CONT-06 Main flow
     await page.goto("/admin/product-content");
     await page.waitForLoadState("networkidle");
 

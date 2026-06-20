@@ -18,10 +18,14 @@ function extractData(payload: any) {
   return payload?.data ?? payload;
 }
 
-test.describe("Admin Content API @api", () => {
+test.describe("Admin Content API @api P2", () => {
   test("UC-CONT-01 curates a shared media library through list and upload-contract endpoints", async ({
     request,
   }) => {
+    // GOAL: Admin Curates Media Library: giữ một thư viện media có thể tái sử dụng an toàn trên nhiều bề mặt nội dung.
+    // PRIORITY: P2
+    // RELATED DOMAINS: none
+    // SCENARIO: SC-CONT-01 Main flow
     const listResponse = await adminFetch(request, "/v1/admin/media?page=1&pageSize=24");
     expect(listResponse.ok()).toBeTruthy();
     const listPayload = await listResponse.json();
@@ -44,6 +48,10 @@ test.describe("Admin Content API @api", () => {
   test("UC-CONT-02 maintains banner presence per page and reflects active ordering publicly", async ({
     request,
   }) => {
+    // GOAL: Admin Maintains Banner Presence: quyết định banner nào đang đại diện cho một page context cụ thể.
+    // PRIORITY: P2
+    // RELATED DOMAINS: store-setting
+    // SCENARIO: SC-CONT-02 Main flow
     const ts = Date.now();
     const title = `playwright-banner-${ts}`;
 
@@ -83,6 +91,10 @@ test.describe("Admin Content API @api", () => {
   test("UC-CONT-03 publishes editorial articles with a real draft-vs-published boundary", async ({
     request,
   }) => {
+    // GOAL: Admin Publishes Editorial Articles: tạo, chỉnh, và xuất bản bài viết như một knowledge/public content stream.
+    // PRIORITY: P2
+    // RELATED DOMAINS: none
+    // SCENARIO: SC-CONT-03 Main flow
     const ts = Date.now();
     const slug = `playwright-article-${ts}`;
 
@@ -124,6 +136,10 @@ test.describe("Admin Content API @api", () => {
   });
 
   test("UC-CONT-04 keeps inactive FAQ entries out of the public knowledge surface", async ({ request }) => {
+    // GOAL: Admin Maintains FAQ Knowledge: giữ tập FAQ phản ánh đúng knowledge mà storefront cần trả lời công khai.
+    // PRIORITY: P2
+    // RELATED DOMAINS: none
+    // SCENARIO: SC-CONT-04 Main flow
     const ts = Date.now();
 
     const createResponse = await adminFetch(request, "/v1/admin/faqs", {
@@ -152,6 +168,10 @@ test.describe("Admin Content API @api", () => {
   test("UC-CONT-05 maintains the official About narrative through the public about page contract", async ({
     request,
   }) => {
+    // GOAL: Admin Maintains About Narrative: giữ phần About như company narrative chính thức của storefront.
+    // PRIORITY: P2
+    // RELATED DOMAINS: none
+    // SCENARIO: SC-CONT-05 Main flow
     const ts = Date.now();
     const body = `playwright about narrative ${ts}`;
 
@@ -176,6 +196,10 @@ test.describe("Admin Content API @api", () => {
   });
 
   test("UC-CONT-06 updates product editorial content without clobbering commercial state", async ({ request }) => {
+    // GOAL: Admin Maintains Product Editorial Content: làm giàu product detail bằng media và rich content mà không đổi commercial state.
+    // PRIORITY: P2
+    // RELATED DOMAINS: product
+    // SCENARIO: SC-CONT-06 Main flow
     const ts = Date.now();
     const slug = `playwright-content-${ts}`;
 

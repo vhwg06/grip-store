@@ -1,7 +1,7 @@
 import { test, expect } from "../../src/fixtures/base-test";
 import { BACKEND_URL, getAdminToken } from "../../src/api-helpers/auth.helpers";
 
-test.describe("Admin Customer @admin", () => {
+test.describe("Admin Customer @admin P1", () => {
   test.use({
     storageState: "./playwright/src/fixtures/.auth/admin.json",
   });
@@ -36,6 +36,10 @@ test.describe("Admin Customer @admin", () => {
   }
 
   test("UC-CUS-01 finds a customer record from customer-centric search", async ({ page }) => {
+    // GOAL: Admin Finds A Customer Record: tìm đúng khách hàng cần hỗ trợ hoặc cần điều tra.
+    // PRIORITY: P1
+    // RELATED DOMAINS: order
+    // SCENARIO: SC-CUS-01 Main flow
     // INVARIANT: customer là commerce identity, không phải chỉ là account row
     // INVARIANT: search phải narrow về đúng customer — không trả mixed account rows
     test.fail(true, "blocked-be-gap: user/customer search query filtering is not supported or ignored by backend API");
@@ -50,6 +54,10 @@ test.describe("Admin Customer @admin", () => {
   });
 
   test("UC-CUS-02 renders customer summary and commerce indicators", async ({ page }) => {
+    // GOAL: Admin Reads Customer Profile Summary: hiểu customer này là ai trong bối cảnh commerce của hệ thống.
+    // PRIORITY: P1
+    // RELATED DOMAINS: order
+    // SCENARIO: SC-CUS-02 Main flow
     test.fail(true, "blocked-both: missing customerId and commerce summary indicators in customer/account view");
     await searchForUser(page, "test_buyer");
     await page.getByText("test_buyer", { exact: false }).first().click();
@@ -64,6 +72,10 @@ test.describe("Admin Customer @admin", () => {
   });
 
   test("UC-CUS-03 traverses commerce links from the customer root", async ({ page }) => {
+    // GOAL: Admin Reads Customer Commerce Context: hiểu toàn bộ ngữ cảnh commerce của customer để hỗ trợ xử lý.
+    // PRIORITY: P1
+    // RELATED DOMAINS: order
+    // SCENARIO: SC-CUS-03 Main flow
     test.fail(true, "blocked-both: missing refund and review navigation entrypoints in customer summary panel");
     await searchForUser(page, "test_buyer");
     await page.getByText("test_buyer", { exact: false }).first().click();
@@ -74,6 +86,10 @@ test.describe("Admin Customer @admin", () => {
   });
 
   test("UC-CUS-04 distinguishes customer root from user-domain controls", async ({ page }) => {
+    // GOAL: Admin Distinguishes Customer From User Account: tránh nhầm lẫn giữa commerce identity và account/system identity.
+    // PRIORITY: P1
+    // RELATED DOMAINS: user
+    // SCENARIO: SC-CUS-04 Main flow
     // INVARIANT: customer và user có thể liên kết nhưng không đồng nhất
     // INVARIANT: commerce history bám theo customer, không bám theo user management view
     test.fail(true, "blocked-both: customer details missing linked-user account markers and account navigation");
@@ -85,6 +101,10 @@ test.describe("Admin Customer @admin", () => {
   });
 
   test("UC-CUS-05 treats empty commerce history as a valid customer state", async ({ page, request }) => {
+    // GOAL: Admin Reads A Customer With No Commerce History: xác nhận một customer vẫn là customer hợp lệ ngay cả khi chưa có order, refund, hay review history.
+    // PRIORITY: P1
+    // RELATED DOMAINS: user
+    // SCENARIO: SC-CUS-05 Main flow
     test.fail(true, "blocked-both: new registered users missing empty commerce layout and indicators");
     const created = await registerEmptyHistoryUser(request);
 
@@ -99,6 +119,10 @@ test.describe("Admin Customer @admin", () => {
   // Refer to UC-ORD-04 in orders.spec.ts for the actual test implementation.
 
   test("UC-CUS-01 renders empty search state gracefully", async ({ page }) => {
+    // GOAL: Admin Finds A Customer Record: tìm đúng khách hàng cần hỗ trợ hoặc cần điều tra.
+    // PRIORITY: P1
+    // RELATED DOMAINS: order
+    // SCENARIO: SC-CUS-01 Main flow
     test.fail(true, "blocked-be-gap: user/customer search query filtering is not supported or ignored by backend API");
     const responsePromise = page.waitForResponse(
       (response: any) => response.url().includes("/v1/admin/users") && response.status() === 200,
@@ -112,6 +136,10 @@ test.describe("Admin Customer @admin", () => {
   });
 
   test("UC-CUS-01 exception: admin accounts must not appear in customer search results", async ({ page }) => {
+    // GOAL: Admin Finds A Customer Record: tìm đúng khách hàng cần hỗ trợ hoặc cần điều tra.
+    // PRIORITY: P1
+    // RELATED DOMAINS: order
+    // SCENARIO: SC-CUS-01 Exception flow
     // INVARIANT: customer search results chỉ được chứa customer account, không được trả admin/operator accounts
     test.fail(true, "blocked-be-gap: admin account currently appears in user/customer search results");
     await expect(page.getByRole("heading", { name: "Customer Management" })).toBeVisible();
@@ -122,4 +150,20 @@ test.describe("Admin Customer @admin", () => {
     await expect(rows).toHaveCount(0);
     await expect(page.getByText("test_admin", { exact: false }).first()).toBeHidden();
   });
+
+  test("UC-CUS-02 alternate: customer with orders but no refunds shows correct commerce indicator set", async ({ page }) => {
+    // GOAL: Admin Reads Customer Profile Summary: hiểu customer này là ai trong bối cảnh commerce của hệ thống.
+    // PRIORITY: P1
+    // RELATED DOMAINS: order
+    // SCENARIO: SC-CUS-02 Alternate flow
+    await expect(page.getByRole("heading", { name: "Customer Management" })).toBeVisible();
+
+    await searchForUser(page, "test_buyer");
+    const buyerRow = page.getByText("test_buyer", { exact: false }).first();
+    await buyerRow.click();
+
+    await expect(page.locator('[data-testid="customer-summary-order-count"]')).toBeVisible();
+    await expect(page.locator('[data-testid="customer-summary-refund-count"]')).toContainText(/^0$/);
+  });
 });
+

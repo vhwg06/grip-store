@@ -45,8 +45,12 @@ async function listReviews(request: any, status?: string) {
   };
 }
 
-test.describe("Admin Review Moderation API @api", () => {
+test.describe("Admin Review Moderation API @api P2", () => {
   test("UC-REV-01 reviews the moderation queue", async ({ request }) => {
+    // GOAL: Admin Reviews Moderation Queue: xác định review nào cần moderation và review nào đã ở public-eligible state.
+    // PRIORITY: P2
+    // RELATED DOMAINS: product
+    // SCENARIO: SC-REV-01 Main flow
     const pending = await listReviews(request, "PENDING");
     expect(pending.reviews.length).toBeGreaterThan(0);
     expect(pending.reviews.every((review: any) => review.status === "PENDING")).toBeTruthy();
@@ -54,6 +58,10 @@ test.describe("Admin Review Moderation API @api", () => {
   });
 
   test("UC-REV-02 moderates a single review", async ({ request }) => {
+    // GOAL: Admin Moderates A Single Review: đưa một review sang state phù hợp với business moderation policy.
+    // PRIORITY: P2
+    // RELATED DOMAINS: product
+    // SCENARIO: SC-REV-02 Main flow
     const approved = await listReviews(request, "APPROVED");
     const target = approved.reviews.find((review: any) => review.comment?.includes("probe bulk"));
     expect(target?.id).toBeTruthy();
@@ -73,6 +81,10 @@ test.describe("Admin Review Moderation API @api", () => {
   });
 
   test("UC-REV-03 bulk publishes selected reviews", async ({ request }) => {
+    // GOAL: Admin Bulk Publishes Eligible Reviews: xử lý nhiều review pending cùng lúc khi chúng cùng đủ điều kiện public.
+    // PRIORITY: P2
+    // RELATED DOMAINS: none
+    // SCENARIO: SC-REV-03 Main flow
     const pending = await listReviews(request, "PENDING");
     expect(pending.reviews.length).toBeGreaterThanOrEqual(2);
 
@@ -94,6 +106,10 @@ test.describe("Admin Review Moderation API @api", () => {
   });
 
   test("UC-REV-05 removes a review from the moderation surface", async ({ request }) => {
+    // GOAL: Admin Removes A Review From The Moderation Surface: loại bỏ một review khỏi moderation surface khi review đó không nên tiếp tục tồn tại như review artifact.
+    // PRIORITY: P2
+    // RELATED DOMAINS: product
+    // SCENARIO: SC-REV-05 Main flow
     const hidden = await listReviews(request, "HIDDEN");
     const target = hidden.reviews.find((review: any) => review.comment?.includes("probe hide"));
     expect(target?.id).toBeTruthy();

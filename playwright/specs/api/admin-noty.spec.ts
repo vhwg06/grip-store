@@ -17,8 +17,12 @@ function extractData(payload: any) {
   return payload?.data ?? payload;
 }
 
-test.describe("Admin Noty API @api", () => {
+test.describe("Admin Noty API @api P3", () => {
   test("UC-NOTY-01 reads outbound readiness from a notification-settings contract", async ({ request }) => {
+    // GOAL: Admin Maintains Outbound Notification Readiness: giữ cho hệ thống sẵn sàng thực hiện outbound push notification.
+    // PRIORITY: P3
+    // RELATED DOMAINS: none
+    // SCENARIO: SC-NOTY-01 Main flow
     const response = await adminJson(request, "/v1/admin/notifications");
     expect(response.ok()).toBeTruthy();
 
@@ -31,6 +35,10 @@ test.describe("Admin Noty API @api", () => {
   });
 
   test("UC-NOTY-02 accepts a website push send and leaves a traceable outbound artifact", async ({ request }) => {
+    // GOAL: Admin Sends A Website Push Notification: đưa một outbound notification lên website-facing surface.
+    // PRIORITY: P3
+    // RELATED DOMAINS: none
+    // SCENARIO: SC-NOTY-02 Main flow
     const title = `playwright-noty-send-${Date.now()}`;
 
     const sendResponse = await adminJson(request, "/v1/admin/messages/broadcast", {
@@ -54,6 +62,10 @@ test.describe("Admin Noty API @api", () => {
   });
 
   test("UC-NOTY-03 lists outbound notification artifacts for admin review", async ({ request }) => {
+    // GOAL: Admin Reads Notification List: xem tập outbound notifications đã được tạo hoặc gửi.
+    // PRIORITY: P3
+    // RELATED DOMAINS: none
+    // SCENARIO: SC-NOTY-03 Main flow
     const response = await adminJson(request, "/v1/admin/messages");
     expect(response.ok()).toBeTruthy();
 
@@ -63,6 +75,10 @@ test.describe("Admin Noty API @api", () => {
   });
 
   test("UC-NOTY-04 exposes operational send history with outcome trace fields", async ({ request }) => {
+    // GOAL: Admin Reads Notification Send History: hiểu outbound notification đã thành công hay thất bại như thế nào.
+    // PRIORITY: P3
+    // RELATED DOMAINS: none
+    // SCENARIO: SC-NOTY-04 Main flow
     const response = await adminJson(request, "/v1/admin/messages");
     expect(response.ok()).toBeTruthy();
 

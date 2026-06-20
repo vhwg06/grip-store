@@ -8,8 +8,12 @@ async function adminGet(request: any, path: string) {
   });
 }
 
-test.describe("Admin Payment API @api", () => {
+test.describe("Admin Payment API @api P3", () => {
   test("UC-PAY-01 reads payment info in order context even when payment detail is partial", async ({ request }) => {
+    // GOAL: Admin Reads Payment Info In Order Context: hiểu payment-related facts cần thiết khi xử lý một order.
+    // PRIORITY: P3
+    // RELATED DOMAINS: order
+    // SCENARIO: SC-PAY-01 Main flow
     const paidOrder = await adminGet(request, "/v1/admin/orders/test-order-0001");
     expect(paidOrder.ok()).toBeTruthy();
     const paidPayload = await paidOrder.json();
@@ -38,6 +42,10 @@ test.describe("Admin Payment API @api", () => {
   });
 
   test("UC-PAY-02 reads payment context needed to interpret a refund request", async ({ request }) => {
+    // GOAL: Admin Reads Payment Context For Refund Decision: dùng payment facts để hỗ trợ giải thích refund request.
+    // PRIORITY: P3
+    // RELATED DOMAINS: refund
+    // SCENARIO: SC-PAY-02 Main flow
     const pending = await adminGet(request, "/v1/admin/refunds?status=pending");
     expect(pending.ok()).toBeTruthy();
     const pendingPayload = await pending.json();
@@ -57,6 +65,10 @@ test.describe("Admin Payment API @api", () => {
   });
 
   test("UC-PAY-03 keeps payment context informational instead of exposing execution controls", async ({ request }) => {
+    // GOAL: Admin Distinguishes Payment Information From Payment Execution: giữ rõ boundary giữa payment knowledge cần đọc và payment engine behavior.
+    // PRIORITY: P3
+    // RELATED DOMAINS: none
+    // SCENARIO: SC-PAY-03 Main flow
     const order = await adminGet(request, "/v1/admin/orders/test-order-0001");
     expect(order.ok()).toBeTruthy();
     const orderPayload = await order.json();

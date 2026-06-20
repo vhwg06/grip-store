@@ -58,13 +58,21 @@ async function createRefundRequest(request: any, reason: string) {
   };
 }
 
-test.describe("Admin Refund API @api", () => {
+test.describe("Admin Refund API @api P2", () => {
   test("UC-REF-01 rejects unauthenticated refund queue reads", async ({ request }) => {
+    // GOAL: Admin Reviews Refund Queue: xác định refund request nào cần xử lý và request nào chỉ cần theo dõi.
+    // PRIORITY: P2
+    // RELATED DOMAINS: order
+    // SCENARIO: SC-REF-01 Exception flow
     const response = await request.get(`${BACKEND_URL}/v1/admin/refunds?status=pending`);
     expect(response.status()).toBe(401);
   });
 
   test("UC-REF-01 rejects non-admin refund queue reads", async ({ request }) => {
+    // GOAL: Admin Reviews Refund Queue: xác định refund request nào cần xử lý và request nào chỉ cần theo dõi.
+    // PRIORITY: P2
+    // RELATED DOMAINS: order
+    // SCENARIO: SC-REF-01 Exception flow
     const token = await getUserToken(request);
     const response = await request.get(`${BACKEND_URL}/v1/admin/refunds?status=pending`, {
       headers: { Authorization: `Bearer ${token}` },
@@ -73,6 +81,10 @@ test.describe("Admin Refund API @api", () => {
   });
 
   test("UC-REF-01 reviews the pending refund queue", async ({ request }) => {
+    // GOAL: Admin Reviews Refund Queue: xác định refund request nào cần xử lý và request nào chỉ cần theo dõi.
+    // PRIORITY: P2
+    // RELATED DOMAINS: order
+    // SCENARIO: SC-REF-01 Main flow
     const response = await adminGet(request, "/v1/admin/refunds?status=pending");
     expect(response.ok()).toBeTruthy();
 
@@ -84,6 +96,10 @@ test.describe("Admin Refund API @api", () => {
   });
 
   test("UC-REF-02 reads refund evidence before deciding", async ({ request }) => {
+    // GOAL: Admin Reads Refund Evidence Before Deciding: đọc đủ dữ kiện cần thiết trước khi approve hoặc reject.
+    // PRIORITY: P2
+    // RELATED DOMAINS: order
+    // SCENARIO: SC-REF-02 Main flow
     const pending = await adminGet(request, "/v1/admin/refunds?status=pending");
     expect(pending.ok()).toBeTruthy();
     const pendingPayload = await pending.json();
@@ -95,6 +111,10 @@ test.describe("Admin Refund API @api", () => {
   });
 
   test("UC-REF-03 approves a refund and updates linked order context", async ({ request }) => {
+    // GOAL: Admin Approves A Refund: chấp nhận refund request khi dữ kiện hỗ trợ cho refund outcome đó.
+    // PRIORITY: P2
+    // RELATED DOMAINS: order
+    // SCENARIO: SC-REF-03 Main flow
     const created = await createRefundRequest(request, `pw approve ${Date.now()}`);
 
     const approve = await adminPost(request, `/v1/admin/refunds/${created.refundId}/approve`, {
@@ -118,6 +138,10 @@ test.describe("Admin Refund API @api", () => {
   });
 
   test("UC-REF-04 rejects a refund and records decision context", async ({ request }) => {
+    // GOAL: Admin Rejects A Refund: từ chối refund request khi dữ kiện không đủ hoặc không phù hợp.
+    // PRIORITY: P2
+    // RELATED DOMAINS: order
+    // SCENARIO: SC-REF-04 Exception flow
     const created = await createRefundRequest(request, `pw reject ${Date.now()}`);
 
     const reject = await adminPost(request, `/v1/admin/refunds/${created.refundId}/reject`, {
@@ -141,6 +165,10 @@ test.describe("Admin Refund API @api", () => {
   });
 
   test("UC-REF-05 reviews an already-decided refund as historical evidence", async ({ request }) => {
+    // GOAL: Admin Reviews A Refund That Is Already Decided: hiểu historical refund outcome trước khi xử lý downstream operational questions.
+    // PRIORITY: P2
+    // RELATED DOMAINS: none
+    // SCENARIO: SC-REF-05 Main flow
     const approved = await adminGet(request, "/v1/admin/refunds?status=approved");
     expect(approved.ok()).toBeTruthy();
 
@@ -155,6 +183,10 @@ test.describe("Admin Refund API @api", () => {
   });
 
   test("UC-REF-03 duplicate approve is idempotent", async ({ request }) => {
+    // GOAL: Admin Approves A Refund: chấp nhận refund request khi dữ kiện hỗ trợ cho refund outcome đó.
+    // PRIORITY: P2
+    // RELATED DOMAINS: order
+    // SCENARIO: SC-REF-03 Main flow
     // INVARIANT: duplicate approve phải trả 409/422 — không được âm thầm accept
     const created = await createRefundRequest(request, `pw idempotent ${Date.now()}`);
 

@@ -9,7 +9,7 @@ async function saveCollectState(request: any, payLink: string, payee: string) {
   });
 }
 
-test.describe("Admin Payment Collection @admin", () => {
+test.describe("Admin Payment Collection @admin P3", () => {
   test.use({
     storageState: "./playwright/src/fixtures/.auth/admin.json",
   });
@@ -17,6 +17,10 @@ test.describe("Admin Payment Collection @admin", () => {
   test("UC-PCOL-01 reads collection sources from backend state instead of a static source catalog", async ({
     page,
   }) => {
+    // GOAL: Admin Reads Collection Sources: hiểu những nguồn nhận tiền nào đang được cấu hình cho doanh nghiệp.
+    // PRIORITY: P3
+    // RELATED DOMAINS: none
+    // SCENARIO: SC-PCOL-01 Main flow
     const collectRequests: string[] = [];
     page.on("request", (request) => {
       if (request.url().includes("/v1/admin/collect")) {
@@ -33,6 +37,10 @@ test.describe("Admin Payment Collection @admin", () => {
   });
 
   test("UC-PCOL-02 persists payee identity from the admin collection surface", async ({ page }) => {
+    // GOAL: Admin Maintains Payee Identity: đảm bảo người nhận tiền và thông tin định danh nhận tiền là đúng.
+    // PRIORITY: P3
+    // RELATED DOMAINS: none
+    // SCENARIO: SC-PCOL-02 Main flow
     // INVARIANT: payee identity must be persisted durably to the backend and remain consistent across reloads
     const nextPayee = `PW FE Payee ${Date.now()}`;
     const nextPayLink = `PW-FE-COLLECT-${Date.now()}`;
@@ -54,6 +62,10 @@ test.describe("Admin Payment Collection @admin", () => {
     page,
     request,
   }) => {
+    // GOAL: Admin Maintains QR Or Transfer Collection Setup: duy trì QR hoặc transfer instructions mà storefront/checkout có thể dựa vào.
+    // PRIORITY: P3
+    // RELATED DOMAINS: none
+    // SCENARIO: SC-PCOL-03 Main flow
     // INVARIANT: validation errors must block saving, ensuring invalid configurations are never written live
     const originalPayee = `PW Valid Payee ${Date.now()}`;
     const originalPayLink = `PW-VALID-${Date.now()}`;
@@ -78,6 +90,10 @@ test.describe("Admin Payment Collection @admin", () => {
     page,
     request,
   }) => {
+    // GOAL: Admin Verifies Collection Readiness: biết collection setup đã đủ sẵn sàng cho live use hay chưa.
+    // PRIORITY: P3
+    // RELATED DOMAINS: none
+    // SCENARIO: SC-PCOL-04 Main flow
     const invalidSeed = await saveCollectState(request, "1234", "");
 
     await page.goto("/admin/collect");

@@ -17,7 +17,7 @@ async function sendBroadcastNotification(request: any, title: string) {
   expect([200, 201, 202, 204]).toContain(response.status());
 }
 
-test.describe("Admin Noty @admin", () => {
+test.describe("Admin Noty @admin P3", () => {
   test.use({
     storageState: "./playwright/src/fixtures/.auth/admin.json",
   });
@@ -28,6 +28,10 @@ test.describe("Admin Noty @admin", () => {
   });
 
   test("UC-NOTY-01 renders outbound readiness controls for notification channels", async ({ page }) => {
+    // GOAL: Admin Maintains Outbound Notification Readiness: giữ cho hệ thống sẵn sàng thực hiện outbound push notification.
+    // PRIORITY: P3
+    // RELATED DOMAINS: none
+    // SCENARIO: SC-NOTY-01 Main flow
     const responses: number[] = [];
     page.on("response", (response) => {
       if (response.url().includes("/v1/admin/notifications")) {
@@ -47,6 +51,10 @@ test.describe("Admin Noty @admin", () => {
   test("UC-NOTY-02 sends a website push from the compose flow and reflects it in the outbound table", async ({
     page,
   }) => {
+    // GOAL: Admin Sends A Website Push Notification: đưa một outbound notification lên website-facing surface.
+    // PRIORITY: P3
+    // RELATED DOMAINS: none
+    // SCENARIO: SC-NOTY-02 Main flow
     const title = `PW FE Noty ${Date.now()}`;
 
     await page.getByRole("button", { name: /new push/i }).click();
@@ -69,6 +77,10 @@ test.describe("Admin Noty @admin", () => {
     page,
     request,
   }) => {
+    // GOAL: Admin Reads Notification List: xem tập outbound notifications đã được tạo hoặc gửi.
+    // PRIORITY: P3
+    // RELATED DOMAINS: none
+    // SCENARIO: SC-NOTY-03 Main flow
     const title = `PW API Noty List ${Date.now()}`;
     await sendBroadcastNotification(request, title);
     const listResponses: number[] = [];
@@ -89,6 +101,10 @@ test.describe("Admin Noty @admin", () => {
     page,
     request,
   }) => {
+    // GOAL: Admin Reads Notification Send History: hiểu outbound notification đã thành công hay thất bại như thế nào.
+    // PRIORITY: P3
+    // RELATED DOMAINS: none
+    // SCENARIO: SC-NOTY-04 Main flow
     const title = `PW API Noty History ${Date.now()}`;
     await sendBroadcastNotification(request, title);
     const listResponses: number[] = [];
@@ -108,8 +124,39 @@ test.describe("Admin Noty @admin", () => {
   });
 
   test("UC-NOTY-03 alternate: renders empty search state gracefully", async ({ page }) => {
+    // GOAL: Admin Reads Notification List: xem tập outbound notifications đã được tạo hoặc gửi.
+    // PRIORITY: P3
+    // RELATED DOMAINS: none
+    // SCENARIO: SC-NOTY-03 Alternate flow
     await page.getByPlaceholder("Search campaigns by title...").fill("nonexistent-campaign-12345xyz");
     await expect(page.getByText("No campaigns match your filters.")).toBeVisible();
     await expect(page.locator('[data-testid="error-boundary"]')).toHaveCount(0);
   });
+
+  test("UC-NOTY-01 alternate: updates channel readiness settings before sending a push notification", async ({ page }) => {
+    // GOAL: Admin Maintains Outbound Notification Readiness: giữ cho hệ thống sẵn sàng thực hiện outbound push notification.
+    // PRIORITY: P3
+    // RELATED DOMAINS: none
+    // SCENARIO: SC-NOTY-01 Alternate flow
+    await page.getByRole("button", { name: "Channel Settings" }).click();
+
+    const emailToggle = page.locator('[data-testid="toggle-email-notifications"]');
+    if (await emailToggle.isVisible()) {
+      await emailToggle.click();
+    }
+
+    await page.getByRole("button", { name: "Save Settings" }).click();
+    await expect(page.locator(".toast-success, [data-type='success'], [role='status']").first()).toBeVisible();
+
+    await page.getByRole("button", { name: "Back to Compose" }).click();
+
+    const title = `PW Alternate Noty ${Date.now()}`;
+    await page.getByRole("button", { name: /new push/i }).click();
+    await page.getByPlaceholder("Enter push campaign title").fill(title);
+    await page.getByPlaceholder("Enter push content text...").fill("playwright notification body");
+    await page.getByRole("button", { name: /send campaign now/i }).click();
+
+    await expect(page.getByText(/push campaign sent successfully/i)).toBeVisible();
+  });
 });
+

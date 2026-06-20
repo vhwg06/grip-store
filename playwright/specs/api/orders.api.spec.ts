@@ -45,8 +45,12 @@ function extractOrders(payload: any) {
   return [];
 }
 
-test.describe("Admin Orders API @api", () => {
+test.describe("Admin Orders API @api P1", () => {
   test("UC-ORD-01 reviews the order queue as a server-owned projection", async ({ request }) => {
+    // GOAL: Admin Reviews Order Queue: xác định order nào cần được xử lý tiếp và order nào chỉ cần theo dõi.
+    // PRIORITY: P1
+    // RELATED DOMAINS: customer
+    // SCENARIO: SC-ORD-01 Main flow
     const response = await adminGet(request, "/v1/admin/orders?page=1&pageSize=20");
     expect(response.ok()).toBeTruthy();
 
@@ -69,6 +73,10 @@ test.describe("Admin Orders API @api", () => {
   });
 
   test("UC-ORD-02 returns order detail context before any action is taken", async ({ request }) => {
+    // GOAL: Admin Examines Order Detail Before Acting: đọc đầy đủ ngữ cảnh của một order trước khi ra quyết định vận hành.
+    // PRIORITY: P1
+    // RELATED DOMAINS: customer
+    // SCENARIO: SC-ORD-02 Main flow
     const response = await adminGet(request, "/v1/admin/orders/test-order-0001");
     expect(response.ok()).toBeTruthy();
 
@@ -94,6 +102,10 @@ test.describe("Admin Orders API @api", () => {
   });
 
   test("UC-ORD-03 performs an allowed pending-to-paid transition", async ({ request }) => {
+    // GOAL: Admin Performs An Allowed Order Transition: thay đổi order từ trạng thái hiện tại sang trạng thái vận hành kế tiếp hợp lệ.
+    // PRIORITY: P1
+    // RELATED DOMAINS: refund
+    // SCENARIO: SC-ORD-03 Main flow
     const orderId = await createPendingOrder(request);
 
     const transition = await adminPatch(request, `/v1/admin/orders/${orderId}`, {
@@ -111,6 +123,10 @@ test.describe("Admin Orders API @api", () => {
   });
 
   test("UC-ORD-03 rejects a pending-to-delivered shortcut", async ({ request }) => {
+    // GOAL: Admin Performs An Allowed Order Transition: thay đổi order từ trạng thái hiện tại sang trạng thái vận hành kế tiếp hợp lệ.
+    // PRIORITY: P1
+    // RELATED DOMAINS: refund
+    // SCENARIO: SC-ORD-03 Exception flow
     test.fail(true, "blocked-be-gap: backend accepts forbidden PENDING -> DELIVERED transition shortcut");
     const orderId = await createPendingOrder(request);
 

@@ -34,7 +34,7 @@ async function fetchAdminOrder(request: any, orderId: string) {
   return response.json();
 }
 
-test.describe("Admin Orders @admin", () => {
+test.describe("Admin Orders @admin P1 P2", () => {
   test.use({
     storageState: "./playwright/src/fixtures/.auth/admin.json",
   });
@@ -45,6 +45,10 @@ test.describe("Admin Orders @admin", () => {
   });
 
   test("UC-ORD-01 renders queue state and preserves row-to-detail handoff", async ({ page }) => {
+    // GOAL: Admin Reviews Order Queue: xác định order nào cần được xử lý tiếp và order nào chỉ cần theo dõi.
+    // PRIORITY: P1
+    // RELATED DOMAINS: customer
+    // SCENARIO: SC-ORD-01 Main flow
     // INVARIANT: order queue là projection của server state, không phải kết quả FE tự suy diễn
     // INVARIANT: action availability phải phản ánh business state hiện tại của order
     test.fail(true, "blocked-fe-gap: /admin/orders/[id] route fails under static export");
@@ -62,6 +66,10 @@ test.describe("Admin Orders @admin", () => {
   });
 
   test("UC-ORD-02 renders order detail context before action", async ({ page }) => {
+    // GOAL: Admin Examines Order Detail Before Acting: đọc đầy đủ ngữ cảnh của một order trước khi ra quyết định vận hành.
+    // PRIORITY: P1
+    // RELATED DOMAINS: customer
+    // SCENARIO: SC-ORD-02 Main flow
     test.fail(true, "blocked-fe-gap: /admin/orders/[id] route is broken under static export, direct navigation fails");
     await page.goto("/admin/orders/test-order-0001");
     await expect(page.locator('[data-testid="order-detail"]')).toBeVisible();
@@ -74,6 +82,10 @@ test.describe("Admin Orders @admin", () => {
   });
 
   test("UC-ORD-03 submits a valid pending-to-paid transition from the admin queue", async ({ page, request }) => {
+    // GOAL: Admin Performs An Allowed Order Transition: thay đổi order từ trạng thái hiện tại sang trạng thái vận hành kế tiếp hợp lệ.
+    // PRIORITY: P1
+    // RELATED DOMAINS: refund
+    // SCENARIO: SC-ORD-03 Main flow
     // INVARIANT: không phải mọi action đều hợp lệ trên mọi state
     // INVARIANT: failed transition không được tạo ra partial state — timeline phải nhất quán sau transition
     test.fail(true, "blocked-be-gap: checkout /v1/checkout/orders returns 500");
@@ -103,6 +115,10 @@ test.describe("Admin Orders @admin", () => {
   });
 
   test("UC-ORD-05 renders refund relevance for an order that has a pending refund request", async ({ page }) => {
+    // GOAL: Admin Verifies Refund Relevance On An Order: biết order có đang hoặc đã đi qua refund flow hay không trước khi tiếp tục xử lý order.
+    // PRIORITY: P2
+    // RELATED DOMAINS: refund
+    // SCENARIO: SC-ORD-05 Main flow
     // INVARIANT: refund không được ẩn khỏi order context
     // INVARIANT: order domain phải biết sự tồn tại của refund nhưng không tự quyết refund outcome
     const listResponse = page.waitForResponse(
@@ -122,6 +138,10 @@ test.describe("Admin Orders @admin", () => {
   });
 
   test("UC-ORD-06 keeps incomplete-context order detail readable with safe fallbacks", async ({ page }) => {
+    // GOAL: Admin Reads An Order Even When Operational Data Is Incomplete: vẫn hiểu được order enough to act safely khi một phần dữ liệu phụ trợ không đầy đủ.
+    // PRIORITY: P2
+    // RELATED DOMAINS: none
+    // SCENARIO: SC-ORD-06 Main flow
     test.fail(true, "blocked-fe-gap: /admin/orders/[id] route is broken under static export, direct navigation fails");
     await page.goto("/admin/orders/test-order-0002");
     await expect(page.locator('[data-testid="order-detail"]')).toBeVisible();
@@ -133,6 +153,10 @@ test.describe("Admin Orders @admin", () => {
   });
 
   test("UC-ORD-01 alternate: renders empty state gracefully", async ({ page }) => {
+    // GOAL: Admin Reviews Order Queue: xác định order nào cần được xử lý tiếp và order nào chỉ cần theo dõi.
+    // PRIORITY: P1
+    // RELATED DOMAINS: customer
+    // SCENARIO: SC-ORD-01 Alternate flow
     const listResponse = page.waitForResponse(
       (response: any) => response.url().includes("/v1/admin/orders") && response.status() === 200,
     );
@@ -145,6 +169,10 @@ test.describe("Admin Orders @admin", () => {
   });
 
   test("UC-ORD-04 opens customer-linked purchase history from customer context", async ({ page, request }) => {
+    // GOAL: Admin Reads Purchase History For A Customer: hiểu lịch sử mua hàng của một customer để hỗ trợ xử lý order hiện tại hoặc ra quyết định hỗ trợ.
+    // PRIORITY: P1
+    // RELATED DOMAINS: customer
+    // SCENARIO: SC-ORD-04 Main flow
     test.fail(true, "blocked-both: customer Open history navigates with empty query instead of customer ID");
     await page.goto("/admin/users");
     await page.waitForLoadState("networkidle");
@@ -180,6 +208,10 @@ test.describe("Admin Orders @admin", () => {
   });
 
   test("UC-ORD-01 exception: returns 404 for nonexistent order ID", async ({ page }) => {
+    // GOAL: Admin Reviews Order Queue: xác định order nào cần được xử lý tiếp và order nào chỉ cần theo dõi.
+    // PRIORITY: P1
+    // RELATED DOMAINS: customer
+    // SCENARIO: SC-ORD-01 Exception flow
     // INVARIANT: order detail request cho nonexistent ID phải render error state/boundary hoặc 404 page
     test.fail(true, "blocked-fe-gap: /admin/orders/[id] route is broken under static export");
     await page.goto("/admin/orders/nonexistent-order-12345xyz");
@@ -187,6 +219,10 @@ test.describe("Admin Orders @admin", () => {
   });
 
   test("UC-ORD-04 alternate: empty purchase history is a valid resolved state", async ({ page, request }) => {
+    // GOAL: Admin Reads Purchase History For A Customer: hiểu lịch sử mua hàng của một customer để hỗ trợ xử lý order hiện tại hoặc ra quyết định hỗ trợ.
+    // PRIORITY: P1
+    // RELATED DOMAINS: customer
+    // SCENARIO: SC-ORD-04 Alternate flow
     // INVARIANT: purchase history của customer chưa từng mua hàng phải render trạng thái trống, không crash
     test.fail(true, "blocked-both: customer Open history navigates with empty query instead of customer ID");
     const buyer = await registerFreshBuyer(request);
@@ -214,6 +250,10 @@ test.describe("Admin Orders @admin", () => {
   });
 
   test("UC-ORD-03 alternate: delivered order has no further allowed actions", async ({ page }) => {
+    // GOAL: Admin Performs An Allowed Order Transition: thay đổi order từ trạng thái hiện tại sang trạng thái vận hành kế tiếp hợp lệ.
+    // PRIORITY: P1
+    // RELATED DOMAINS: refund
+    // SCENARIO: SC-ORD-03 Alternate flow
     // INVARIANT: order ở terminal state (DELIVERED) không cho phép bất kỳ transition nào tiếp theo
     test.fail(true, "blocked-fe-gap: /admin/orders/[id] route is broken under static export, direct navigation fails");
     await page.goto("/admin/orders/test-order-0001");
@@ -221,6 +261,63 @@ test.describe("Admin Orders @admin", () => {
 
     await expect(page.getByRole("button", { name: "Mark paid" })).toBeDisabled();
     await expect(page.getByRole("button", { name: "Mark delivered" })).toBeDisabled();
+  });
+
+  test("UC-ORD-01 alternate: narrows order queue by filter and sees only matching rows", async ({ page }) => {
+    // GOAL: Admin Reviews Order Queue: xác định order nào cần được xử lý tiếp và order nào chỉ cần theo dõi.
+    // PRIORITY: P1
+    // RELATED DOMAINS: customer, refund, payment
+    // SCENARIO: SC-ORD-01 Alternate flow
+    const listResponse = page.waitForResponse(
+      (response: any) => response.url().includes("/v1/admin/orders") && response.status() === 200,
+    );
+    await page.goto("/admin/orders?q=test-order-0001");
+    await listResponse;
+    await page.waitForLoadState("networkidle");
+
+    const orderRow = page.locator('[data-testid="order-row"]').filter({ hasText: "test-order-0001" });
+    await expect(orderRow.first()).toBeVisible();
+    
+    const unrelatedRow = page.locator('[data-testid="order-row"]').filter({ hasText: "test-order-0002" });
+    await expect(unrelatedRow).toHaveCount(0);
+  });
+
+  test("UC-ORD-04 alternate: customer purchase history shows multiple orders in high-level pattern", async ({ page, request }) => {
+    // GOAL: Admin Reads Purchase History For A Customer: hiểu lịch sử mua hàng của một customer để hỗ trợ xử lý order hiện tại hoặc ra quyết định hỗ trợ.
+    // PRIORITY: P1
+    // RELATED DOMAINS: customer
+    // SCENARIO: SC-ORD-04 Alternate flow
+    test.fail(true, "blocked-both: customer Open history navigates with empty query instead of customer ID");
+    await page.goto("/admin/users");
+    await page.waitForLoadState("networkidle");
+
+    const adminToken = await getAdminToken(request);
+    const customerResp = await request.get(`${BACKEND_URL}/v1/admin/users?q=test_buyer&page=1&pageSize=20`, {
+      headers: { Authorization: `Bearer ${adminToken}` },
+    });
+    expect(customerResp.ok()).toBeTruthy();
+    const customerPayload = await customerResp.json();
+    const buyer = Array.isArray(customerPayload?.data)
+      ? customerPayload.data.find((item: any) => item.username === "test_buyer")
+      : null;
+    const buyerCustomerId = buyer?.customerId ?? buyer?.customer_id;
+    expect(buyerCustomerId).toBeTruthy();
+
+    const responsePromise = page.waitForResponse(
+      (response: any) => response.url().includes("/v1/admin/users") && response.status() === 200,
+    );
+    await page.getByPlaceholder("Search email, phone, user ID...").fill("test_buyer");
+    await page.getByRole("button", { name: "Search" }).click();
+    await responsePromise;
+
+    const buyerRow = page.getByText("test_buyer", { exact: false }).first();
+    await buyerRow.click();
+
+    await page.getByRole("button", { name: "Open history" }).click();
+
+    await expect(page).toHaveURL(new RegExp(`/admin/orders\\?q=${buyerCustomerId}`));
+    
+    await expect(page.locator('[data-testid="order-row"]').filter({ hasText: "test-order-0001" }).first()).toBeVisible();
   });
 });
 
