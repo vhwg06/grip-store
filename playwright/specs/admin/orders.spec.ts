@@ -1,5 +1,73 @@
 import { test, expect } from "../../src/fixtures/base-test";
 
+const BACKEND_URL = process.env.GO_BACKEND_URL ?? "https://grip.vn/api";
+const CHECKOUT_PRODUCT_ID = "b2222222-2222-2222-2222-222222222222";
+
+async function loginForToken(request: any, email: string, password: string) {
+  const response = await request.post(`${BACKEND_URL}/v1/auth/login`, {
+    data: { email, password },
+  });
+  expect(response.ok()).toBeTruthy();
+  const payload = await response.json();
+  return (
+    payload?.data?.accessToken ??
+    payload?.data?.access_token ??
+    payload?.data?.token ??
+    payload?.accessToken ??
+    payload?.access_token ??
+    payload?.token ??
+    null
+  ) as string | null;
+}
+
+async function getAdminToken(request: any) {
+  return loginForToken(
+    request,
+    process.env.ADMIN_USER_EMAIL ?? "test_admin@example.com",
+    process.env.ADMIN_USER_PASSWORD ?? "Password123!",
+  );
+}
+
+async function getUserToken(request: any) {
+  return loginForToken(
+    request,
+    process.env.TEST_USER_EMAIL ?? "test_buyer@example.com",
+    process.env.TEST_USER_PASSWORD ?? "Password123!",
+  );
+}
+
+async function createPendingOrderViaApi(request: any) {
+  const userToken = await getUserToken(request);
+  expect(userToken).toBeTruthy();
+
+  const response = await request.post(`${BACKEND_URL}/v1/checkout/orders`, {
+    headers: { Authorization: `Bearer ${userToken}` },
+    data: {
+      productId: CHECKOUT_PRODUCT_ID,
+      quantity: 1,
+      email: process.env.TEST_USER_EMAIL ?? "test_buyer@example.com",
+    },
+  });
+  expect(response.ok()).toBeTruthy();
+
+  const payload = await response.json();
+  const order = payload?.data ?? payload;
+  expect(order?.id).toBeTruthy();
+  expect(order?.status).toBe("pending");
+  return String(order.id);
+}
+
+async function fetchAdminOrder(request: any, orderId: string) {
+  const adminToken = await getAdminToken(request);
+  expect(adminToken).toBeTruthy();
+
+  const response = await request.get(`${BACKEND_URL}/v1/admin/orders/${orderId}`, {
+    headers: { Authorization: `Bearer ${adminToken}` },
+  });
+  expect(response.ok()).toBeTruthy();
+  return response.json();
+}
+
 test.describe("Admin Orders @admin", () => {
   test.use({
     storageState: "./playwright/src/fixtures/.auth/admin.json",
@@ -10,51 +78,73 @@ test.describe("Admin Orders @admin", () => {
     await adminPage.navigateTo("orders");
   });
 
-  test("should display admin order list", async ({ adminPage, page }) => {
-    const table = page.locator('[data-testid="admin-table"]');
-    await expect(table).toBeVisible();
+  test("UC-ORD-01 renders queue state and preserves row-to-detail handoff", async ({ page }) => {
+    await expect(page.getByRole("heading", { name: "Order Management" })).toBeVisible();
+    await expect(page.locator('[data-testid="admin-table"]')).toBeVisible();
 
-    const rows = await adminPage.getTableRows();
-    expect(rows).toBeGreaterThanOrEqual(0);
+    const deliveredRow = page.locator('[data-testid="order-row"]').filter({ hasText: "test-order-0001" }).first();
+    await expect(deliveredRow).toBeVisible();
+    await expect(deliveredRow).toContainText("Delivered");
+    await expect(deliveredRow.getByRole("button", { name: "Mark delivered" })).toBeDisabled();
+
+    await deliveredRow.getByRole("link", { name: "Open detail" }).click();
+    await expect(page).toHaveURL(/\/admin\/orders\/test-order-0001$/);
+    await expect(page.locator('[data-testid="order-detail"]')).toBeVisible();
   });
 
-  test("should view order detail", async ({ page }) => {
-    const viewBtns = page.locator('[data-testid="view-order-btn"]');
-    if ((await viewBtns.count()) === 0) {
-      await expect(
-        page.locator('[data-testid="admin-table"], [data-testid="admin-table-empty"]')
-      ).toBeVisible();
-      return;
-    }
+  test("UC-ORD-02 renders order detail context before action", async ({ page }) => {
+    await page.goto("/admin/orders/test-order-0001");
+    await expect(page.locator('[data-testid="order-detail"]')).toBeVisible();
 
-    await viewBtns.first().click();
-    await page.waitForLoadState("domcontentloaded");
-
-    // Should show order detail modal or page
-    const orderDetail = page.locator(
-      '[data-testid="order-detail"], [data-testid="admin-modal"]'
-    );
-    await expect(orderDetail).toBeVisible({ timeout: 5_000 });
+    await expect(page.getByText("Order Detail #test-order-0001")).toBeVisible();
+    await expect(page.getByText("test_buyer@example.com")).toBeVisible();
+    await expect(page.getByText("Payment Method")).toBeVisible();
+    await expect(page.getByText("Order Timeline & Notes")).toBeVisible();
+    await expect(page.getByText("This order is in a terminal state (DELIVERED). No further actions are allowed.")).toBeVisible();
   });
 
-  test("should update order status", async ({ page }) => {
-    const editBtns = page.locator('[data-testid="edit-btn"]');
-    if ((await editBtns.count()) === 0) {
-      await expect(
-        page.locator('[data-testid="admin-table"], [data-testid="admin-table-empty"]')
-      ).toBeVisible();
-      return;
-    }
+  test("UC-ORD-03 submits a valid pending-to-paid transition from the admin queue", async ({ page, request }) => {
+    const orderId = await createPendingOrderViaApi(request);
 
-    await editBtns.first().click();
-    await page.waitForLoadState("domcontentloaded");
+    await page.goto(`/admin/orders?q=${orderId}`);
+    await page.waitForLoadState("networkidle");
 
-    const statusField = page.locator('[data-testid="field-status"]');
-    if (await statusField.isVisible()) {
-      // Select a different status
-      await statusField.selectOption({ index: 1 });
-      await page.locator('[data-testid="save-btn"]').click();
-      await page.waitForLoadState("networkidle");
-    }
+    const row = page.locator('[data-testid="order-row"]').filter({ hasText: orderId }).first();
+    await expect(row).toBeVisible();
+    await expect(row.getByRole("button", { name: "Mark delivered" })).toBeDisabled();
+
+    page.once("dialog", async (dialog) => {
+      await dialog.accept();
+    });
+
+    await row.click();
+    await page.getByRole("button", { name: "Mark paid" }).click();
+    await page.waitForLoadState("networkidle");
+
+    const payload = await fetchAdminOrder(request, orderId);
+    expect(payload.status).toBe("PAID");
+    expect(payload.paidAt).toBeTruthy();
+  });
+
+  test("UC-ORD-05 renders refund relevance for an order that has a pending refund request", async ({ page }) => {
+    await page.goto("/admin/orders?q=test-order-0001");
+    await page.waitForLoadState("networkidle");
+
+    const row = page.locator('[data-testid="order-row"]').filter({ hasText: "test-order-0001" }).first();
+    await expect(row).toBeVisible();
+    await row.click();
+
+    await expect(page.getByText("Order Signals")).toBeVisible();
+    const refundSignalRow = page.getByText("Refund requested", { exact: true }).locator("xpath=..");
+    await expect(refundSignalRow).toBeVisible();
+    await expect(refundSignalRow.getByText("Requested", { exact: true })).toBeVisible();
+  });
+
+  test("UC-ORD-06 keeps incomplete-context order detail readable with safe fallbacks", async ({ page }) => {
+    await page.goto("/admin/orders/test-order-0002");
+    await expect(page.locator('[data-testid="order-detail"]')).toBeVisible();
+    await expect(page.getByText("Awaiting fulfillment (missing tracking ID - safe fallback)")).toBeVisible();
+    await expect(page.getByText("COD / QR Transfer")).toBeVisible();
+    await expect(page.getByText("Thu Duc, Ho Chi Minh City")).toBeVisible();
   });
 });

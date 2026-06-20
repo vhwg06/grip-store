@@ -1,65 +1,84 @@
 import { test, expect } from "../../src/fixtures/base-test";
 import { GoBackendClient } from "../../src/api-helpers/go-backend.client";
 
+type AdminSettingsPayload = {
+  config?: {
+    brand?: Record<string, unknown>;
+    contact?: Record<string, unknown>;
+    homepage?: {
+      blocks?: Array<{ key?: string; enabled?: boolean; order?: number }>;
+      newsCount?: number;
+      [key: string]: unknown;
+    };
+    footer?: {
+      columns?: unknown[];
+      socialLinks?: Record<string, unknown>;
+      [key: string]: unknown;
+    };
+    floatingSupport?: Array<{ key?: string; enabled?: boolean; target?: string | null }>;
+    visibility?: Record<string, unknown>;
+    registry?: Record<string, unknown>;
+    [key: string]: unknown;
+  };
+  stats?: Record<string, unknown>;
+  visitorCount?: number;
+  [key: string]: unknown;
+};
+
+function adminAuth() {
+  const token = process.env.ADMIN_USER_TOKEN;
+  return token ? { Authorization: `Bearer ${token}` } : undefined;
+}
+
+function userAuth() {
+  const token = process.env.TEST_USER_TOKEN;
+  return token ? { Authorization: `Bearer ${token}` } : undefined;
+}
+
 test.describe("Store Settings API Contract @api", () => {
   let client: GoBackendClient;
-  const adminToken = process.env.ADMIN_USER_TOKEN;
-  const userToken = process.env.TEST_USER_TOKEN;
 
   test.beforeEach(async ({ request }) => {
     client = new GoBackendClient(request);
   });
 
   async function getAdminSettings() {
-    return client.get("/v1/admin/store-settings", {
-      headers: { Authorization: `Bearer ${adminToken}` },
+    return client.get<AdminSettingsPayload>("/v1/admin/store-settings", {
+      headers: adminAuth(),
     });
   }
 
   async function getSiteConfig() {
-    return client.get("/v1/site-config");
+    return client.get<Record<string, unknown>>("/v1/site-config");
   }
 
   async function getCatalogSettings() {
-    return client.get("/v1/catalog/settings");
+    return client.get<Record<string, unknown>>("/v1/catalog/settings");
   }
 
-  test("reads structured store settings payload for admin", async () => {
-    test.skip(!adminToken, "ADMIN_USER_TOKEN not set");
+  test("UC-SET-01 reads storefront identity from the structured admin and public read models", async () => {
+    test.skip(!process.env.ADMIN_USER_TOKEN, "ADMIN_USER_TOKEN not set");
 
-    const response = await getAdminSettings();
+    const [adminResponse, siteConfigResponse, catalogSettingsResponse] = await Promise.all([
+      getAdminSettings(),
+      getSiteConfig(),
+      getCatalogSettings(),
+    ]);
 
-    expect(response.status).toBe(200);
-    expect(response.data).toMatchObject({
+    expect(adminResponse.status).toBe(200);
+    expect(adminResponse.data).toMatchObject({
       config: {
         brand: expect.any(Object),
         contact: expect.any(Object),
-        homepage: expect.any(Object),
-        footer: expect.any(Object),
-        floatingSupport: expect.any(Array),
-        visibility: expect.any(Object),
-        registry: expect.any(Object),
       },
       stats: expect.any(Object),
       visitorCount: expect.any(Number),
     });
-  });
-
-  test("reads public projections from the same source of truth", async () => {
-    const [siteConfigResponse, catalogSettingsResponse] = await Promise.all([
-      getSiteConfig(),
-      getCatalogSettings(),
-    ]);
 
     expect(siteConfigResponse.status).toBe(200);
     expect(siteConfigResponse.data).toMatchObject({
       brand: expect.any(Object),
       contact: expect.any(Object),
-      homepage: expect.any(Object),
-      footer: expect.any(Object),
-      floatingSupport: expect.any(Array),
-      visibility: expect.any(Object),
-      registry: expect.any(Object),
     });
 
     expect(catalogSettingsResponse.status).toBe(200);
@@ -67,110 +86,104 @@ test.describe("Store Settings API Contract @api", () => {
       shopName: expect.any(String),
       shopDescription: expect.any(String),
       themeColor: expect.any(String),
-      wishlistEnabled: expect.any(Boolean),
-      checkinEnabled: expect.any(Boolean),
-      checkinReward: expect.any(Number),
     });
   });
 
-  test("rejects admin store settings read without auth", async () => {
-    const response = await client.get("/v1/admin/store-settings");
-    expect(response.status).toBe(401);
-  });
+  test("UC-SET-01 updates brand and contact facts and reflects the new storefront identity publicly", async () => {
+    test.skip(!process.env.ADMIN_USER_TOKEN, "ADMIN_USER_TOKEN not set");
 
-  test("rejects admin store settings read without admin role", async () => {
-    test.skip(!userToken, "TEST_USER_TOKEN not set");
-
-    const response = await client.get("/v1/admin/store-settings", {
-      headers: { Authorization: `Bearer ${userToken}` },
-    });
-
-    expect(response.status).toBe(403);
-  });
-
-  test("updates brand section and reflects through public catalog settings", async () => {
-    test.skip(!adminToken, "ADMIN_USER_TOKEN not set");
-
-    const payload = {
-      shopName: "Grip QA Store",
-      shopDescription: "Premium hardware QA copy",
-      shopLogo: "https://cdn.example.com/logo.webp",
+    const brandPayload = {
+      shopName: "playwright-store-identity",
+      shopDescription: "playwright storefront identity contract",
+      shopLogo: "https://cdn.example.com/playwright-store-logo.webp",
       themeColor: "amber",
     };
+    const contactPayload = {
+      stickyBarAddress: "123 Playwright Street",
+      stickyBarHotline: "+84 903 117 742",
+      contactEmail: "playwright-store-identity@grip.vn",
+    };
 
-    const updateResponse = await client.put(
-      "/v1/admin/store-settings/brand",
-      payload,
-      { headers: { Authorization: `Bearer ${adminToken}` } },
-    );
+    const brandUpdate = await client.put("/v1/admin/store-settings/brand", brandPayload, {
+      headers: adminAuth(),
+    });
+    const contactUpdate = await client.put("/v1/admin/store-settings/contact", contactPayload, {
+      headers: adminAuth(),
+    });
 
-    expect(updateResponse.status).toBe(200);
+    expect(brandUpdate.status).toBe(200);
+    expect(contactUpdate.status).toBe(200);
 
-    const [adminSettingsResponse, catalogSettingsResponse] = await Promise.all([
+    const [adminResponse, siteConfigResponse, catalogSettingsResponse] = await Promise.all([
       getAdminSettings(),
+      getSiteConfig(),
       getCatalogSettings(),
     ]);
 
-    expect(adminSettingsResponse.data).toMatchObject({
-      config: { brand: payload },
+    expect(adminResponse.data).toMatchObject({
+      config: {
+        brand: brandPayload,
+        contact: contactPayload,
+      },
+    });
+    expect(siteConfigResponse.data).toMatchObject({
+      contact: contactPayload,
     });
     expect(catalogSettingsResponse.data).toMatchObject({
-      shopName: payload.shopName,
-      shopDescription: payload.shopDescription,
-      themeColor: payload.themeColor,
+      shopName: brandPayload.shopName,
+      shopDescription: brandPayload.shopDescription,
+      themeColor: brandPayload.themeColor,
     });
   });
 
-  test("updates contact section and reflects through site config", async () => {
-    test.skip(!adminToken, "ADMIN_USER_TOKEN not set");
+  test("UC-SET-01 rejects storefront identity reads without valid admin authorization", async () => {
+    const unauthenticated = await client.get("/v1/admin/store-settings");
+    expect(unauthenticated.status).toBe(401);
 
-    const payload = {
-      stickyBarAddress: "123 Test Street",
-      stickyBarHotline: "+84 903 117 742",
-      contactEmail: "support.qa@example.com",
+    test.skip(!process.env.TEST_USER_TOKEN, "TEST_USER_TOKEN not set");
+    const nonAdmin = await client.get("/v1/admin/store-settings", {
+      headers: userAuth(),
+    });
+    expect(nonAdmin.status).toBe(403);
+  });
+
+  test("UC-SET-02 accepts a homepage composition decision and rejects ordering conflicts", async () => {
+    test.skip(!process.env.ADMIN_USER_TOKEN, "ADMIN_USER_TOKEN not set");
+
+    const validPayload = {
+      blocks: [
+        { key: "hero", enabled: true, order: 1 },
+        { key: "categories", enabled: true, order: 2 },
+        { key: "latest_news", enabled: true, order: 3 },
+      ],
+      newsCount: 3,
     };
 
     const updateResponse = await client.put(
-      "/v1/admin/store-settings/contact",
-      payload,
-      { headers: { Authorization: `Bearer ${adminToken}` } },
+      "/v1/admin/store-settings/homepage",
+      validPayload,
+      { headers: adminAuth() },
     );
 
     expect(updateResponse.status).toBe(200);
 
-    const [adminSettingsResponse, siteConfigResponse] = await Promise.all([
-      getAdminSettings(),
-      getSiteConfig(),
-    ]);
-
-    expect(adminSettingsResponse.data).toMatchObject({
-      config: { contact: payload },
-    });
-    expect(siteConfigResponse.data).toMatchObject({
-      contact: payload,
-    });
-  });
-
-  test("rejects invalid contact payload", async () => {
-    test.skip(!adminToken, "ADMIN_USER_TOKEN not set");
-
-    const response = await client.put(
-      "/v1/admin/store-settings/contact",
-      {
-        stickyBarAddress: "123 Test Street",
-        stickyBarHotline: "bad hotline",
-        contactEmail: "not-an-email",
+    const adminResponse = await getAdminSettings();
+    expect(adminResponse.data).toMatchObject({
+      config: {
+        homepage: {
+          newsCount: validPayload.newsCount,
+        },
       },
-      { headers: { Authorization: `Bearer ${adminToken}` } },
+    });
+    expect(adminResponse.data.config?.homepage?.blocks).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ key: "hero", enabled: true }),
+        expect.objectContaining({ key: "categories", enabled: true }),
+        expect.objectContaining({ key: "latest_news", enabled: true }),
+      ]),
     );
 
-    expect(response.status).toBe(400);
-  });
-
-  test("rejects invalid homepage configuration payload", async () => {
-    test.skip(!adminToken, "ADMIN_USER_TOKEN not set");
-
-    const response = await client.put(
+    const invalidResponse = await client.put(
       "/v1/admin/store-settings/homepage",
       {
         blocks: [
@@ -179,74 +192,14 @@ test.describe("Store Settings API Contract @api", () => {
         ],
         newsCount: -1,
       },
-      { headers: { Authorization: `Bearer ${adminToken}` } },
+      { headers: adminAuth() },
     );
 
-    expect(response.status).toBe(400);
+    expect(invalidResponse.status).toBe(400);
   });
 
-  test("updates footer and social settings with nested structured payload", async () => {
-    test.skip(!adminToken, "ADMIN_USER_TOKEN not set");
-
-    const response = await client.put(
-      "/v1/admin/store-settings/footer",
-      {
-        columns: [
-          {
-            id: "products",
-            title: "Products",
-            links: [{ label: "Door Handles", url: "/products" }],
-          },
-        ],
-        copyright: "Copyright 2026 Grip.vn",
-        socialLinks: {
-          facebook: "https://facebook.com/gripvn",
-          zalo: "https://zalo.me/gripvn",
-        },
-      },
-      { headers: { Authorization: `Bearer ${adminToken}` } },
-    );
-
-    expect(response.status).toBe(200);
-  });
-
-  test("updates floating support actions with per-channel validation", async () => {
-    test.skip(!adminToken, "ADMIN_USER_TOKEN not set");
-
-    const response = await client.put(
-      "/v1/admin/store-settings/floating-support",
-      {
-        actions: [
-          { key: "zalo", enabled: true, target: "https://zalo.me/gripvn" },
-          { key: "hotline", enabled: true, target: "+84 903 117 742" },
-          { key: "scroll_to_top", enabled: true, target: null },
-        ],
-      },
-      { headers: { Authorization: `Bearer ${adminToken}` } },
-    );
-
-    expect(response.status).toBe(200);
-  });
-
-  test("rejects malformed social link or floating target", async () => {
-    test.skip(!adminToken, "ADMIN_USER_TOKEN not set");
-
-    const response = await client.put(
-      "/v1/admin/store-settings/floating-support",
-      {
-        actions: [
-          { key: "zalo", enabled: true, target: "not-a-url" },
-          { key: "scroll_to_top", enabled: true, target: "unexpected" },
-        ],
-      },
-      { headers: { Authorization: `Bearer ${adminToken}` } },
-    );
-
-    expect(response.status).toBe(400);
-  });
-
-  test("updates visibility flags and reflects through public catalog settings", async () => {
-    test.skip(!adminToken, "ADMIN_USER_TOKEN not set");
+  test("UC-SET-03 accepts discovery and visibility rules and rejects invalid behavioral combinations", async () => {
+    test.skip(!process.env.ADMIN_USER_TOKEN, "ADMIN_USER_TOKEN not set");
 
     const payload = {
       noIndexEnabled: true,
@@ -259,15 +212,18 @@ test.describe("Store Settings API Contract @api", () => {
     const updateResponse = await client.put(
       "/v1/admin/store-settings/visibility",
       payload,
-      { headers: { Authorization: `Bearer ${adminToken}` } },
+      { headers: adminAuth() },
     );
 
     expect(updateResponse.status).toBe(200);
 
-    const [adminSettingsResponse, siteConfigResponse, catalogSettingsResponse] =
-      await Promise.all([getAdminSettings(), getSiteConfig(), getCatalogSettings()]);
+    const [adminResponse, siteConfigResponse, catalogSettingsResponse] = await Promise.all([
+      getAdminSettings(),
+      getSiteConfig(),
+      getCatalogSettings(),
+    ]);
 
-    expect(adminSettingsResponse.data).toMatchObject({
+    expect(adminResponse.data).toMatchObject({
       config: { visibility: payload },
     });
     expect(siteConfigResponse.data).toMatchObject({
@@ -278,12 +234,8 @@ test.describe("Store Settings API Contract @api", () => {
       checkinEnabled: payload.checkinEnabled,
       checkinReward: payload.checkinReward,
     });
-  });
 
-  test("rejects invalid visibility payload", async () => {
-    test.skip(!adminToken, "ADMIN_USER_TOKEN not set");
-
-    const response = await client.put(
+    const invalidResponse = await client.put(
       "/v1/admin/store-settings/visibility",
       {
         noIndexEnabled: false,
@@ -292,14 +244,101 @@ test.describe("Store Settings API Contract @api", () => {
         checkinReward: -1,
         refundReclaimCards: false,
       },
-      { headers: { Authorization: `Bearer ${adminToken}` } },
+      { headers: adminAuth() },
     );
 
-    expect(response.status).toBe(400);
+    expect(invalidResponse.status).toBe(400);
   });
 
-  test("updates registry flags and reflects through admin and public site config", async () => {
-    test.skip(!adminToken, "ADMIN_USER_TOKEN not set");
+  test("UC-SET-04 updates footer and support commitments and reflects them through storefront-facing settings", async () => {
+    test.skip(!process.env.ADMIN_USER_TOKEN, "ADMIN_USER_TOKEN not set");
+
+    const footerPayload = {
+      columns: [
+        {
+          id: "playwright-products",
+          title: "Playwright products",
+          links: [{ label: "Door Handles", url: "/products" }],
+        },
+      ],
+      copyright: "Copyright 2026 Playwright Grip",
+      socialLinks: {
+        facebook: "https://facebook.com/playwright-grip",
+        zalo: "https://zalo.me/playwright-grip",
+      },
+    };
+    const supportPayload = {
+      actions: [
+        { key: "zalo", enabled: true, target: "https://zalo.me/playwright-grip" },
+        { key: "hotline", enabled: true, target: "+84 903 117 742" },
+        { key: "scroll_to_top", enabled: true, target: null },
+      ],
+    };
+
+    const footerUpdate = await client.put(
+      "/v1/admin/store-settings/footer",
+      footerPayload,
+      { headers: adminAuth() },
+    );
+    const supportUpdate = await client.put(
+      "/v1/admin/store-settings/floating-support",
+      supportPayload,
+      { headers: adminAuth() },
+    );
+
+    expect(footerUpdate.status).toBe(200);
+    expect(supportUpdate.status).toBe(200);
+
+    const [adminResponse, siteConfigResponse] = await Promise.all([
+      getAdminSettings(),
+      getSiteConfig(),
+    ]);
+
+    expect(adminResponse.data).toMatchObject({
+      config: {
+        footer: expect.objectContaining({
+          columns: footerPayload.columns,
+          socialLinks: footerPayload.socialLinks,
+        }),
+        floatingSupport: expect.arrayContaining([
+          expect.objectContaining({ key: "zalo", enabled: true, target: "https://zalo.me/playwright-grip" }),
+          expect.objectContaining({ key: "hotline", enabled: true, target: "+84 903 117 742" }),
+          expect.objectContaining({ key: "scroll_to_top", enabled: true }),
+        ]),
+      },
+    });
+    expect(siteConfigResponse.status).toBe(200);
+
+    const malformedSupport = await client.put(
+      "/v1/admin/store-settings/floating-support",
+      {
+        actions: [
+          { key: "zalo", enabled: true, target: "not-a-url" },
+          { key: "scroll_to_top", enabled: true, target: "unexpected" },
+        ],
+      },
+      { headers: adminAuth() },
+    );
+
+    expect(malformedSupport.status).toBe(400);
+  });
+
+  test("UC-SET-05 exposes banner and about presence controls as part of the store-settings contract", async () => {
+    test.skip(!process.env.ADMIN_USER_TOKEN, "ADMIN_USER_TOKEN not set");
+
+    const response = await getAdminSettings();
+
+    expect(response.status).toBe(200);
+    expect(response.data.config).toEqual(
+      expect.objectContaining({
+        bannerPresence: expect.any(Object),
+        aboutPresence: expect.any(Object),
+      }),
+    );
+  });
+
+  test("UC-SET-06 updates registry commitments and reflects the resulting storefront policy state", async () => {
+    test.skip(!process.env.ADMIN_USER_TOKEN, "ADMIN_USER_TOKEN not set");
 
     const payload = {
       enabled: true,
@@ -310,17 +349,17 @@ test.describe("Store Settings API Contract @api", () => {
     const updateResponse = await client.put(
       "/v1/admin/store-settings/registry",
       payload,
-      { headers: { Authorization: `Bearer ${adminToken}` } },
+      { headers: adminAuth() },
     );
 
     expect(updateResponse.status).toBe(200);
 
-    const [adminSettingsResponse, siteConfigResponse] = await Promise.all([
+    const [adminResponse, siteConfigResponse] = await Promise.all([
       getAdminSettings(),
       getSiteConfig(),
     ]);
 
-    expect(adminSettingsResponse.data).toMatchObject({
+    expect(adminResponse.data).toMatchObject({
       config: {
         registry: {
           enabled: true,

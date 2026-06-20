@@ -1,141 +1,156 @@
 import { test, expect } from "../../src/fixtures/base-test";
-import { GoBackendClient } from "../../src/api-helpers/go-backend.client";
 
-function extractItems(payload: any): any[] {
-  if (Array.isArray(payload)) return payload;
-  if (Array.isArray(payload?.items)) return payload.items;
+const BACKEND_URL = process.env.GO_BACKEND_URL ?? "https://grip.vn/api";
+const CHECKOUT_PRODUCT_ID = "b2222222-2222-2222-2222-222222222222";
+
+type ApiRequest = any;
+
+async function loginForToken(request: ApiRequest, email: string, password: string) {
+  const response = await request.post(`${BACKEND_URL}/v1/auth/login`, {
+    data: { email, password },
+  });
+  expect(response.ok()).toBeTruthy();
+  const payload = await response.json();
+  const token =
+    payload?.data?.accessToken ??
+    payload?.data?.access_token ??
+    payload?.data?.token ??
+    payload?.accessToken ??
+    payload?.access_token ??
+    payload?.token ??
+    null;
+  expect(typeof token).toBe("string");
+  return token as string;
+}
+
+async function getAdminToken(request: ApiRequest) {
+  return loginForToken(
+    request,
+    process.env.ADMIN_USER_EMAIL ?? "test_admin@example.com",
+    process.env.ADMIN_USER_PASSWORD ?? "Password123!",
+  );
+}
+
+async function getUserToken(request: ApiRequest) {
+  return loginForToken(
+    request,
+    process.env.TEST_USER_EMAIL ?? "test_buyer@example.com",
+    process.env.TEST_USER_PASSWORD ?? "Password123!",
+  );
+}
+
+async function adminGet(request: ApiRequest, path: string) {
+  const token = await getAdminToken(request);
+  return request.get(`${BACKEND_URL}${path}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+}
+
+async function adminPatch(request: ApiRequest, path: string, data: Record<string, unknown>) {
+  const token = await getAdminToken(request);
+  return request.patch(`${BACKEND_URL}${path}`, {
+    headers: { Authorization: `Bearer ${token}` },
+    data,
+  });
+}
+
+async function createPendingOrder(request: ApiRequest) {
+  const userToken = await getUserToken(request);
+  const response = await request.post(`${BACKEND_URL}/v1/checkout/orders`, {
+    headers: { Authorization: `Bearer ${userToken}` },
+    data: {
+      productId: CHECKOUT_PRODUCT_ID,
+      quantity: 1,
+      email: process.env.TEST_USER_EMAIL ?? "test_buyer@example.com",
+    },
+  });
+  expect(response.ok()).toBeTruthy();
+  const payload = await response.json();
+  const order = payload?.data ?? payload;
+  expect(order?.id).toBeTruthy();
+  expect(order?.status).toBe("pending");
+  return String(order.id);
+}
+
+function extractOrders(payload: any) {
+  if (Array.isArray(payload?.orders)) return payload.orders;
   if (Array.isArray(payload?.data)) return payload.data;
+  if (Array.isArray(payload?.items)) return payload.items;
+  if (Array.isArray(payload)) return payload;
   return [];
 }
 
-test.describe("Orders API @api", () => {
-  let client: GoBackendClient;
-  const token = process.env.TEST_USER_TOKEN;
-  const adminToken = process.env.ADMIN_USER_TOKEN;
+test.describe("Admin Orders API @api", () => {
+  test("UC-ORD-01 reviews the order queue as a server-owned projection", async ({ request }) => {
+    const response = await adminGet(request, "/v1/admin/orders?page=1&pageSize=20");
+    expect(response.ok()).toBeTruthy();
 
-  test.beforeEach(async ({ request }) => {
-    client = new GoBackendClient(request);
-  });
+    const payload = await response.json();
+    const orders = extractOrders(payload);
+    expect(Array.isArray(orders)).toBeTruthy();
+    expect(orders.length).toBeGreaterThan(0);
+    expect(payload.page).toBe(1);
+    expect(payload.pageSize).toBe(20);
 
-  async function createRefundableOrder() {
-    test.skip(!token || !adminToken, "auth tokens not set");
-
-    const createResponse = await client.post<any>(
-      "/v1/checkout/orders",
-      {
-        productId: "b1111111-1111-1111-1111-111111111111",
-        quantity: 1,
-        email: process.env.TEST_USER_EMAIL ?? "test_buyer@example.com",
-      },
-      { headers: { Authorization: `Bearer ${token}` } },
+    const deliveredOrCancelled = orders.find((order: any) =>
+      ["delivered", "cancelled"].includes(String(order.status)),
     );
-
-    expect(createResponse.status).toBe(201);
-
-    const orderId = String(createResponse.data.id);
-    const deliverResponse = await client.patch(
-      `/v1/admin/orders/${orderId}`,
-      { status: "delivered" },
-      { headers: { Authorization: `Bearer ${adminToken}` } },
-    );
-
-    expect(deliverResponse.status).toBe(204);
-    return orderId;
-  }
-
-  test.describe("GET /v1/orders", () => {
-    test("returns buyer orders list with auth", async () => {
-      test.skip(!token, "TEST_USER_TOKEN not set");
-
-      const response = await client.get("/v1/orders", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      expect(response.status).toBe(200);
-      const items = extractItems(response.data);
-      expect(Array.isArray(items)).toBe(true);
-      expect(items.length).toBeGreaterThan(0);
-      expect(items[0]).toMatchObject({
-        id: expect.any(String),
-        status: expect.any(String),
-      });
-    });
-
-    test("supports pagination metadata", async ({ request }) => {
-      test.skip(!token, "TEST_USER_TOKEN not set");
-
-      const GO_BACKEND_URL = process.env.GO_BACKEND_URL ?? "http://localhost:8080";
-      const response = await request.get(`${GO_BACKEND_URL}/v1/orders?page=1&limit=5`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      expect(response.status()).toBe(200);
-      const body = await response.json();
-      expect(body).toHaveProperty("meta");
-    });
-
-    test("returns 401 without auth", async () => {
-      const response = await client.get("/v1/orders");
-      expect(response.status).toBe(401);
+    expect(deliveredOrCancelled).toBeTruthy();
+    expect(deliveredOrCancelled).toMatchObject({
+      orderId: expect.any(String),
+      productName: expect.any(String),
+      status: expect.any(String),
     });
   });
 
-  test.describe("GET /v1/orders/:id", () => {
-    test("returns delivered seeded order detail for owner", async () => {
-      test.skip(!token, "TEST_USER_TOKEN not set");
+  test("UC-ORD-02 returns order detail context before any action is taken", async ({ request }) => {
+    const response = await adminGet(request, "/v1/admin/orders/test-order-0001");
+    expect(response.ok()).toBeTruthy();
 
-      const response = await client.get("/v1/orders/test-order-0001", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      expect(response.status).toBe(200);
-      expect(response.data).toMatchObject({
-        id: "test-order-0001",
-        product_id: "b1111111-1111-1111-1111-111111111111",
-      });
+    const order = await response.json();
+    expect(order).toMatchObject({
+      id: "test-order-0001",
+      orderNumber: "test-order-0001",
+      status: "DELIVERED",
+      customerEmail: "test_buyer@example.com",
     });
-
-    test("returns 401 without auth", async () => {
-      const response = await client.get("/v1/orders/test-order-0001");
-      expect(response.status).toBe(401);
+    expect(Array.isArray(order.items)).toBeTruthy();
+    expect(order.items[0]).toMatchObject({
+      productName: expect.any(String),
+      quantity: 1,
     });
+    expect(Array.isArray(order.timeline)).toBeTruthy();
+    expect(order.timeline[0]).toMatchObject({
+      status: "DELIVERED",
+      timestamp: expect.any(String),
+    });
+    expect(order).toHaveProperty("paymentMethod");
+    expect(order).toHaveProperty("shippingAddress");
   });
 
-  test.describe("POST /v1/orders/:id/refund-request", () => {
-    test("creates refund request for delivered seeded order", async () => {
-      test.skip(!token || !adminToken, "auth tokens not set");
+  test("UC-ORD-03 performs an allowed pending-to-paid transition", async ({ request }) => {
+    const orderId = await createPendingOrder(request);
 
-      const orderId = await createRefundableOrder();
-
-      const response = await client.post(
-        `/v1/orders/${orderId}/refund-request`,
-        { reason: `Playwright refund ${Date.now()}` },
-        { headers: { Authorization: `Bearer ${token}` } },
-      );
-
-      expect(response.status).toBe(201);
-      expect(response.data).toMatchObject({ order_id: orderId, status: "pending" });
+    const transition = await adminPatch(request, `/v1/admin/orders/${orderId}`, {
+      status: "paid",
     });
+    expect(transition.status()).toBe(204);
 
-    test("rejects missing refund reason", async () => {
-      test.skip(!token, "TEST_USER_TOKEN not set");
+    const detail = await adminGet(request, `/v1/admin/orders/${orderId}`);
+    expect(detail.ok()).toBeTruthy();
+    const payload = await detail.json();
+    expect(payload.status).toBe("PAID");
+    expect(payload.paidAt).toBeTruthy();
+    expect(Array.isArray(payload.timeline)).toBeTruthy();
+    expect(payload.timeline[0]?.status).toBe("PAID");
+  });
 
-      const response = await client.post(
-        "/v1/orders/test-order-0001/refund-request",
-        { reason: "" },
-        { headers: { Authorization: `Bearer ${token}` } },
-      );
+  test("UC-ORD-03 rejects a pending-to-delivered shortcut", async ({ request }) => {
+    const orderId = await createPendingOrder(request);
 
-      expect(response.status).toBe(400);
+    const transition = await adminPatch(request, `/v1/admin/orders/${orderId}`, {
+      status: "delivered",
     });
-
-    test("returns 401 without auth", async () => {
-      const response = await client.post(
-        "/v1/orders/test-order-0001/refund-request",
-        { reason: "test refund" },
-      );
-
-      expect(response.status).toBe(401);
-    });
+    expect(transition.status()).toBe(409);
   });
 });

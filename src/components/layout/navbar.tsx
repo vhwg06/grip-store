@@ -23,6 +23,8 @@ import { usePublicSettings } from "@/application/hooks/useCatalog";
 export function Navbar() {
   const { user, isAdmin } = useAuth();
   const { settings } = usePublicSettings();
+  const shopName = settings?.shopName?.trim() || "GRIP Store";
+  const shopLogo = settings?.shopLogo?.trim() || null;
 
   return (
     <nav className="bg-[#2b1809] sticky top-0 z-40 w-full border-b border-[#9c702a]/10">
@@ -30,8 +32,25 @@ export function Navbar() {
         
         <div className="flex items-center h-[56px] w-full justify-between">
           {/* Logo */}
-          <Link href="/" className="flex items-center justify-center w-[102px] h-[52px] relative">
-            <Image src="/logo.svg" alt="BKT Logo" fill className="object-contain" />
+          <Link href="/" className="flex items-center gap-3 min-w-0">
+            <div className="relative h-[52px] w-[102px] shrink-0">
+              {shopLogo ? (
+                <img
+                  src={shopLogo}
+                  alt={`${shopName} logo`}
+                  data-testid="site-header-logo-image"
+                  className="h-full w-full object-contain"
+                />
+              ) : (
+                <Image src="/logo.svg" alt="BKT Logo" fill className="object-contain" />
+              )}
+            </div>
+            <span
+              data-testid="site-header-logo-text"
+              className="hidden max-w-[220px] truncate text-sm font-semibold tracking-tight text-white md:inline"
+            >
+              {shopName}
+            </span>
           </Link>
 
           {/* Links */}
@@ -104,4 +123,3 @@ export function Navbar() {
     </nav>
   );
 }
-

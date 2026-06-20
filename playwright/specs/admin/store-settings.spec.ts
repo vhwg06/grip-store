@@ -1,3 +1,4 @@
+import type { Page } from "@playwright/test";
 import { test, expect } from "../../src/fixtures/base-test";
 
 test.describe("Admin Store Settings Spec Coverage @admin", () => {
@@ -5,87 +6,108 @@ test.describe("Admin Store Settings Spec Coverage @admin", () => {
     storageState: "./playwright/src/fixtures/.auth/admin.json",
   });
 
-
   test.beforeEach(async ({ adminPage }) => {
     await adminPage.goto();
     await adminPage.navigateTo("settings");
   });
 
-  test("renders sectioned Store Settings surface with grouped save boundaries", async ({ page }) => {
+  async function expectSuccessToast(page: Page) {
+    await expect(page.locator(".toast-success, [role='status']").first()).toBeVisible();
+  }
+
+  test("UC-SET-01 submits storefront identity intent through brand and contact groups and reflects the new identity publicly", async ({
+    page,
+    homepagePage,
+  }) => {
     await expect(page.getByRole("heading", { name: "Store Settings" })).toBeVisible();
-
-    await expect(page.locator('[data-testid="settings-section-overview"]')).toBeVisible();
     await expect(page.locator('[data-testid="settings-section-brand"]')).toBeVisible();
-    await expect(page.locator('[data-testid="settings-section-homepage"]')).toBeVisible();
-    await expect(page.locator('[data-testid="settings-section-footer-social"]')).toBeVisible();
-    await expect(page.locator('[data-testid="settings-section-floating-support"]')).toBeVisible();
-    await expect(page.locator('[data-testid="settings-section-discovery-visibility"]')).toBeVisible();
-    await expect(page.locator('[data-testid="settings-section-registry-legacy"]')).toBeVisible();
+    await expect(page.locator('[data-testid="settings-section-contact"]')).toBeVisible();
 
-    await expect(page.locator('[data-testid="settings-save-brand"]')).toBeVisible();
-    await expect(page.locator('[data-testid="settings-save-homepage"]')).toBeVisible();
-    await expect(page.locator('[data-testid="settings-save-footer-social"]')).toBeVisible();
-    await expect(page.locator('[data-testid="settings-save-support-controls"]')).toBeVisible();
-  });
+    await page.locator('[data-testid="settings-brand-shop-name"]').fill("playwright-storefront-identity");
+    await page.locator('[data-testid="settings-brand-description"]').fill("playwright identity reflection");
+    await page.locator('[data-testid="settings-save-brand"]').click();
+    await expectSuccessToast(page);
 
-  test("updates brand and contact settings then reflects them on storefront after reload", async ({ page, homepagePage }) => {
-    await page.locator('[data-testid="settings-brand-shop-name"]').fill("Grip Store QA");
-    await page.locator('[data-testid="settings-brand-description"]').fill("Premium hardware QA copy");
     await page.locator('[data-testid="settings-contact-address"]').fill("12 Nguyen Hue, Ho Chi Minh City");
     await page.locator('[data-testid="settings-contact-hotline"]').fill("+84 903 117 742");
-    await page.locator('[data-testid="settings-contact-email"]').fill("qa-contact@grip.vn");
-    await page.locator('[data-testid="settings-brand-logo-open-media-picker"]').click();
-    await page.locator('[data-testid="media-picker-item"]').first().click();
-    await page.locator('[data-testid="media-picker-confirm"]').click();
-    await page.locator('[data-testid="settings-save-brand"]').click();
-
-    await expect(page.locator('[data-testid="settings-toast-success"]')).toBeVisible();
+    await page.locator('[data-testid="settings-contact-email"]').fill("playwright-identity@grip.vn");
+    await page.locator('[data-testid="settings-save-contact"]').click();
+    await expectSuccessToast(page);
 
     await homepagePage.goto();
-    await page.reload();
 
-    await expect(page.locator('[data-testid="site-header-logo-text"]')).toContainText("Grip Store QA");
+    await expect(page.locator('[data-testid="site-header-logo-text"]')).toContainText("playwright-storefront-identity");
     await expect(page.locator('[data-testid="sticky-bar-address"]')).toContainText("12 Nguyen Hue");
     await expect(page.locator('[data-testid="sticky-bar-hotline"]')).toContainText("+84 903 117 742");
-    await expect(page.locator('[data-testid="footer-contact-email"]')).toContainText("qa-contact@grip.vn");
-    await expect(page.locator('[data-testid="site-header-logo-image"]')).toBeVisible();
+    await expect(page.locator('[data-testid="footer-contact-email"]')).toContainText("playwright-identity@grip.vn");
   });
 
-  test("updates homepage composition and reflects module order plus news count", async ({ page, homepagePage }) => {
+  test("UC-SET-02 submits homepage composition decisions and reflects the new homepage priority", async ({
+    page,
+    homepagePage,
+  }) => {
+    await expect(page.locator('[data-testid="settings-section-homepage"]')).toBeVisible();
+
     await page.locator('[data-testid="homepage-block-latest-news-toggle"]').click();
     await page.locator('[data-testid="homepage-block-latest-news-toggle"]').click();
-    await page.locator('[data-testid="homepage-news-count"]').fill("6");
+    await page.locator('[data-testid="homepage-news-count"]').fill("3");
     await page.locator('[data-testid="homepage-block-categories-move-up"]').click();
     await page.locator('[data-testid="settings-save-homepage"]').click();
-
-    await expect(page.locator('[data-testid="settings-toast-success"]')).toBeVisible();
+    await expectSuccessToast(page);
 
     await homepagePage.goto();
-    await page.reload();
 
     await expect(page.locator('[data-testid="homepage-module-categories"]')).toBeVisible();
     await expect(page.locator('[data-testid="homepage-module-latest-news"]')).toBeVisible();
-    await expect(page.locator('[data-testid="latest-news-card"]')).toHaveCount(6);
+    await expect(page.locator('[data-testid="latest-news-card"]')).toHaveCount(3);
   });
 
-  test("updates footer, social links, support actions, and discovery controls", async ({ page, homepagePage }) => {
-    await page.locator('[data-testid="footer-column-0-title"]').fill("Products");
-    await page.locator('[data-testid="footer-column-0-link-0-label"]').fill("Door Handles");
-    await page.locator('[data-testid="footer-column-0-link-0-url"]').fill("/products");
-    await page.locator('[data-testid="social-link-facebook"]').fill("https://facebook.com/gripvn");
-    await page.locator('[data-testid="support-action-zalo-enabled"]').click();
-    await page.locator('[data-testid="support-action-zalo-target"]').fill("https://zalo.me/gripvn");
+  test("UC-SET-03 submits discovery and visibility rules as behavioral settings", async ({
+    page,
+    homepagePage,
+  }) => {
+    await expect(page.locator('[data-testid="settings-section-discovery-visibility"]')).toBeVisible();
+
     await page.locator('[data-testid="visibility-noindex-enabled"]').click();
     await page.locator('[data-testid="settings-save-support-controls"]').click();
-
-    await expect(page.locator('[data-testid="settings-toast-success"]')).toBeVisible();
+    await expectSuccessToast(page);
 
     await homepagePage.goto();
-    await page.reload();
-
-    await expect(page.locator('[data-testid="footer-column-title"]').first()).toContainText("Products");
-    await expect(page.locator('[data-testid="footer-social-facebook"]')).toHaveAttribute("href", /facebook\.com\/gripvn/);
-    await expect(page.locator('[data-testid="floating-button-zalo"]')).toHaveAttribute("href", /zalo\.me\/gripvn/);
     await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /noindex/);
+  });
+
+  test("UC-SET-04 submits footer and support touchpoint intent and reflects public support commitments", async ({
+    page,
+    homepagePage,
+  }) => {
+    await expect(page.locator('[data-testid="settings-section-footer-social"]')).toBeVisible();
+    await expect(page.locator('[data-testid="settings-section-floating-support"]')).toBeVisible();
+
+    await page.locator('[data-testid="social-link-facebook"]').fill("https://facebook.com/playwright-grip");
+    await page.locator('[data-testid="settings-save-footer-social"]').click();
+    await expectSuccessToast(page);
+
+    await page.locator('[data-testid="support-action-zalo-enabled"]').click();
+    await page.locator('[data-testid="support-action-zalo-target"]').fill("https://zalo.me/playwright-grip");
+    await page.locator('[data-testid="settings-save-support-controls"]').click();
+    await expectSuccessToast(page);
+
+    await homepagePage.goto();
+
+    await expect(page.locator('[data-testid="footer-social-facebook"]')).toHaveAttribute("href", /facebook\.com\/playwright-grip/);
+    await expect(page.locator('[data-testid="floating-button-zalo"]')).toHaveAttribute("href", /zalo\.me\/playwright-grip/);
+  });
+
+  test("UC-SET-05 exposes banner and about presence controls inside store settings", async ({ page }) => {
+    await expect(page.locator('[data-testid="settings-banner-presence-toggle"]')).toBeVisible();
+    await expect(page.locator('[data-testid="settings-about-presence-toggle"]')).toBeVisible();
+  });
+
+  test("UC-SET-06 exposes registry and legacy commitment controls as an intentional storefront policy surface", async ({
+    page,
+  }) => {
+    await expect(page.locator('[data-testid="settings-section-registry-legacy"]')).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Registry & legacy controls" })).toBeVisible();
+    await expect(page.getByRole("button", { name: /Join Registry|Resubmit Origin/i })).toBeVisible();
   });
 });

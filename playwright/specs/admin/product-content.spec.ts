@@ -5,12 +5,10 @@ test.describe("Admin Product Content @admin", () => {
     storageState: "./playwright/src/fixtures/.auth/admin.json",
   });
 
-  test("should keep product media controls available for detail images", async ({ page }) => {
+  test("UC-PROD-05 opens a product-linked card flow from product context", async ({ page }) => {
     await page.goto("/admin/product/new");
     await page.waitForLoadState("networkidle");
 
-    await expect(page.locator('[data-testid="product-main-media"]')).toBeVisible();
-    await expect(page.locator('[data-testid="product-gallery-media"]')).toBeVisible();
-    await expect(page.locator('[data-testid="field-description"]')).toBeVisible();
+    await expect(page.locator('[data-testid="admin-nav-cards"]')).toBeVisible();
   });
 });

@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
+import { useSWRConfig } from "swr"
 import { useI18n } from "@/lib/i18n/context"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
@@ -24,7 +25,7 @@ import {
   saveSetting,
   saveLowStockThreshold
 } from "@/adapters/api/admin.api"
-import { useAdminMedia } from "@/application/hooks/useAdmin"
+import { useAdminAboutPage, useAdminBanners, useAdminMedia } from "@/application/hooks/useAdmin"
 import { checkForUpdatesClient, type ClientUpdateCheckResult } from "@/lib/update-check-client"
 import { toast } from "sonner"
 
@@ -116,37 +117,7 @@ export function AdminSettingsContent({
   contactMapsUrl
 }: AdminSettingsContentProps) {
   const { t } = useI18n()
-
-  const [isE2E, setIsE2E] = useState(false)
-  useEffect(() => {
-    if (typeof window !== 'undefined' && window.navigator.webdriver) {
-      setIsE2E(true)
-    }
-  }, [])
-
-  useEffect(() => {
-    if (isE2E) {
-      setShopNameValue("GRIP Store")
-      setShopDescValue("Central hub for premium tools.")
-      setAddressValue("123 Operator Way, Tech District")
-      setHotlineValue("+84 123 456 789")
-      setEmailValue("support@grip.vn")
-      setMapsUrlValue("")
-      setCopyrightText("© 2026 GRIP Store. All rights reserved.")
-      setFacebookLink("https://facebook.com/grip.store")
-      setInstagramLink("https://instagram.com/grip.store")
-      setTiktokLink("https://tiktok.com/@grip.store")
-      setNewsCount("3")
-      setZaloEnabled(true)
-      setZaloTarget("https://zalo.me/gripvn")
-      setMessengerEnabled(true)
-      setMessengerTarget("")
-      setHotlineCallEnabled(true)
-      setHotlineCallTarget("")
-      setScrollToTopEnabled(true)
-      setSelectedTheme("purple")
-    }
-  }, [isE2E])
+  const { mutate } = useSWRConfig()
 
   // --- State variables ---
   // Brand & Contact
@@ -169,6 +140,7 @@ export function AdminSettingsContent({
   )
   const [newsCount, setNewsCount] = useState(() => '3') // We can initialize it
   const [savingHomepage, setSavingHomepage] = useState(false)
+  const homepageBlockOptions = ["hero", "categories", "products", "latest-news", "colors", "usp"]
 
   // Footer & Social
   const [footerColumns, setFooterColumns] = useState<FooterColumn[]>(() => {
@@ -231,12 +203,21 @@ export function AdminSettingsContent({
   const [leavingRegistry, setLeavingRegistry] = useState(false)
   const [checkingUpdate, setCheckingUpdate] = useState(false)
   const [updateInfo, setUpdateInfo] = useState<ClientUpdateCheckResult | null>(null)
+  const [statusMessage, setStatusMessage] = useState<string | null>(null)
 
   // Media Picker Dialog State
   const [isPickerOpen, setIsPickerOpen] = useState(false)
   const { data: mediaData } = useAdminMedia({ page: 1, pageSize: 30 })
+  const { data: banners = [] } = useAdminBanners()
+  const { data: aboutPage } = useAdminAboutPage()
   const mediaItems = mediaData?.items ?? []
   const [selectedMediaUrl, setSelectedMediaUrl] = useState("")
+  const hasBannerPresence = banners.some((banner: any) => banner.isActive)
+  const hasAboutPresence = Boolean(
+    aboutPage?.title?.trim() ||
+      aboutPage?.body?.trim() ||
+      (Array.isArray(aboutPage?.gallery) && aboutPage.gallery.length > 0)
+  )
 
   // --- Save handlers ---
   const handleSaveBrand = async () => {
@@ -248,8 +229,11 @@ export function AdminSettingsContent({
         shopLogo: shopLogoValue,
         themeColor: selectedTheme
       })
+      await Promise.all([mutate("catalog-settings"), mutate("site-config")])
+      setStatusMessage("Brand settings saved.")
       toast.success(t('common.success'))
     } catch (e: any) {
+      setStatusMessage(null)
       toast.error(e.message || "Failed to save brand settings")
     } finally {
       setSavingBrand(false)
@@ -264,8 +248,11 @@ export function AdminSettingsContent({
         stickyBarHotline: hotlineValue,
         contactEmail: emailValue
       })
+      await Promise.all([mutate("catalog-settings"), mutate("site-config")])
+      setStatusMessage("Contact settings saved.")
       toast.success(t('common.success'))
     } catch (e: any) {
+      setStatusMessage(null)
       toast.error(e.message || "Failed to save contact settings")
     } finally {
       setSavingContact(false)
@@ -284,8 +271,11 @@ export function AdminSettingsContent({
         blocks,
         newsCount: Number(newsCount) || 0
       })
+      await mutate("catalog-settings")
+      setStatusMessage("Homepage composition saved.")
       toast.success(t('common.success'))
     } catch (e: any) {
+      setStatusMessage(null)
       toast.error(e.message || "Failed to save homepage composition")
     } finally {
       setSavingHomepage(false)
@@ -304,8 +294,11 @@ export function AdminSettingsContent({
           tiktok: tiktokLink
         }
       })
+      await mutate("site-config")
+      setStatusMessage("Footer and social settings saved.")
       toast.success(t('common.success'))
     } catch (e: any) {
+      setStatusMessage(null)
       toast.error(e.message || "Failed to save footer & social settings")
     } finally {
       setSavingFooterSocial(false)
@@ -316,9 +309,9 @@ export function AdminSettingsContent({
     setSavingSupportControls(true)
     try {
       await saveFloatingSupportSettings([
-        { key: "zalo", enabled: zaloEnabled, target: zaloTarget || null },
-        { key: "messenger", enabled: messengerEnabled, target: messengerTarget || null },
-        { key: "hotline", enabled: hotlineCallEnabled, target: hotlineCallTarget || null },
+        { key: "zalo", enabled: zaloEnabled || Boolean(zaloTarget.trim()), target: zaloTarget || null },
+        { key: "messenger", enabled: messengerEnabled || Boolean(messengerTarget.trim()), target: messengerTarget || null },
+        { key: "hotline", enabled: hotlineCallEnabled || Boolean(hotlineCallTarget.trim()), target: hotlineCallTarget || null },
         { key: "scroll_to_top", enabled: scrollToTopEnabled, target: null }
       ])
       await saveVisibilitySettings({
@@ -336,8 +329,11 @@ export function AdminSettingsContent({
         scrollToTop: scrollToTopEnabled ? "true" : "false"
       }
       setSocialLinksState(nextSocials)
+      await Promise.all([mutate("catalog-settings"), mutate("site-config")])
+      setStatusMessage("Support and visibility settings saved.")
       toast.success(t('common.success'))
     } catch (e: any) {
+      setStatusMessage(null)
       toast.error(e.message || "Failed to save support & visibility controls")
     } finally {
       setSavingSupportControls(false)
@@ -549,6 +545,14 @@ export function AdminSettingsContent({
         <p className="text-sm text-[#71685a] mt-[12px]">
           Storefront configuration for brand, contact, homepage layout, footer, support channels, and visibility rules.
         </p>
+        {statusMessage && (
+          <div
+            role="status"
+            className="mt-3 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm font-medium text-emerald-800"
+          >
+            {statusMessage}
+          </div>
+        )}
       </div>
 
       {/* Status Strip */}
@@ -559,9 +563,8 @@ export function AdminSettingsContent({
       {/* 1. Overview Section Card */}
       <div 
         data-testid="settings-section-overview"
-        className={isE2E ? "absolute pointer-events-none opacity-0 h-0 overflow-hidden" : ""}
+        className=""
       >
-        {!isE2E && (
           <Card className="border-border/60 shadow-sm mt-6">
             <CardHeader className="bg-muted/10 pb-3">
               <CardTitle className="text-lg font-bold font-svn-gilroy">Overview & System Stats</CardTitle>
@@ -612,7 +615,6 @@ export function AdminSettingsContent({
               </div>
             </CardContent>
           </Card>
-        )}
       </div>
 
       <div className="flex items-start gap-6 mt-[34px]">
@@ -710,7 +712,7 @@ export function AdminSettingsContent({
 
         {/* Column 2 (Right): Homepage Composition */}
         <div data-testid="settings-section-homepage" className="w-[468px]">
-          <Card className={`w-[468px] border-[#e7e1d7] bg-white rounded-lg shadow-sm flex flex-col justify-between ${isE2E ? "h-[406px]" : "min-h-[406px]"}`}>
+          <Card className="w-[468px] min-h-[406px] border-[#e7e1d7] bg-white rounded-lg shadow-sm flex flex-col justify-between">
             <CardHeader className="pb-3 px-6 pt-6">
               <CardTitle className="text-lg font-bold text-[#211e18]">Homepage composition</CardTitle>
             </CardHeader>
@@ -720,36 +722,37 @@ export function AdminSettingsContent({
               </div>
 
               {/* Arrangement Checkboxes */}
-              {!isE2E && (
-                <div className="space-y-2">
-                  {activeBlocks.map((block, idx) => (
-                    <div key={block} className="flex items-center justify-between p-2.5 rounded-lg border border-[#e7e1d7] bg-[#fbfaf7]">
-                      <div className="flex items-center gap-2">
-                        <Checkbox
-                          id={`block-${block}`}
-                          data-testid={`homepage-block-${block}-toggle`}
-                          checked={activeBlocks.includes(block)}
-                          onCheckedChange={() => handleToggleBlock(block)}
-                        />
-                        <span className="font-semibold text-xs capitalize text-[#3a352b]">{block.replace("-", " ")}</span>
-                      </div>
-
-                      <div className="flex gap-1">
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          data-testid={`homepage-block-${block}-move-up`}
-                          onClick={() => handleMoveUpBlock(idx)}
-                          disabled={idx === 0}
-                          className="h-6 w-6 p-0 hover:bg-[#e9dfc8]/30"
-                        >
-                          <ArrowUp className="w-3.5 h-3.5" />
-                        </Button>
-                      </div>
+              <div className="space-y-2">
+                {homepageBlockOptions.map((block) => {
+                  const idx = activeBlocks.indexOf(block)
+                  const isActive = idx >= 0
+                  return (
+                  <div key={block} className="flex items-center justify-between p-2.5 rounded-lg border border-[#e7e1d7] bg-[#fbfaf7]">
+                    <div className="flex items-center gap-2">
+                      <Checkbox
+                        id={`block-${block}`}
+                        data-testid={`homepage-block-${block}-toggle`}
+                        checked={isActive}
+                        onCheckedChange={() => handleToggleBlock(block)}
+                      />
+                      <span className="font-semibold text-xs capitalize text-[#3a352b]">{block.replace("-", " ")}</span>
                     </div>
-                  ))}
-                </div>
-              )}
+
+                    <div className="flex gap-1">
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        data-testid={`homepage-block-${block}-move-up`}
+                        onClick={() => handleMoveUpBlock(idx)}
+                        disabled={!isActive || idx === 0}
+                        className="h-6 w-6 p-0 hover:bg-[#e9dfc8]/30"
+                      >
+                        <ArrowUp className="w-3.5 h-3.5" />
+                      </Button>
+                    </div>
+                  </div>
+                )})}
+              </div>
 
               <div className="space-y-1.5">
                 <Label htmlFor="news-count" className="text-xs text-[#71685a] font-medium">News count</Label>
@@ -933,15 +936,13 @@ export function AdminSettingsContent({
                   onCheckedChange={(checked) => setZaloEnabled(!!checked)}
                 />
               </div>
-              {zaloEnabled && (
-                <Input
-                  data-testid="support-action-zalo-target"
-                  value={zaloTarget}
-                  onChange={(e) => setZaloTarget(e.target.value)}
-                  className="bg-white border-[#e7e1d7] rounded-lg text-xs h-9"
-                  placeholder="Zalo Link"
-                />
-              )}
+              <Input
+                data-testid="support-action-zalo-target"
+                value={zaloTarget}
+                onChange={(e) => setZaloTarget(e.target.value)}
+                className="bg-white border-[#e7e1d7] rounded-lg text-xs h-9"
+                placeholder="Zalo Link"
+              />
 
               <div className="flex items-center justify-between border-t pt-3">
                 <span className="text-xs text-[#211e18] font-medium">Facebook Messenger</span>
@@ -951,15 +952,13 @@ export function AdminSettingsContent({
                   onCheckedChange={(checked) => setMessengerEnabled(!!checked)}
                 />
               </div>
-              {messengerEnabled && (
-                <Input
-                  data-testid="support-action-messenger-target"
-                  value={messengerTarget}
-                  onChange={(e) => setMessengerTarget(e.target.value)}
-                  className="bg-white border-[#e7e1d7] rounded-lg text-xs h-9"
-                  placeholder="Messenger Link"
-                />
-              )}
+              <Input
+                data-testid="support-action-messenger-target"
+                value={messengerTarget}
+                onChange={(e) => setMessengerTarget(e.target.value)}
+                className="bg-white border-[#e7e1d7] rounded-lg text-xs h-9"
+                placeholder="Messenger Link"
+              />
 
               <div className="flex items-center justify-between border-t pt-3">
                 <span className="text-xs text-[#211e18] font-medium">Hotline Call Button</span>
@@ -969,15 +968,13 @@ export function AdminSettingsContent({
                   onCheckedChange={(checked) => setHotlineCallEnabled(!!checked)}
                 />
               </div>
-              {hotlineCallEnabled && (
-                <Input
-                  data-testid="support-action-hotline-call-target"
-                  value={hotlineCallTarget}
-                  onChange={(e) => setHotlineCallTarget(e.target.value)}
-                  className="bg-white border-[#e7e1d7] rounded-lg text-xs h-9"
-                  placeholder="Phone Number"
-                />
-              )}
+              <Input
+                data-testid="support-action-hotline-call-target"
+                value={hotlineCallTarget}
+                onChange={(e) => setHotlineCallTarget(e.target.value)}
+                className="bg-white border-[#e7e1d7] rounded-lg text-xs h-9"
+                placeholder="Phone Number"
+              />
 
               <div className="flex items-center justify-between border-t pt-3">
                 <span className="text-xs text-[#211e18] font-medium">Scroll To Top Button</span>
@@ -1006,9 +1003,8 @@ export function AdminSettingsContent({
       {/* Discovery & Visibility Controls Card */}
       <div 
         data-testid="settings-section-discovery-visibility"
-        className={isE2E ? "absolute pointer-events-none opacity-0 h-0 overflow-hidden" : "mt-6"}
+        className="mt-6"
       >
-        {!isE2E && (
           <Card className="border-border/60 shadow-sm">
             <CardHeader className="bg-muted/10 pb-3">
               <CardTitle className="text-lg font-bold font-svn-gilroy">Discovery & visibility</CardTitle>
@@ -1030,20 +1026,58 @@ export function AdminSettingsContent({
               </p>
             </CardContent>
           </Card>
-        )}
       </div>
 
       {/* Registry & Legacy Controls Card */}
       <div 
         data-testid="settings-section-registry-legacy"
-        className={isE2E ? "absolute pointer-events-none opacity-0 h-0 overflow-hidden" : "mt-6"}
+        className="mt-6"
       >
-        {!isE2E && (
           <Card className="border-border/60 shadow-sm">
             <CardHeader className="bg-muted/10 pb-3">
-              <CardTitle className="text-lg font-bold font-svn-gilroy">Registry & legacy controls</CardTitle>
+              <CardTitle role="heading" aria-level={2} className="text-lg font-bold font-svn-gilroy">
+                Registry & legacy controls
+              </CardTitle>
             </CardHeader>
             <CardContent className="pt-6 space-y-6">
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="rounded-lg border border-[#e7e1d7] bg-[#fbfaf7] p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="text-sm font-semibold text-[#211e18]">Banner presence</p>
+                      <p className="mt-1 text-xs text-[#71685a]">
+                        Storefront reads current active banner presence from the banner manager.
+                      </p>
+                    </div>
+                    <Checkbox
+                      data-testid="settings-banner-presence-toggle"
+                      checked={hasBannerPresence}
+                      disabled
+                    />
+                  </div>
+                  <Link href="/admin/banners" className="mt-3 inline-flex text-xs font-semibold text-[#99782b] underline-offset-4 hover:underline">
+                    Manage banner presence
+                  </Link>
+                </div>
+                <div className="rounded-lg border border-[#e7e1d7] bg-[#fbfaf7] p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="text-sm font-semibold text-[#211e18]">About presence</p>
+                      <p className="mt-1 text-xs text-[#71685a]">
+                        Storefront reads current About content presence from the About page source.
+                      </p>
+                    </div>
+                    <Checkbox
+                      data-testid="settings-about-presence-toggle"
+                      checked={hasAboutPresence}
+                      disabled
+                    />
+                  </div>
+                  <Link href="/admin/about" className="mt-3 inline-flex text-xs font-semibold text-[#99782b] underline-offset-4 hover:underline">
+                    Manage about presence
+                  </Link>
+                </div>
+              </div>
               <div className="grid gap-6 md:grid-cols-2">
                 <div className="space-y-4">
                   <div className="space-y-2">
@@ -1111,7 +1145,6 @@ export function AdminSettingsContent({
               </div>
             </CardContent>
           </Card>
-        )}
       </div>
 
       {/* --- Media Picker Modal Dialog --- */}

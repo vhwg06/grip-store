@@ -1,115 +1,166 @@
 import { test, expect } from "../../src/fixtures/base-test";
 
+const BACKEND_URL = process.env.GO_BACKEND_URL ?? "https://grip.vn/api";
+
+async function loginForToken(request: any, email: string, password: string) {
+  const response = await request.post(`${BACKEND_URL}/v1/auth/login`, {
+    data: { email, password },
+  });
+  expect(response.ok()).toBeTruthy();
+  const payload = await response.json();
+  return (
+    payload?.data?.accessToken ??
+    payload?.data?.access_token ??
+    payload?.data?.token ??
+    payload?.accessToken ??
+    payload?.access_token ??
+    payload?.token ??
+    null
+  ) as string | null;
+}
+
+async function getAdminToken(request: any) {
+  const token = await loginForToken(
+    request,
+    process.env.ADMIN_USER_EMAIL ?? "test_admin@example.com",
+    process.env.ADMIN_USER_PASSWORD ?? "Password123!",
+  );
+  expect(token).toBeTruthy();
+  return token as string;
+}
+
+async function fetchReviews(request: any, status?: string) {
+  const token = await getAdminToken(request);
+  const suffix = status ? `?status=${status}` : "";
+  const response = await request.get(`${BACKEND_URL}/v1/admin/reviews${suffix}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  expect(response.ok()).toBeTruthy();
+  const payload = await response.json();
+  const data = payload?.data ?? payload;
+  return Array.isArray(data?.reviews) ? data.reviews : [];
+}
+
+async function openReviews(page: any) {
+  await page.goto("/admin/reviews");
+  await page.waitForLoadState("networkidle");
+}
+
+async function searchForReview(page: any, query: string) {
+  const search = page.getByPlaceholder("Search reviews by product, user or comment...");
+  await search.fill(query);
+  await page.waitForTimeout(500);
+}
+
+function queueItemByText(page: any, text: string) {
+  return page.locator('[data-testid="review-queue-item"]').filter({ hasText: text }).first();
+}
+
 test.describe("Admin Review Moderation E2E @admin", () => {
   test.use({
     storageState: "./playwright/src/fixtures/.auth/admin.json",
   });
 
-  test.beforeEach(async ({ adminPage, page }) => {
-    await adminPage.goto();
-    // Navigate to Reviews moderation section from navigation
-    const reviewsNav = page.locator('[data-testid="admin-nav-reviews"]');
-    await expect(reviewsNav).toBeVisible();
-    await reviewsNav.click();
-    await page.waitForLoadState("networkidle");
-  });
+  test("UC-REV-01 reviews the moderation queue", async ({ page, request }) => {
+    const pending = await fetchReviews(request, "PENDING");
+    expect(pending.length).toBeGreaterThan(0);
+    const target = pending[0];
 
-  test("should display split layout, stats cards, and review queue", async ({ page }) => {
-    // 1. Verify page title & subtitle
-    await expect(page.locator("h1")).toHaveText("Review Moderation");
-    
-    // 2. Verify Stats Cards
+    await openReviews(page);
+    await searchForReview(page, String(target.comment ?? target.username));
+
+    await expect(page.getByRole("heading", { name: "Review Moderation" })).toBeVisible();
     await expect(page.locator('[data-testid="reviews-stats-pending"]')).toBeVisible();
     await expect(page.locator('[data-testid="reviews-stats-featured"]')).toBeVisible();
     await expect(page.locator('[data-testid="reviews-stats-hidden"]')).toBeVisible();
-    await expect(page.locator('[data-testid="reviews-stats-alert"]')).toContainText(
-      "Moderation needs image context before publish."
-    );
-
-    // 3. Verify Layout Split Panels
     await expect(page.locator('[data-testid="reviews-queue-container"]')).toBeVisible();
     await expect(page.locator('[data-testid="reviews-action-panel"]')).toBeVisible();
     await expect(page.locator('[data-testid="reviews-context-panel"]')).toBeVisible();
-
-    // 4. Verify Bulk Button is present but disabled initially
-    const bulkBtn = page.locator('[data-testid="reviews-bulk-publish-btn"]');
-    await expect(bulkBtn).toBeVisible();
-    await expect(bulkBtn).toBeDisabled();
+    await expect(queueItemByText(page, String(target.comment ?? target.username))).toBeVisible();
   });
 
-  test("should show review context details when a review is selected", async ({ page }) => {
-    const queueItem = page.locator('[data-testid="review-queue-item"]').first();
-    await expect(queueItem).toBeVisible();
-    await queueItem.click();
+  test("UC-REV-02 moderates a single review", async ({ page, request }) => {
+    const approved = await fetchReviews(request, "APPROVED");
+    const target = approved.find((review: any) => review.comment?.includes("probe approve"));
+    expect(target?.comment).toBeTruthy();
 
-    // Verify Context detail changes
+    await openReviews(page);
+    await searchForReview(page, target.comment);
+
+    const reviewCard = queueItemByText(page, target.comment);
+    await expect(reviewCard).toBeVisible();
+    await reviewCard.click();
+
+    const hideButton = page.locator('[data-testid="review-action-hide"]');
+    await expect(hideButton).toBeEnabled();
+    await hideButton.click();
+
+    await expect(page.locator('[data-testid="reviews-context-panel"]')).toContainText("HIDDEN");
+    await expect(hideButton).toBeDisabled();
+    await expect(reviewCard).toContainText("HIDDEN");
+  });
+
+  test("UC-REV-03 bulk publishes selected pending reviews", async ({ page, request }) => {
+    const pending = await fetchReviews(request, "PENDING");
+    expect(pending.length).toBeGreaterThanOrEqual(2);
+
+    await openReviews(page);
+
+    const bulkButton = page.locator('[data-testid="reviews-bulk-publish-btn"]');
+    const firstCard = page.locator('[data-testid="review-queue-item"]').nth(0);
+    const secondCard = page.locator('[data-testid="review-queue-item"]').nth(1);
+
+    await expect(firstCard).toContainText("PENDING");
+    await expect(secondCard).toContainText("PENDING");
+    await firstCard.locator('[data-testid="review-item-checkbox"]').check();
+    await secondCard.locator('[data-testid="review-item-checkbox"]').check();
+
+    await expect(bulkButton).toHaveText("Publish Selected (2)");
+    await bulkButton.click();
+
+    await expect(bulkButton).toHaveText("Publish Selected (0)");
+    await expect(firstCard).toContainText("APPROVED");
+    await expect(secondCard).toContainText("APPROVED");
+  });
+
+  test("UC-REV-04 reads moderation context for a selected review", async ({ page, request }) => {
+    const reviews = await fetchReviews(request);
+    expect(reviews.length).toBeGreaterThan(0);
+    const target = reviews[0];
+
+    await openReviews(page);
+    await searchForReview(page, String(target.comment ?? target.username));
+
+    const reviewCard = queueItemByText(page, String(target.comment ?? target.username));
+    await expect(reviewCard).toBeVisible();
+    await reviewCard.click();
+
     await expect(page.locator('[data-testid="context-product-link"]')).toBeVisible();
-    await expect(page.locator('[data-testid="context-buyer-profile"]')).toBeVisible();
-    await expect(page.locator('[data-testid="context-order-id"]')).toBeVisible();
-    await expect(page.locator('[data-testid="context-attachment-count"]')).toBeVisible();
+    await expect(page.locator('[data-testid="context-buyer-profile"]')).toContainText(String(target.username));
+    await expect(page.locator('[data-testid="context-buyer-profile"]')).toContainText(String(target.userId));
+    await expect(page.locator('[data-testid="context-order-id"]')).toHaveText(String(target.orderId));
+    await expect(page.locator('[data-testid="context-attachment-count"]')).toContainText(
+      `${Array.isArray(target.attachments) ? target.attachments.length : 0} files`,
+    );
+    await expect(page.locator('[data-testid="reviews-context-panel"]')).toContainText(String(target.comment));
   });
 
-  test("should approve a pending review and reflect status", async ({ page }) => {
-    // Select first review
-    const queueItem = page.locator('[data-testid="review-queue-item"]').first();
-    await expect(queueItem).toBeVisible();
-    await queueItem.click();
+  test("UC-REV-05 removes a review from the moderation surface", async ({ page, request }) => {
+    const hidden = await fetchReviews(request, "HIDDEN");
+    expect(hidden.length).toBeGreaterThan(0);
+    const target = hidden[0];
 
-    // Click Approve button
-    const approveBtn = page.locator('[data-testid="review-action-approve"]');
-    await expect(approveBtn).toBeEnabled();
-    await approveBtn.click();
+    await openReviews(page);
+    await searchForReview(page, String(target.comment ?? target.username));
 
-    // Verify loading state and success feedback
-    await expect(page.locator('.toast-success, [role="status"]')).toBeVisible();
-  });
+    const reviewCard = queueItemByText(page, String(target.comment ?? target.username));
+    await expect(reviewCard).toBeVisible();
+    await reviewCard.click();
 
-  test("should hide an approved review", async ({ page }) => {
-    // Select first review
-    const queueItem = page.locator('[data-testid="review-queue-item"]').first();
-    await expect(queueItem).toBeVisible();
-    await queueItem.click();
+    page.once("dialog", (dialog) => dialog.accept());
+    await page.locator('[data-testid="review-action-delete"]').click();
 
-    // Click Hide button
-    const hideBtn = page.locator('[data-testid="review-action-hide"]');
-    await expect(hideBtn).toBeEnabled();
-    await hideBtn.click();
-
-    // Verify success toast/alert
-    await expect(page.locator('.toast-success, [role="status"]')).toBeVisible();
-  });
-
-  test("should toggle feature status on review", async ({ page }) => {
-    // Select first review
-    const queueItem = page.locator('[data-testid="review-queue-item"]').first();
-    await expect(queueItem).toBeVisible();
-    await queueItem.click();
-
-    // Click Feature button
-    const featureBtn = page.locator('[data-testid="review-action-feature"]');
-    await expect(featureBtn).toBeEnabled();
-    await featureBtn.click();
-
-    // Verify success toast/alert
-    await expect(page.locator('.toast-success, [role="status"]')).toBeVisible();
-  });
-
-  test("should allow bulk publishing of selected pending reviews", async ({ page }) => {
-    // Select checkboxes of first two reviews
-    const checkbox1 = page.locator('[data-testid="review-item-checkbox"]').nth(0);
-    const checkbox2 = page.locator('[data-testid="review-item-checkbox"]').nth(1);
-
-    await checkbox1.check();
-    await checkbox2.check();
-
-    // Verify bulk button becomes enabled
-    const bulkBtn = page.locator('[data-testid="reviews-bulk-publish-btn"]');
-    await expect(bulkBtn).toBeEnabled();
-
-    // Perform bulk publish
-    await bulkBtn.click();
-
-    // Verify success feedback
-    await expect(page.locator('.toast-success, [role="status"]')).toBeVisible();
+    await expect(reviewCard).toBeHidden();
+    await expect(page.locator('[data-testid="reviews-queue-container"]')).toContainText("No reviews found");
   });
 });

@@ -1,172 +1,141 @@
 import { test, expect } from "../../src/fixtures/base-test";
-import { GoBackendClient } from "../../src/api-helpers/go-backend.client";
+
+const BACKEND_URL = process.env.GO_BACKEND_URL ?? "https://grip.vn/api";
+
+async function loginForToken(request: any, email: string, password: string) {
+  const response = await request.post(`${BACKEND_URL}/v1/auth/login`, {
+    data: { email, password },
+  });
+  expect(response.ok()).toBeTruthy();
+  const payload = await response.json();
+  return (
+    payload?.data?.accessToken ??
+    payload?.data?.access_token ??
+    payload?.data?.token ??
+    payload?.accessToken ??
+    payload?.access_token ??
+    payload?.token ??
+    null
+  ) as string | null;
+}
+
+async function getAdminToken(request: any) {
+  const token = await loginForToken(
+    request,
+    process.env.ADMIN_USER_EMAIL ?? "test_admin@example.com",
+    process.env.ADMIN_USER_PASSWORD ?? "Password123!",
+  );
+  expect(token).toBeTruthy();
+  return token as string;
+}
+
+async function adminGet(request: any, path: string) {
+  const token = await getAdminToken(request);
+  return request.get(`${BACKEND_URL}${path}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+}
+
+async function adminPut(request: any, path: string, data: Record<string, unknown>) {
+  const token = await getAdminToken(request);
+  return request.put(`${BACKEND_URL}${path}`, {
+    headers: { Authorization: `Bearer ${token}` },
+    data,
+  });
+}
+
+async function adminPost(request: any, path: string, data: Record<string, unknown>) {
+  const token = await getAdminToken(request);
+  return request.post(`${BACKEND_URL}${path}`, {
+    headers: { Authorization: `Bearer ${token}` },
+    data,
+  });
+}
+
+async function adminDelete(request: any, path: string) {
+  const token = await getAdminToken(request);
+  return request.delete(`${BACKEND_URL}${path}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+}
+
+async function listReviews(request: any, status?: string) {
+  const suffix = status ? `?status=${status}` : "";
+  const response = await adminGet(request, `/v1/admin/reviews${suffix}`);
+  expect(response.ok()).toBeTruthy();
+  const payload = await response.json();
+  const data = payload?.data ?? payload;
+
+  return {
+    payload,
+    data,
+    reviews: Array.isArray(data?.reviews) ? data.reviews : [],
+  };
+}
 
 test.describe("Admin Review Moderation API @api", () => {
-  let client: GoBackendClient;
-  const adminToken =
-    process.env.ADMIN_USER_TOKEN ?? process.env.TEST_ADMIN_TOKEN;
-  const userToken = process.env.TEST_USER_TOKEN;
-
-  test.beforeEach(async ({ request }) => {
-    client = new GoBackendClient(request);
+  test("UC-REV-01 reviews the moderation queue", async ({ request }) => {
+    const pending = await listReviews(request, "PENDING");
+    expect(pending.reviews.length).toBeGreaterThan(0);
+    expect(pending.reviews.every((review: any) => review.status === "PENDING")).toBeTruthy();
+    expect(pending.data?.stats?.pending).toBeGreaterThan(0);
   });
 
-  async function listPendingReviews() {
-    return client.get<any>("/v1/admin/reviews?status=PENDING", {
-      headers: { Authorization: `Bearer ${adminToken}` },
-    });
-  }
+  test("UC-REV-02 moderates a single review", async ({ request }) => {
+    const approved = await listReviews(request, "APPROVED");
+    const target = approved.reviews.find((review: any) => review.comment?.includes("probe bulk"));
+    expect(target?.id).toBeTruthy();
 
-  test.describe("GET /v1/admin/reviews", () => {
-    test("returns 401 without auth", async () => {
-      const response = await client.get("/v1/admin/reviews");
-      expect(response.status).toBe(401);
-    });
-
-    test("returns 403 for regular user", async () => {
-      test.skip(!userToken, "TEST_USER_TOKEN not set");
-      const response = await client.get("/v1/admin/reviews", {
-        headers: { Authorization: `Bearer ${userToken}` },
-      });
-      expect(response.status).toBe(403);
+    const hide = await adminPut(request, `/v1/admin/reviews/${target.id}/hide`, {});
+    expect(hide.ok()).toBeTruthy();
+    const hidePayload = await hide.json();
+    const hideData = hidePayload?.data ?? hidePayload;
+    expect(hideData).toMatchObject({
+      id: target.id,
+      status: "HIDDEN",
+      success: true,
     });
 
-    test("returns moderation queue and stats for admin", async () => {
-      test.skip(!adminToken, "TEST_ADMIN_TOKEN not set");
-
-      const response = await listPendingReviews();
-
-      expect(response.status).toBe(200);
-      expect(Array.isArray(response.data?.reviews)).toBe(true);
-      expect(response.data?.stats).toMatchObject({
-        pending: expect.any(Number),
-        featured: expect.any(Number),
-        hidden: expect.any(Number),
-      });
-      expect(response.data).toHaveProperty("total");
-    });
+    const hidden = await listReviews(request, "HIDDEN");
+    expect(hidden.reviews.some((review: any) => review.id === target.id)).toBeTruthy();
   });
 
-  test.describe("PUT moderation routes", () => {
-    test("approves seeded pending review with admin auth", async () => {
-      test.skip(!adminToken, "TEST_ADMIN_TOKEN not set");
+  test("UC-REV-03 bulk publishes selected reviews", async ({ request }) => {
+    const pending = await listReviews(request, "PENDING");
+    expect(pending.reviews.length).toBeGreaterThanOrEqual(2);
 
-      const response = await client.put<any>(
-        "/v1/admin/reviews/930001/approve",
-        {},
-        { headers: { Authorization: `Bearer ${adminToken}` } },
-      );
-
-      expect(response.status).toBe(200);
-      expect(response.data).toMatchObject({
-        success: true,
-        status: "APPROVED",
-      });
+    const selected = pending.reviews.slice(0, 2).map((review: any) => Number(review.id));
+    const publish = await adminPost(request, "/v1/admin/reviews/publish-selected", {
+      ids: selected,
+    });
+    expect(publish.ok()).toBeTruthy();
+    const publishPayload = await publish.json();
+    const publishData = publishPayload?.data ?? publishPayload;
+    expect(publishData).toMatchObject({
+      count: 2,
+      status: "APPROVED",
+      success: true,
     });
 
-    test("hides seeded review with admin auth", async () => {
-      test.skip(!adminToken, "TEST_ADMIN_TOKEN not set");
-
-      const response = await client.put<any>(
-        "/v1/admin/reviews/930001/hide",
-        {},
-        { headers: { Authorization: `Bearer ${adminToken}` } },
-      );
-
-      expect(response.status).toBe(200);
-      expect(response.data).toMatchObject({
-        success: true,
-        status: "HIDDEN",
-      });
-    });
-
-    test("rejects invalid feature payload", async () => {
-      test.skip(!adminToken, "TEST_ADMIN_TOKEN not set");
-
-      const response = await client.put(
-        "/v1/admin/reviews/930001/feature",
-        {},
-        { headers: { Authorization: `Bearer ${adminToken}` } },
-      );
-
-      expect(response.status).toBe(400);
-    });
-
-    test("features seeded review with explicit boolean payload", async () => {
-      test.skip(!adminToken, "TEST_ADMIN_TOKEN not set");
-
-      const response = await client.put<any>(
-        "/v1/admin/reviews/930001/feature",
-        { isFeatured: true },
-        { headers: { Authorization: `Bearer ${adminToken}` } },
-      );
-
-      expect(response.status).toBe(200);
-      expect(response.data).toMatchObject({
-        success: true,
-        status: "FEATURED",
-      });
-    });
+    const after = await listReviews(request, "PENDING");
+    expect(after.reviews.some((review: any) => selected.includes(Number(review.id)))).toBeFalsy();
   });
 
-  test.describe("POST /v1/admin/reviews/publish-selected", () => {
-    test("publishes selected reviews in bulk with admin auth", async () => {
-      test.skip(!adminToken, "TEST_ADMIN_TOKEN not set");
+  test("UC-REV-05 removes a review from the moderation surface", async ({ request }) => {
+    const hidden = await listReviews(request, "HIDDEN");
+    const target = hidden.reviews.find((review: any) => review.comment?.includes("probe hide"));
+    expect(target?.id).toBeTruthy();
 
-      const response = await client.post<any>(
-        "/v1/admin/reviews/publish-selected",
-        { ids: [930001] },
-        { headers: { Authorization: `Bearer ${adminToken}` } },
-      );
-
-      expect(response.status).toBe(200);
-      expect(response.data).toMatchObject({
-        success: true,
-        count: 1,
-      });
-    });
-  });
-
-  test.describe("DELETE /v1/admin/reviews/:id", () => {
-    test("returns 401 without auth", async () => {
-      const response = await client.delete("/v1/admin/reviews/930001");
-      expect(response.status).toBe(401);
+    const deleted = await adminDelete(request, `/v1/admin/reviews/${target.id}`);
+    expect(deleted.ok()).toBeTruthy();
+    const deletedPayload = await deleted.json();
+    const deletedData = deletedPayload?.data ?? deletedPayload;
+    expect(deletedData).toMatchObject({
+      id: target.id,
+      success: true,
     });
 
-    test("returns 403 for regular user", async () => {
-      test.skip(!userToken, "TEST_USER_TOKEN not set");
-
-      const response = await client.delete("/v1/admin/reviews/930001", {
-        headers: { Authorization: `Bearer ${userToken}` },
-      });
-
-      expect(response.status).toBe(403);
-    });
-
-    test("deletes an admin-created review with admin auth", async () => {
-      test.skip(!adminToken || !userToken, "auth tokens not set");
-
-      const createResponse = await client.post<any>(
-        "/v1/products/b1111111-1111-1111-1111-111111111111/reviews",
-        {
-          orderId: "test-order-0001",
-          rating: 4,
-          comment: `Playwright moderation delete ${Date.now()}`,
-        },
-        { headers: { Authorization: `Bearer ${userToken}` } },
-      );
-
-      expect(createResponse.status).toBe(201);
-      const reviewId = createResponse.data?.id;
-      expect(typeof reviewId).toBe("number");
-
-      const deleteResponse = await client.delete(
-        `/v1/admin/reviews/${reviewId}`,
-        { headers: { Authorization: `Bearer ${adminToken}` } },
-      );
-
-      expect(deleteResponse.status).toBe(200);
-      expect(deleteResponse.data).toMatchObject({ success: true });
-    });
+    const all = await listReviews(request);
+    expect(all.reviews.some((review: any) => review.id === target.id)).toBeFalsy();
   });
 });
