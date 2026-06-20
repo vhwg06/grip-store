@@ -58,6 +58,11 @@ test.describe("Admin Noty @admin", () => {
     const row = page.getByRole("row").filter({ has: page.getByRole("cell", { name: title }) });
     await expect(row.getByRole("cell", { name: title })).toBeVisible();
     await expect(row.getByText(/^Sent$/)).toBeVisible();
+
+    // INVARIANT: sent notification phải durable — không chỉ là local UI row
+    // INVARIANT (gap): /v1/admin/messages history endpoint missing — khi BE fix, cần verify row xuất hiện sau page reload
+    // Currently passing only because FE creates local row without backend persistence check
+    // TODO (when BE fix): add page.reload() + verify title still visible
   });
 
   test("UC-NOTY-03 reads outbound notification list from backend state instead of only local scaffolding", async ({
@@ -102,7 +107,7 @@ test.describe("Admin Noty @admin", () => {
     await expect(page.getByText(/failed|sent|queued|scheduled/i)).toBeVisible();
   });
 
-  test("UC-NOTY-03 renders empty search state gracefully", async ({ page }) => {
+  test("UC-NOTY-03 alternate: renders empty search state gracefully", async ({ page }) => {
     await page.getByPlaceholder("Search campaigns by title...").fill("nonexistent-campaign-12345xyz");
     await expect(page.getByText("No campaigns match your filters.")).toBeVisible();
     await expect(page.locator('[data-testid="error-boundary"]')).toHaveCount(0);

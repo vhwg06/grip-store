@@ -72,3 +72,20 @@ export async function getUserToken(request: Pick<APIRequestContext, "post">): Pr
     "user",
   );
 }
+
+export async function registerFreshBuyer(request: Pick<APIRequestContext, "post">): Promise<{ username: string; email: string }> {
+  const suffix = `${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+  const email = `pw-empty-${suffix}@example.com`;
+  const username = `pw_empty_${suffix}`;
+  const response = await request.post(`${BACKEND_URL}/v1/auth/register`, {
+    data: {
+      username,
+      email,
+      password: "Password123!",
+    },
+  });
+  if (!response.ok()) {
+    throw new Error(`Unable to register fresh buyer: ${response.status()} ${response.statusText()}`);
+  }
+  return { username, email };
+}

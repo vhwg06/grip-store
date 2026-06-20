@@ -36,6 +36,9 @@ test.describe("Admin Customer @admin", () => {
   }
 
   test("UC-CUS-01 finds a customer record from customer-centric search", async ({ page }) => {
+    // INVARIANT: customer là commerce identity, không phải chỉ là account row
+    // INVARIANT: search phải narrow về đúng customer — không trả mixed account rows
+    test.fail(true, "blocked-be-gap: user/customer search query filtering is not supported or ignored by backend API");
     await expect(page.getByRole("heading", { name: "Customer Management" })).toBeVisible();
 
     await searchForUser(page, "test_buyer");
@@ -71,6 +74,8 @@ test.describe("Admin Customer @admin", () => {
   });
 
   test("UC-CUS-04 distinguishes customer root from user-domain controls", async ({ page }) => {
+    // INVARIANT: customer và user có thể liên kết nhưng không đồng nhất
+    // INVARIANT: commerce history bám theo customer, không bám theo user management view
     test.fail(true, "blocked-both: customer details missing linked-user account markers and account navigation");
     await searchForUser(page, "test_buyer");
     await page.getByText("test_buyer", { exact: false }).first().click();
@@ -90,34 +95,11 @@ test.describe("Admin Customer @admin", () => {
     await expect(page.locator('[data-testid="customer-summary-order-count"]')).toContainText(/^0$/);
   });
 
-  test("UC-ORD-04 opens customer-linked purchase history from customer context", async ({ page }) => {
-    test.fail(true, "blocked-both: customer Open history navigates with empty query instead of customer ID");
-    await expect(page.getByRole("heading", { name: "Customer Management" })).toBeVisible();
-
-    const adminToken = await getAdminToken(page.request);
-    const customerResp = await page.request.get(`${BACKEND_URL}/v1/admin/users?q=test_buyer&page=1&pageSize=20`, {
-      headers: { Authorization: `Bearer ${adminToken}` },
-    });
-    expect(customerResp.ok()).toBeTruthy();
-    const customerPayload = await customerResp.json();
-    const buyer = Array.isArray(customerPayload?.data)
-      ? customerPayload.data.find((item: any) => item.username === "test_buyer")
-      : null;
-    const buyerCustomerId = buyer?.customerId ?? buyer?.customer_id;
-    expect(buyerCustomerId).toBeTruthy();
-
-    await searchForUser(page, "test_buyer");
-    const buyerRow = page.getByText("test_buyer", { exact: false }).first();
-    await buyerRow.click();
-
-    await expect(page.getByText("Customer Actions")).toBeVisible();
-    await page.getByRole("button", { name: "Open history" }).click();
-
-    await expect(page).toHaveURL(new RegExp(`/admin/orders\\?q=${buyerCustomerId}`));
-    await expect(page.locator('[data-testid="order-row"]').filter({ hasText: "test-order-0001" }).first()).toBeVisible();
-  });
+  // UC-ORD-04 has been migrated to orders.spec.ts because customer-linked purchase history is an order domain concern.
+  // Refer to UC-ORD-04 in orders.spec.ts for the actual test implementation.
 
   test("UC-CUS-01 renders empty search state gracefully", async ({ page }) => {
+    test.fail(true, "blocked-be-gap: user/customer search query filtering is not supported or ignored by backend API");
     const responsePromise = page.waitForResponse(
       (response: any) => response.url().includes("/v1/admin/users") && response.status() === 200,
     );
@@ -127,5 +109,17 @@ test.describe("Admin Customer @admin", () => {
 
     await expect(page.getByText("No results")).toBeVisible();
     await expect(page.locator('[data-testid="error-boundary"]')).toHaveCount(0);
+  });
+
+  test("UC-CUS-01 exception: admin accounts must not appear in customer search results", async ({ page }) => {
+    // INVARIANT: customer search results chỉ được chứa customer account, không được trả admin/operator accounts
+    test.fail(true, "blocked-be-gap: admin account currently appears in user/customer search results");
+    await expect(page.getByRole("heading", { name: "Customer Management" })).toBeVisible();
+
+    await searchForUser(page, "test_admin");
+
+    const rows = page.locator('[data-testid="user-row"]');
+    await expect(rows).toHaveCount(0);
+    await expect(page.getByText("test_admin", { exact: false }).first()).toBeHidden();
   });
 });

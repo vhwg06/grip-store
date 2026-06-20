@@ -155,6 +155,7 @@ test.describe("Admin Refund API @api", () => {
   });
 
   test("UC-REF-03 duplicate approve is idempotent", async ({ request }) => {
+    // INVARIANT: duplicate approve phải trả 409/422 — không được âm thầm accept
     const created = await createRefundRequest(request, `pw idempotent ${Date.now()}`);
 
     const first = await adminPost(request, `/v1/admin/refunds/${created.refundId}/approve`, {

@@ -20,6 +20,7 @@ test.describe("Admin Profile @admin", () => {
     page,
     request,
   }) => {
+    // INVARIANT: FE phải render actual identity từ /v1/profile — không phải scaffolding fallback
     const profile = await fetchAdminProfile(request);
 
     await page.goto("/admin/profile");
@@ -27,6 +28,7 @@ test.describe("Admin Profile @admin", () => {
 
     await expect(page.getByRole("heading", { name: "Admin Profile" })).toBeVisible();
     await expect(page.locator("#username")).toHaveValue(String(profile.username));
+    await expect(page.locator("#username")).not.toHaveValue("admin_grip_ops");
     await expect(page.locator("#email")).toHaveValue(String(profile.email));
     await expect(page.getByText(String(profile.role), { exact: false })).toBeVisible();
     await expect(page.getByText(/administrator|admin role/i)).toBeVisible();
@@ -37,6 +39,7 @@ test.describe("Admin Profile @admin", () => {
     page,
     request,
   }) => {
+    // INVARIANT: profile display name update must persist and survive page reloads
     const nextDisplayName = `PW Admin FE ${Date.now()}`;
 
     await page.goto("/admin/profile");

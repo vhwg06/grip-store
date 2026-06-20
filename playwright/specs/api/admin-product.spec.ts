@@ -1,23 +1,16 @@
 import { test, expect } from "../../src/fixtures/base-test";
-import { BACKEND_URL, getUserToken } from "../../src/api-helpers/auth.helpers";
+import { BACKEND_URL, getAdminToken, getUserToken } from "../../src/api-helpers/auth.helpers";
 const DEFAULT_CATEGORY_ID = "a1111111-1111-1111-1111-111111111111";
 
-async function getAdminToken(): Promise<string | null> {
-  const token = process.env.ADMIN_USER_TOKEN?.trim();
-  return token || null;
-}
-
 async function adminGet(request: any, path: string) {
-  const token = await getAdminToken();
-  test.skip(!token, "ADMIN_USER_TOKEN is required");
+  const token = await getAdminToken(request);
   return request.get(`${BACKEND_URL}${path}`, {
     headers: { Authorization: `Bearer ${token}` },
   });
 }
 
 async function adminPost(request: any, path: string, options: Record<string, unknown>) {
-  const token = await getAdminToken();
-  test.skip(!token, "ADMIN_USER_TOKEN is required");
+  const token = await getAdminToken(request);
   return request.post(`${BACKEND_URL}${path}`, {
     headers: { Authorization: `Bearer ${token}` },
     ...options,
@@ -25,8 +18,7 @@ async function adminPost(request: any, path: string, options: Record<string, unk
 }
 
 async function adminPatch(request: any, path: string, options: Record<string, unknown>) {
-  const token = await getAdminToken();
-  test.skip(!token, "ADMIN_USER_TOKEN is required");
+  const token = await getAdminToken(request);
   return request.patch(`${BACKEND_URL}${path}`, {
     headers: { Authorization: `Bearer ${token}` },
     ...options,
@@ -226,6 +218,7 @@ test.describe("Admin Product API @api", () => {
   });
 
   test("UC-PROD-05 exposes product-linked card inventory in product context", async ({ request }) => {
+    test.fail(true, "blocked-be-gap: product-linked cards endpoint /v1/admin/cards unavailable on production API");
     const response = await adminGet(request, "/v1/admin/cards");
     expect(response.ok()).toBeTruthy();
 

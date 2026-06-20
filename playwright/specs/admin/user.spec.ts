@@ -20,6 +20,8 @@ test.describe("Admin User @admin", () => {
   }
 
   test("UC-USER-01 presents an account-centric management root", async ({ page }) => {
+    // INVARIANT: user management root là account/system domain — không phải commerce/customer domain
+    // INVARIANT: search phải filter theo account identity, không trả loyalty/order rows
     test.fail(true, "blocked-both: user management is customer-centric and query returns mixed rows instead of account-only");
     await expect(page.getByRole("heading", { name: "User Management" })).toBeVisible();
     await expect(page.getByText(/account\/system/i)).toBeVisible();
@@ -48,6 +50,7 @@ test.describe("Admin User @admin", () => {
   });
 
   test("UC-USER-03 keeps points and block mutations in explicit account-control semantics", async ({ page }) => {
+    // INVARIANT: points và block mutations là explicit account-control operations, không phải marketing preferences hay UI configuration đơn thuần
     test.fail(true, "blocked-fe-gap: UI has customer-profile framing instead of explicit account-control semantics");
 
     await buyerRow(page).click();
@@ -59,6 +62,7 @@ test.describe("Admin User @admin", () => {
   });
 
   test("UC-USER-03 submits points adjustment (blocked-be-gap)", async ({ page }) => {
+    // INVARIANT: points mutation là account-control operation, không phải customer loyalty behavior tự do
     test.fail(true, "blocked-be-gap: PATCH /v1/admin/users/:id/points returns 404");
 
     await buyerRow(page).click();
@@ -73,6 +77,7 @@ test.describe("Admin User @admin", () => {
   });
 
   test("UC-USER-03 submits block mutation (blocked-be-gap)", async ({ page }) => {
+    // INVARIANT: block mutation phải lập tức vô hiệu hóa account access rights của user, không cho phép bypass
     test.fail(true, "blocked-be-gap: PATCH /v1/admin/users/:id/block returns 404");
 
     // Dismiss dialog automatically by accepting it
@@ -96,6 +101,8 @@ test.describe("Admin User @admin", () => {
   });
 
   test("UC-USER-05 keeps commerce support separate from account-control actions", async ({ page }) => {
+    // INVARIANT: commerce support và account-control là hai surfaces riêng biệt
+    // INVARIANT: user root không được mix "Open history" hoặc loyalty behavior vào account-control semantics
     test.fail(true, "blocked-fe-gap: account panel still displays commerce elements like Open history or loyalty info");
     await buyerRow(page).click();
 

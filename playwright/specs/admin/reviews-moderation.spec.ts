@@ -55,6 +55,8 @@ test.describe("Admin Review Moderation E2E @admin", () => {
   });
 
   test("UC-REV-02 moderates a single review", async ({ page, request }) => {
+    // INVARIANT: approve, hide, delete, feature không đồng nghĩa nhau — mỗi action có public visibility consequence khác nhau
+    // INVARIANT: hide → button disabled sau khi executed (không thể hide thêm lần nữa)
     const approved = await fetchReviews(request, "APPROVED");
     const target = approved.find((review: any) => review.comment?.includes("probe approve"));
     expect(target?.comment).toBeTruthy();
@@ -121,6 +123,8 @@ test.describe("Admin Review Moderation E2E @admin", () => {
   });
 
   test("UC-REV-05 removes a review from the moderation surface", async ({ page, request }) => {
+    // INVARIANT: delete khác hide vì delete chấm dứt artifact thay vì chỉ đổi public meaning
+    // INVARIANT: sau delete, review không còn tồn tại trong moderation surface
     const hidden = await fetchReviews(request, "HIDDEN");
     expect(hidden.length).toBeGreaterThan(0);
     const target = hidden[0];
@@ -139,7 +143,7 @@ test.describe("Admin Review Moderation E2E @admin", () => {
     await expect(page.locator('[data-testid="reviews-queue-container"]')).toContainText("No reviews found");
   });
 
-  test("UC-REV-01 renders empty state gracefully", async ({ page }) => {
+  test("UC-REV-01 alternate: renders empty state gracefully", async ({ page }) => {
     await openReviews(page);
     await searchForReview(page, "nonexistent-review-12345xyz");
     await expect(page.locator('[data-testid="reviews-queue-container"]')).toContainText("No reviews found");

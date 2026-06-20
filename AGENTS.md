@@ -59,6 +59,70 @@ Bug Report  →  Review Spec & Use Cases  →  Update Spec/Use Cases if uncovere
 
 ---
 
+## 🎭 Playwright Rules — Tests Are the Executable Spec
+
+> [!CRITICAL]
+> **Playwright tests are the canonical, executable capture of domain contracts defined in specs.**
+> They are the bridge between human-readable specs and running implementation.
+> Tests must remain independent of any FE or BE implementation details.
+
+### Contract Capture Principle
+
+Playwright tests **lock the domain contract** from the spec so that:
+- **Frontend** forks its rendering logic from the test expectations
+- **Backend** forks its API contract from the test assertions
+
+The direction of dependency is strictly:
+
+```
+Spec (use-cases.md / scenarios.md)
+        ↓
+Playwright Tests   ← ONLY depends on spec
+        ↓              ← NEVER depends on FE or BE code
+FE Implementation
+BE Implementation
+```
+
+### When Editing Playwright Tests
+
+> [!IMPORTANT]
+> **Code Blindness Rule for Playwright:**
+> When writing or modifying any file under `/playwright/specs/`, you **must not** read, open, or inspect:
+> - Any FE source code (`/src/**`)
+> - Any BE source code (`/Users/cynus/Desktop/go-grip/**`)
+>
+> **Only permitted sources while editing Playwright:**
+> - `/specs/**` — the use cases and scenarios
+> - `/playwright/**` — other test helpers, fixtures, existing specs
+
+### Why This Matters
+
+If a Playwright test is written by reading the code, it tests what the code *does*, not what the spec *requires*.
+Tests written from code are circular — they cannot catch spec deviations.
+Tests written from spec are the ground truth — they catch implementation drift.
+
+### What Playwright Tests Must Capture from Spec
+
+For every use case (UC) in `use-cases.md`:
+
+| Spec Artifact | What the Test Must Assert |
+|---|---|
+| Primary flow | Happy path assertions against real API |
+| Alternate flows | Branching behavior variants |
+| Exception/rejection flows | Expected error codes (4xx/5xx) or UI error states |
+| State transitions | Valid vs. forbidden transition rejection |
+| Domain constraints | Field rules, ordering rules, visibility rules |
+
+### Playwright Editing Checklist
+
+- [ ] I read the spec (`use-cases.md`, `scenarios.md`) — not the code
+- [ ] The test asserts the domain behavior described in the spec
+- [ ] Alternate and rejection flows from `scenarios.md` are covered
+- [ ] I did **not** open any FE or BE source file during this edit
+- [ ] I did **not** weaken or remove an assertion to make the test pass
+
+---
+
 ## 🧭 Admin System Flow
 
 For all admin work, the system-wide source of approach is now:

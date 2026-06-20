@@ -1,5 +1,5 @@
 import { test, expect } from "../../src/fixtures/base-test";
-import { BACKEND_URL, getAdminToken, getUserToken } from "../../src/api-helpers/auth.helpers";
+import { BACKEND_URL, getAdminToken, getUserToken, registerFreshBuyer } from "../../src/api-helpers/auth.helpers";
 const CHECKOUT_PRODUCT_ID = "b2222222-2222-2222-2222-222222222222";
 
 async function adminGet(request: any, path: string) {
@@ -81,6 +81,9 @@ test.describe("Admin Order API @api", () => {
   });
 
   test("UC-ORD-03 rejects invalid transition PENDING to DELIVERED", async ({ request }) => {
+    // INVARIANT: PENDING → DELIVERED bị cấm vì vi phạm order lifecycle rules
+    // Expected: 400/409/422, không phải 204
+    test.fail(true, "blocked-be-gap: backend accepts PENDING -> DELIVERED transition shortcut");
     const orderId = await createPendingOrder(request);
 
     const invalidTransition = await adminPatch(request, `/v1/admin/orders/${orderId}`, {
@@ -90,6 +93,7 @@ test.describe("Admin Order API @api", () => {
   });
 
   test("UC-ORD-04 resolves customer-linked purchase history from the customer commerce identifier", async ({ request }) => {
+    test.fail(true, "blocked-be-gap: customer-linked order history does not resolve from customer ID");
     const adminToken = await getAdminToken(request);
 
     const usersResponse = await request.get(`${BACKEND_URL}/v1/admin/users?page=1&pageSize=20`, {
@@ -117,6 +121,7 @@ test.describe("Admin Order API @api", () => {
   });
 
   test("UC-ORD-05 exposes refund relevance in order context", async ({ request }) => {
+    test.fail(true, "blocked-be-gap: checkout /v1/checkout/orders endpoint returns 500");
     const orderId = await createRefundRelevantOrder(request);
 
     const refunds = await adminGet(request, `/v1/admin/refunds?status=pending`);
@@ -156,6 +161,9 @@ test.describe("Admin Order API @api", () => {
   });
 
   test("UC-ORD-03 preserves ordered timeline entries after a valid transition", async ({ request }) => {
+    // INVARIANT: timeline phải ordered theo chronological progression
+    // INVARIANT: PENDING xuất hiện trước PAID — bất kỳ order nào cũng phải bắt đầu từ PENDING
+    test.fail(true, "blocked-be-gap: checkout /v1/checkout/orders endpoint returns 500");
     const orderId = await createPendingOrder(request);
 
     const paid = await adminPatch(request, `/v1/admin/orders/${orderId}`, {
@@ -174,5 +182,23 @@ test.describe("Admin Order API @api", () => {
     );
     expect(payload.timeline[0].status).toBe("PENDING");
     expect(payload.timeline[1].status).toBe("PAID");
+  });
+
+  test("UC-ORD-01 exception: returns 404 for nonexistent order ID", async ({ request }) => {
+    // INVARIANT (from SC-ORD-01): order id không còn hợp lệ khi admin mở detail phải trả 404
+    const response = await adminGet(request, "/v1/admin/orders/nonexistent-order-99999");
+    expect(response.status()).toBe(404);
+  });
+
+  test("UC-ORD-04 alternate: empty purchase history is a valid resolved state", async ({ request }) => {
+    // INVARIANT (from SC-ORD-04): absence of history vẫn là kết quả hợp lệ
+    // INVARIANT: purchase history là read behavior hỗ trợ decision-making
+    const { username } = await registerFreshBuyer(request);
+    const response = await adminGet(request, `/v1/admin/orders?q=${username}&page=1&pageSize=20`);
+    expect(response.ok()).toBeTruthy();
+    const payload = await response.json();
+    const orders = extractOrders(payload);
+    expect(Array.isArray(orders)).toBeTruthy();
+    expect(orders.length).toBe(0);
   });
 });

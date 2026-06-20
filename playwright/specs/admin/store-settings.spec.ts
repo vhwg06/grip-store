@@ -23,6 +23,8 @@ test.describe("Admin Store Settings Spec Coverage @admin", () => {
     homepagePage,
     request,
   }) => {
+    // INVARIANT: brand và contact là public business facts — identity changes phải được hiểu là thay đổi storefront behavior
+    // INVARIANT: storefront read model mới phải có hiệu lực ngay sau save (verified via /v1/site-config)
     const adminToken = await getAdminToken(request);
     expect(adminToken).toBeTruthy();
 
@@ -120,22 +122,30 @@ test.describe("Admin Store Settings Spec Coverage @admin", () => {
   test("UC-SET-02 submits homepage composition decisions and reflects the new homepage priority", async ({
     page,
     homepagePage,
+    request,
   }) => {
+    // INVARIANT: block order là publishing decision — không chỉ là UI arrangement
+    // INVARIANT: enabled/disabled blocks thay đổi homepage presence semantics
     await expect(page.locator('[data-testid="settings-section-homepage"]')).toBeVisible();
 
     await page.locator('[data-testid="homepage-block-latest-news-toggle"]').click();
     await page.locator('[data-testid="homepage-block-latest-news-toggle"]').click();
     await page.locator('[data-testid="homepage-news-count"]').fill("3");
 
-    // Robust move up: click categories move up if enabled, otherwise hero move up
-    const categoriesMoveUp = page.locator('[data-testid="homepage-block-categories-move-up"]');
-    if (await categoriesMoveUp.isEnabled()) {
-      await categoriesMoveUp.click();
+    // Đọc state từ backend trước, assert dựa trên actual composition order
+    const adminToken = await getAdminToken(request);
+    const settingsResp = await request.get(`${BACKEND_URL}/v1/admin/store-settings`, {
+      headers: { Authorization: `Bearer ${adminToken}` },
+    });
+    const config = await settingsResp.json();
+    const blocks = config?.data?.config?.homepage?.blocks ?? [];
+    const categoriesIdx = blocks.findIndex((b: any) => b.key === "categories");
+    if (categoriesIdx > 0) {
+      await expect(page.locator('[data-testid="homepage-block-categories-move-up"]')).toBeEnabled();
+      await page.locator('[data-testid="homepage-block-categories-move-up"]').click();
     } else {
-      const heroMoveUp = page.locator('[data-testid="homepage-block-hero-move-up"]');
-      if (await heroMoveUp.isEnabled()) {
-        await heroMoveUp.click();
-      }
+      // Categories đã ở top — assert disabled (đây là valid state, không phải skip)
+      await expect(page.locator('[data-testid="homepage-block-categories-move-up"]')).toBeDisabled();
     }
 
     await page.locator('[data-testid="settings-save-homepage"]').click();
@@ -160,6 +170,7 @@ test.describe("Admin Store Settings Spec Coverage @admin", () => {
     page,
     homepagePage,
   }) => {
+    // INVARIANT: các flags như no-index mang behavioral meaning — không phải display preference đơn thuần
     await expect(page.locator('[data-testid="settings-section-discovery-visibility"]')).toBeVisible();
 
     // Ensure it is checked
@@ -216,24 +227,32 @@ test.describe("Admin Store Settings Spec Coverage @admin", () => {
     await expect(page.locator('[data-testid="settings-save-contact"]')).toBeDisabled();
   });
 
-  test("UC-SET-05 exposes banner and about presence controls inside store settings", async ({ page, request }) => {
-    await expect(page.locator('[data-testid="settings-banner-presence-toggle"]')).toBeVisible();
-    await expect(page.locator('[data-testid="settings-about-presence-toggle"]')).toBeVisible();
-    await expect(page.locator('[data-testid="settings-banner-presence-toggle"]')).toBeDisabled();
-    await expect(page.locator('[data-testid="settings-about-presence-toggle"]')).toBeDisabled();
-
+  test("UC-SET-05 exposes banner and about presence controls inside store settings", async ({
+    page,
+    homepagePage,
+    request,
+  }) => {
+    // INVARIANT: banner và about presence controls thay đổi layout composition của storefront
     test.fail(true, "blocked-be-gap: bannerPresence/aboutPresence missing in config");
 
-    const token = await getAdminToken(request);
-    const response = await request.get(`${BACKEND_URL}/v1/admin/store-settings`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    expect(response.ok()).toBeTruthy();
-    const payload = await response.json();
-    expect(payload.data.config).toMatchObject({
-      bannerPresence: expect.any(Object),
-      aboutPresence: expect.any(Object),
-    });
+    await expect(page.locator('[data-testid="settings-banner-presence-toggle"]')).toBeVisible();
+    await expect(page.locator('[data-testid="settings-about-presence-toggle"]')).toBeVisible();
+
+    // Toggle them
+    await expect(page.locator('[data-testid="settings-banner-presence-toggle"]')).toBeEnabled({ timeout: 1000 });
+    await expect(page.locator('[data-testid="settings-about-presence-toggle"]')).toBeEnabled({ timeout: 1000 });
+
+    await page.locator('[data-testid="settings-banner-presence-toggle"]').click();
+    await page.locator('[data-testid="settings-about-presence-toggle"]').click();
+
+    // Save
+    await page.locator('[data-testid="settings-save-presence"]').click();
+    await expectSuccessToast(page);
+
+    // Verify reflection on storefront
+    await homepagePage.goto();
+    await expect(page.locator('[data-testid="homepage-banner"]')).toBeHidden();
+    await expect(page.locator('[data-testid="homepage-about"]')).toBeHidden();
   });
 
   test("UC-SET-06 exposes registry and legacy commitment controls as an intentional storefront policy surface", async ({
@@ -252,10 +271,37 @@ test.describe("Admin Store Settings Spec Coverage @admin", () => {
   });
 
   test("UC-SET-05 negative path: banner/about presence toggle and save failure", async ({ page }) => {
-    test.fixme(true, "blocked-be-gap: bannerPresence/aboutPresence missing or disabled in UI");
+    // INVARIANT: save operation cho presence controls phải fail an toàn khi server từ chối cập nhật
+    test.fail(true, "blocked-be-gap: bannerPresence/aboutPresence missing or disabled in UI");
+    await expect(page.locator('[data-testid="settings-banner-presence-toggle"]')).toBeVisible();
+    await expect(page.locator('[data-testid="settings-banner-presence-toggle"]')).toBeDisabled();
   });
 
   test("UC-SET-06 negative path: rejects invalid registry origin payload", async ({ page }) => {
-    test.fixme(true, "blocked-be-gap: registry commit button or UI flow not ready");
+    // INVARIANT: registry commit với invalid payload phải bị chặn và hiển thị error, không silent succeed
+    test.fail(true, "blocked-be-gap: registry commit button or UI flow not ready");
+    await expect(page.locator('[data-testid="settings-section-registry-legacy"]')).toBeVisible();
+    
+    const commitBtn = page.getByRole("button", { name: /Join Registry|Resubmit Origin/i });
+    await expect(commitBtn).toBeVisible();
+    await commitBtn.click();
+
+    await expect(page.locator("[data-type='error'], .toast-error").first()).toBeVisible();
+  });
+
+  test("UC-SET-01 exception: failed save must not silently succeed on empty shop name", async ({ page }) => {
+    // INVARIANT: shop name là bắt buộc cho storefront identity — empty shop name phải bị validate chặn ở client hoặc server
+    await expect(page.locator('[data-testid="settings-section-brand"]')).toBeVisible();
+
+    await page.locator('[data-testid="settings-brand-shop-name"]').fill("");
+    
+    const saveBtn = page.locator('[data-testid="settings-save-brand"]');
+    if (await saveBtn.isEnabled()) {
+      await saveBtn.click();
+      await expect(page.locator("[data-type='success'], .toast-success").first()).toBeHidden();
+      await expect(page.locator("[data-type='error'], .toast-error").first()).toBeVisible();
+    } else {
+      await expect(saveBtn).toBeDisabled();
+    }
   });
 });

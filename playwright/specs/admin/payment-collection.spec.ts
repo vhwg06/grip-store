@@ -33,6 +33,7 @@ test.describe("Admin Payment Collection @admin", () => {
   });
 
   test("UC-PCOL-02 persists payee identity from the admin collection surface", async ({ page }) => {
+    // INVARIANT: payee identity must be persisted durably to the backend and remain consistent across reloads
     const nextPayee = `PW FE Payee ${Date.now()}`;
     const nextPayLink = `PW-FE-COLLECT-${Date.now()}`;
 
@@ -53,6 +54,7 @@ test.describe("Admin Payment Collection @admin", () => {
     page,
     request,
   }) => {
+    // INVARIANT: validation errors must block saving, ensuring invalid configurations are never written live
     const originalPayee = `PW Valid Payee ${Date.now()}`;
     const originalPayLink = `PW-VALID-${Date.now()}`;
     const seedResponse = await saveCollectState(request, originalPayLink, originalPayee);

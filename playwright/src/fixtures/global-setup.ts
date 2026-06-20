@@ -3,8 +3,8 @@ import { BACKEND_URL, extractAccessToken } from "../api-helpers/auth.helpers";
 
 async function loginForToken(baseUrl: string, email: string, password: string): Promise<string | null> {
   try {
-    const api = await playwrightRequest.newContext({ baseURL: baseUrl });
-    const response = await api.post("/v1/auth/login", {
+    const api = await playwrightRequest.newContext();
+    const response = await api.post(`${baseUrl}/v1/auth/login`, {
       data: { email, password },
     });
     if (!response.ok()) {
