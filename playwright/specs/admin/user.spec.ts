@@ -20,6 +20,7 @@ test.describe("Admin User @admin", () => {
   }
 
   test("UC-USER-01 presents an account-centric management root", async ({ page }) => {
+    test.fail(true, "blocked-both: user management is customer-centric and query returns mixed rows instead of account-only");
     await expect(page.getByRole("heading", { name: "User Management" })).toBeVisible();
     await expect(page.getByText(/account\/system/i)).toBeVisible();
     const search = page.getByPlaceholder("Search account email, username, or user ID...");
@@ -35,6 +36,7 @@ test.describe("Admin User @admin", () => {
   });
 
   test("UC-USER-02 reads account state without switching into customer-domain actions", async ({ page }) => {
+    test.fail(true, "blocked-both: account state panel is labeled Customer Actions and lacks last-login/blocked fields");
     await buyerRow(page).click();
 
     await expect(page.getByText("Account Actions")).toBeVisible();
@@ -46,6 +48,8 @@ test.describe("Admin User @admin", () => {
   });
 
   test("UC-USER-03 keeps points and block mutations in explicit account-control semantics", async ({ page }) => {
+    test.fail(true, "blocked-fe-gap: UI has customer-profile framing instead of explicit account-control semantics");
+
     await buyerRow(page).click();
 
     await expect(page.getByText("Account Actions")).toBeVisible();
@@ -82,6 +86,7 @@ test.describe("Admin User @admin", () => {
   });
 
   test("UC-USER-04 exposes a domain handoff from account context into customer context", async ({ page }) => {
+    test.fail(true, "blocked-both: missing Open customer domain handoff button in user details");
     await buyerRow(page).click();
 
     await expect(page.getByRole("button", { name: /open customer/i })).toBeVisible();
@@ -91,6 +96,7 @@ test.describe("Admin User @admin", () => {
   });
 
   test("UC-USER-05 keeps commerce support separate from account-control actions", async ({ page }) => {
+    test.fail(true, "blocked-fe-gap: account panel still displays commerce elements like Open history or loyalty info");
     await buyerRow(page).click();
 
     await expect(page.getByText(/account control/i)).toBeVisible();

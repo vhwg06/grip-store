@@ -21,32 +21,98 @@ test.describe("Admin Store Settings Spec Coverage @admin", () => {
     homepagePage,
     request,
   }) => {
-    await expect(page.getByRole("heading", { name: "Store Settings" })).toBeVisible();
-    await expect(page.locator('[data-testid="settings-section-brand"]')).toBeVisible();
-    await expect(page.locator('[data-testid="settings-section-contact"]')).toBeVisible();
+    const adminToken = await getAdminToken(request);
+    expect(adminToken).toBeTruthy();
 
-    await page.locator('[data-testid="settings-brand-shop-name"]').fill("playwright-storefront-identity");
-    await page.locator('[data-testid="settings-brand-description"]').fill("playwright identity reflection");
-    await page.locator('[data-testid="settings-save-brand"]').click();
-    await expectSuccessToast(page);
+    const getResp = await request.get(`${BACKEND_URL}/v1/admin/store-settings`, {
+      headers: { Authorization: `Bearer ${adminToken}` },
+    });
+    expect(getResp.ok()).toBeTruthy();
+    const originalPayload = await getResp.json();
+    const originalBrand = originalPayload?.data?.config?.brand || originalPayload?.config?.brand;
+    const originalContact = originalPayload?.data?.config?.contact || originalPayload?.config?.contact;
 
-    await page.locator('[data-testid="settings-contact-address"]').fill("12 Nguyen Hue, Ho Chi Minh City");
-    await page.locator('[data-testid="settings-contact-hotline"]').fill("+84 903 117 742");
-    await page.locator('[data-testid="settings-contact-email"]').fill("playwright-identity@grip.vn");
-    await page.locator('[data-testid="settings-save-contact"]').click();
-    await expectSuccessToast(page);
+    try {
+      await expect(page.getByRole("heading", { name: "Store Settings" })).toBeVisible();
+      await expect(page.locator('[data-testid="settings-section-brand"]')).toBeVisible();
+      await expect(page.locator('[data-testid="settings-section-contact"]')).toBeVisible();
 
-    const siteConfig = await request.get(`${BACKEND_URL}/v1/site-config`);
-    expect(siteConfig.ok()).toBeTruthy();
-    const siteConfigPayload = await siteConfig.json();
-    expect(siteConfigPayload.data.brand.shopName).toBe("playwright-storefront-identity");
+      await page.locator('[data-testid="settings-brand-shop-name"]').fill("playwright-storefront-identity");
+      await page.locator('[data-testid="settings-brand-description"]').fill("playwright identity reflection");
+      await page.locator('[data-testid="settings-save-brand"]').click();
+      await expectSuccessToast(page);
 
-    await homepagePage.goto();
+      await page.locator('[data-testid="settings-contact-address"]').fill("12 Nguyen Hue, Ho Chi Minh City");
+      await page.locator('[data-testid="settings-contact-hotline"]').fill("+84 903 117 742");
+      await page.locator('[data-testid="settings-contact-email"]').fill("playwright-identity@grip.vn");
+      await page.locator('[data-testid="settings-save-contact"]').click();
+      await expectSuccessToast(page);
 
-    await expect(page.locator('[data-testid="site-header-logo-text"]')).toContainText("playwright-storefront-identity");
-    await expect(page.locator('[data-testid="sticky-bar-address"]')).toContainText("12 Nguyen Hue");
-    await expect(page.locator('[data-testid="sticky-bar-hotline"]')).toContainText("+84 903 117 742");
-    await expect(page.locator('[data-testid="footer-contact-email"]')).toContainText("playwright-identity@grip.vn");
+      const siteConfig = await request.get(`${BACKEND_URL}/v1/site-config`);
+      expect(siteConfig.ok()).toBeTruthy();
+      const siteConfigPayload = await siteConfig.json();
+      expect(siteConfigPayload.data.brand.shopName).toBe("playwright-storefront-identity");
+
+      await homepagePage.goto();
+
+      await expect(page.locator('[data-testid="site-header-logo-text"]')).toContainText("playwright-storefront-identity");
+      await expect(page.locator('[data-testid="sticky-bar-address"]')).toContainText("12 Nguyen Hue");
+      await expect(page.locator('[data-testid="sticky-bar-hotline"]')).toContainText("+84 903 117 742");
+      await expect(page.locator('[data-testid="footer-contact-email"]')).toContainText("playwright-identity@grip.vn");
+    } finally {
+      if (originalBrand) {
+        await request.put(`${BACKEND_URL}/v1/admin/store-settings/brand`, {
+          headers: { Authorization: `Bearer ${adminToken}` },
+          data: originalBrand,
+        });
+      }
+      if (originalContact) {
+        await request.put(`${BACKEND_URL}/v1/admin/store-settings/contact`, {
+          headers: { Authorization: `Bearer ${adminToken}` },
+          data: originalContact,
+        });
+      }
+    }
+  });
+
+  test("UC-SET-01 alternate flow: updates contact info without changing brand info", async ({
+    page,
+    homepagePage,
+    request,
+  }) => {
+    const adminToken = await getAdminToken(request);
+    expect(adminToken).toBeTruthy();
+
+    const getResp = await request.get(`${BACKEND_URL}/v1/admin/store-settings`, {
+      headers: { Authorization: `Bearer ${adminToken}` },
+    });
+    expect(getResp.ok()).toBeTruthy();
+    const originalPayload = await getResp.json();
+    const originalBrand = originalPayload?.data?.config?.brand || originalPayload?.config?.brand;
+    const originalContact = originalPayload?.data?.config?.contact || originalPayload?.config?.contact;
+
+    try {
+      await expect(page.getByRole("heading", { name: "Store Settings" })).toBeVisible();
+      await expect(page.locator('[data-testid="settings-section-contact"]')).toBeVisible();
+
+      await page.locator('[data-testid="settings-contact-address"]').fill("456 Playwright Alternate Road");
+      await page.locator('[data-testid="settings-save-contact"]').click();
+      await expectSuccessToast(page);
+
+      await homepagePage.goto();
+      await expect(page.locator('[data-testid="sticky-bar-address"]')).toContainText("456 Playwright Alternate Road");
+
+      if (originalBrand?.shopName) {
+        await expect(page.locator('[data-testid="site-header-logo-text"]')).toContainText(originalBrand.shopName);
+      }
+    } finally {
+      if (originalContact) {
+        await request.put(`${BACKEND_URL}/v1/admin/store-settings/contact`, {
+          headers: { Authorization: `Bearer ${adminToken}` },
+          data: originalContact,
+        });
+      }
+    }
   });
 
   test("UC-SET-02 submits homepage composition decisions and reflects the new homepage priority", async ({
@@ -174,5 +240,20 @@ test.describe("Admin Store Settings Spec Coverage @admin", () => {
     await expect(page.locator('[data-testid="settings-section-registry-legacy"]')).toBeVisible();
     await expect(page.getByRole("heading", { name: "Registry & legacy controls" })).toBeVisible();
     await expect(page.getByRole("button", { name: /Join Registry|Resubmit Origin/i })).toBeVisible();
+  });
+
+  test("UC-SET-04 negative path: validation blocks invalid social URL format", async ({ page }) => {
+    test.fail(true, "blocked-fe-gap: social URL validation is missing in frontend");
+    await expect(page.locator('[data-testid="settings-section-footer-social"]')).toBeVisible();
+    await page.locator('[data-testid="social-link-facebook"]').fill("invalid-facebook-url");
+    await expect(page.locator('[data-testid="settings-save-footer-social"]')).toBeDisabled();
+  });
+
+  test("UC-SET-05 negative path: banner/about presence toggle and save failure", async ({ page }) => {
+    test.fixme(true, "blocked-be-gap: bannerPresence/aboutPresence missing or disabled in UI");
+  });
+
+  test("UC-SET-06 negative path: rejects invalid registry origin payload", async ({ page }) => {
+    test.fixme(true, "blocked-be-gap: registry commit button or UI flow not ready");
   });
 });
