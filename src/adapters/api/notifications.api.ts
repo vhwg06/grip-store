@@ -69,8 +69,8 @@ export async function markAllNotificationsRead(): Promise<NotificationActionResu
 }
 
 export async function clearMyNotifications(): Promise<NotificationActionResult> {
-  const payload = await apiFetch<unknown>("/api/notifications/clear", {
-    method: "POST",
+  const payload = await apiFetch<unknown>("/api/notifications", {
+    method: "DELETE",
   })
   return normalizeActionResult(payload)
 }

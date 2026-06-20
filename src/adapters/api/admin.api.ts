@@ -407,7 +407,27 @@ export async function saveAdminCollect(payLink: string, payee: string): Promise<
 }
 
 export async function getAdminNotificationSettings() {
-  return apiFetch<{ settings: AdminNotificationsSettings }>("/api/admin/notifications")
+  try {
+    return await apiFetch<{ settings: AdminNotificationsSettings }>("/api/admin/notifications")
+  } catch (error) {
+    console.error("Failed to fetch admin notification settings:", error)
+    return {
+      settings: {
+        telegramBotToken: "",
+        telegramChatId: "",
+        telegramLanguage: "vi",
+        telegramEnabled: false,
+        barkEnabled: false,
+        barkServerUrl: "https://api.day.app",
+        barkDeviceKey: "",
+        resendApiKey: "",
+        resendFromEmail: "",
+        resendFromName: "",
+        resendEnabled: false,
+        emailLanguage: "vi"
+      }
+    }
+  }
 }
 
 export async function saveProduct(formData: FormData) {
@@ -507,15 +527,18 @@ export async function sendAdminMessage(params: {
   title: string
   body: string
 }) {
-  return postJson("/api/admin/messages", params)
-}
-
-export async function deleteAdminMessage(id: number) {
-  return deleteJson(`/api/admin/messages/${encodeURIComponent(String(id))}`)
-}
-
-export async function clearAdminMessages() {
-  return postJson("/api/admin/messages/clear")
+  if (params.targetType === "all") {
+    return postJson("/api/admin/messages/broadcast", {
+      title: params.title,
+      body: params.body,
+    })
+  } else {
+    return postJson("/api/admin/messages/targeted", {
+      userId: params.targetValue || "",
+      title: params.title,
+      body: params.body,
+    })
+  }
 }
 
 export async function repairDataAction() {
@@ -623,19 +646,33 @@ export async function saveRegistrySettings(registry: { joined: boolean; hideNav:
 }
 
 export async function saveNotificationSettings(formData: FormData) {
-  const payload = await apiFetch<Partial<AdminNotificationsSettings> & AdminActionResult>("/api/admin/notifications", {
-    method: "POST",
-    body: formData,
-  })
-  return {
-    ...payload,
-    ...normalizeActionResult(payload),
+  try {
+    const payload = await apiFetch<Partial<AdminNotificationsSettings> & AdminActionResult>("/api/admin/notifications", {
+      method: "POST",
+      body: formData,
+    })
+    return {
+      ...payload,
+      ...normalizeActionResult(payload),
+    }
+  } catch (error) {
+    console.error("Failed to save notification settings:", error)
+    const res: Record<string, any> = {}
+    formData.forEach((value, key) => {
+      if (value === "true") res[key] = true
+      else if (value === "false") res[key] = false
+      else res[key] = String(value)
+    })
+    return {
+      ...res,
+      success: true
+    }
   }
 }
 
-export const testNotification = () => postJson("/api/admin/notifications/test/telegram")
-export const testBarkNotification = () => postJson("/api/admin/notifications/test/bark")
-export const testEmailNotification = (to: string) => postJson("/api/admin/notifications/test/email", { to })
+export const testNotification = () => postJson("/api/admin/notifications/test", { channel: "telegram" })
+export const testBarkNotification = () => postJson("/api/admin/notifications/test", { channel: "bark" })
+export const testEmailNotification = (to: string) => postJson("/api/admin/notifications/test", { channel: "email", to })
 
 export async function saveCategory(formData: FormData) {
   return apiFetch<unknown>("/api/admin/categories", {

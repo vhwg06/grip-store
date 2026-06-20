@@ -9,28 +9,22 @@ import { Sheet, SheetContent, SheetTrigger, SheetClose } from "@/components/ui/s
 import { 
   Package, 
   CreditCard, 
-  Megaphone, 
   Star, 
-  Download, 
   Tags, 
-  RotateCcw, 
   Users, 
   Settings, 
   QrCode, 
   Bell, 
   Menu, 
-  MessageSquare, 
   Images, 
   Image as BannersIcon,
   FileText,
   FolderTree,
   Info,
-  User,
-  ListTodo
+  User
 } from "lucide-react"
 import { useI18n } from "@/lib/i18n/context"
 import { getPendingRefundRequestCount } from "@/adapters/api/admin.api"
-import { useAdminUserMessageUnreadCount } from "@/application/hooks/useNotifications"
 
 interface NavLinkProps {
   href: string
@@ -91,7 +85,6 @@ interface SidebarContentProps {
 function SidebarContent({ closeOnNavigate = false, showTitle = true, username, t, withTestIds = false }: SidebarContentProps) {
   const pathname = usePathname()
   const [pendingRefunds, setPendingRefunds] = useState(0)
-  const { count: unreadMessages, refresh: refreshUnreadMessages } = useAdminUserMessageUnreadCount()
 
   useEffect(() => {
     let active = true
@@ -101,7 +94,6 @@ function SidebarContent({ closeOnNavigate = false, showTitle = true, username, t
         if (active && res?.success) {
           setPendingRefunds(res.count || 0)
         }
-        void refreshUnreadMessages()
       } catch {
         // ignore
       }
@@ -110,7 +102,7 @@ function SidebarContent({ closeOnNavigate = false, showTitle = true, username, t
     return () => {
       active = false
     }
-  }, [pathname, refreshUnreadMessages])
+  }, [pathname])
 
   useEffect(() => {
     const handler = () => {
@@ -120,7 +112,6 @@ function SidebarContent({ closeOnNavigate = false, showTitle = true, username, t
           if (res?.success) {
             setPendingRefunds(res.count || 0)
           }
-          void refreshUnreadMessages()
         } catch {
           // ignore
         }
@@ -128,25 +119,17 @@ function SidebarContent({ closeOnNavigate = false, showTitle = true, username, t
     }
     if (typeof window !== "undefined") {
       window.addEventListener("grip-store:refunds-updated", handler)
-      window.addEventListener("grip-store:user-messages-updated", handler)
     }
     return () => {
       if (typeof window !== "undefined") {
         window.removeEventListener("grip-store:refunds-updated", handler)
-        window.removeEventListener("grip-store:user-messages-updated", handler)
       }
     }
-  }, [refreshUnreadMessages])
+  }, [])
 
   const refundBadge = pendingRefunds > 0 ? (
     <span className="ml-2 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-medium text-white">
       {pendingRefunds > 99 ? "99+" : pendingRefunds}
-    </span>
-  ) : null
-
-  const messageBadge = unreadMessages > 0 ? (
-    <span className="ml-2 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-medium text-white">
-      {unreadMessages > 99 ? "99+" : unreadMessages}
     </span>
   ) : null
 
@@ -184,13 +167,9 @@ function SidebarContent({ closeOnNavigate = false, showTitle = true, username, t
           <NavLink href="/admin/orders" testId={withTestIds ? "admin-nav-orders" : undefined} icon={<CreditCard className="mr-2 h-4 w-4 shrink-0" />} label="Orders & Refunds" closeOnNavigate={closeOnNavigate} isActive={pathname === "/admin/orders" || pathname.startsWith("/admin/orders/")} />
           <NavLink href="/admin/users" testId={withTestIds ? "admin-nav-users" : undefined} icon={<Users className="mr-2 h-4 w-4 shrink-0" />} label="Users" closeOnNavigate={closeOnNavigate} isActive={pathname === "/admin/users"} />
           <NavLink href="/admin/reviews" testId={withTestIds ? "admin-nav-reviews" : undefined} icon={<Star className="mr-2 h-4 w-4 shrink-0" />} label="Reviews" closeOnNavigate={closeOnNavigate} isActive={pathname === "/admin/reviews"} />
-          <NavLink href="/admin/messages" testId={withTestIds ? "admin-nav-messages" : undefined} icon={<MessageSquare className="mr-2 h-4 w-4 shrink-0" />} label="Messages" badge={messageBadge} closeOnNavigate={closeOnNavigate} isActive={pathname === "/admin/messages"} />
           <NavLink href="/admin/notifications" testId={withTestIds ? "admin-nav-notifications" : undefined} icon={<Bell className="mr-2 h-4 w-4 shrink-0" />} label="Notifications" closeOnNavigate={closeOnNavigate} isActive={pathname === "/admin/notifications"} />
-          <NavLink href="/admin/announcement" testId={withTestIds ? "admin-nav-announcements" : undefined} icon={<Megaphone className="mr-2 h-4 w-4 shrink-0" />} label="Announcements" closeOnNavigate={closeOnNavigate} isActive={pathname === "/admin/announcement"} />
-          <NavLink href="/admin/data" testId={withTestIds ? "admin-nav-data" : undefined} icon={<Download className="mr-2 h-4 w-4 shrink-0" />} label="Data" closeOnNavigate={closeOnNavigate} isActive={pathname === "/admin/data"} />
           <NavLink href="/admin/collect" testId={withTestIds ? "admin-nav-collect" : undefined} icon={<QrCode className="mr-2 h-4 w-4 shrink-0" />} label="Collect" closeOnNavigate={closeOnNavigate} isActive={pathname === "/admin/collect"} />
           <NavLink href="/admin/categories" testId={withTestIds ? "admin-nav-categories" : undefined} icon={<Tags className="mr-2 h-4 w-4 shrink-0" />} label="Categories" closeOnNavigate={closeOnNavigate} isActive={pathname === "/admin/categories"} />
-          <NavLink href="/admin/leads" testId={withTestIds ? "admin-nav-leads" : undefined} icon={<ListTodo className="mr-2 h-4 w-4 shrink-0" />} label="Leads" closeOnNavigate={closeOnNavigate} isActive={pathname === "/admin/leads"} />
           <NavLink href="/admin/profile" testId={withTestIds ? "admin-nav-profile" : undefined} icon={<User className="mr-2 h-4 w-4 shrink-0" />} label="Profile" closeOnNavigate={closeOnNavigate} isActive={pathname === "/admin/profile"} />
         </div>
       </nav>
