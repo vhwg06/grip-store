@@ -24,6 +24,14 @@ export interface SiteConfig {
   contactAddress?: string;
   contactEmail?: string;
   contactHotline?: string;
+  bannerPresence?: {
+    enabled: boolean;
+    present: boolean;
+  };
+  aboutPresence?: {
+    enabled: boolean;
+    present: boolean;
+  };
   socialLinks?: {
     facebook?: string;
     zalo?: string;

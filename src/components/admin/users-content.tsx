@@ -36,6 +36,10 @@ interface UsersContentProps {
     mode?: "customer" | "user"
 }
 
+function resolveCustomerQuery(user: User) {
+    return user.customerId?.trim() || user.userId?.trim() || user.email?.trim() || user.username?.trim() || ""
+}
+
 export function UsersContent({ data, mode = "customer" }: UsersContentProps) {
     const { t } = useI18n()
     const router = useRouter()
@@ -158,6 +162,7 @@ export function UsersContent({ data, mode = "customer" }: UsersContentProps) {
 
         return list
     }, [selectedUser])
+    const selectedCustomerQuery = selectedUser ? resolveCustomerQuery(selectedUser) : ""
 
     return (
         <main className="space-y-6 max-w-6xl">
@@ -359,7 +364,7 @@ export function UsersContent({ data, mode = "customer" }: UsersContentProps) {
                                             </div>
                                             <div className="flex justify-between">
                                                 <span className="text-[#71685a]">Customer ID:</span>
-                                                <span data-testid="customer-summary-customer-id" className="font-mono text-[#211e18]">{selectedUser.userId}</span>
+                                                <span data-testid="customer-summary-customer-id" className="font-mono text-[#211e18]">{selectedCustomerQuery || selectedUser.userId}</span>
                                             </div>
                                             <div className="flex justify-between">
                                                 <span className="text-[#71685a]">Order Count:</span>
@@ -399,7 +404,8 @@ export function UsersContent({ data, mode = "customer" }: UsersContentProps) {
                                             </Button>
 
                                             <Button
-                                                onClick={() => router.push(`/admin/orders?q=${selectedUser.customerId || selectedUser.userId}`)}
+                                                onClick={() => router.push(`/admin/orders?q=${encodeURIComponent(selectedCustomerQuery)}`)}
+                                                disabled={!selectedCustomerQuery}
                                                 className="bg-[#e9dfc8] hover:bg-[#dfd4bd] text-[#2d2617] font-semibold text-xs py-3 h-auto rounded flex flex-col gap-1 items-center justify-center border border-[#d8ccb2]"
                                             >
                                                 <History className="h-4 w-4 text-[#99782b]" />
@@ -407,7 +413,8 @@ export function UsersContent({ data, mode = "customer" }: UsersContentProps) {
                                             </Button>
 
                                             <Button
-                                                onClick={() => router.push(`/admin/refunds?q=${selectedUser.customerId || selectedUser.userId}`)}
+                                                onClick={() => router.push(`/admin/refunds?q=${encodeURIComponent(selectedCustomerQuery)}`)}
+                                                disabled={!selectedCustomerQuery}
                                                 className="bg-[#e9dfc8] hover:bg-[#dfd4bd] text-[#2d2617] font-semibold text-xs py-3 h-auto rounded flex flex-col gap-1 items-center justify-center border border-[#d8ccb2]"
                                             >
                                                 <ShieldAlert className="h-4 w-4 text-[#99782b]" />
@@ -415,7 +422,8 @@ export function UsersContent({ data, mode = "customer" }: UsersContentProps) {
                                             </Button>
 
                                             <Button
-                                                onClick={() => router.push(`/admin/reviews?q=${selectedUser.customerId || selectedUser.userId}`)}
+                                                onClick={() => router.push(`/admin/reviews?q=${encodeURIComponent(selectedCustomerQuery)}`)}
+                                                disabled={!selectedCustomerQuery}
                                                 className="bg-[#e9dfc8] hover:bg-[#dfd4bd] text-[#2d2617] font-semibold text-xs py-3 h-auto rounded flex flex-col gap-1 items-center justify-center border border-[#d8ccb2]"
                                             >
                                                 <MessageSquare className="h-4 w-4 text-[#99782b]" />

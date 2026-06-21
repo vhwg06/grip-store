@@ -8,7 +8,6 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ClientDate } from "@/components/client-date"
 import { adminApproveRefund, adminRejectRefund } from "@/adapters/api/admin.api"
-import { RefundButton } from "@/components/admin/refund-button"
 import { toast } from "sonner"
 import { getDisplayUsername, getExternalProfileUrl } from "@/lib/user-profile-link"
 import { AlertCircle, CheckCircle2, XCircle, Info, HelpCircle } from "lucide-react"
@@ -362,6 +361,20 @@ export function AdminRefundsContent({ requests }: { requests: any[] }) {
                     </p>
                   </div>
 
+                  <div className="space-y-1">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground block">Payment Context</span>
+                    <p className="text-sm font-medium text-foreground">
+                      {selectedTradeNo ? `Payment trade available for refund review` : `Payment context is limited to order-level fallback`}
+                    </p>
+                  </div>
+
+                  <div className="space-y-1">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground block">Trade Reference</span>
+                    <p className="text-sm font-mono font-semibold text-foreground">
+                      {selectedTradeNo || `REF-${selectedOrderId}`}
+                    </p>
+                  </div>
+
                   {selectedPointsUsed > 0 && (
                     <div className="space-y-1">
                       <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground block">Points Reclaim</span>
@@ -444,14 +457,6 @@ export function AdminRefundsContent({ requests }: { requests: any[] }) {
                               Reject request
                             </Button>
                           </>
-                        )}
-                        {selectedStatus === 'approved' && (
-                          <RefundButton order={{
-                            orderId: selectedOrderId,
-                            tradeNo: selectedTradeNo,
-                            amount: selectedAmount,
-                            status: selectedOrderStatus
-                          }} />
                         )}
                       </div>
                     )}

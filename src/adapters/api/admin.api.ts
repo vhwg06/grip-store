@@ -128,6 +128,8 @@ export async function getAdminDashboard(): Promise<AdminDashboardPayload> {
   const visibility = config.visibility || {}
   const registry = config.registry || {}
   const floatingSupport = config.floatingSupport || []
+  const bannerPresence = config.bannerPresence || {}
+  const aboutPresence = config.aboutPresence || {}
 
   // Map camelCase backend config to snake_case keys used by frontend pages
   const settingsMap: Record<string, string> = {
@@ -162,7 +164,9 @@ export async function getAdminDashboard(): Promise<AdminDashboardPayload> {
     "checkin_reward": String(visibility.checkinReward ?? 1),
 
     "registry_opt_in": String(Boolean(registry.joined)),
-    "registry_hide_nav": String(Boolean(registry.hideNav))
+    "registry_hide_nav": String(Boolean(registry.hideNav)),
+    "banner_presence_enabled": String(Boolean(bannerPresence.enabled)),
+    "about_presence_enabled": String(Boolean(aboutPresence.enabled)),
   }
 
   return {
@@ -175,6 +179,10 @@ export async function getAdminDashboard(): Promise<AdminDashboardPayload> {
     settingsMap,
     visitorCount: Number(data.visitorCount ?? 0),
     registryEnabled: Boolean(registry.enabled),
+    bannerPresenceEnabled: Boolean(bannerPresence.enabled),
+    aboutPresenceEnabled: Boolean(aboutPresence.enabled),
+    bannerPresencePresent: Boolean(bannerPresence.present),
+    aboutPresencePresent: Boolean(aboutPresence.present),
   }
 }
 
@@ -680,6 +688,16 @@ export async function saveRegistrySettings(registry: { joined: boolean; hideNav:
   return apiFetch<unknown>("/api/admin/store-settings/registry", {
     method: "PUT",
     body: JSON.stringify(registry),
+  }).then(normalizeActionResult)
+}
+
+export async function savePresenceSettings(presence: {
+  bannerPresence: { enabled: boolean; present: boolean }
+  aboutPresence: { enabled: boolean; present: boolean }
+}) {
+  return apiFetch<unknown>("/api/admin/store-settings/presence", {
+    method: "PUT",
+    body: JSON.stringify(presence),
   }).then(normalizeActionResult)
 }
 

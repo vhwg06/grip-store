@@ -10,7 +10,6 @@ test.describe("Admin Payment @admin P1 P3", () => {
     // PRIORITY: P3
     // RELATED DOMAINS: order
     // SCENARIO: SC-PAY-01 Main flow
-    test.fixme(true, "blocked: /admin/orders/[id] broken under output:export - tracked in UC-ORD-01");
     await page.goto("/admin/orders/test-order-0001");
     await page.waitForLoadState("networkidle");
 
@@ -25,7 +24,7 @@ test.describe("Admin Payment @admin P1 P3", () => {
     // PRIORITY: P3
     // RELATED DOMAINS: refund
     // SCENARIO: SC-PAY-02 Main flow
-    test.fixme(true, "blocked: /admin/orders/[id] broken under output:export - tracked in UC-ORD-01");
+    test.fail(true, "blocked-fe-gap: refund decision panel omits trade/payment context");
     await page.goto("/admin/refunds");
     await page.waitForLoadState("networkidle");
 
@@ -39,7 +38,7 @@ test.describe("Admin Payment @admin P1 P3", () => {
     // PRIORITY: P3
     // RELATED DOMAINS: none
     // SCENARIO: SC-PAY-03 Main flow
-    test.fixme(true, "blocked: /admin/orders/[id] broken under output:export - tracked in UC-ORD-01");
+    test.fail(true, "blocked-fe-gap: refund decision panel exposes payment execution controls");
     await page.goto("/admin/refunds");
     await page.waitForLoadState("networkidle");
 

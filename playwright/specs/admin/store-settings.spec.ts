@@ -269,26 +269,45 @@ test.describe("Admin Store Settings Spec Coverage @admin P1 P2", () => {
     // RELATED DOMAINS: none
     // SCENARIO: SC-SET-05 Main flow
     // INVARIANT: banner và about presence controls thay đổi layout composition của storefront
-    test.fail(true, "blocked-be-gap: bannerPresence/aboutPresence missing in config");
+    const adminToken = await getAdminToken(request);
+    const originalResponse = await request.get(`${BACKEND_URL}/v1/admin/store-settings`, {
+      headers: { Authorization: `Bearer ${adminToken}` },
+    });
+    expect(originalResponse.ok()).toBeTruthy();
+    const originalPayload = await originalResponse.json();
+    const originalBannerPresence = originalPayload?.data?.config?.bannerPresence ?? originalPayload?.config?.bannerPresence;
+    const originalAboutPresence = originalPayload?.data?.config?.aboutPresence ?? originalPayload?.config?.aboutPresence;
 
-    await expect(page.locator('[data-testid="settings-banner-presence-toggle"]')).toBeVisible();
-    await expect(page.locator('[data-testid="settings-about-presence-toggle"]')).toBeVisible();
+    try {
+      await expect(page.locator('[data-testid="settings-banner-presence-toggle"]')).toBeVisible();
+      await expect(page.locator('[data-testid="settings-about-presence-toggle"]')).toBeVisible();
 
-    // Toggle them
-    await expect(page.locator('[data-testid="settings-banner-presence-toggle"]')).toBeEnabled({ timeout: 1000 });
-    await expect(page.locator('[data-testid="settings-about-presence-toggle"]')).toBeEnabled({ timeout: 1000 });
+      // Toggle them
+      await expect(page.locator('[data-testid="settings-banner-presence-toggle"]')).toBeEnabled({ timeout: 1000 });
+      await expect(page.locator('[data-testid="settings-about-presence-toggle"]')).toBeEnabled({ timeout: 1000 });
 
-    await page.locator('[data-testid="settings-banner-presence-toggle"]').click();
-    await page.locator('[data-testid="settings-about-presence-toggle"]').click();
+      await page.locator('[data-testid="settings-banner-presence-toggle"]').click();
+      await page.locator('[data-testid="settings-about-presence-toggle"]').click();
 
-    // Save
-    await page.locator('[data-testid="settings-save-presence"]').click();
-    await expectSuccessToast(page);
+      // Save
+      await page.locator('[data-testid="settings-save-presence"]').click();
+      await expectSuccessToast(page);
 
-    // Verify reflection on storefront
-    await homepagePage.goto();
-    await expect(page.locator('[data-testid="homepage-banner"]')).toBeHidden();
-    await expect(page.locator('[data-testid="homepage-about"]')).toBeHidden();
+      // Verify reflection on storefront
+      await homepagePage.goto();
+      await expect(page.locator('[data-testid="homepage-banner"]')).toBeHidden();
+      await expect(page.locator('[data-testid="homepage-about"]')).toBeHidden();
+    } finally {
+      if (originalBannerPresence && originalAboutPresence) {
+        await request.put(`${BACKEND_URL}/v1/admin/store-settings/presence`, {
+          headers: { Authorization: `Bearer ${adminToken}` },
+          data: {
+            bannerPresence: originalBannerPresence,
+            aboutPresence: originalAboutPresence,
+          },
+        });
+      }
+    }
   });
 
   test("UC-SET-06 exposes registry and legacy commitment controls as an intentional storefront policy surface", async ({
@@ -308,7 +327,6 @@ test.describe("Admin Store Settings Spec Coverage @admin P1 P2", () => {
     // PRIORITY: P1
     // RELATED DOMAINS: none
     // SCENARIO: SC-SET-04 Exception flow
-    test.fail(true, "blocked-fe-gap: social URL validation is missing in frontend");
     await expect(page.locator('[data-testid="settings-section-footer-social"]')).toBeVisible();
     await page.locator('[data-testid="social-link-facebook"]').fill("invalid-facebook-url");
     await expect(page.locator('[data-testid="settings-save-footer-social"]')).toBeDisabled();
@@ -320,8 +338,21 @@ test.describe("Admin Store Settings Spec Coverage @admin P1 P2", () => {
     // RELATED DOMAINS: none
     // SCENARIO: SC-SET-05 Exception flow
     // INVARIANT: save operation cho presence controls phải fail an toàn khi server từ chối cập nhật
+    await page.route("**/v1/admin/store-settings/presence", async (route) => {
+      await route.fulfill({
+        status: 500,
+        contentType: "application/json",
+        body: JSON.stringify({ error: "presence_update_failed" }),
+      });
+    });
+
     await expect(page.locator('[data-testid="settings-banner-presence-toggle"]')).toBeVisible();
-    await expect(page.locator('[data-testid="settings-banner-presence-toggle"]')).toBeDisabled();
+    await expect(page.locator('[data-testid="settings-banner-presence-toggle"]')).toBeEnabled();
+
+    await page.locator('[data-testid="settings-banner-presence-toggle"]').click();
+    await page.locator('[data-testid="settings-save-presence"]').click();
+
+    await expect(page.locator("[data-type='error'], .toast-error").first()).toBeVisible();
   });
 
   test("UC-SET-06 negative path: rejects invalid registry origin payload", async ({ page }) => {
@@ -413,4 +444,3 @@ test.describe("Admin Store Settings Spec Coverage @admin P1 P2", () => {
     await expectSuccessToast(page);
   });
 });
-

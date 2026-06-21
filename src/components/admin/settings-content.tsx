@@ -20,6 +20,7 @@ import {
   saveFloatingSupportSettings,
   saveVisibilitySettings,
   saveRegistrySettings,
+  savePresenceSettings,
   joinRegistry,
   leaveRegistry,
   saveSetting,
@@ -28,6 +29,17 @@ import {
 import { useAdminAboutPage, useAdminBanners, useAdminMedia } from "@/application/hooks/useAdmin"
 import { checkForUpdatesClient, type ClientUpdateCheckResult } from "@/lib/update-check-client"
 import { toast } from "sonner"
+
+function isValidUrlLike(value: string) {
+  const trimmed = value.trim()
+  if (!trimmed) return true
+  try {
+    const url = new URL(trimmed)
+    return url.protocol === "http:" || url.protocol === "https:"
+  } catch {
+    return false
+  }
+}
 
 interface Stats {
   today: { count: number; revenue: number }
@@ -72,6 +84,10 @@ interface AdminSettingsContentProps {
   contactHotline: string | null
   contactEmail: string | null
   contactMapsUrl: string | null
+  bannerPresenceEnabled: boolean
+  aboutPresenceEnabled: boolean
+  bannerPresencePresent: boolean
+  aboutPresencePresent: boolean
 }
 
 const THEME_COLORS = [
@@ -114,7 +130,11 @@ export function AdminSettingsContent({
   contactAddress,
   contactHotline,
   contactEmail,
-  contactMapsUrl
+  contactMapsUrl,
+  bannerPresenceEnabled,
+  aboutPresenceEnabled,
+  bannerPresencePresent,
+  aboutPresencePresent,
 }: AdminSettingsContentProps) {
   const { t } = useI18n()
   const { mutate } = useSWRConfig()
@@ -173,6 +193,8 @@ export function AdminSettingsContent({
   const [tiktokLink, setTiktokLink] = useState(socialLinksState.tiktok || '')
   const [copyrightText, setCopyrightText] = useState(socialLinksState.copyright || '© 2026 GRIP. Tất cả quyền được bảo lưu.')
   const [savingFooterSocial, setSavingFooterSocial] = useState(false)
+  const hasInvalidSocialUrl =
+    !isValidUrlLike(facebookLink) || !isValidUrlLike(instagramLink) || !isValidUrlLike(tiktokLink)
 
   // Floating Support & Visibility
   const [zaloEnabled, setZaloEnabled] = useState(() => !!socialLinksState.zalo)
@@ -199,6 +221,9 @@ export function AdminSettingsContent({
   const [hideRegistryNav, setHideRegistryNav] = useState(registryHideNav)
   const [savingRegistryNav, setSavingRegistryNav] = useState(false)
   const [registryJoined, setRegistryJoined] = useState(registryOptIn)
+  const [bannerPresenceOn, setBannerPresenceOn] = useState(bannerPresenceEnabled)
+  const [aboutPresenceOn, setAboutPresenceOn] = useState(aboutPresenceEnabled)
+  const [savingPresence, setSavingPresence] = useState(false)
   const [submittingRegistry, setSubmittingRegistry] = useState(false)
   const [leavingRegistry, setLeavingRegistry] = useState(false)
   const [checkingUpdate, setCheckingUpdate] = useState(false)
@@ -212,8 +237,8 @@ export function AdminSettingsContent({
   const { data: aboutPage } = useAdminAboutPage()
   const mediaItems = mediaData?.items ?? []
   const [selectedMediaUrl, setSelectedMediaUrl] = useState("")
-  const hasBannerPresence = banners.some((banner: any) => banner.isActive)
-  const hasAboutPresence = Boolean(
+  const hasBannerPresence = bannerPresencePresent || banners.some((banner: any) => banner.isActive)
+  const hasAboutPresence = aboutPresencePresent || Boolean(
     aboutPage?.title?.trim() ||
       aboutPage?.body?.trim() ||
       (Array.isArray(aboutPage?.gallery) && aboutPage.gallery.length > 0)
@@ -256,6 +281,28 @@ export function AdminSettingsContent({
       toast.error(e.message || "Failed to save contact settings")
     } finally {
       setSavingContact(false)
+    }
+  }
+
+  const handleSavePresence = async () => {
+    setSavingPresence(true)
+    try {
+      await savePresenceSettings({
+        bannerPresence: {
+          enabled: bannerPresenceOn,
+          present: hasBannerPresence,
+        },
+        aboutPresence: {
+          enabled: aboutPresenceOn,
+          present: hasAboutPresence,
+        },
+      })
+      await Promise.all([mutate("admin-dashboard"), mutate("site-config"), mutate("catalog-settings")])
+      toast.success(t('common.success'))
+    } catch (e: any) {
+      toast.error(e.message || "Failed to save presence settings")
+    } finally {
+      setSavingPresence(false)
     }
   }
 
@@ -885,6 +932,11 @@ export function AdminSettingsContent({
                   onChange={(e) => setFacebookLink(e.target.value)}
                   className="bg-white border-[#e7e1d7] rounded-lg text-xs h-9"
                 />
+                {!isValidUrlLike(facebookLink) && (
+                  <p className="text-[10px] text-destructive mt-1 font-semibold leading-tight">
+                    Invalid URL format.
+                  </p>
+                )}
               </div>
 
               <div className="space-y-1">
@@ -895,6 +947,11 @@ export function AdminSettingsContent({
                   onChange={(e) => setInstagramLink(e.target.value)}
                   className="bg-white border-[#e7e1d7] rounded-lg text-xs h-9"
                 />
+                {!isValidUrlLike(instagramLink) && (
+                  <p className="text-[10px] text-destructive mt-1 font-semibold leading-tight">
+                    Invalid URL format.
+                  </p>
+                )}
               </div>
 
               <div className="space-y-1">
@@ -905,6 +962,11 @@ export function AdminSettingsContent({
                   onChange={(e) => setTiktokLink(e.target.value)}
                   className="bg-white border-[#e7e1d7] rounded-lg text-xs h-9"
                 />
+                {!isValidUrlLike(tiktokLink) && (
+                  <p className="text-[10px] text-destructive mt-1 font-semibold leading-tight">
+                    Invalid URL format.
+                  </p>
+                )}
               </div>
             </CardContent>
             {/* Save Button inside Card */}
@@ -912,7 +974,7 @@ export function AdminSettingsContent({
               <Button
                 data-testid="settings-save-footer-social"
                 onClick={handleSaveFooterSocial}
-                disabled={savingFooterSocial}
+                disabled={savingFooterSocial || hasInvalidSocialUrl}
                 className="w-[180px] h-8 bg-[#99782b] hover:bg-[#99782b]/90 text-white rounded-lg text-xs font-semibold"
               >
                 {savingFooterSocial ? "Saving..." : "Save Footer & Socials"}
@@ -1024,6 +1086,20 @@ export function AdminSettingsContent({
               <p className="text-xs text-muted-foreground">
                 Checking this setting will insert a robots meta noindex tag, requesting search engines not to index this site.
               </p>
+              <div className="flex items-center gap-3 border-t pt-4">
+                <Checkbox
+                  id="wishlist-enabled"
+                  data-testid="visibility-wishlist-enabled"
+                  checked={enabledWishlist}
+                  onCheckedChange={(checked) => setEnabledWishlist(!!checked)}
+                />
+                <Label htmlFor="wishlist-enabled" className="cursor-pointer font-bold text-sm text-foreground">
+                  Wishlist remains publicly available
+                </Label>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Wishlist visibility is part of the storefront discovery contract and must save together with robots policy.
+              </p>
             </CardContent>
           </Card>
       </div>
@@ -1051,9 +1127,12 @@ export function AdminSettingsContent({
                     </div>
                     <Checkbox
                       data-testid="settings-banner-presence-toggle"
-                      checked={hasBannerPresence}
-                      disabled
+                      checked={bannerPresenceOn}
+                      onCheckedChange={(checked) => setBannerPresenceOn(Boolean(checked))}
                     />
+                  </div>
+                  <div className="mt-2 text-xs text-[#71685a]">
+                    Source present: {hasBannerPresence ? "Yes" : "No"}
                   </div>
                   <Link href="/admin/banners" className="mt-3 inline-flex text-xs font-semibold text-[#99782b] underline-offset-4 hover:underline">
                     Manage banner presence
@@ -1069,14 +1148,27 @@ export function AdminSettingsContent({
                     </div>
                     <Checkbox
                       data-testid="settings-about-presence-toggle"
-                      checked={hasAboutPresence}
-                      disabled
+                      checked={aboutPresenceOn}
+                      onCheckedChange={(checked) => setAboutPresenceOn(Boolean(checked))}
                     />
+                  </div>
+                  <div className="mt-2 text-xs text-[#71685a]">
+                    Source present: {hasAboutPresence ? "Yes" : "No"}
                   </div>
                   <Link href="/admin/about" className="mt-3 inline-flex text-xs font-semibold text-[#99782b] underline-offset-4 hover:underline">
                     Manage about presence
                   </Link>
                 </div>
+              </div>
+              <div className="flex justify-end">
+                <Button
+                  variant="outline"
+                  data-testid="settings-save-presence"
+                  onClick={handleSavePresence}
+                  disabled={savingPresence}
+                >
+                  {savingPresence ? "Saving..." : "Save"}
+                </Button>
               </div>
               <div className="grid gap-6 md:grid-cols-2">
                 <div className="space-y-4">

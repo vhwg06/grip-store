@@ -156,6 +156,10 @@ export interface AdminDashboardPayload {
   settingsMap: Record<string, string>
   visitorCount: number
   registryEnabled?: boolean
+  bannerPresenceEnabled?: boolean
+  aboutPresenceEnabled?: boolean
+  bannerPresencePresent?: boolean
+  aboutPresencePresent?: boolean
 }
 
 export interface AdminLead {

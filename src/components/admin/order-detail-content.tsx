@@ -272,10 +272,26 @@ export function AdminOrderDetailContent({ order }: { order: any }) {
               </div>
 
               {isTerminal ? (
-                <div className="flex items-center gap-2 p-3 text-xs text-muted-foreground bg-muted/30 border border-muted/50 rounded-lg">
-                  <Info className="h-4 w-4 shrink-0 text-muted-foreground" />
-                  <span>This order is in a terminal state ({status}). No further actions are allowed.</span>
-                </div>
+                <>
+                  <div className="flex items-center gap-2 p-3 text-xs text-muted-foreground bg-muted/30 border border-muted/50 rounded-lg">
+                    <Info className="h-4 w-4 shrink-0 text-muted-foreground" />
+                    <span>This order is in a terminal state ({status}). No further actions are allowed.</span>
+                  </div>
+                  <div className="flex flex-wrap gap-2.5 pt-1.5">
+                    <Button disabled className="gap-1.5 text-xs font-bold">
+                      <CheckCircle className="h-4 w-4" />
+                      Mark paid
+                    </Button>
+                    <Button disabled variant="secondary" className="gap-1.5 text-xs font-bold border-[#e7e1d7]">
+                      <Truck className="h-4 w-4" />
+                      Mark delivered
+                    </Button>
+                    <Button disabled variant="destructive" className="gap-1.5 text-xs font-bold">
+                      <XCircle className="h-4 w-4" />
+                      Cancel order
+                    </Button>
+                  </div>
+                </>
               ) : (
                 <div className="flex flex-wrap gap-2.5 pt-1.5">
                   {status === 'PENDING' && (
@@ -383,6 +399,11 @@ export function AdminOrderDetailContent({ order }: { order: any }) {
                 <div className="font-bold text-sm text-[#211e18] mt-0.5 leading-relaxed">
                   {order.shippingAddress || 'Thu Duc, Ho Chi Minh City'}
                 </div>
+                {!order.shippingAddress && (
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Missing shipping address. Using safe fallback location.
+                  </p>
+                )}
               </div>
               <div>
                 <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Payment Method</div>

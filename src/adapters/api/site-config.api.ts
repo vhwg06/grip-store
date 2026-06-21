@@ -21,6 +21,18 @@ export async function getSiteConfig() {
       contactAddress: contact.stickyBarAddress || "",
       contactEmail: contact.contactEmail || "",
       contactHotline: contact.stickyBarHotline || "",
+      bannerPresence: raw.bannerPresence
+        ? {
+            enabled: Boolean(raw.bannerPresence.enabled),
+            present: Boolean(raw.bannerPresence.present),
+          }
+        : undefined,
+      aboutPresence: raw.aboutPresence
+        ? {
+            enabled: Boolean(raw.aboutPresence.enabled),
+            present: Boolean(raw.aboutPresence.present),
+          }
+        : undefined,
       socialLinks: {
         ...(footer.socialLinks || {}),
         zalo: floatingSupport.find((action: any) => action?.key === "zalo" && action?.enabled)?.target || undefined,

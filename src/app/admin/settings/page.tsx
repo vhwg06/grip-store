@@ -62,6 +62,10 @@ export default function AdminSettingsPage() {
             contactHotline={contactHotline}
             contactEmail={contactEmail}
             contactMapsUrl={contactMapsUrl}
+            bannerPresenceEnabled={data?.bannerPresenceEnabled ?? (settingsMap['banner_presence_enabled'] === 'true')}
+            aboutPresenceEnabled={data?.aboutPresenceEnabled ?? (settingsMap['about_presence_enabled'] === 'true')}
+            bannerPresencePresent={data?.bannerPresencePresent ?? false}
+            aboutPresencePresent={data?.aboutPresencePresent ?? false}
         />
     )
 }

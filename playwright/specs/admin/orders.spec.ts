@@ -86,7 +86,6 @@ test.describe("Admin Orders @admin P1 P2", () => {
     // SCENARIO: SC-ORD-03 Main flow
     // INVARIANT: không phải mọi action đều hợp lệ trên mọi state
     // INVARIANT: failed transition không được tạo ra partial state — timeline phải nhất quán sau transition
-    test.fail(true, "blocked-be-gap: checkout /v1/checkout/orders returns 500");
     const orderId = await createPendingOrderViaApi(request);
 
     const listResponse = page.waitForResponse(
@@ -140,7 +139,6 @@ test.describe("Admin Orders @admin P1 P2", () => {
     // PRIORITY: P2
     // RELATED DOMAINS: none
     // SCENARIO: SC-ORD-06 Main flow
-    test.fail(true, "blocked-fe-gap: /admin/orders/[id] route is broken under static export, direct navigation fails");
     await page.goto("/admin/orders/test-order-0002");
     await expect(page.locator('[data-testid="order-detail"]')).toBeVisible();
     await expect(page.getByRole("button", { name: "Mark delivered" })).toBeDisabled();
@@ -171,8 +169,7 @@ test.describe("Admin Orders @admin P1 P2", () => {
     // PRIORITY: P1
     // RELATED DOMAINS: customer
     // SCENARIO: SC-ORD-04 Main flow
-    test.fail(true, "blocked-both: customer Open history navigates with empty query instead of customer ID");
-    await page.goto("/admin/users");
+    await page.goto("/admin/customers/");
     await page.waitForLoadState("networkidle");
     await expect(page.getByRole("heading", { name: "Customer Management" })).toBeVisible();
 
@@ -201,7 +198,7 @@ test.describe("Admin Orders @admin P1 P2", () => {
     await expect(page.getByText("Customer Actions")).toBeVisible();
     await page.getByRole("button", { name: "Open history" }).click();
 
-    await expect(page).toHaveURL(new RegExp(`/admin/orders\\?q=${buyerCustomerId}`));
+    await expect(page).toHaveURL(new RegExp(`/admin/orders/?\\?q=${buyerCustomerId}`));
     await expect(page.locator('[data-testid="order-row"]').filter({ hasText: "test-order-0001" }).first()).toBeVisible();
   });
 
@@ -211,7 +208,6 @@ test.describe("Admin Orders @admin P1 P2", () => {
     // RELATED DOMAINS: customer
     // SCENARIO: SC-ORD-01 Exception flow
     // INVARIANT: order detail request cho nonexistent ID phải render error state/boundary hoặc 404 page
-    test.fail(true, "blocked-fe-gap: /admin/orders/[id] route is broken under static export");
     await page.goto("/admin/orders/nonexistent-order-12345xyz");
     await expect(page.getByText("Order not found", { exact: false })).toBeVisible();
   });
@@ -222,10 +218,9 @@ test.describe("Admin Orders @admin P1 P2", () => {
     // RELATED DOMAINS: customer
     // SCENARIO: SC-ORD-04 Alternate flow
     // INVARIANT: purchase history của customer chưa từng mua hàng phải render trạng thái trống, không crash
-    test.fail(true, "blocked-both: customer Open history navigates with empty query instead of customer ID");
     const buyer = await registerFreshBuyer(request);
 
-    await page.goto("/admin/users");
+    await page.goto("/admin/customers/");
     await page.waitForLoadState("networkidle");
     await expect(page.getByRole("heading", { name: "Customer Management" })).toBeVisible();
 
@@ -243,7 +238,7 @@ test.describe("Admin Orders @admin P1 P2", () => {
     await expect(page.getByText("Customer Actions")).toBeVisible();
     await page.getByRole("button", { name: "Open history" }).click();
 
-    await expect(page).toHaveURL(new RegExp(`/admin/orders\\?q=`));
+    await expect(page).toHaveURL(/\/admin\/orders\/?\?q=/);
     await expect(page.getByText("No orders found")).toBeVisible();
   });
 
@@ -253,7 +248,6 @@ test.describe("Admin Orders @admin P1 P2", () => {
     // RELATED DOMAINS: refund
     // SCENARIO: SC-ORD-03 Alternate flow
     // INVARIANT: order ở terminal state (DELIVERED) không cho phép bất kỳ transition nào tiếp theo
-    test.fail(true, "blocked-fe-gap: /admin/orders/[id] route is broken under static export, direct navigation fails");
     await page.goto("/admin/orders/test-order-0001");
     await expect(page.locator('[data-testid="order-detail"]')).toBeVisible();
 
@@ -285,8 +279,7 @@ test.describe("Admin Orders @admin P1 P2", () => {
     // PRIORITY: P1
     // RELATED DOMAINS: customer
     // SCENARIO: SC-ORD-04 Alternate flow
-    test.fail(true, "blocked-both: customer Open history navigates with empty query instead of customer ID");
-    await page.goto("/admin/users");
+    await page.goto("/admin/customers/");
     await page.waitForLoadState("networkidle");
 
     const adminToken = await getAdminToken(request);
@@ -313,9 +306,8 @@ test.describe("Admin Orders @admin P1 P2", () => {
 
     await page.getByRole("button", { name: "Open history" }).click();
 
-    await expect(page).toHaveURL(new RegExp(`/admin/orders\\?q=${buyerCustomerId}`));
+    await expect(page).toHaveURL(new RegExp(`/admin/orders/?\\?q=${buyerCustomerId}`));
     
     await expect(page.locator('[data-testid="order-row"]').filter({ hasText: "test-order-0001" }).first()).toBeVisible();
   });
 });
-
