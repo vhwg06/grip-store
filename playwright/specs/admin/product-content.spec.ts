@@ -40,7 +40,7 @@ test.describe("Admin Product Content @admin P2", () => {
 
     await expect(page.locator('[data-testid="product-linked-cards-btn"]')).toBeVisible();
     await page.locator('[data-testid="product-linked-cards-btn"]').click();
-    await expect(page).toHaveURL(new RegExp(`/admin/cards\\?productId=${created.id}`));
+    await expect(page).toHaveURL(new RegExp(`/admin/cards/\\?productId=${created.id}`));
     await expect(page.locator('[data-testid="product-cards-context"]')).toContainText(created.title);
     await expect(page.locator('[data-testid="product-cards-context"]')).toContainText(created.id);
 

@@ -129,7 +129,7 @@ export function AdminCategoriesContent({ categories }: { categories: CategoryRow
       }
       formData.set('name', name)
       formData.set('icon', icon)
-      formData.set('sortOrder', sortOrder)
+      formData.set('position', sortOrder)
       if (slug) formData.set('slug', slug)
       if (parentId && parentId !== "0") formData.set('parentId', parentId)
 
@@ -185,13 +185,13 @@ export function AdminCategoriesContent({ categories }: { categories: CategoryRow
       const fd1 = new FormData()
       fd1.set('id', String(c.id))
       fd1.set('name', c.name)
-      fd1.set('sortOrder', String(otherOrder))
+      fd1.set('position', String(otherOrder))
       await saveCategory(fd1)
 
       const fd2 = new FormData()
       fd2.set('id', String(other.id))
       fd2.set('name', other.name)
-      fd2.set('sortOrder', String(currentOrder))
+      fd2.set('position', String(currentOrder))
       await saveCategory(fd2)
 
       toast.success(t('common.success'))

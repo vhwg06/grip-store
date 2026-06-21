@@ -188,18 +188,27 @@ test.describe("Admin Product @admin P1", () => {
     await page.goto("/admin/categories");
     await page.waitForLoadState("networkidle");
 
-    await page.getByRole("heading", { name: lower.name, exact: true }).click();
+    await page.getByRole("heading", { name: new RegExp(`${lower.name}$`) }).click();
     await page.locator("#cat-sort").fill("1");
+    const saveResponse = page.waitForResponse((response) =>
+      response.url().includes("/v1/admin/categories") &&
+      response.request().method() === "POST" &&
+      response.ok(),
+    );
     await page.getByRole("button", { name: "Save Changes" }).click();
-    await page.waitForLoadState("networkidle");
+    await saveResponse;
+    await expect
+      .poll(async () => {
+        const response = await request.get(`${BACKEND_URL}/v1/admin/categories`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        expect(response.ok()).toBeTruthy();
+        const payload = await response.json();
+        const moved = (payload.data as Array<Record<string, unknown>>).find((item) => item.id === lower.id);
+        return moved?.position;
+      })
+      .toBe(1);
 
-    const response = await request.get(`${BACKEND_URL}/v1/admin/categories`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    expect(response.ok()).toBeTruthy();
-    const payload = await response.json();
-    const moved = (payload.data as Array<Record<string, unknown>>).find((item) => item.id === lower.id);
-    expect(moved?.position).toBe(1);
     expect(upper.position).toBe(20);
   });
 });

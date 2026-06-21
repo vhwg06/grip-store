@@ -66,8 +66,9 @@ The test may remain a normal test when implementation is green. Add `test.fail` 
 ## Gate 4 - Exception And Rejection Coverage
 
 - [ ] **EXC-PROD-01** Verify UC-PROD-03 proves `is_active` persists through the backend, not only local UI state.
-  - Current blocker: focused Chromium rerun on 2026-06-21 still shows the product list quick-toggle leaving backend `product.is_active === true` after the FE action. Direct live probes also show `PATCH /v1/admin/products/:id/status` returns `404` and sparse or multipart patches to `/v1/admin/products/:id` do not persist `is_active=false`.
-- [ ] **EXC-PROD-02** Add/verify UC-PROD-05 graceful behavior when product-linked cards cannot be loaded.
+  - Current blocker: focused Chromium rerun on 2026-06-21 still shows the product list quick-toggle leaving backend `product.is_active === true` after the FE action. Direct live probes also show `PATCH /v1/admin/products/:id/status` returns `404` and sparse or multipart patches to `/v1/admin/products/:id` do not persist `is_active=false`. Backend patch has now been added in `go-grip` to preserve incoming `is_active` updates and expose `PATCH /v1/admin/products/:id/status`, with focused Go verification green; Playwright rerun remains blocked until that backend revision is deployed to the API under test.
+- [x] **EXC-PROD-02** Add/verify UC-PROD-05 graceful behavior when product-linked cards cannot be loaded.
+  - Evidence: `playwright/specs/admin/product-content.spec.ts` now opens a real `/admin/cards` surface from product editor context, preserves `productId`/name/SKU in the handoff, and proves an intercepted `/v1/admin/cards` `500` renders an explicit backend-error state instead of a fabricated fallback. Focused Chromium rerun on 2026-06-21 passed cleanly (`4 passed`, including setup).
 - [ ] **EXC-REV-01** Add UC-REV-02 rejection coverage proving a hidden review cannot be hidden again.
 - [~] **EXC-CONT-01** Verify UC-CONT-04 public non-leak and UC-CONT-06 commercial-state preservation are enforced by canonical API tests.
 - [ ] **EXC-NOTY-01** Add FE error-state coverage proving a readiness 404/error cannot produce fabricated defaults.
@@ -129,7 +130,7 @@ The test may remain a normal test when implementation is green. Add `test.fail` 
 ### Frontend Surfaces
 
 - [~] **RUN-FE-ORDPROD** Verify order detail, persisted product active state, history handoff, and category refresh.
-  - Current evidence: focused Chromium rerun on 2026-06-21 for `playwright/specs/admin/orders.spec.ts` passed cleanly (`14 passed`, `0 skipped`, `0 unexpected`) after wiring pending-refund relevance into the order signals panel and normalizing the row-to-detail handoff URL assertion. Product active-state persistence and category refresh still need their own focused verification.
+  - Current evidence: focused Chromium rerun on 2026-06-21 for `playwright/specs/admin/orders.spec.ts` passed cleanly (`14 passed`, `0 skipped`, `0 unexpected`) after wiring pending-refund relevance into the order signals panel and normalizing the row-to-detail handoff URL assertion. Focused product follow-up reruns on 2026-06-21 now also passed for `playwright/specs/admin/product-content.spec.ts` (`4 passed`, product-linked cards context plus explicit backend-error handling) and `playwright/specs/admin/product.spec.ts --grep "UC-PROD-04"` (`3 passed`, category refresh/reorder semantics). Product active-state persistence is the remaining focused verification gap and still needs a rerun against a backend carrying the new `go-grip` status-persistence patch.
 - [~] **RUN-FE-SET** Verify settings success feedback, homepage controls, discovery controls, and registry controls.
 - [x] **RUN-FE-CUSUSER** Verify separate customer/account roots, state summary, and explicit domain handoffs.
   - Evidence: focused Chromium rerun on 2026-06-21 for `playwright/specs/admin/user.spec.ts` and `playwright/specs/admin/customer.spec.ts` passed with `17 passed`, `1 explicit data-blocked skip`, `0 unexpected`, proving distinct customer/account roots, account/customer state panels, and cross-domain handoffs in both directions.

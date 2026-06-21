@@ -1,24 +1,20 @@
 "use client";
 
-import { ArticleForm } from "@/components/admin/article-form";
-import { useAdminArticle } from "@/application/hooks/useAdmin";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { useResolvedRouteParam } from "@/lib/route-param";
 
 export default function EditArticlePageClient({ id }: { id: string }) {
-  const resolvedId = useResolvedRouteParam(id, "/admin/article/edit");
-  const { data: article, isLoading } = useAdminArticle(resolvedId);
+  const router = useRouter();
+  const resolvedId = useResolvedRouteParam(id, "/admin/article/edit", ["articleId", "id"]);
 
-  if (isLoading) {
-    return <div className="h-96 w-full rounded-xl bg-muted/40 animate-pulse" />;
-  }
+  useEffect(() => {
+    router.replace(
+      resolvedId && resolvedId !== "placeholder"
+        ? `/admin/articles?articleId=${encodeURIComponent(resolvedId)}`
+        : "/admin/articles"
+    );
+  }, [resolvedId, router]);
 
-  if (!article) {
-    return <div className="text-sm text-muted-foreground">Article not found.</div>;
-  }
-
-  return (
-    <div className="container mx-auto p-6">
-      <ArticleForm article={article} />
-    </div>
-  );
+  return <div className="container py-16 text-sm text-muted-foreground">Redirecting...</div>;
 }

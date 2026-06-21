@@ -1,6 +1,10 @@
-import { redirect } from "next/navigation";
+import EditArticlePageClient from "./page-client";
+
+export function generateStaticParams() {
+  return [{ id: "placeholder" }];
+}
 
 export default async function EditArticlePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  redirect(`/admin/articles?articleId=${encodeURIComponent(id)}`);
+  return <EditArticlePageClient id={id} />;
 }
