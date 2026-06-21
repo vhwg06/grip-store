@@ -66,16 +66,21 @@ The test may remain a normal test when implementation is green. Add `test.fail` 
 ## Gate 4 - Exception And Rejection Coverage
 
 - [ ] **EXC-PROD-01** Verify UC-PROD-03 proves `is_active` persists through the backend, not only local UI state.
-  - Current blocker: focused Chromium rerun on 2026-06-21 still shows the product list quick-toggle leaving backend `product.is_active === true` after the FE action. Direct live probes also show `PATCH /v1/admin/products/:id/status` returns `404` and sparse or multipart patches to `/v1/admin/products/:id` do not persist `is_active=false`. Backend patch has now been added in `go-grip` to preserve incoming `is_active` updates and expose `PATCH /v1/admin/products/:id/status`, with focused Go verification green; Playwright rerun remains blocked until that backend revision is deployed to the API under test.
+  - Current blocker: post-deploy verification on 2026-06-22 shows the backend route now exists, but still does not persist the toggle state. Focused API rerun for `playwright/specs/api/admin-product.spec.ts --grep "UC-PROD-03"` passed (`1 passed`) because the canonical product update path remains healthy, while focused Chromium rerun for `playwright/specs/admin/product.spec.ts --grep "UC-PROD-03 submits commercial state changes from the list quick action"` still times out on backend readback. Direct live probe to `PATCH /v1/admin/products/:id/status` now returns `200` but echoes and preserves `product.is_active === true` after `{"isActive":false}`. The remaining blocker is therefore the deployed status-toggle persistence path, not the original missing-route error.
 - [x] **EXC-PROD-02** Add/verify UC-PROD-05 graceful behavior when product-linked cards cannot be loaded.
   - Evidence: `playwright/specs/admin/product-content.spec.ts` now opens a real `/admin/cards` surface from product editor context, preserves `productId`/name/SKU in the handoff, and proves an intercepted `/v1/admin/cards` `500` renders an explicit backend-error state instead of a fabricated fallback. Focused Chromium rerun on 2026-06-21 passed cleanly (`4 passed`, including setup).
-- [ ] **EXC-REV-01** Add UC-REV-02 rejection coverage proving a hidden review cannot be hidden again.
-- [~] **EXC-CONT-01** Verify UC-CONT-04 public non-leak and UC-CONT-06 commercial-state preservation are enforced by canonical API tests.
-- [ ] **EXC-NOTY-01** Add FE error-state coverage proving a readiness 404/error cannot produce fabricated defaults.
+- [x] **EXC-REV-01** Add UC-REV-02 rejection coverage proving a hidden review cannot be hidden again.
+  - Evidence: `playwright/specs/admin/reviews-moderation.spec.ts` now includes `UC-REV-02 exception: a hidden review cannot be hidden again`, and the focused Chromium rerun on 2026-06-22 passed cleanly (`1 passed`, `0 unexpected`), proving the `Hide` action is disabled once a review is already in `HIDDEN` state.
+- [x] **EXC-CONT-01** Verify UC-CONT-04 public non-leak and UC-CONT-06 commercial-state preservation are enforced by canonical API tests.
+  - Evidence: focused API rerun on 2026-06-22 for `playwright/specs/api/admin-content.spec.ts` passed cleanly with the API-only config (`6 passed`, `0 skipped`, `0 unexpected`), proving inactive FAQs stay off the public homepage FAQ block and content-only product editorial updates preserve the product's commercial state.
+- [x] **EXC-NOTY-01** Add FE error-state coverage proving a readiness 404/error cannot produce fabricated defaults.
+  - Evidence: `playwright/specs/admin/noty.spec.ts` now includes `EXC-NOTY-01`, which intercepts `/v1/admin/notifications` with a `404` and proves `/admin/notifications` renders the explicit page error boundary instead of fabricating default readiness state; verified in the focused Chromium rerun on 2026-06-22 (`7 passed`, `0 unexpected`).
 - [x] **EXC-PAY-01** Verify UC-PAY-03 proves the refund decision surface contains no payment execution controls.
   - Evidence: `playwright/specs/admin/payment.spec.ts` now scopes UC-PAY-03 to `[data-testid="refunds-decision-panel"]`; the clean Chromium run in `playwright/.artifacts/payment-refund-current.json` reports zero unexpected results.
-- [~] **EXC-PCOL-01** Verify UC-PCOL-03 rejects invalid save and preserves the prior valid configuration after reload.
-- [ ] **EXC-PCOL-02** Replace the conditional UC-PCOL-04 skip with deterministic valid/invalid readiness setup or explicit data-blocked ownership.
+- [x] **EXC-PCOL-01** Verify UC-PCOL-03 rejects invalid save and preserves the prior valid configuration after reload.
+  - Evidence: focused API rerun on 2026-06-22 for `playwright/specs/api/admin-payment-collection.spec.ts` passed cleanly (`4 passed`) and focused Chromium rerun for `playwright/specs/admin/payment-collection.spec.ts` also passed cleanly (`4 passed`), proving invalid collection input is rejected without persisting over the last valid backend state after reload. Both payment-collection suites now run `serial` because they mutate a shared backend singleton.
+- [x] **EXC-PCOL-02** Replace the conditional UC-PCOL-04 skip with deterministic valid/invalid readiness setup or explicit data-blocked ownership.
+  - Evidence: `playwright/specs/admin/payment-collection.spec.ts` no longer carries the old conditional skip path; the focused 2026-06-22 Chromium rerun passed cleanly (`4 passed`) while asserting the live backend `ready`/`warnings` contract directly.
 - [ ] **EXC-VER** Run each exception test independently and record the rejected action, expected status/UI state, and observed result.
 
 ## Gate 5 - Assertion Quality
@@ -86,9 +91,11 @@ The test may remain a normal test when implementation is green. Add `test.fail` 
   - Evidence: `playwright/specs/admin/user.spec.ts` now proves account-control separation by asserting the account panel exposes only account controls plus the explicit customer handoff while customer-history/refund/review actions are absent; verified in the same 2026-06-21 focused Chromium rerun.
 - [x] **QUAL-CUS-01** Strengthen UC-CUS-04 by navigating through the linked-account handoff and verifying the destination identity.
   - Evidence: `playwright/specs/admin/customer.spec.ts` now clicks the linked `Account` action, verifies navigation into `/admin/users`, confirms the user search is prefilled with the linked identity, and asserts the account-control panel is shown; verified in the 2026-06-21 focused Chromium rerun.
-- [ ] **QUAL-NOTY-01** Assert backend readiness/error state directly instead of success caused by local fallback data.
+- [x] **QUAL-NOTY-01** Assert backend readiness/error state directly instead of success caused by local fallback data.
+  - Evidence: `src/adapters/api/admin.api.ts` no longer swallows notification-settings save/load failures into fake success/default payloads, `src/components/admin/notifications-content.tsx` no longer persists scaffolded history across reloads, and the focused Chromium rerun on 2026-06-22 proved server-backed message reload plus explicit readiness failure handling.
 - [x] **QUAL-PAY-01** Scope UC-PAY-03 assertions to the refund decision surface so unrelated page buttons cannot create false failures.
-- [ ] **QUAL-PCOL-01** Assert source identity/state from the backend response rather than only absence of known hardcoded labels.
+- [x] **QUAL-PCOL-01** Assert source identity/state from the backend response rather than only absence of known hardcoded labels.
+  - Evidence: `playwright/specs/admin/payment-collection.spec.ts` now parses the live `/v1/admin/collect` response in `UC-PCOL-01`, asserts each backend `sources[].label` is rendered, and verifies `Ready`/`Unavailable` badge counts match the backend source state. Focused Chromium rerun on 2026-06-22 passed cleanly (`4 passed`, `0 unexpected`).
 - [ ] **QUAL-SEL-01** Inventory brittle exact-copy and broad text selectors in the 12 target admin specs.
 - [ ] **QUAL-SEL-02** Replace implementation-copy selectors with roles, stable test IDs, state, navigation, network contracts, or persisted data where the copy is not itself contractual.
 
@@ -119,27 +126,33 @@ The test may remain a normal test when implementation is green. Add `test.fail` 
   - Evidence: focused API rerun on 2026-06-21 for `playwright/specs/api/admin-order.spec.ts` and `playwright/specs/api/orders.api.spec.ts` passed cleanly (`13 passed`, `0 skipped`, `0 unexpected`, `0 flaky`), covering allowed/forbidden order transitions, purchase-history resolution, refund-status relevance, and incomplete-context order detail.
 - [x] **RUN-BE-CUSUSER** Verify customer/account filtering, commerce summary, points, block, and handoff identifiers.
   - Evidence: focused API rerun on 2026-06-21 for `playwright/specs/api/admin-user.spec.ts` and `playwright/specs/api/admin-customer.spec.ts` passed cleanly (`12 passed`, `0 skipped`, `0 unexpected`, `0 flaky`), covering customer/account filtering, summary fields, points/block mutations, and linked-customer handoff metadata.
-- [~] **RUN-BE-REF** Verify refund detail and payment evidence.
-- [~] **RUN-BE-NOTY** Verify readiness, message list, durable outbound artifact, and history outcome fields.
-- [~] **RUN-BE-PROFILE** Verify security posture and session contracts.
-- [~] **RUN-BE-PCOL** Verify sources, validation, persistence, readiness, and warnings contracts.
-- [~] **RUN-BE-SETCONT** Verify store presence, FAQ visibility, cards, and product commercial-state preservation.
-- [~] **RUN-BE-SETCONT** Verify store presence, FAQ visibility, cards, and product commercial-state preservation.
-  - Current evidence: focused API rerun on 2026-06-21 for `playwright/specs/api/store-settings.api.spec.ts` passed cleanly (`8 passed`, `0 skipped`, `0 unexpected`, `0 flaky`), proving store-settings backend contracts for storefront identity, homepage composition, visibility, support/footer, presence controls, and registry commitments. FAQ visibility, cards, and product commercial-state persistence still require separate verification.
+- [x] **RUN-BE-REF** Verify refund detail and payment evidence.
+  - Evidence: focused API rerun on 2026-06-22 for `playwright/specs/api/admin-refund.spec.ts` passed cleanly with the API-only config (`8 passed`, `0 skipped`, `0 unexpected`), proving pending queue reads, refund-detail evidence, approve/reject decision flows, historical approved refund review, and duplicate-approve rejection.
+- [x] **RUN-BE-NOTY** Verify readiness, message list, durable outbound artifact, and history outcome fields.
+  - Evidence: focused API rerun on 2026-06-22 for `playwright/specs/api/admin-noty.spec.ts` passed cleanly with an API-only config (`scratch/playwright.api-no-webserver.config.ts`) to avoid unrelated frontend web-server bootstrapping (`4 passed`, `0 skipped`, `0 unexpected`), proving `/v1/admin/notifications`, `/v1/admin/messages`, broadcast send acceptance, and history outcome fields.
+- [x] **RUN-BE-PROFILE** Verify security posture and session contracts.
+  - Evidence: focused API rerun on 2026-06-22 for `playwright/specs/api/admin-profile.spec.ts` passed cleanly with the API-only config (`scratch/playwright.api-no-webserver.config.ts`) (`4 passed`, `0 skipped`, `0 unexpected`), proving self identity, persisted display identity, backend-owned security posture, and recent-access trust contracts.
+- [x] **RUN-BE-PCOL** Verify sources, validation, persistence, readiness, and warnings contracts.
+  - Evidence: focused API rerun on 2026-06-22 for `playwright/specs/api/admin-payment-collection.spec.ts` passed cleanly with the API-only config (`scratch/playwright.api-no-webserver.config.ts`) (`4 passed`, `0 skipped`, `0 unexpected`), proving backend source metadata, persisted payee identity, invalid-save rejection, and readiness/warnings fields.
+- [x] **RUN-BE-SETCONT** Verify store presence, FAQ visibility, cards, and product commercial-state preservation.
+  - Evidence: focused API rerun on 2026-06-21 for `playwright/specs/api/store-settings.api.spec.ts` passed cleanly (`8 passed`, `0 skipped`, `0 unexpected`, `0 flaky`), focused API rerun on 2026-06-22 for `playwright/specs/api/admin-content.spec.ts` passed cleanly (`6 passed`), and focused API rerun on 2026-06-22 for `playwright/specs/api/admin-product.spec.ts` passed cleanly (`8 passed`). Together these verify store presence, FAQ visibility, `/v1/admin/cards` product-linked card inventory, and preservation of product commercial state during editorial updates.
 
 ### Frontend Surfaces
 
 - [~] **RUN-FE-ORDPROD** Verify order detail, persisted product active state, history handoff, and category refresh.
-  - Current evidence: focused Chromium rerun on 2026-06-21 for `playwright/specs/admin/orders.spec.ts` passed cleanly (`14 passed`, `0 skipped`, `0 unexpected`) after wiring pending-refund relevance into the order signals panel and normalizing the row-to-detail handoff URL assertion. Focused product follow-up reruns on 2026-06-21 now also passed for `playwright/specs/admin/product-content.spec.ts` (`4 passed`, product-linked cards context plus explicit backend-error handling) and `playwright/specs/admin/product.spec.ts --grep "UC-PROD-04"` (`3 passed`, category refresh/reorder semantics). Product active-state persistence is the remaining focused verification gap and still needs a rerun against a backend carrying the new `go-grip` status-persistence patch.
+  - Current evidence: focused Chromium rerun on 2026-06-21 for `playwright/specs/admin/orders.spec.ts` passed cleanly (`14 passed`, `0 skipped`, `0 unexpected`) after wiring pending-refund relevance into the order signals panel and normalizing the row-to-detail handoff URL assertion. Focused product follow-up reruns on 2026-06-21 now also passed for `playwright/specs/admin/product-content.spec.ts` (`4 passed`, product-linked cards context plus explicit backend-error handling) and `playwright/specs/admin/product.spec.ts --grep "UC-PROD-04"` (`3 passed`, category refresh/reorder semantics). Post-deploy verification on 2026-06-22 improved the status route from `404` to `200`, but the quick-toggle flow is still blocked because `PATCH /v1/admin/products/:id/status` continues to preserve `is_active === true` on direct probe and in the focused Chromium rerun for `UC-PROD-03`.
 - [x] **RUN-FE-SET** Verify settings success feedback, homepage controls, discovery controls, and registry controls.
   - Evidence: focused Chromium rerun on 2026-06-21 for `playwright/specs/admin/store-settings.spec.ts` passed cleanly (`18 passed`, `0 skipped`, `0 unexpected`). The FE settings surface now proves grouped success feedback, homepage composition controls, discovery/visibility saves, presence controls, and registry/legacy controls without relying on fixed seeded news counts or stale reorder assumptions.
 - [x] **RUN-FE-CUSUSER** Verify separate customer/account roots, state summary, and explicit domain handoffs.
   - Evidence: focused Chromium rerun on 2026-06-21 for `playwright/specs/admin/user.spec.ts` and `playwright/specs/admin/customer.spec.ts` passed with `17 passed`, `1 explicit data-blocked skip`, `0 unexpected`, proving distinct customer/account roots, account/customer state panels, and cross-domain handoffs in both directions.
 - [x] **RUN-FE-REF** Verify pending queue reconciliation and historical refund search.
   - Current evidence: `/admin/refunds` now fetches `status=all`, filters pending/history client-side, and hydrates the selected refund from `/v1/admin/refunds/:id`; targeted Chromium reruns proved pending-queue reconciliation and historical decision reading on the live backend.
-- [~] **RUN-FE-NOTY** Verify server-backed readiness/history and explicit backend error state.
-- [~] **RUN-FE-PROFILE** Verify real username, persisted display name, security posture, and sessions.
-- [~] **RUN-FE-PCOL** Verify server-backed sources, persisted payee, invalid-save preservation, and readiness.
+- [x] **RUN-FE-NOTY** Verify server-backed readiness/history and explicit backend error state.
+  - Evidence: focused Chromium rerun on 2026-06-22 for `playwright/specs/admin/noty.spec.ts` passed cleanly (`7 passed`, `0 skipped`, `0 unexpected`), proving channel readiness, compose/send flow, server-backed reload/history, empty-search handling, and the explicit readiness-error boundary.
+- [x] **RUN-FE-PROFILE** Verify real username, persisted display name, security posture, and sessions.
+  - Evidence: focused Chromium rerun on 2026-06-22 for `playwright/specs/admin/admin-profile.spec.ts` passed cleanly (`4 passed`, `0 skipped`, `0 unexpected`), proving `/admin/profile` now renders live self identity, persists display-name changes after reload, requests `/v1/profile/security` and `/v1/profile/sessions`, and removes the prior hardcoded audit/session scaffolding.
+- [x] **RUN-FE-PCOL** Verify server-backed sources, persisted payee, invalid-save preservation, and readiness.
+  - Evidence: focused Chromium rerun on 2026-06-22 for `playwright/specs/admin/payment-collection.spec.ts` passed cleanly (`4 passed`, `0 skipped`, `0 unexpected`), proving `/admin/collect` now reads backend `sources`, persists payee identity across reload, preserves the last valid config after invalid input, and reflects backend readiness/warnings instead of hardcoded status copy.
 
 ### Execution Acceptance
 

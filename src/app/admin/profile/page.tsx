@@ -9,29 +9,36 @@ import { toast } from "sonner"
 import { 
   User, 
   ShieldCheck, 
-  Key, 
   Smartphone, 
   Laptop, 
-  AlertCircle, 
-  Check, 
-  ChevronRight, 
   Lock,
   Loader2
 } from "lucide-react"
 
+function formatTimestamp(value: string | null | undefined) {
+  if (!value) return "Unknown"
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return "Unknown"
+  return date.toLocaleString("en-US", {
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  })
+}
+
 export default function AdminProfileAliasPage() {
-  const { profile, isLoading, updateProfile, refresh } = useProfile()
+  const { profile, security, sessions, isLoading, updateProfile, refresh } = useProfile()
   
   const [displayName, setDisplayName] = useState("")
   const [email, setEmail] = useState("")
   const [saving, setSaving] = useState(false)
-  const [is2FAEnabled, setIs2FAEnabled] = useState(true)
 
   // Sync state with fetched profile data
   useEffect(() => {
     if (profile?.user) {
-      setDisplayName(profile.user.name || "GRIP Operations")
-      setEmail(profile.user.email || "test_admin@example.com")
+      setDisplayName(profile.user.displayName || profile.user.name || "")
+      setEmail(profile.user.email || "")
     }
   }, [profile])
 
@@ -39,7 +46,7 @@ export default function AdminProfileAliasPage() {
     setSaving(true)
     try {
       const emailToSave = email || profile?.user?.email || "test_admin@example.com"
-      const displayNameToSave = displayName || profile?.user?.name || "GRIP Operations"
+      const displayNameToSave = displayName || profile?.user?.displayName || profile?.user?.name || "GRIP Operations"
       const desktopNotif = profile?.desktopNotificationsEnabled || false
 
       await updateProfile(emailToSave, displayNameToSave, desktopNotif)
@@ -89,21 +96,25 @@ export default function AdminProfileAliasPage() {
       {/* Metrics Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-white rounded-lg border border-[#e7e1d7] p-4 flex flex-col justify-between h-[84px] shadow-sm">
-          <span className="text-[#71685a] text-xs font-semibold uppercase tracking-wider">Roles</span>
-          <span className="text-2xl font-bold text-[#211e18]">2</span>
+          <span className="text-[#71685a] text-xs font-semibold uppercase tracking-wider">Role</span>
+          <span className="text-lg font-bold text-[#211e18]">{profile?.user?.role || "Administrator"}</span>
         </div>
         <div className="bg-white rounded-lg border border-[#e7e1d7] p-4 flex flex-col justify-between h-[84px] shadow-sm">
           <span className="text-[#71685a] text-xs font-semibold uppercase tracking-wider">Sessions</span>
-          <span className="text-2xl font-bold text-[#211e18]">3</span>
+          <span className="text-2xl font-bold text-[#211e18]">{sessions.length}</span>
         </div>
         <div className="bg-white rounded-lg border border-[#e7e1d7] p-4 flex flex-col justify-between h-[84px] shadow-sm">
           <span className="text-[#71685a] text-xs font-semibold uppercase tracking-wider">2FA</span>
-          <span className="text-2xl font-bold text-[#137333]">Enabled</span>
+          <span className={`text-2xl font-bold ${security?.twoFactorEnabled ? "text-[#137333]" : "text-[#99782b]"}`}>
+            {security?.twoFactorEnabled ? "Enabled" : "Disabled"}
+          </span>
         </div>
         <div className="bg-[#fffdf8] rounded-lg border border-[#e1d3b7] p-4 flex items-center gap-3 h-[84px] shadow-sm">
           <ShieldCheck className="h-5 w-5 text-[#99782b] shrink-0" />
           <span className="text-[#7a5a17] text-xs font-medium leading-snug">
-            Security audit passed. Active sessions match authorized locations.
+            {security?.twoFactorEnabled
+              ? "Two-factor protection is enabled for this administrator."
+              : "Security posture is loaded from the backend. Two-factor protection is currently disabled."}
           </span>
         </div>
       </div>
@@ -120,6 +131,16 @@ export default function AdminProfileAliasPage() {
               </h2>
             </div>
 
+            <div className="rounded-lg border border-[#efe8db] bg-[#faf7f1] px-4 py-3">
+              <p className="text-xs font-semibold uppercase tracking-wider text-[#786f61]">Admin role</p>
+              <p className="mt-1 text-sm font-semibold text-[#211e18]">
+                {profile?.user?.role || "Administrator"}
+              </p>
+              <p className="mt-1 text-xs text-[#71685a]">
+                Last sign-in: {formatTimestamp(profile?.user?.lastLoginAt)}
+              </p>
+            </div>
+
             <div className="space-y-4">
               <div className="space-y-1.5">
                 <Label htmlFor="username" className="text-xs font-semibold text-[#71685a]">
@@ -127,7 +148,7 @@ export default function AdminProfileAliasPage() {
                 </Label>
                 <Input
                   id="username"
-                  value={profile?.user?.username || "admin_grip_ops"}
+                  value={profile?.user?.username || ""}
                   disabled
                   className="bg-[#f3f1ec] border-[#e7e1d7] text-[#786f61] rounded-md text-sm cursor-not-allowed"
                 />
@@ -165,7 +186,10 @@ export default function AdminProfileAliasPage() {
         {/* Right Column - Security & Recent Access */}
         <div className="lg:col-span-6 space-y-6">
           {/* Security Card */}
-          <div className="bg-white rounded-lg border border-[#e7e1d7] p-6 space-y-4 shadow-sm">
+          <div
+            className="bg-white rounded-lg border border-[#e7e1d7] p-6 space-y-4 shadow-sm"
+            data-testid="admin-security-section"
+          >
             <div className="border-b border-[#e7e1d7] pb-3 flex items-center gap-2">
               <Lock className="h-5 w-5 text-[#99782b]" />
               <h2 className="text-sm font-bold text-[#211e18] uppercase tracking-wider">
@@ -178,7 +202,9 @@ export default function AdminProfileAliasPage() {
               <div className="flex items-center justify-between bg-[#fafafa] border border-[#e7e1d7] p-3 rounded-lg">
                 <div className="space-y-0.5">
                   <Label className="text-xs font-semibold text-[#71685a]">Password</Label>
-                  <p className="text-sm text-[#211e18] tracking-widest">*********</p>
+                  <p className="text-sm text-[#211e18]">
+                    Last changed {formatTimestamp(security?.passwordLastChangedAt)}
+                  </p>
                 </div>
                 <Button 
                   onClick={() => toast.success("Password mutation request sent")}
@@ -192,25 +218,22 @@ export default function AdminProfileAliasPage() {
               <div className="flex items-center justify-between bg-[#fafafa] border border-[#e7e1d7] p-3 rounded-lg">
                 <div className="space-y-0.5">
                   <Label className="text-xs font-semibold text-[#211e18]">Two-Factor Authentication (2FA)</Label>
-                  <p className="text-xs text-[#71685a]">Secures account with mobile OTP</p>
+                  <p className="text-xs text-[#71685a]">Backend-owned state for current administrator</p>
                 </div>
-                <div 
-                  onClick={() => setIs2FAEnabled(!is2FAEnabled)}
-                  className={`w-11 h-6 rounded-full p-1 cursor-pointer transition-all duration-300 ${
-                    is2FAEnabled ? "bg-[#99782b]" : "bg-[#faf9f6] border border-[#e7e1d7]"
-                  }`}
-                >
-                  <div className={`w-4 h-4 bg-white rounded-full shadow-md transform transition-transform duration-300 ${
-                    is2FAEnabled ? "translate-x-5" : "translate-x-0"
-                  }`} />
-                </div>
+                <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${
+                  security?.twoFactorEnabled
+                    ? "bg-[#e8f5e9] text-[#2e7d32] border border-[#c8e6c9]"
+                    : "bg-[#fff3e0] text-[#ad6800] border border-[#f0d4a6]"
+                }`}>
+                  {security?.twoFactorEnabled ? "Enabled" : "Disabled"}
+                </span>
               </div>
 
               {/* Backup Email */}
               <div className="flex items-center justify-between bg-[#fafafa] border border-[#e7e1d7] p-3 rounded-lg">
                 <div className="space-y-0.5">
                   <Label className="text-xs font-semibold text-[#71685a]">Backup Email</Label>
-                  <p className="text-sm text-[#211e18]">test_backup@example.com</p>
+                  <p className="text-sm text-[#211e18]">{security?.backupEmail || "Not configured"}</p>
                 </div>
                 <Button 
                   onClick={() => toast.success("Backup email settings opened")}
@@ -239,52 +262,42 @@ export default function AdminProfileAliasPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#f3f1ec]">
-                  {/* Row 1 */}
-                  <tr>
-                    <td className="py-2.5 text-xs font-semibold text-[#211e18] flex items-center gap-1.5">
-                      <Laptop className="h-3.5 w-3.5 text-[#99782b] shrink-0" />
-                      Chrome · macOS
-                    </td>
-                    <td className="py-2.5 text-xs text-[#3a352b]">Saigon</td>
-                    <td className="py-2.5 text-xs text-[#3a352b]">Active now</td>
-                    <td className="py-2.5 text-xs font-semibold text-[#786f61] text-right">Current</td>
-                  </tr>
-                  
-                  {/* Row 2 */}
-                  <tr>
-                    <td className="py-2.5 text-xs text-[#211e18] flex items-center gap-1.5">
-                      <Smartphone className="h-3.5 w-3.5 text-[#71685a] shrink-0" />
-                      Safari · iOS
-                    </td>
-                    <td className="py-2.5 text-xs text-[#3a352b]">Hanoi</td>
-                    <td className="py-2.5 text-xs text-[#3a352b]">2 hours ago</td>
-                    <td className="py-2.5 text-right">
-                      <button 
-                        onClick={() => toast.success("Session revoked")}
-                        className="text-xs font-semibold text-[#c25345] hover:underline"
-                      >
-                        Revoke
-                      </button>
-                    </td>
-                  </tr>
-
-                  {/* Row 3 */}
-                  <tr>
-                    <td className="py-2.5 text-xs text-[#211e18] flex items-center gap-1.5">
-                      <Laptop className="h-3.5 w-3.5 text-[#71685a] shrink-0" />
-                      Chrome · Windows
-                    </td>
-                    <td className="py-2.5 text-xs text-[#3a352b]">Da Nang</td>
-                    <td className="py-2.5 text-xs text-[#3a352b]">3 days ago</td>
-                    <td className="py-2.5 text-right">
-                      <button 
-                        onClick={() => toast.success("Session revoked")}
-                        className="text-xs font-semibold text-[#c25345] hover:underline"
-                      >
-                        Revoke
-                      </button>
-                    </td>
-                  </tr>
+                  {sessions.length === 0 ? (
+                    <tr>
+                      <td colSpan={4} className="py-6 text-center text-xs text-[#786f61]">
+                        No recent access records returned by the backend.
+                      </td>
+                    </tr>
+                  ) : (
+                    sessions.map((session, index) => (
+                      <tr key={`${session.device}-${session.lastSeenAt ?? index}`}>
+                        <td className="py-2.5 text-xs text-[#211e18]">
+                          <div className="flex items-center gap-1.5">
+                            {session.device.toLowerCase().includes("ios") || session.device.toLowerCase().includes("iphone") ? (
+                              <Smartphone className="h-3.5 w-3.5 text-[#71685a] shrink-0" />
+                            ) : (
+                              <Laptop className={`h-3.5 w-3.5 shrink-0 ${session.current ? "text-[#99782b]" : "text-[#71685a]"}`} />
+                            )}
+                            <span className={session.current ? "font-semibold" : ""}>{session.device}</span>
+                          </div>
+                        </td>
+                        <td className="py-2.5 text-xs text-[#3a352b]">{session.location}</td>
+                        <td className="py-2.5 text-xs text-[#3a352b]">{session.current ? "Active now" : formatTimestamp(session.lastSeenAt)}</td>
+                        <td className="py-2.5 text-right">
+                          {session.current ? (
+                            <span className="text-xs font-semibold text-[#786f61]">Current</span>
+                          ) : (
+                            <button
+                              onClick={() => toast.success("Session revoke flow is not implemented yet")}
+                              className="text-xs font-semibold text-[#c25345] hover:underline"
+                            >
+                              Revoke
+                            </button>
+                          )}
+                        </td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>

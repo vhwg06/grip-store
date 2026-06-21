@@ -240,4 +240,6 @@ export interface AdminCollectPayload {
   payLink: string
   payee: string | null
   sources?: any[]
+  ready?: boolean
+  warnings?: string[]
 }

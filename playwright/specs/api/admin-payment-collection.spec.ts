@@ -17,6 +17,8 @@ async function adminPut(request: any, path: string, data: Record<string, unknown
 }
 
 test.describe("Admin Payment Collection API @api P3", () => {
+  test.describe.configure({ mode: "serial" });
+
   test("UC-PCOL-01 reads collection sources with explicit source-state metadata", async ({ request }) => {
     // GOAL: Admin Reads Collection Sources: hiểu những nguồn nhận tiền nào đang được cấu hình cho doanh nghiệp.
     // PRIORITY: P3

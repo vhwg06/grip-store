@@ -63,4 +63,41 @@ test.describe("Admin Articles – CRUD @admin", () => {
     // Verify gone
     await expect(updatedRow).not.toBeVisible();
   });
+
+  test("should support previewing articles in storefront simulated modal", async ({ page }) => {
+    // Verify articles list
+    const previewBtn = page.locator('[data-testid="article-preview-btn"]').first();
+    await expect(previewBtn).toBeVisible();
+    await previewBtn.click();
+
+    // Verify preview modal appears
+    const modal = page.locator('[data-testid="article-preview-modal"]');
+    await expect(modal).toBeVisible();
+    await expect(modal.locator('[data-testid="preview-title"]')).toBeVisible();
+
+    // Close preview
+    await modal.locator('[data-testid="close-preview-btn"]').click();
+    await expect(modal).toBeHidden();
+  });
+
+  test("should support toggling editor modes and pasting images", async ({ page }) => {
+    // Navigate to new article
+    await page.click('a[href="/admin/article/new"]');
+    await page.waitForLoadState("networkidle");
+
+    // Editor mode toggles
+    const visualTab = page.locator('[data-testid="editor-mode-visual"]');
+    const markdownTab = page.locator('[data-testid="editor-mode-markdown"]');
+    await expect(visualTab).toBeVisible();
+    await expect(markdownTab).toBeVisible();
+
+    // Click markdown mode
+    await markdownTab.click();
+    await expect(page.locator('#content')).toBeVisible();
+
+    // Click visual mode
+    await visualTab.click();
+    await expect(page.locator('.tiptap')).toBeVisible();
+  });
 });
+

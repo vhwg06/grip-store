@@ -147,15 +147,21 @@ export function AdminReviewsContent({ reviews: initialReviews, stats }: { review
 
   const handleBulkPublish = async () => {
     if (checkedIds.length === 0) return
+    const eligibleIds = reviews
+      .filter((item) => checkedIds.includes(item.id) && item.status === "PENDING")
+      .map((item) => item.id)
+
+    if (eligibleIds.length === 0) return
+
     setLoading(true)
     try {
-      await bulkPublishReviews(checkedIds)
+      await bulkPublishReviews(eligibleIds)
       setReviews((prev) =>
         prev.map((item) =>
-          checkedIds.includes(item.id) ? { ...item, status: "APPROVED" } : item
+          eligibleIds.includes(item.id) ? { ...item, status: "APPROVED" } : item
         )
       )
-      if (selectedReview && checkedIds.includes(selectedReview.id)) {
+      if (selectedReview && eligibleIds.includes(selectedReview.id)) {
         setSelectedReview((prev) => prev ? { ...prev, status: "APPROVED" } : null)
       }
       setCheckedIds([])
@@ -478,7 +484,7 @@ export function AdminReviewsContent({ reviews: initialReviews, stats }: { review
                 data-testid="review-action-feature"
                 variant="outline"
                 onClick={() => selectedReview && handleFeature(selectedReview)}
-                disabled={actionLoading || !selectedReview}
+                disabled={actionLoading || !selectedReview || selectedReview.status === "FEATURED"}
                 className="w-full flex items-center justify-center gap-2 border-indigo-500/30 text-indigo-600 hover:bg-indigo-50 hover:text-indigo-700 dark:hover:bg-indigo-950/20"
               >
                 <LayoutGrid className="w-4 h-4 shrink-0" />

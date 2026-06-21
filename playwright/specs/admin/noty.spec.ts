@@ -63,10 +63,7 @@ test.describe("Admin Noty @admin P3", () => {
     await expect(row.getByRole("cell", { name: title })).toBeVisible();
     await expect(row.getByText(/^Sent$/)).toBeVisible();
 
-    // INVARIANT: sent notification phải durable — không chỉ là local UI row
-    // INVARIANT (gap): /v1/admin/messages history endpoint missing — khi BE fix, cần verify row xuất hiện sau page reload
-    // Currently passing only because FE creates local row without backend persistence check
-    // TODO (when BE fix): add page.reload() + verify title still visible
+    // INVARIANT: compose can optimistically reflect the accepted send, but reload/list verification must still come from server-backed history.
   });
 
   test("UC-NOTY-03 reads outbound notification list from backend state instead of only local scaffolding", async ({
@@ -79,17 +76,16 @@ test.describe("Admin Noty @admin P3", () => {
     // SCENARIO: SC-NOTY-03 Main flow
     const title = `PW API Noty List ${Date.now()}`;
     await sendBroadcastNotification(request, title);
-    const listResponses: number[] = [];
-    page.on("response", (response) => {
-      if (response.url().includes("/v1/admin/messages")) {
-        listResponses.push(response.status());
-      }
-    });
+    const listResponsePromise = page.waitForResponse(
+      (response) =>
+        response.url().includes("/v1/admin/messages") &&
+        response.request().method() === "GET",
+    );
 
     await page.reload();
-    await page.waitForLoadState("networkidle");
+    const listResponse = await listResponsePromise;
 
-    expect(listResponses.length).toBeGreaterThan(0);
+    expect(listResponse.ok()).toBeTruthy();
     await expect(page.getByRole("cell", { name: title })).toBeVisible();
   });
 
@@ -103,17 +99,16 @@ test.describe("Admin Noty @admin P3", () => {
     // SCENARIO: SC-NOTY-04 Main flow
     const title = `PW API Noty History ${Date.now()}`;
     await sendBroadcastNotification(request, title);
-    const listResponses: number[] = [];
-    page.on("response", (response) => {
-      if (response.url().includes("/v1/admin/messages")) {
-        listResponses.push(response.status());
-      }
-    });
+    const listResponsePromise = page.waitForResponse(
+      (response) =>
+        response.url().includes("/v1/admin/messages") &&
+        response.request().method() === "GET",
+    );
 
     await page.reload();
-    await page.waitForLoadState("networkidle");
+    const listResponse = await listResponsePromise;
 
-    expect(listResponses.length).toBeGreaterThan(0);
+    expect(listResponse.ok()).toBeTruthy();
     await expect(page.getByRole("button", { name: /history/i })).toBeVisible();
     await expect(page.getByText(title)).toBeVisible();
     await expect(page.getByText(/failed|sent|queued|scheduled/i).first()).toBeVisible();
@@ -127,6 +122,26 @@ test.describe("Admin Noty @admin P3", () => {
     await page.getByPlaceholder("Search campaigns by title...").fill("nonexistent-campaign-12345xyz");
     await expect(page.getByText("No campaigns match your filters.")).toBeVisible();
     await expect(page.locator('[data-testid="error-boundary"]')).toHaveCount(0);
+  });
+
+  test("EXC-NOTY-01 shows an explicit readiness error instead of fabricated defaults when notification settings fail", async ({
+    page,
+  }) => {
+    await page.route("**/v1/admin/notifications", async (route) => {
+      await route.fulfill({
+        status: 404,
+        contentType: "application/json",
+        body: JSON.stringify({ error: "notification settings unavailable" }),
+      });
+    });
+
+    await page.goto("/admin/notifications");
+    await page.waitForLoadState("networkidle");
+
+    await expect(page.locator('[data-testid="error-boundary"]')).toBeVisible();
+    await expect(page.getByText(/failed to load notification settings/i)).toBeVisible();
+    await expect(page.getByRole("button", { name: "Channel Settings" })).toHaveCount(0);
+    await expect(page.getByText(/admin trigger toggles/i)).toHaveCount(0);
   });
 
   test("UC-NOTY-01 alternate: updates channel readiness settings before sending a push notification", async ({ page }) => {
@@ -155,4 +170,3 @@ test.describe("Admin Noty @admin P3", () => {
     await expect(page.getByText(/push campaign sent successfully/i)).toBeVisible();
   });
 });
-

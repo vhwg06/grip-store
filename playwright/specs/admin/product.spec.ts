@@ -142,7 +142,7 @@ test.describe("Admin Product @admin P1", () => {
   });
 
   test("UC-PROD-03 submits commercial state changes from the list quick action", async ({ page, request }) => {
-    test.fail(true, "FE Gap: List quick toggle does not persist is_active changes");
+    test.fail(true, "BE Gap: Product status endpoint returns success but does not persist is_active changes");
     // GOAL: Admin Updates Product Commercial State: thay đổi nội dung hoặc trạng thái thương mại của product đang có.
     // PRIORITY: P1
     // RELATED DOMAINS: review
@@ -159,22 +159,30 @@ test.describe("Admin Product @admin P1", () => {
     await row.locator('[data-testid="toggle-btn"]').click();
     await page.waitForLoadState("networkidle", { timeout: 10000 });
 
-    const response = await request.get(`${BACKEND_URL}/v1/admin/products/${created.id}/form`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    expect(response.ok()).toBeTruthy();
-    const payload = await response.json();
-    expect(payload.product.is_active).toBe(false);
+    await expect
+      .poll(async () => {
+        const response = await request.get(`${BACKEND_URL}/v1/admin/products/${created.id}/form`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        expect(response.ok()).toBeTruthy();
+        const payload = await response.json();
+        return payload.product.is_active;
+      })
+      .toBe(false);
 
     await row.locator('[data-testid="toggle-btn"]').click();
     await page.waitForLoadState("networkidle");
 
-    const revertResponse = await request.get(`${BACKEND_URL}/v1/admin/products/${created.id}/form`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    expect(revertResponse.ok()).toBeTruthy();
-    const revertedPayload = await revertResponse.json();
-    expect(revertedPayload.product.is_active).toBe(true);
+    await expect
+      .poll(async () => {
+        const revertResponse = await request.get(`${BACKEND_URL}/v1/admin/products/${created.id}/form`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        expect(revertResponse.ok()).toBeTruthy();
+        const revertedPayload = await revertResponse.json();
+        return revertedPayload.product.is_active;
+      })
+      .toBe(true);
   });
 
   test("UC-PROD-04 submits category reordering semantics from the admin editor", async ({ page, request }) => {

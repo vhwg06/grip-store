@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { useI18n } from "@/lib/i18n/context"
 import { useRouter } from "next/navigation"
 import { Input } from "@/components/ui/input"
@@ -10,16 +10,41 @@ import { saveAdminCollect } from "@/adapters/api/admin.api"
 import { toast } from "sonner"
 import { QrCode, Upload, AlertCircle, Info, Landmark, Wallet, Banknote } from "lucide-react"
 
-export function AdminPaymentCodeContent({ payLink, payee, sources }: { payLink: string; payee?: string | null; sources?: any[] }) {
+export function AdminPaymentCodeContent({
+    payLink,
+    payee,
+    sources,
+    ready,
+    warnings,
+}: {
+    payLink: string
+    payee?: string | null
+    sources?: any[]
+    ready?: boolean
+    warnings?: string[]
+}) {
     const { t } = useI18n()
     const router = useRouter()
 
     const [accountName, setAccountName] = useState(payee || "")
     const [bankNumber, setBankNumber] = useState(payLink || "")
-    const [selectedSource, setSelectedSource] = useState("vcb")
+    const [selectedSource, setSelectedSource] = useState(sources?.[0]?.key || "")
     const [saving, setSaving] = useState(false)
 
-    const isReady = !!(payee && payLink && payLink.length >= 10)
+    const isReady = Boolean(ready)
+    const readinessWarnings = warnings ?? []
+    const sourceList = Array.isArray(sources) ? sources : []
+
+    useEffect(() => {
+        setAccountName(payee || "")
+        setBankNumber(payLink || "")
+    }, [payLink, payee])
+
+    useEffect(() => {
+        if (!selectedSource && sourceList.length > 0) {
+            setSelectedSource(sourceList[0].key)
+        }
+    }, [selectedSource, sourceList])
 
     // Validation
     const isBankNumberInvalid = bankNumber.length > 0 && bankNumber.length < 10
@@ -79,21 +104,23 @@ export function AdminPaymentCodeContent({ payLink, payee, sources }: { payLink: 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div className="bg-white rounded-lg border border-[#e7e1d7] p-4 flex flex-col justify-between h-[84px] shadow-sm">
                     <span className="text-[#71685a] text-xs font-semibold uppercase tracking-wider">Bank accounts</span>
-                    <span className="text-2xl font-bold text-[#211e18]">3</span>
+                    <span className="text-2xl font-bold text-[#211e18]">{sourceList.length}</span>
                 </div>
                 <div className="bg-white rounded-lg border border-[#e7e1d7] p-4 flex flex-col justify-between h-[84px] shadow-sm">
                     <span className="text-[#71685a] text-xs font-semibold uppercase tracking-wider">QR sets</span>
-                    <span className="text-2xl font-bold text-[#211e18]">5</span>
+                    <span className="text-2xl font-bold text-[#211e18]">{sourceList.filter((src) => src.enabled).length}</span>
                 </div>
                 <div className="bg-white rounded-lg border border-[#e7e1d7] p-4 flex flex-col justify-between h-[84px] shadow-sm">
                     <span className="text-[#71685a] text-xs font-semibold uppercase tracking-wider">Manual checks</span>
-                    <span className="text-2xl font-bold text-[#211e18]">8</span>
+                    <span className="text-2xl font-bold text-[#211e18]">{readinessWarnings.length}</span>
                 </div>
-                {isReady && (
+                {(readinessWarnings.length > 0 || isReady) && (
                     <div className="bg-[#fffdf8] rounded-lg border border-[#e1d3b7] p-4 flex items-center gap-3 h-[84px] shadow-sm">
                         <Info className="h-5 w-5 text-[#99782b] shrink-0" />
                         <span className="text-[#7a5a17] text-xs font-medium leading-snug">
-                            Verify configurations before saving to live checkout.
+                            {readinessWarnings.length > 0
+                                ? readinessWarnings.join(" ")
+                                : "Collection setup is ready for live checkout."}
                         </span>
                     </div>
                 )}
@@ -105,15 +132,14 @@ export function AdminPaymentCodeContent({ payLink, payee, sources }: { payLink: 
                 <div className="lg:col-span-5 space-y-4">
                     <h2 className="text-lg font-bold text-[#211e18]">Payment Sources</h2>
                     
-                    {(sources && sources.length > 0 ? sources : [
-                        { id: "vcb", key: "vcb", label: "VCB QR primary", enabled: true, status: "active" },
-                        { id: "acb", key: "acb", label: "ACB transfer fallback", enabled: true, status: "active" },
-                        { id: "momo", key: "momo", label: "MoMo disabled", enabled: false, status: "inactive" },
-                        { id: "cash", key: "cash", label: "Store cash pickup", enabled: true, status: "active" }
-                    ]).map((src) => {
+                    {sourceList.length === 0 ? (
+                        <div className="rounded-lg border border-dashed border-[#d8d1c5] bg-white p-6 text-sm text-[#71685a]">
+                            No backend collection sources are configured for this environment.
+                        </div>
+                    ) : sourceList.map((src) => {
                         const isSelected = selectedSource === src.key
                         const Icon = src.key === "momo" ? Wallet : (src.key === "cash" ? Banknote : Landmark)
-                        const isActive = isReady && (src.status === "active" || src.enabled)
+                        const isActive = src.status === "active" || src.enabled
                         return (
                             <div 
                                 key={src.id}
@@ -132,14 +158,20 @@ export function AdminPaymentCodeContent({ payLink, payee, sources }: { payLink: 
                                         <div>
                                             <h3 className="font-semibold text-sm text-[#211e18]">{src.label}</h3>
                                             <p className="text-xs text-[#71685a] mt-0.5">
-                                                {src.key === "vcb" ? "Vietcombank QR collection" : src.key === "momo" ? "MoMo e-wallet gateway" : "Asia Commercial Bank transfer"}
+                                                {src.key === "vcb"
+                                                    ? "Vietcombank QR collection"
+                                                    : src.key === "momo"
+                                                        ? "MoMo e-wallet gateway"
+                                                        : src.key === "cash"
+                                                            ? "Cash collection fallback"
+                                                            : "Bank transfer collection"}
                                             </p>
                                         </div>
                                     </div>
                                     <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
                                         isActive ? "bg-[#e6f4ea] text-[#137333]" : "bg-[#f1f3f4] text-[#5f6368]"
                                     }`}>
-                                        {isActive ? "Active" : "Inactive"}
+                                        {isActive ? "Ready" : "Unavailable"}
                                     </span>
                                 </div>
                             </div>

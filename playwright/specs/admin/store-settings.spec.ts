@@ -340,6 +340,104 @@ test.describe("Admin Store Settings Spec Coverage @admin P1 P2", () => {
     }
   });
 
+  test("UC-SET-05 alternate: links a published article to the About Us page and then unlinks it", async ({
+    page,
+    homepagePage,
+    request,
+    adminPage,
+  }) => {
+    const adminToken = await getAdminToken(request);
+    expect(adminToken).toBeTruthy();
+
+    // 1. Create a published article via UI
+    await page.goto("/admin/articles", { timeout: 10000 });
+    await page.waitForLoadState("networkidle");
+    
+    await page.click('a[href="/admin/article/new"]');
+    await page.waitForLoadState("networkidle");
+
+    const tempTitle = `About Linked Article E2E ${Date.now()}`;
+    const tempSlug = `about-linked-article-e2e-${Date.now()}`;
+    const tempContent = `This is dynamic body content for the linked article E2E test.`;
+
+    await page.locator("#title").fill(tempTitle);
+    await page.locator("#slug").fill(tempSlug);
+    await page.locator("#excerpt").fill("E2E test linked article excerpt.");
+    
+    const editor = page.locator('#content-editor, [data-testid="article-content-editor"]');
+    if (await editor.isVisible()) {
+      await editor.fill(tempContent);
+    } else {
+      await page.locator("#content").fill(tempContent);
+    }
+    
+    // Ensure it is published
+    const statusBtn = page.locator('button:has-text("Draft"), button:has-text("Published")');
+    if (await statusBtn.textContent() === "Draft") {
+      await statusBtn.click();
+    }
+    
+    await page.click('button[type="submit"]');
+    await page.waitForLoadState("networkidle");
+    await expectSuccessToast(page);
+
+    try {
+      // 2. Link this article to the About page in Settings
+      await adminPage.goto();
+      await adminPage.navigateTo("settings");
+      await expect(page.locator('[data-testid="settings-about-article-select"]')).toBeVisible();
+
+      await page.locator('[data-testid="settings-about-article-select"]').selectOption({ label: tempTitle });
+      await page.locator('[data-testid="settings-save-presence"]').click();
+      await expectSuccessToast(page);
+
+      // 3. Verify public storefront About page displays the linked article
+      await page.goto("/about");
+      await page.waitForLoadState("networkidle");
+      
+      const aboutTitle = page.locator('[data-testid="about-title"], h1');
+      await expect(aboutTitle).toContainText(tempTitle);
+      
+      const aboutContent = page.locator('[data-testid="about-content"]');
+      await expect(aboutContent).toContainText(tempContent);
+
+      // 4. Unlink the article (select "None") in Settings
+      await adminPage.goto();
+      await adminPage.navigateTo("settings");
+      await expect(page.locator('[data-testid="settings-about-article-select"]')).toBeVisible();
+
+      await page.locator('[data-testid="settings-about-article-select"]').selectOption("");
+      await page.locator('[data-testid="settings-save-presence"]').click();
+      await expectSuccessToast(page);
+
+      // 5. Verify public storefront falls back to default company narrative
+      await page.goto("/about");
+      await page.waitForLoadState("networkidle");
+      
+      const fallbackTitle = page.locator('[data-testid="about-title"], h1');
+      await expect(fallbackTitle).toContainText(/Về GRIP/i);
+      
+      // The dynamic article title/body should not be present
+      await expect(page.locator('[data-testid="about-content"]')).toBeHidden();
+      await expect(page.getByText(tempContent)).toBeHidden();
+
+    } finally {
+      // Cleanup: Delete the temporary article
+      await page.goto("/admin/articles");
+      await page.waitForLoadState("networkidle");
+      
+      const row = page.locator("tr, div").filter({ hasText: tempTitle }).first();
+      if (await row.isVisible()) {
+        await row.locator('a[href*="/admin/article/edit/"]').click();
+        await page.waitForLoadState("networkidle");
+        
+        page.once("dialog", (d) => d.accept());
+        await page.locator('button:has-text("Delete"), button:has(.lucide-trash2)').click();
+        await page.waitForLoadState("networkidle");
+      }
+    }
+  });
+
   test("UC-SET-06 exposes registry and legacy commitment controls as an intentional storefront policy surface", async ({
     page,
   }) => {

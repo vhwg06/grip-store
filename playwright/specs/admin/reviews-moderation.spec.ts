@@ -260,7 +260,6 @@ test.describe("Admin Review Moderation E2E @admin P2", () => {
   });
 
   test("UC-REV-02 alternate: features an approved review to elevate its prominence", async ({ page, request }) => {
-    test.fail(true, "FE Gap: Feature button remains enabled in UI after review is featured");
     // GOAL: Admin Moderates A Single Review: đưa một review sang state phù hợp với business moderation policy.
     // PRIORITY: P2
     // RELATED DOMAINS: product, customer, order
@@ -289,7 +288,6 @@ test.describe("Admin Review Moderation E2E @admin P2", () => {
   });
 
   test("UC-REV-03 alternate: bulk publish with partial valid selection only applies to eligible reviews", async ({ page, request }) => {
-    test.fail(true, "BE/FE Gap: Bulk publish currently approves non-pending/hidden reviews instead of ignoring them");
     // GOAL: Admin Bulk Publishes Eligible Reviews: xử lý nhiều review pending cùng lúc khi chúng cùng đủ điều kiện public.
     // PRIORITY: P2
     // RELATED DOMAINS: none

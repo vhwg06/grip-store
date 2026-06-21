@@ -30,6 +30,7 @@ export default function AdminSettingsPage() {
     const contactHotline = settingsMap['contact_hotline'] || null
     const contactEmail = settingsMap['contact_email'] || null
     const contactMapsUrl = settingsMap['contact_maps_url'] || null
+    const aboutArticleId = settingsMap['about_article_id'] || null
 
     return (
         <AdminSettingsContent
@@ -66,6 +67,7 @@ export default function AdminSettingsPage() {
             aboutPresenceEnabled={data?.aboutPresenceEnabled ?? (settingsMap['about_presence_enabled'] === 'true')}
             bannerPresencePresent={data?.bannerPresencePresent ?? false}
             aboutPresencePresent={data?.aboutPresencePresent ?? false}
+            aboutArticleId={aboutArticleId}
         />
     )
 }

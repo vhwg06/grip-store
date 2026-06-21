@@ -7,6 +7,8 @@ import type {
   ProfileActionResult,
   ProfileNotification,
   ProfileOrderStats,
+  ProfileSecurityView,
+  ProfileSessionView,
   ProfileView,
 } from "@/domain/profile"
 
@@ -37,29 +39,67 @@ function normalizeActionResult(payload: unknown): ProfileActionResult {
 }
 
 export async function getProfile(): Promise<ProfileView> {
-  const payload = await apiFetch<Partial<ProfileView>>("/api/profile")
+  const payload = await apiFetch<Record<string, any>>("/api/profile")
+  const data = payload?.data ?? payload
+  const rawUser = data?.user ?? data
 
   return {
     user: {
-      id: String(payload.user?.id || ""),
-      name: String(payload.user?.name || payload.user?.username || "User"),
-      username: payload.user?.username ?? null,
-      avatar: payload.user?.avatar ?? null,
-      email: payload.user?.email ?? null,
-      trustLevel: Number(payload.user?.trustLevel ?? 0),
+      id: String(rawUser?.id || ""),
+      name: String(rawUser?.display_name || rawUser?.name || rawUser?.username || "User"),
+      username: rawUser?.username ?? null,
+      avatar: rawUser?.avatar ?? null,
+      email: rawUser?.email ?? null,
+      displayName: rawUser?.display_name ?? rawUser?.displayName ?? rawUser?.name ?? null,
+      role: rawUser?.role ?? null,
+      isAdmin: Boolean(rawUser?.is_admin ?? rawUser?.isAdmin),
+      lastLoginAt: rawUser?.last_login_at ?? rawUser?.lastLoginAt ?? null,
+      trustLevel: Number(rawUser?.trust_level ?? rawUser?.trustLevel ?? 0),
     },
-    points: Number(payload.points ?? 0),
-    checkinEnabled: payload.checkinEnabled !== false,
+    points: Number(data?.points ?? rawUser?.points ?? 0),
+    checkinEnabled: data?.checkinEnabled !== false,
     orderStats: {
-      total: Number(payload.orderStats?.total ?? EMPTY_STATS.total),
-      pending: Number(payload.orderStats?.pending ?? EMPTY_STATS.pending),
-      delivered: Number(payload.orderStats?.delivered ?? EMPTY_STATS.delivered),
+      total: Number(data?.orderStats?.total ?? EMPTY_STATS.total),
+      pending: Number(data?.orderStats?.pending ?? EMPTY_STATS.pending),
+      delivered: Number(data?.orderStats?.delivered ?? EMPTY_STATS.delivered),
     },
-    notifications: Array.isArray(payload.notifications)
-      ? payload.notifications.map((item) => normalizeNotification(item))
+    notifications: Array.isArray(data?.notifications)
+      ? data.notifications.map((item: Partial<ProfileNotification>) => normalizeNotification(item))
       : [],
-    desktopNotificationsEnabled: Boolean(payload.desktopNotificationsEnabled),
+    desktopNotificationsEnabled: Boolean(
+      data?.desktopNotificationsEnabled ??
+      rawUser?.desktop_notifications_enabled ??
+      rawUser?.desktopNotificationsEnabled,
+    ),
   }
+}
+
+export async function getProfileSecurity(): Promise<ProfileSecurityView> {
+  const payload = await apiFetch<Record<string, any>>("/api/profile/security")
+  const data = payload?.data ?? payload
+  return {
+    passwordLastChangedAt: data?.password_last_changed_at ?? data?.passwordLastChangedAt ?? null,
+    twoFactorEnabled: Boolean(data?.two_factor_enabled ?? data?.twoFactorEnabled),
+    backupEmail: data?.backup_email ?? data?.backupEmail ?? null,
+  }
+}
+
+export async function getProfileSessions(): Promise<ProfileSessionView[]> {
+  const payload = await apiFetch<any>("/api/profile/sessions")
+  const rows: any[] = Array.isArray(payload?.data)
+    ? payload.data
+    : Array.isArray(payload?.sessions)
+      ? payload.sessions
+      : Array.isArray(payload)
+        ? payload
+        : []
+
+  return rows.map((row: any) => ({
+    device: String(row?.device ?? ""),
+    location: String(row?.location ?? ""),
+    lastSeenAt: row?.last_seen_at ?? row?.lastSeenAt ?? null,
+    current: Boolean(row?.current),
+  }))
 }
 
 export async function updateProfile(email: string, displayName: string, desktopNotificationsEnabled: boolean): Promise<ProfileActionResult> {

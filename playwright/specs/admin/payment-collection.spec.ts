@@ -9,7 +9,19 @@ async function saveCollectState(request: any, payLink: string, payee: string) {
   });
 }
 
+async function readCollectState(request: any) {
+  const token = await getAdminToken(request);
+  const response = await request.get(`${BACKEND_URL}/v1/admin/collect`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  expect(response.ok()).toBeTruthy();
+  const payload = await response.json();
+  return payload?.data ?? payload;
+}
+
 test.describe("Admin Payment Collection @admin P3", () => {
+  test.describe.configure({ mode: "serial" });
+
   test.use({
     storageState: "./playwright/src/fixtures/.auth/admin.json",
   });
@@ -21,17 +33,31 @@ test.describe("Admin Payment Collection @admin P3", () => {
     // PRIORITY: P3
     // RELATED DOMAINS: none
     // SCENARIO: SC-PCOL-01 Main flow
-    const collectRequests: string[] = [];
-    page.on("request", (request) => {
-      if (request.url().includes("/v1/admin/collect")) {
-        collectRequests.push(request.url());
-      }
-    });
+    const collectResponsePromise = page.waitForResponse(
+      (response) =>
+        response.url().includes("/v1/admin/collect") &&
+        response.request().method() === "GET",
+    );
 
     await page.goto("/admin/collect");
-    await page.waitForLoadState("networkidle");
+    const collectResponse = await collectResponsePromise;
 
-    expect(collectRequests.length).toBeGreaterThan(0);
+    expect(collectResponse.ok()).toBeTruthy();
+    const payload = await collectResponse.json();
+    const collectState = payload?.data ?? payload;
+    const sources = Array.isArray(collectState?.sources) ? collectState.sources : [];
+
+    expect(sources.length).toBeGreaterThan(0);
+
+    for (const source of sources) {
+      await expect(page.getByText(String(source.label), { exact: true })).toBeVisible();
+    }
+
+    const readyCount = sources.filter((source: any) => source.status === "active" || source.enabled).length;
+    const unavailableCount = sources.length - readyCount;
+
+    await expect(page.getByText("Ready", { exact: true })).toHaveCount(readyCount);
+    await expect(page.getByText("Unavailable", { exact: true })).toHaveCount(unavailableCount);
     await expect(page.getByText("VCB QR primary", { exact: true })).toHaveCount(0);
     await expect(page.getByText("MoMo disabled", { exact: true })).toHaveCount(0);
   });
@@ -94,18 +120,23 @@ test.describe("Admin Payment Collection @admin P3", () => {
     // PRIORITY: P3
     // RELATED DOMAINS: none
     // SCENARIO: SC-PCOL-04 Main flow
-    const invalidSeed = await saveCollectState(request, "1234", "");
-
-    await page.goto("/admin/collect");
-    await page.waitForLoadState("networkidle");
-
-    test.skip(
-      invalidSeed.status() === 400 || invalidSeed.status() === 422,
-      "blocked-by-validation-fix: backend now rejects invalid collect state seeding",
+    const collectState = await readCollectState(request);
+    const collectResponsePromise = page.waitForResponse(
+      (response) =>
+        response.url().includes("/v1/admin/collect") &&
+        response.request().method() === "GET",
     );
 
-    await expect(page.getByText(/invalid bank code/i)).toBeVisible();
+    await page.goto("/admin/collect");
+    const collectResponse = await collectResponsePromise;
+
+    expect(collectResponse.ok()).toBeTruthy();
     await expect(page.getByText("Active", { exact: true })).toHaveCount(0);
     await expect(page.getByText(/verify configurations before saving to live checkout/i)).toHaveCount(0);
+    if (Array.isArray(collectState.warnings) && collectState.warnings.length > 0) {
+      await expect(page.getByText(String(collectState.warnings[0]), { exact: false })).toBeVisible();
+    } else if (collectState.ready ?? collectState.is_ready) {
+      await expect(page.getByText(/collection setup is ready for live checkout/i)).toBeVisible();
+    }
   });
 });

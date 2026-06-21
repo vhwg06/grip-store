@@ -11,6 +11,22 @@ async function fetchAdminProfile(request: any) {
   return payload?.data ?? payload;
 }
 
+async function fetchAdminSessions(request: any) {
+  const token = await getAdminToken(request);
+  const response = await request.get(`${BACKEND_URL}/v1/profile/sessions`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  expect(response.ok()).toBeTruthy();
+  const payload = await response.json();
+  return Array.isArray(payload?.data)
+    ? payload.data
+    : Array.isArray(payload?.sessions)
+      ? payload.sessions
+      : Array.isArray(payload)
+        ? payload
+        : [];
+}
+
 test.describe("Admin Profile @admin P3", () => {
   test.use({
     storageState: "./playwright/src/fixtures/.auth/admin.json",
@@ -34,8 +50,8 @@ test.describe("Admin Profile @admin P3", () => {
     await expect(page.locator("#username")).toHaveValue(String(profile.username));
     await expect(page.locator("#username")).not.toHaveValue("admin_grip_ops");
     await expect(page.locator("#email")).toHaveValue(String(profile.email));
-    await expect(page.getByText(String(profile.role), { exact: false })).toBeVisible();
-    await expect(page.getByText(/administrator|admin role/i)).toBeVisible();
+    await expect(page.getByText(String(profile.role), { exact: false }).first()).toBeVisible();
+    await expect(page.getByText(/administrator|admin role/i).first()).toBeVisible();
     await expect(page.locator('[data-testid="admin-security-section"]')).toBeVisible();
   });
 
@@ -69,41 +85,42 @@ test.describe("Admin Profile @admin P3", () => {
     // PRIORITY: P3
     // RELATED DOMAINS: none
     // SCENARIO: SC-APRO-03 Main flow
-    const securityResponses: number[] = [];
-
-    page.on("response", (response) => {
-      if (response.url().includes("/v1/profile/security")) {
-        securityResponses.push(response.status());
-      }
-    });
+    const securityResponsePromise = page.waitForResponse(
+      (response) =>
+        response.url().includes("/v1/profile/security") &&
+        response.request().method() === "GET",
+    );
 
     await page.goto("/admin/profile");
-    await page.waitForLoadState("networkidle");
+    const securityResponse = await securityResponsePromise;
 
-    expect(securityResponses.length).toBeGreaterThan(0);
+    expect(securityResponse.ok()).toBeTruthy();
     await expect(page.getByText(/security audit passed\. active sessions match authorized locations\./i)).toHaveCount(0);
   });
 
   test("UC-APRO-04 pulls recent-access trust state from the backend instead of static session rows", async ({
     page,
+    request,
   }) => {
     // GOAL: Admin Reviews Recent Access Trust: xác minh các phiên truy cập gần đây có còn đáng tin cậy không.
     // PRIORITY: P3
     // RELATED DOMAINS: none
     // SCENARIO: SC-APRO-04 Main flow
-    const sessionResponses: number[] = [];
-
-    page.on("response", (response) => {
-      if (response.url().includes("/v1/profile/sessions")) {
-        sessionResponses.push(response.status());
-      }
-    });
+    const backendSessions = await fetchAdminSessions(request);
+    const sessionResponsePromise = page.waitForResponse(
+      (response) =>
+        response.url().includes("/v1/profile/sessions") &&
+        response.request().method() === "GET",
+    );
 
     await page.goto("/admin/profile");
-    await page.waitForLoadState("networkidle");
+    const sessionResponse = await sessionResponsePromise;
 
-    expect(sessionResponses.length).toBeGreaterThan(0);
-    await expect(page.getByText("Chrome · macOS", { exact: true })).toHaveCount(0);
+    expect(sessionResponse.ok()).toBeTruthy();
+    expect(backendSessions.length).toBeGreaterThan(0);
+    await expect(page.getByText(String(backendSessions[0].device), { exact: false }).first()).toBeVisible();
+    await expect(page.getByText(String(backendSessions[0].location), { exact: false }).first()).toBeVisible();
     await expect(page.getByText("Safari · iOS", { exact: true })).toHaveCount(0);
+    await expect(page.getByText("Hanoi", { exact: true })).toHaveCount(0);
   });
 });

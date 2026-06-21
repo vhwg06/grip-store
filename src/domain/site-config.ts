@@ -40,3 +40,13 @@ export interface SiteConfig {
   };
   aboutUsMarkdown?: string;
 }
+
+export interface AboutPageData {
+  title: string;
+  slug: string;
+  body: string;
+  gallery: string[];
+  templateKey: string;
+  status: string;
+}
+

@@ -53,49 +53,6 @@ interface NotificationsContentProps {
     }
 }
 
-const DEFAULT_CAMPAIGNS = [
-  {
-    id: "1",
-    title: "Flash Restock Tonight",
-    audience: "VIP customers in HCMC",
-    status: "Sent",
-    dateTime: "Jun 18, 20:00",
-    sentCount: "2,418"
-  },
-  {
-    id: "2",
-    title: "Holiday Delay Notice",
-    audience: "All registered users",
-    status: "Scheduled",
-    dateTime: "Jun 20, 09:00",
-    sentCount: "0"
-  },
-  {
-    id: "3",
-    title: "VIP Voucher Release",
-    audience: "Gold Tier Customers",
-    status: "Draft",
-    dateTime: "Not scheduled",
-    sentCount: "-"
-  },
-  {
-    id: "4",
-    title: "Summer Launch Promo",
-    audience: "Active Customers (90d)",
-    status: "Sent",
-    dateTime: "Jun 15, 10:00",
-    sentCount: "5,102"
-  },
-  {
-    id: "5",
-    title: "Weekly Operations Alert",
-    audience: "Store Admins",
-    status: "Sent",
-    dateTime: "Jun 12, 08:30",
-    sentCount: "14"
-  }
-]
-
 const AUDIENCE_OPTIONS = [
   { value: "all", label: "All registered users" },
   { value: "vip_hcmc", label: "VIP customers in HCMC" },
@@ -108,7 +65,7 @@ const AUDIENCE_OPTIONS = [
 export function NotificationsContent({ settings }: NotificationsContentProps) {
     const { t } = useI18n()
     const [activeTab, setActiveTab] = useState<'campaigns' | 'settings'>('campaigns')
-    const { data: messagesData, mutate: mutateMessages } = useAdminMessages()
+    const { data: messagesData, error: messagesError, mutate: mutateMessages } = useAdminMessages()
 
     // Telegram Bot Settings
     const [token, setToken] = useState(settings.telegramBotToken || '')
@@ -135,6 +92,7 @@ export function NotificationsContent({ settings }: NotificationsContentProps) {
 
     // Campaigns State
     const [campaigns, setCampaigns] = useState<any[]>([])
+    const [localDrafts, setLocalDrafts] = useState<any[]>([])
     const [isComposing, setIsComposing] = useState(false)
     const [searchQuery, setSearchQuery] = useState('')
     const [statusFilter, setStatusFilter] = useState('All')
@@ -153,33 +111,14 @@ export function NotificationsContent({ settings }: NotificationsContentProps) {
     const [currentPage, setCurrentPage] = useState(1)
     const itemsPerPage = 5
 
-    // Load campaigns from backend messagesData
+    // Keep outbound history server-backed. Local rows are limited to unsent drafts created in-session.
     useEffect(() => {
         if (messagesData && Array.isArray(messagesData.history)) {
             setCampaigns(messagesData.history)
-        } else {
-            if (typeof window !== "undefined") {
-                const stored = localStorage.getItem('grip-store:campaigns')
-                if (stored) {
-                    try {
-                        setCampaigns(JSON.parse(stored))
-                    } catch {
-                        setCampaigns(DEFAULT_CAMPAIGNS)
-                    }
-                } else {
-                    setCampaigns(DEFAULT_CAMPAIGNS)
-                    localStorage.setItem('grip-store:campaigns', JSON.stringify(DEFAULT_CAMPAIGNS))
-                }
-            }
+        } else if (!messagesData) {
+            setCampaigns([])
         }
     }, [messagesData])
-
-    const saveCampaignsList = (newCampaigns: any[]) => {
-        setCampaigns(newCampaigns)
-        if (typeof window !== "undefined") {
-            localStorage.setItem('grip-store:campaigns', JSON.stringify(newCampaigns))
-        }
-    }
 
     // Save Settings
     async function handleSave(formData: FormData) {
@@ -266,9 +205,13 @@ export function NotificationsContent({ settings }: NotificationsContentProps) {
 
     // Campaign deletion
     const handleDeleteCampaign = (id: string) => {
+        const isLocalDraft = localDrafts.some((campaign) => campaign.id === id)
+        if (!isLocalDraft) {
+            toast.error("Only local drafts can be removed from this screen right now")
+            return
+        }
         if (!confirm("Are you sure you want to delete this campaign?")) return
-        const updated = campaigns.filter(c => c.id !== id)
-        saveCampaignsList(updated)
+        setLocalDrafts((current) => current.filter((campaign) => campaign.id !== id))
         toast.success("Campaign deleted successfully")
     }
 
@@ -291,7 +234,7 @@ export function NotificationsContent({ settings }: NotificationsContentProps) {
                 : selectedAudience?.label || 'All registered users'
 
             const newCampaign = {
-                id: String(Date.now()),
+                id: `draft-${Date.now()}`,
                 title: campaignTitle.trim(),
                 audience: audienceLabel,
                 status: "Draft",
@@ -299,7 +242,7 @@ export function NotificationsContent({ settings }: NotificationsContentProps) {
                 sentCount: "-"
             }
 
-            saveCampaignsList([newCampaign, ...campaigns])
+            setLocalDrafts((current) => [newCampaign, ...current])
             toast.success("Campaign saved as draft")
             setIsComposing(false)
             resetComposeForm()
@@ -329,6 +272,7 @@ export function NotificationsContent({ settings }: NotificationsContentProps) {
         try {
             const targetType = audienceType === 'custom' ? 'userId' : 'all'
             const targetValue = audienceType === 'custom' ? customUserId.trim() : ''
+            const isScheduled = !!scheduleDate.trim()
 
             // Call the Go backend API
             const res = await sendAdminMessage({
@@ -340,23 +284,21 @@ export function NotificationsContent({ settings }: NotificationsContentProps) {
 
             if (res && res.success) {
                 const selectedAudience = AUDIENCE_OPTIONS.find(o => o.value === audienceType);
-                const audienceLabel = selectedAudience?.value === 'custom' 
-                    ? `User: ${customUserId || 'Unknown'}` 
+                const audienceLabel = selectedAudience?.value === 'custom'
+                    ? `User: ${customUserId || 'Unknown'}`
                     : selectedAudience?.label || 'All registered users'
-
-                const isScheduled = !!scheduleDate.trim()
-                const newCampaign = {
-                    id: String(Date.now()),
+                const optimisticRow = {
+                    id: `optimistic-${Date.now()}`,
                     title: campaignTitle.trim(),
                     audience: audienceLabel,
                     status: isScheduled ? "Scheduled" : "Sent",
-                    dateTime: isScheduled 
-                        ? new Date(scheduleDate).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false }) 
+                    dateTime: isScheduled
+                        ? new Date(scheduleDate).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false })
                         : new Date().toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false }),
-                    sentCount: isScheduled ? "0" : (targetType === 'all' ? "1,500+" : "1")
+                    sentCount: isScheduled ? "0" : (targetType === 'all' ? "1,500+" : "1"),
                 }
 
-                saveCampaignsList([newCampaign, ...campaigns])
+                setLocalDrafts((current) => [optimisticRow, ...current.filter((campaign) => campaign.title !== optimisticRow.title)])
                 await mutateMessages()
                 toast.success(isScheduled ? "Campaign scheduled successfully" : "Push campaign sent successfully")
                 setIsComposing(false)
@@ -380,8 +322,14 @@ export function NotificationsContent({ settings }: NotificationsContentProps) {
     }
 
     // Filter calculations
+    const campaignRows = useMemo(() => {
+        const backendTitles = new Set(campaigns.map((campaign) => campaign.title))
+        const localOnly = localDrafts.filter((campaign) => !backendTitles.has(campaign.title))
+        return [...localOnly, ...campaigns]
+    }, [localDrafts, campaigns])
+
     const filteredCampaigns = useMemo(() => {
-        return campaigns.filter(c => {
+        return campaignRows.filter(c => {
             const matchesSearch = c.title.toLowerCase().includes(searchQuery.toLowerCase())
             
             let matchesStatus = true
@@ -396,7 +344,7 @@ export function NotificationsContent({ settings }: NotificationsContentProps) {
             
             return matchesSearch && matchesStatus && matchesCard
         })
-    }, [campaigns, searchQuery, statusFilter, selectedCardFilter])
+    }, [campaignRows, searchQuery, statusFilter, selectedCardFilter])
 
     // Pagination calculations
     const paginatedCampaigns = useMemo(() => {
@@ -412,11 +360,11 @@ export function NotificationsContent({ settings }: NotificationsContentProps) {
 
     const counts = useMemo(() => {
         return {
-            all: campaigns.length,
-            drafts: campaigns.filter(c => c.status === 'Draft').length,
-            scheduled: campaigns.filter(c => c.status === 'Scheduled').length
+            all: campaignRows.length,
+            drafts: campaignRows.filter(c => c.status === 'Draft').length,
+            scheduled: campaignRows.filter(c => c.status === 'Scheduled').length
         }
-    }, [campaigns])
+    }, [campaignRows])
 
     return (
         <div className="space-y-6 min-h-screen bg-[#fafaf8] p-1 rounded-xl">
@@ -595,6 +543,19 @@ export function NotificationsContent({ settings }: NotificationsContentProps) {
                     ) : (
                         /* List View (Figma 281:10133 Parity) */
                         <div className="px-2 space-y-6">
+                            {messagesError ? (
+                                <div
+                                    className="rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900"
+                                    data-testid="notifications-history-error"
+                                >
+                                    <p className="font-semibold">Notification history unavailable</p>
+                                    <p className="mt-1 text-amber-800">
+                                        The backend accepted sends, but this environment did not return outbound history from
+                                        <code className="mx-1 rounded bg-amber-100 px-1 py-0.5 text-xs">/v1/admin/messages</code>.
+                                    </p>
+                                </div>
+                            ) : null}
+
                             {/* KPI Metrics Cards */}
                             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                                 <button

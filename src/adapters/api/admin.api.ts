@@ -106,6 +106,13 @@ function patchJson(path: string, body?: unknown) {
   }).then(normalizeActionResult)
 }
 
+function putJson(path: string, body?: unknown) {
+  return apiFetch<unknown>(path, {
+    method: "PUT",
+    body: body === undefined ? undefined : JSON.stringify(body),
+  }).then(normalizeActionResult)
+}
+
 function deleteJson(path: string, body?: unknown) {
   return apiFetch<unknown>(path, {
     method: "DELETE",
@@ -118,8 +125,14 @@ export async function checkAdmin() {
 }
 
 export async function getAdminDashboard(): Promise<AdminDashboardPayload> {
-  const response = await apiFetch<{ data: any }>("/api/admin/store-settings")
+  const [response, rawSettingsList] = await Promise.all([
+    apiFetch<{ data: any }>("/api/admin/store-settings"),
+    apiFetch<any>("/api/admin/settings").catch(() => [])
+  ])
   const data = response.data || response
+  const settingsList = Array.isArray(rawSettingsList?.data) ? rawSettingsList.data : (Array.isArray(rawSettingsList) ? rawSettingsList : [])
+  const aboutArticleIdSetting = settingsList.find((s: any) => s.key === "about_article_id")
+  const aboutArticleId = aboutArticleIdSetting ? aboutArticleIdSetting.value : ""
 
   const config = data.config || {}
   const brand = config.brand || {}
@@ -168,6 +181,7 @@ export async function getAdminDashboard(): Promise<AdminDashboardPayload> {
     "registry_hide_nav": String(Boolean(registry.hideNav)),
     "banner_presence_enabled": String(Boolean(bannerPresence.enabled)),
     "about_presence_enabled": String(Boolean(aboutPresence.enabled)),
+    "about_article_id": aboutArticleId,
   }
 
   return {
@@ -447,6 +461,8 @@ export async function getAdminCollect(): Promise<AdminCollectPayload> {
     payLink: data?.payLink || "",
     payee: data?.payee || "",
     sources: Array.isArray(data?.sources) ? data.sources : [],
+    ready: Boolean(data?.ready ?? data?.is_ready),
+    warnings: Array.isArray(data?.warnings) ? data.warnings.map((value: unknown) => String(value)) : [],
   }
 }
 
@@ -459,43 +475,24 @@ export async function saveAdminCollect(payLink: string, payee: string): Promise<
 }
 
 export async function getAdminNotificationSettings() {
-  try {
-    const res = await apiFetch<any>("/api/admin/notifications")
-    const data = res?.data || res
-    return {
-      settings: data?.settings || {
-        telegramBotToken: "",
-        telegramChatId: "",
-        telegramLanguage: "vi",
-        telegramEnabled: false,
-        barkEnabled: false,
-        barkServerUrl: "https://api.day.app",
-        barkDeviceKey: "",
-        resendApiKey: "",
-        resendFromEmail: "",
-        resendFromName: "",
-        resendEnabled: false,
-        emailLanguage: "vi"
-      }
-    }
-  } catch (error) {
-    console.error("Failed to fetch admin notification settings:", error)
-    return {
-      settings: {
-        telegramBotToken: "",
-        telegramChatId: "",
-        telegramLanguage: "vi",
-        telegramEnabled: false,
-        barkEnabled: false,
-        barkServerUrl: "https://api.day.app",
-        barkDeviceKey: "",
-        resendApiKey: "",
-        resendFromEmail: "",
-        resendFromName: "",
-        resendEnabled: false,
-        emailLanguage: "vi"
-      }
-    }
+  const res = await apiFetch<any>("/api/admin/notifications")
+  const data = res?.data || res
+  const source = data?.settings || data || {}
+  return {
+    settings: {
+      telegramBotToken: source.telegramBotToken || "",
+      telegramChatId: source.telegramChatId || "",
+      telegramLanguage: source.telegramLanguage || "vi",
+      telegramEnabled: !!source.telegramEnabled,
+      barkEnabled: !!source.barkEnabled,
+      barkServerUrl: source.barkServerUrl || "https://api.day.app",
+      barkDeviceKey: source.barkDeviceKey || "",
+      resendApiKey: source.resendApiKey || "",
+      resendFromEmail: source.resendFromEmail || "",
+      resendFromName: source.resendFromName || "",
+      resendEnabled: !!source.resendEnabled,
+      emailLanguage: source.emailLanguage || "vi",
+    },
   }
 }
 
@@ -651,7 +648,7 @@ export async function saveAnnouncement(config: AnnouncementConfig) {
 }
 
 export async function saveSetting(key: string, value: unknown) {
-  return patchJson(`/api/admin/settings/${encodeURIComponent(key)}`, { value })
+  return putJson(`/api/admin/settings/${encodeURIComponent(key)}`, { value })
 }
 
 export const saveShopName = (name: string) => saveSetting("shop_name", name)
@@ -726,27 +723,13 @@ export async function savePresenceSettings(presence: {
 }
 
 export async function saveNotificationSettings(formData: FormData) {
-  try {
-    const payload = await apiFetch<Partial<AdminNotificationsSettings> & AdminActionResult>("/api/admin/notifications", {
-      method: "POST",
-      body: formData,
-    })
-    return {
-      ...payload,
-      ...normalizeActionResult(payload),
-    }
-  } catch (error) {
-    console.error("Failed to save notification settings:", error)
-    const res: Record<string, any> = {}
-    formData.forEach((value, key) => {
-      if (value === "true") res[key] = true
-      else if (value === "false") res[key] = false
-      else res[key] = String(value)
-    })
-    return {
-      ...res,
-      success: true
-    }
+  const payload = await apiFetch<Partial<AdminNotificationsSettings> & AdminActionResult>("/api/admin/notifications", {
+    method: "POST",
+    body: formData,
+  })
+  return {
+    ...payload,
+    ...normalizeActionResult(payload),
   }
 }
 

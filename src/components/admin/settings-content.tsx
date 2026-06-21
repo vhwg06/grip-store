@@ -24,9 +24,11 @@ import {
   joinRegistry,
   leaveRegistry,
   saveSetting,
-  saveLowStockThreshold
+  saveLowStockThreshold,
+  getAdminArticle,
+  saveAdminAboutPage
 } from "@/adapters/api/admin.api"
-import { useAdminAboutPage, useAdminBanners, useAdminMedia } from "@/application/hooks/useAdmin"
+import { useAdminAboutPage, useAdminBanners, useAdminMedia, useAdminArticles } from "@/application/hooks/useAdmin"
 import { checkForUpdatesClient, type ClientUpdateCheckResult } from "@/lib/update-check-client"
 import { toast } from "sonner"
 
@@ -88,6 +90,7 @@ interface AdminSettingsContentProps {
   aboutPresenceEnabled: boolean
   bannerPresencePresent: boolean
   aboutPresencePresent: boolean
+  aboutArticleId: string | null
 }
 
 const THEME_COLORS = [
@@ -135,6 +138,7 @@ export function AdminSettingsContent({
   aboutPresenceEnabled,
   bannerPresencePresent,
   aboutPresencePresent,
+  aboutArticleId,
 }: AdminSettingsContentProps) {
   const { t } = useI18n()
   const { mutate } = useSWRConfig()
@@ -223,6 +227,7 @@ export function AdminSettingsContent({
   const [registryJoined, setRegistryJoined] = useState(registryOptIn)
   const [bannerPresenceOn, setBannerPresenceOn] = useState(bannerPresenceEnabled)
   const [aboutPresenceOn, setAboutPresenceOn] = useState(aboutPresenceEnabled)
+  const [selectedArticleId, setSelectedArticleId] = useState(aboutArticleId || "")
   const [savingPresence, setSavingPresence] = useState(false)
   const [submittingRegistry, setSubmittingRegistry] = useState(false)
   const [leavingRegistry, setLeavingRegistry] = useState(false)
@@ -235,6 +240,7 @@ export function AdminSettingsContent({
   const { data: mediaData } = useAdminMedia({ page: 1, pageSize: 30 })
   const { data: banners = [] } = useAdminBanners()
   const { data: aboutPage } = useAdminAboutPage()
+  const { data: articles = [] } = useAdminArticles()
   const mediaItems = mediaData?.items ?? []
   const [selectedMediaUrl, setSelectedMediaUrl] = useState("")
   const hasBannerPresence = bannerPresencePresent || banners.some((banner: any) => banner.isActive)
@@ -297,7 +303,36 @@ export function AdminSettingsContent({
           present: hasAboutPresence,
         },
       })
-      await Promise.all([mutate("admin-dashboard"), mutate("site-config"), mutate("catalog-settings")])
+      await saveSetting("about_article_id", selectedArticleId)
+
+      if (selectedArticleId) {
+        const article = await getAdminArticle(selectedArticleId)
+        await saveAdminAboutPage({
+          title: article.title,
+          slug: "about",
+          body: article.content,
+          gallery: article.featuredImage ? [article.featuredImage] : [],
+          templateKey: "about-us",
+          status: "published",
+        })
+      } else {
+        await saveAdminAboutPage({
+          title: "Về GRIP",
+          slug: "about",
+          body: "",
+          gallery: [],
+          templateKey: "about-us",
+          status: "published",
+        })
+      }
+
+      await Promise.all([
+        mutate("admin-dashboard"),
+        mutate("site-config"),
+        mutate("catalog-settings"),
+        mutate("about-page"),
+        mutate("admin-about-page")
+      ])
       toast.success(t('common.success'))
     } catch (e: any) {
       toast.error(e.message || "Failed to save presence settings")
@@ -408,6 +443,11 @@ export function AdminSettingsContent({
   }
 
   const handleSaveThreshold = async () => {
+    const val = Number(thresholdValue)
+    if (isNaN(val) || val < 0) {
+      toast.error("invalid_input")
+      return
+    }
     setSavingThreshold(true)
     try {
       await saveLowStockThreshold(thresholdValue)
@@ -420,13 +460,18 @@ export function AdminSettingsContent({
   }
 
   const handleSaveReward = async () => {
+    const reward = Number(rewardValue)
+    if (isNaN(reward) || reward < 0) {
+      toast.error("invalid_input")
+      return
+    }
     setSavingReward(true)
     try {
       await saveVisibilitySettings({
         noIndexEnabled: noIndex,
         wishlistEnabled: enabledWishlist,
         checkinEnabled: enabledCheckin,
-        checkinReward: Number(rewardValue) || 0,
+        checkinReward: reward,
       })
       toast.success(t('common.success'))
     } catch (e: any) {
@@ -1104,16 +1149,14 @@ export function AdminSettingsContent({
           </Card>
       </div>
 
-      {/* Registry & Legacy Controls Card */}
+      {/* Banner & About Presence Section Card */}
       <div 
-        data-testid="settings-section-registry-legacy"
+        data-testid="settings-section-presence"
         className="mt-6"
       >
           <Card className="border-border/60 shadow-sm">
             <CardHeader className="bg-muted/10 pb-3">
-              <CardTitle role="heading" aria-level={2} className="text-lg font-bold font-svn-gilroy">
-                Registry & legacy controls
-              </CardTitle>
+              <CardTitle className="text-lg font-bold font-svn-gilroy">Banner & About Presence</CardTitle>
             </CardHeader>
             <CardContent className="pt-6 space-y-6">
               <div className="grid gap-4 md:grid-cols-2">
@@ -1158,6 +1201,24 @@ export function AdminSettingsContent({
                   <Link href="/admin/about" className="mt-3 inline-flex text-xs font-semibold text-[#99782b] underline-offset-4 hover:underline">
                     Manage about presence
                   </Link>
+                  <div className="mt-4 border-t border-[#e7e1d7] pt-4">
+                    <label className="text-xs font-semibold uppercase tracking-[0.08em] text-[#71685a] block mb-2">
+                      Liên kết bài viết About Us
+                    </label>
+                    <select
+                      data-testid="settings-about-article-select"
+                      value={selectedArticleId}
+                      onChange={(e) => setSelectedArticleId(e.target.value)}
+                      className="w-full h-10 px-3 rounded-lg border border-[#e7e1d7] bg-white text-sm text-[#3a352b] focus-visible:ring-[#99782b]/30"
+                    >
+                      <option value="">None / Fallback (Không liên kết)</option>
+                      {articles.map((art) => (
+                        <option key={art.id} value={art.id}>
+                          {art.title}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
               </div>
               <div className="flex justify-end">
@@ -1170,6 +1231,22 @@ export function AdminSettingsContent({
                   {savingPresence ? "Saving..." : "Save"}
                 </Button>
               </div>
+            </CardContent>
+          </Card>
+      </div>
+
+      {/* Registry & Legacy Controls Card */}
+      <div 
+        data-testid="settings-section-registry-legacy"
+        className="mt-6"
+      >
+          <Card className="border-border/60 shadow-sm">
+            <CardHeader className="bg-muted/10 pb-3">
+              <CardTitle role="heading" aria-level={2} className="text-lg font-bold font-svn-gilroy">
+                Registry & legacy controls
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pt-6 space-y-6">
               <div className="grid gap-6 md:grid-cols-2">
                 <div className="space-y-4">
                   <div className="space-y-2">

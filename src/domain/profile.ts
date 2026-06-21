@@ -22,6 +22,10 @@ export interface ProfileUser {
   username: string | null
   avatar: string | null
   email: string | null
+  displayName?: string | null
+  role?: string | null
+  isAdmin?: boolean
+  lastLoginAt?: string | null
   trustLevel?: number
 }
 
@@ -32,6 +36,19 @@ export interface ProfileView {
   orderStats: ProfileOrderStats
   notifications: ProfileNotification[]
   desktopNotificationsEnabled: boolean
+}
+
+export interface ProfileSecurityView {
+  passwordLastChangedAt: string | null
+  twoFactorEnabled: boolean
+  backupEmail: string | null
+}
+
+export interface ProfileSessionView {
+  device: string
+  location: string
+  lastSeenAt: string | null
+  current: boolean
 }
 
 export interface ProfileActionResult {

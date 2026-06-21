@@ -35,18 +35,18 @@
 
 ## UC-CONT-03 Admin Publishes Editorial Articles
 
-- Goal: tạo, chỉnh, và xuất bản bài viết như một knowledge/public content stream.
+- Goal: Tạo, chỉnh sửa và xuất bản bài viết dưới dạng Markdown hoặc HTML trực quan.
 - Primary actor: `Admin / Content Operator`
-- Trigger: admin bắt đầu article compose hoặc article revision.
+- Trigger: Admin bắt đầu soạn thảo hoặc chỉnh sửa bài viết.
 - Preconditions:
-  - article domain đang cho phép draft hoặc published entries
+  - Hệ thống cho phép soạn thảo bản nháp (Draft) hoặc xuất bản (Published).
 - Success outcome:
-  - article trở thành draft hợp lệ hoặc published content hợp lệ
+  - Bài viết được lưu trữ và xuất bản thành công trên storefront.
 - Business invariants:
-  - draft và published là hai business outcomes khác nhau
-  - article publication không đồng nghĩa với simple save
+  - Hỗ trợ cả 2 chế độ soạn thảo: **Visual (WYSIWYG)** dành cho người dùng không rành công nghệ, và **Markdown (Mã nguồn)**.
+  - Hỗ trợ dán hình ảnh trực tiếp (`Ctrl+V`) vào vị trí con trỏ chuột trong cả hai chế độ soạn thảo để tự động upload lên Cloudflare R2 và chèn ảnh.
 - Postconditions:
-  - article xuất hiện hoặc không xuất hiện trên public surface theo publication state
+  - Storefront tự động nhận diện định dạng (HTML hoặc Markdown) và hiển thị chính xác bài viết.
 - Priority: `P2`
 
 ## UC-CONT-04 Admin Maintains FAQ Knowledge
@@ -65,20 +65,20 @@
   - public knowledge surface thay đổi
 - Priority: `P2`
 
-## UC-CONT-05 Admin Maintains About Narrative
+## UC-CONT-05 Admin Links Article to About Us Page
 
-- Goal: giữ phần About như company narrative chính thức của storefront.
-- Primary actor: `Admin / Content Operator`
-- Trigger: admin cập nhật company introduction hoặc gallery narrative.
+- Goal: Cấu hình trang About Us bằng cách liên kết tới một bài viết trong Store Settings.
+- Primary actor: `Admin / Store Operator`
+- Trigger: Admin chọn liên kết bài viết trong cấu hình Store Settings và lưu lại.
 - Preconditions:
-  - about page tồn tại về mặt content identity
+  - Danh sách bài viết đã có ít nhất một bài viết đã xuất bản (Published).
 - Success outcome:
-  - about narrative phản ánh đúng business story hiện tại
+  - Trang About Us hiển thị chính xác nội dung (tiêu đề, nội dung Markdown, hình ảnh đại diện) của bài viết được liên kết.
 - Business invariants:
-  - about narrative khác banner presence
-  - gallery là một phần của narrative, không chỉ là attachment bucket
+  - Nếu chọn một bài viết hợp lệ -> Đồng bộ hóa nội dung bài viết sang trang About Us.
+  - Nếu không chọn bài viết ("None") -> Xóa nội dung đồng bộ hóa để trang About Us hiển thị theo nội dung mặc định của storefront.
 - Postconditions:
-  - public about surface có narrative mới
+  - Thay đổi nội dung trang About Us phản ánh ngay lập tức trên storefront.
 - Priority: `P2`
 
 ## UC-CONT-06 Admin Maintains Product Editorial Content
@@ -98,3 +98,20 @@
   - product public reading experience có content context mới
 - Related domains: `product`
 - Priority: `P2`
+
+## UC-CONT-07 Admin Previews Article Content
+
+- Goal: Xem trước bài viết (kể cả bản nháp Draft) trên giao diện mô phỏng storefront trước khi xuất bản.
+- Primary actor: `Admin / Content Operator`
+- Trigger: Admin bấm vào nút "Preview" của một bài viết trên trang quản lý hoặc chỉnh sửa bài viết.
+- Preconditions:
+  - Bài viết đang được soạn thảo hoặc hiển thị trong danh sách bài viết.
+- Success outcome:
+  - Mở một modal xem trước hiển thị đúng định dạng Markdown và giao diện storefront thực tế của bài viết.
+- Business invariants:
+  - Hiển thị đầy đủ tiêu đề, ảnh bìa, và nội dung bài viết.
+  - Không thay đổi trạng thái xuất bản (Published/Draft) của bài viết khi xem trước.
+- Postconditions:
+  - Đóng modal xem trước để quay lại màn hình làm việc trước đó.
+- Priority: `P2`
+

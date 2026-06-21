@@ -1,5 +1,18 @@
 import { apiFetch } from "@/adapters/api/http-client";
-import { SiteConfig } from "@/domain/site-config";
+import { SiteConfig, AboutPageData } from "@/domain/site-config";
+
+export async function getAboutPage(): Promise<AboutPageData> {
+  const payload = await apiFetch<any>("/api/public/content/pages/about");
+  const raw = payload?.data !== undefined ? payload.data : payload;
+  return {
+    title: String(raw?.title ?? "Về GRIP"),
+    slug: String(raw?.slug ?? "about"),
+    body: String(raw?.body ?? ""),
+    gallery: Array.isArray(raw?.gallery) ? raw.gallery.filter((item: unknown) => typeof item === "string") : [],
+    templateKey: String(raw?.templateKey ?? raw?.template_key ?? "about-us"),
+    status: String(raw?.status ?? "published"),
+  };
+}
 
 export async function getSiteConfig(): Promise<SiteConfig> {
   const payload = await apiFetch<any>("/api/site-config");
