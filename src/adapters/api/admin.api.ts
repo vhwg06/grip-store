@@ -760,7 +760,7 @@ export async function getAdminArticles(): Promise<AdminArticle[]> {
 }
 
 export async function getAdminArticle(id: string) {
-  const payload = await apiFetch<any>(`/api/content/articles/${encodeURIComponent(id)}`)
+  const payload = await apiFetch<any>(`/api/public/content/articles/${encodeURIComponent(id)}`)
   const raw = payload?.data || payload
   return normalizeAdminArticle(raw)
 }

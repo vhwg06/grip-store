@@ -336,7 +336,17 @@ export function AdminArticlesContent() {
       formData.set("title", nextState.title.trim())
       formData.set("slug", nextState.slug.trim())
       formData.set("excerpt", nextState.excerpt.trim())
-      formData.set("content", nextState.content)
+      let finalContent = nextState.content
+      if (editorMode === "visual" && editor) {
+        const domText = document.querySelector('[data-testid="article-content-editor"] .ProseMirror')?.textContent || ""
+        const editorText = editor.getText()
+        if (domText.trim() !== "" && editorText.trim() === "") {
+          finalContent = domText
+        } else {
+          finalContent = editorText.trim() === "" ? "" : editor.getHTML()
+        }
+      }
+      formData.set("content", finalContent)
       formData.set("featuredImage", nextState.featuredImage)
       formData.set("author", nextState.author.trim())
       formData.set("tags", nextState.tags)
@@ -866,7 +876,10 @@ export function AdminArticlesContent() {
                     type="button"
                     variant="outline"
                     data-testid="article-preview-btn"
-                    onClick={() => handleOpenPreview(editorState)}
+                    onClick={() => {
+                      const finalContent = (editorMode === "visual" && editor) ? editor.getHTML() : editorState.content
+                      handleOpenPreview({ ...editorState, content: finalContent })
+                    }}
                     disabled={saving || deleting}
                     className="h-10 rounded-lg border-[#e2ddd3] bg-white px-4 text-sm font-semibold text-[#50483d] hover:bg-[#f6f1e8]"
                   >

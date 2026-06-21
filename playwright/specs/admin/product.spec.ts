@@ -142,7 +142,6 @@ test.describe("Admin Product @admin P1", () => {
   });
 
   test("UC-PROD-03 submits commercial state changes from the list quick action", async ({ page, request }) => {
-    test.fail(true, "BE Gap: Product status endpoint returns success but does not persist is_active changes");
     // GOAL: Admin Updates Product Commercial State: thay đổi nội dung hoặc trạng thái thương mại của product đang có.
     // PRIORITY: P1
     // RELATED DOMAINS: review

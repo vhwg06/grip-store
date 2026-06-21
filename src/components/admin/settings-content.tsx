@@ -306,15 +306,27 @@ export function AdminSettingsContent({
       await saveSetting("about_article_id", selectedArticleId)
 
       if (selectedArticleId) {
-        const article = await getAdminArticle(selectedArticleId)
-        await saveAdminAboutPage({
-          title: article.title,
-          slug: "about",
-          body: article.content,
-          gallery: article.featuredImage ? [article.featuredImage] : [],
-          templateKey: "about-us",
-          status: "published",
-        })
+        try {
+          const article = await getAdminArticle(selectedArticleId)
+          await saveAdminAboutPage({
+            title: article.title,
+            slug: "about",
+            body: article.content,
+            gallery: article.featuredImage ? [article.featuredImage] : [],
+            templateKey: "about-us",
+            status: "published",
+          })
+        } catch (err) {
+          console.warn("Failed to fetch linked article, falling back to default:", err)
+          await saveAdminAboutPage({
+            title: "Về GRIP",
+            slug: "about",
+            body: "",
+            gallery: [],
+            templateKey: "about-us",
+            status: "published",
+          })
+        }
       } else {
         await saveAdminAboutPage({
           title: "Về GRIP",

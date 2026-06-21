@@ -40,7 +40,17 @@ export function ArticleForm({ article }: { article?: any }) {
         setLoading(true)
         try {
             // Ensure editor content is correctly set in form submission
-            formData.set("content", content)
+            let finalContent = content
+            if (editor) {
+                const domText = document.querySelector('[data-testid="article-content-editor"] .ProseMirror')?.textContent || ""
+                const editorText = editor.getText()
+                if (domText.trim() !== "" && editorText.trim() === "") {
+                    finalContent = domText
+                } else {
+                    finalContent = editorText.trim() === "" ? "" : editor.getHTML()
+                }
+            }
+            formData.set("content", finalContent)
             await saveArticle(formData)
             toast.success("Đã lưu bài viết")
             router.push('/admin/articles')
