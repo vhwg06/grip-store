@@ -111,7 +111,6 @@ test.describe("Admin Products @admin", () => {
   });
 
   test("should handle empty search state gracefully", async ({ page }) => {
-    test.fail(true, "blocked-fe-gap: search is not wired in the product catalog UI");
 
     await page.getByPlaceholder("Search product, SKU, category...").fill("nonexistent-product-12345xyz");
     await expect(page.locator('[data-testid="admin-table-empty"]')).toBeVisible();

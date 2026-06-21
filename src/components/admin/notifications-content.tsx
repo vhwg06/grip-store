@@ -1,6 +1,8 @@
 'use client'
 
 import { useState, useEffect, useMemo } from "react"
+import { mutate } from "swr"
+import { useAdminMessages } from "@/application/hooks/useAdmin"
 import { useI18n } from "@/lib/i18n/context"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -106,6 +108,7 @@ const AUDIENCE_OPTIONS = [
 export function NotificationsContent({ settings }: NotificationsContentProps) {
     const { t } = useI18n()
     const [activeTab, setActiveTab] = useState<'campaigns' | 'settings'>('campaigns')
+    const { data: messagesData, mutate: mutateMessages } = useAdminMessages()
 
     // Telegram Bot Settings
     const [token, setToken] = useState(settings.telegramBotToken || '')
@@ -150,22 +153,26 @@ export function NotificationsContent({ settings }: NotificationsContentProps) {
     const [currentPage, setCurrentPage] = useState(1)
     const itemsPerPage = 5
 
-    // Load campaigns from localStorage
+    // Load campaigns from backend messagesData
     useEffect(() => {
-        if (typeof window !== "undefined") {
-            const stored = localStorage.getItem('grip-store:campaigns')
-            if (stored) {
-                try {
-                    setCampaigns(JSON.parse(stored))
-                } catch {
+        if (messagesData && Array.isArray(messagesData.history)) {
+            setCampaigns(messagesData.history)
+        } else {
+            if (typeof window !== "undefined") {
+                const stored = localStorage.getItem('grip-store:campaigns')
+                if (stored) {
+                    try {
+                        setCampaigns(JSON.parse(stored))
+                    } catch {
+                        setCampaigns(DEFAULT_CAMPAIGNS)
+                    }
+                } else {
                     setCampaigns(DEFAULT_CAMPAIGNS)
+                    localStorage.setItem('grip-store:campaigns', JSON.stringify(DEFAULT_CAMPAIGNS))
                 }
-            } else {
-                setCampaigns(DEFAULT_CAMPAIGNS)
-                localStorage.setItem('grip-store:campaigns', JSON.stringify(DEFAULT_CAMPAIGNS))
             }
         }
-    }, [])
+    }, [messagesData])
 
     const saveCampaignsList = (newCampaigns: any[]) => {
         setCampaigns(newCampaigns)
@@ -350,6 +357,7 @@ export function NotificationsContent({ settings }: NotificationsContentProps) {
                 }
 
                 saveCampaignsList([newCampaign, ...campaigns])
+                await mutateMessages()
                 toast.success(isScheduled ? "Campaign scheduled successfully" : "Push campaign sent successfully")
                 setIsComposing(false)
                 resetComposeForm()
@@ -435,10 +443,13 @@ export function NotificationsContent({ settings }: NotificationsContentProps) {
                             : 'border-transparent text-[#71685a] hover:text-[#50483d]'
                     }`}
                 >
-                    Push Campaigns
+                    Push History
                 </button>
                 <button
-                    onClick={() => setActiveTab('settings')}
+                    onClick={() => {
+                        setActiveTab('settings')
+                        mutate("admin-notification-settings")
+                    }}
                     className={`pb-3 px-4 text-sm font-medium border-b-2 transition-all ${
                         activeTab === 'settings'
                             ? 'border-[#99782b] text-[#99782b]'
@@ -761,6 +772,17 @@ export function NotificationsContent({ settings }: NotificationsContentProps) {
             ) : (
                 /* Tab 2: Channel Settings (Config) */
                 <div className="px-2 space-y-6 max-w-4xl">
+                    <div className="flex justify-between items-center">
+                        <Button
+                            onClick={() => {
+                                setActiveTab('campaigns')
+                                setIsComposing(false)
+                            }}
+                            className="bg-[#99782b] hover:bg-[#99782b]/95 text-white font-semibold"
+                        >
+                            Back to Compose
+                        </Button>
+                    </div>
                     {/* Config introduction card */}
                     <Card className="border border-amber-200 bg-amber-50/20 rounded-lg">
                         <CardHeader className="pb-3">
@@ -978,6 +1000,7 @@ export function NotificationsContent({ settings }: NotificationsContentProps) {
                                     <input
                                         type="checkbox"
                                         id="resendEnabledCheckbox"
+                                        data-testid="toggle-email-notifications"
                                         checked={resendEnabled}
                                         onChange={(e) => setResendEnabled(e.target.checked)}
                                         className="h-4 w-4 rounded border-[#e2ddd3] text-[#99782b] focus:ring-[#99782b]"
@@ -1059,7 +1082,7 @@ export function NotificationsContent({ settings }: NotificationsContentProps) {
 
                                 <div className="flex gap-3 pt-2">
                                     <Button type="submit" disabled={isLoading} className="bg-[#99782b] hover:bg-[#99782b]/95 text-white">
-                                        {isLoading ? t('common.processing') : t('admin.settings.notifications.save')}
+                                        {isLoading ? t('common.processing') : "Save Settings"}
                                     </Button>
                                 </div>
                             </form>

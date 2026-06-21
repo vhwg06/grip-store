@@ -30,7 +30,7 @@ export const useAdminDashboard = () => useSWR("admin-dashboard", getAdminDashboa
 export const useAdminProducts = () => useSWR("admin-products", getAdminProducts)
 export const useAdminCategories = () => useSWR("admin-categories", getAdminCategories)
 export const useAdminProductForm = (id?: string) => useSWR(["admin-product-form", id ?? "new"], () => getAdminProductForm(id))
-export const useAdminUsers = (params: { page?: number; q?: string; pageSize?: number }) => useSWR(["admin-users", params], () => getAdminUsers(params))
+export const useAdminUsers = (params: { page?: number; q?: string; pageSize?: number; role?: string }) => useSWR(["admin-users", params], () => getAdminUsers(params))
 export const useAdminOrders = (params: { page?: number; pageSize?: number; q?: string; status?: string }) => useSWR(["admin-orders", params], () => getAdminOrders(params))
 export const useAdminOrder = (id?: string) => useSWR(id ? ["admin-order", id] : null, () => getAdminOrder(id as string))
 export const useAdminRefunds = () => useSWR("admin-refunds", getAdminRefunds)

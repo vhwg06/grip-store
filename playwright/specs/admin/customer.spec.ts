@@ -22,7 +22,7 @@ test.describe("Admin Customer @admin P1", () => {
   }
 
   test.beforeEach(async ({ page }) => {
-    await page.goto("/admin/users");
+    await page.goto("/admin/customers/");
     await page.waitForLoadState("networkidle");
   });
 
@@ -42,7 +42,6 @@ test.describe("Admin Customer @admin P1", () => {
     // SCENARIO: SC-CUS-01 Main flow
     // INVARIANT: customer là commerce identity, không phải chỉ là account row
     // INVARIANT: search phải narrow về đúng customer — không trả mixed account rows
-    test.fail(true, "blocked-be-gap: user/customer search query filtering is not supported or ignored by backend API");
     await expect(page.getByRole("heading", { name: "Customer Management" })).toBeVisible();
 
     await searchForUser(page, "test_buyer");
@@ -58,7 +57,6 @@ test.describe("Admin Customer @admin P1", () => {
     // PRIORITY: P1
     // RELATED DOMAINS: order
     // SCENARIO: SC-CUS-02 Main flow
-    test.fail(true, "blocked-both: missing customerId and commerce summary indicators in customer/account view");
     await searchForUser(page, "test_buyer");
     await page.getByText("test_buyer", { exact: false }).first().click();
 
@@ -66,9 +64,10 @@ test.describe("Admin Customer @admin P1", () => {
     await expect(page.getByText("test_buyer@example.com")).toBeVisible();
     await expect(page.locator('[data-testid="customer-summary-order-count"]')).toBeVisible();
     await expect(page.locator('[data-testid="customer-summary-customer-id"]')).toBeVisible();
-    await expect(page.getByText(/order/i)).toBeVisible();
-    await expect(page.getByText(/refund/i)).toBeVisible();
-    await expect(page.getByText(/review/i)).toBeVisible();
+    const detailPanel = page.locator("div").filter({ hasText: "Customer Actions" }).last();
+    await expect(detailPanel.getByText(/order/i).first()).toBeVisible();
+    await expect(detailPanel.getByText(/refund/i).first()).toBeVisible();
+    await expect(detailPanel.getByText(/review/i).first()).toBeVisible();
   });
 
   test("UC-CUS-03 traverses commerce links from the customer root", async ({ page }) => {
@@ -76,7 +75,6 @@ test.describe("Admin Customer @admin P1", () => {
     // PRIORITY: P1
     // RELATED DOMAINS: order
     // SCENARIO: SC-CUS-03 Main flow
-    test.fail(true, "blocked-both: missing refund and review navigation entrypoints in customer summary panel");
     await searchForUser(page, "test_buyer");
     await page.getByText("test_buyer", { exact: false }).first().click();
 
@@ -92,7 +90,6 @@ test.describe("Admin Customer @admin P1", () => {
     // SCENARIO: SC-CUS-04 Main flow
     // INVARIANT: customer và user có thể liên kết nhưng không đồng nhất
     // INVARIANT: commerce history bám theo customer, không bám theo user management view
-    test.fail(true, "blocked-both: customer details missing linked-user account markers and account navigation");
     await searchForUser(page, "test_buyer");
     await page.getByText("test_buyer", { exact: false }).first().click();
 
@@ -105,7 +102,6 @@ test.describe("Admin Customer @admin P1", () => {
     // PRIORITY: P1
     // RELATED DOMAINS: user
     // SCENARIO: SC-CUS-05 Main flow
-    test.fail(true, "blocked-both: new registered users missing empty commerce layout and indicators");
     const created = await registerEmptyHistoryUser(request);
 
     await searchForUser(page, created.email);
@@ -123,7 +119,6 @@ test.describe("Admin Customer @admin P1", () => {
     // PRIORITY: P1
     // RELATED DOMAINS: order
     // SCENARIO: SC-CUS-01 Main flow
-    test.fail(true, "blocked-be-gap: user/customer search query filtering is not supported or ignored by backend API");
     const responsePromise = page.waitForResponse(
       (response: any) => response.url().includes("/v1/admin/users") && response.status() === 200,
     );
@@ -141,7 +136,6 @@ test.describe("Admin Customer @admin P1", () => {
     // RELATED DOMAINS: order
     // SCENARIO: SC-CUS-01 Exception flow
     // INVARIANT: customer search results chỉ được chứa customer account, không được trả admin/operator accounts
-    test.fail(true, "blocked-be-gap: admin account currently appears in user/customer search results");
     await expect(page.getByRole("heading", { name: "Customer Management" })).toBeVisible();
 
     await searchForUser(page, "test_admin");

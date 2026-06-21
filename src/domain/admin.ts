@@ -223,4 +223,5 @@ export interface AdminNotificationsSettings {
 export interface AdminCollectPayload {
   payLink: string
   payee: string | null
+  sources?: any[]
 }

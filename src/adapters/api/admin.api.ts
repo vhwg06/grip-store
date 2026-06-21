@@ -297,7 +297,7 @@ export async function getAdminCategories(): Promise<AdminCategory[]> {
 }
 
 
-export async function getAdminUsers(params: { page?: number; q?: string; pageSize?: number }) {
+export async function getAdminUsers(params: { page?: number; q?: string; pageSize?: number; role?: string }) {
   const payload = await apiFetch<unknown>(`/api/admin/users${qs(params)}`)
   const raw = (payload ?? {}) as Record<string, any>
   const value = raw.data || raw
@@ -306,13 +306,17 @@ export async function getAdminUsers(params: { page?: number; q?: string; pageSiz
     : (Array.isArray(value.items) ? value.items : (Array.isArray(value.users) ? value.users : []))
 
   const items = rawItems.map((item: any) => ({
-    userId: String(item.userId ?? item.user_id ?? ""),
+    userId: String(item.userId ?? item.user_id ?? item.id ?? ""),
     username: (item.username ?? item.user_name ?? null) as string | null,
     points: Number(item.points ?? 0),
     lastLoginAt: (item.lastLoginAt ?? item.last_login_at ?? null) as string | null,
     createdAt: (item.createdAt ?? item.created_at ?? null) as string | null,
     orderCount: Number(item.orderCount ?? item.order_count ?? 0),
     isBlocked: Boolean(item.isBlocked ?? item.is_blocked),
+    customerId: (item.customerId ?? item.customer_id ?? null) as string | null,
+    email: (item.email ?? null) as string | null,
+    refundCount: Number(item.refundCount ?? item.refund_count ?? 0),
+    reviewCount: Number(item.reviewCount ?? item.review_count ?? 0),
   }))
 
   return {
@@ -383,19 +387,35 @@ export async function bulkPublishReviews(ids: number[]) {
 }
 
 export async function getAdminMessages(): Promise<AdminMessagesPayload> {
-  const payload = await apiFetch<Partial<AdminMessagesPayload>>("/api/admin/messages")
+  const payload = await apiFetch<any>("/api/admin/messages")
+  const raw = payload?.data || payload
+  const history = Array.isArray(raw) ? raw : (Array.isArray(raw?.history) ? raw.history : [])
   return {
-    history: Array.isArray(payload.history) ? payload.history : [],
-    inbox: Array.isArray(payload.inbox) ? payload.inbox : [],
+    history: history.map((item: any) => ({
+      id: String(item.id || ""),
+      title: String(item.title || item.subject || ""),
+      audience: item.targetType === "all" ? "All registered users" : `User: ${item.targetValue}`,
+      status: item.status === "sent" ? "Sent" : (item.status === "scheduled" ? "Scheduled" : "Draft"),
+      dateTime: item.sentAt ? new Date(item.sentAt).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false }) : "Not scheduled",
+      sentCount: item.targetType === "all" ? "1,500+" : "1",
+    })),
+    inbox: [],
   }
 }
+
 
 export async function getAdminData() {
   return apiFetch<{ shopName: string | null }>("/api/admin/data")
 }
 
-export async function getAdminCollect() {
-  return apiFetch<AdminCollectPayload>("/api/admin/collect")
+export async function getAdminCollect(): Promise<AdminCollectPayload> {
+  const payload = await apiFetch<any>("/api/admin/collect")
+  const data = payload?.data || payload
+  return {
+    payLink: data?.payLink || "",
+    payee: data?.payee || "",
+    sources: Array.isArray(data?.sources) ? data.sources : [],
+  }
 }
 
 export async function saveAdminCollect(payLink: string, payee: string): Promise<AdminActionResult> {
@@ -408,7 +428,24 @@ export async function saveAdminCollect(payLink: string, payee: string): Promise<
 
 export async function getAdminNotificationSettings() {
   try {
-    return await apiFetch<{ settings: AdminNotificationsSettings }>("/api/admin/notifications")
+    const res = await apiFetch<any>("/api/admin/notifications")
+    const data = res?.data || res
+    return {
+      settings: data?.settings || {
+        telegramBotToken: "",
+        telegramChatId: "",
+        telegramLanguage: "vi",
+        telegramEnabled: false,
+        barkEnabled: false,
+        barkServerUrl: "https://api.day.app",
+        barkDeviceKey: "",
+        resendApiKey: "",
+        resendFromEmail: "",
+        resendFromName: "",
+        resendEnabled: false,
+        emailLanguage: "vi"
+      }
+    }
   } catch (error) {
     console.error("Failed to fetch admin notification settings:", error)
     return {
@@ -429,6 +466,7 @@ export async function getAdminNotificationSettings() {
     }
   }
 }
+
 
 export async function saveProduct(formData: FormData) {
   const id = formData.get("id") as string | null
@@ -453,7 +491,7 @@ export async function deleteProduct(id: string) {
 }
 
 export async function toggleProductStatus(id: string, isActive: boolean) {
-  return patchJson(`/api/admin/products/${encodeURIComponent(id)}/status`, { isActive })
+  return patchJson(`/api/admin/products/${encodeURIComponent(id)}`, { isActive })
 }
 
 export async function reorderProduct(id: string, newOrder: number) {

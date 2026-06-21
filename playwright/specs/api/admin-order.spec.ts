@@ -108,7 +108,6 @@ test.describe("Admin Order API @api P1 P2", () => {
     // PRIORITY: P1
     // RELATED DOMAINS: customer
     // SCENARIO: SC-ORD-04 Main flow
-    test.fail(true, "blocked-be-gap: customer-linked order history does not resolve from customer ID");
     const adminToken = await getAdminToken(request);
 
     const usersResponse = await request.get(`${BACKEND_URL}/v1/admin/users?page=1&pageSize=20`, {
@@ -140,7 +139,6 @@ test.describe("Admin Order API @api P1 P2", () => {
     // PRIORITY: P2
     // RELATED DOMAINS: refund
     // SCENARIO: SC-ORD-05 Main flow
-    test.fail(true, "blocked-be-gap: checkout /v1/checkout/orders endpoint returns 500");
     const orderId = await createRefundRelevantOrder(request);
 
     const refunds = await adminGet(request, `/v1/admin/refunds?status=pending`);
@@ -190,7 +188,6 @@ test.describe("Admin Order API @api P1 P2", () => {
     // SCENARIO: SC-ORD-03 Main flow
     // INVARIANT: timeline phải ordered theo chronological progression
     // INVARIANT: PENDING xuất hiện trước PAID — bất kỳ order nào cũng phải bắt đầu từ PENDING
-    test.fail(true, "blocked-be-gap: checkout /v1/checkout/orders endpoint returns 500");
     const orderId = await createPendingOrder(request);
 
     const paid = await adminPatch(request, `/v1/admin/orders/${orderId}`, {

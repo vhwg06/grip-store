@@ -10,7 +10,7 @@ import { saveAdminCollect } from "@/adapters/api/admin.api"
 import { toast } from "sonner"
 import { QrCode, Upload, AlertCircle, Info, Landmark, Wallet, Banknote } from "lucide-react"
 
-export function AdminPaymentCodeContent({ payLink, payee }: { payLink: string; payee?: string | null }) {
+export function AdminPaymentCodeContent({ payLink, payee, sources }: { payLink: string; payee?: string | null; sources?: any[] }) {
     const { t } = useI18n()
     const router = useRouter()
 
@@ -19,8 +19,10 @@ export function AdminPaymentCodeContent({ payLink, payee }: { payLink: string; p
     const [selectedSource, setSelectedSource] = useState("vcb")
     const [saving, setSaving] = useState(false)
 
+    const isReady = !!(payee && payLink && payLink.length >= 10)
+
     // Validation
-    const isBankNumberInvalid = bankNumber.length > 0 && bankNumber.length < 5
+    const isBankNumberInvalid = bankNumber.length > 0 && bankNumber.length < 10
     const validationError = isBankNumberInvalid ? "Invalid bank code: VCB branch code not recognized." : null
 
     // QR Image preview generator
@@ -31,6 +33,10 @@ export function AdminPaymentCodeContent({ payLink, payee }: { payLink: string; p
     }, [bankNumber])
 
     const handleSave = async () => {
+        if (bankNumber.length < 10 || !accountName) {
+            toast.error("Invalid input: payee cannot be empty and payLink must be at least 10 characters")
+            return
+        }
         setSaving(true)
         try {
             await saveAdminCollect(bankNumber, accountName)
@@ -83,12 +89,14 @@ export function AdminPaymentCodeContent({ payLink, payee }: { payLink: string; p
                     <span className="text-[#71685a] text-xs font-semibold uppercase tracking-wider">Manual checks</span>
                     <span className="text-2xl font-bold text-[#211e18]">8</span>
                 </div>
-                <div className="bg-[#fffdf8] rounded-lg border border-[#e1d3b7] p-4 flex items-center gap-3 h-[84px] shadow-sm">
-                    <Info className="h-5 w-5 text-[#99782b] shrink-0" />
-                    <span className="text-[#7a5a17] text-xs font-medium leading-snug">
-                        Verify configurations before saving to live checkout.
-                    </span>
-                </div>
+                {isReady && (
+                    <div className="bg-[#fffdf8] rounded-lg border border-[#e1d3b7] p-4 flex items-center gap-3 h-[84px] shadow-sm">
+                        <Info className="h-5 w-5 text-[#99782b] shrink-0" />
+                        <span className="text-[#7a5a17] text-xs font-medium leading-snug">
+                            Verify configurations before saving to live checkout.
+                        </span>
+                    </div>
+                )}
             </div>
 
             {/* Main content grid */}
@@ -97,106 +105,48 @@ export function AdminPaymentCodeContent({ payLink, payee }: { payLink: string; p
                 <div className="lg:col-span-5 space-y-4">
                     <h2 className="text-lg font-bold text-[#211e18]">Payment Sources</h2>
                     
-                    {/* VCB */}
-                    <div 
-                        onClick={() => setSelectedSource("vcb")}
-                        className={`rounded-lg p-4 border transition-all cursor-pointer ${
-                            selectedSource === "vcb" 
-                            ? "bg-[#fffbf5] border-[#99782b] ring-1 ring-[#99782b]" 
-                            : "bg-white border-[#e7e1d7] hover:border-[#99782b]"
-                        }`}
-                    >
-                        <div className="flex items-start justify-between">
-                            <div className="flex gap-3">
-                                <div className="mt-1 p-2 rounded bg-[#faf9f6] border border-[#e7e1d7]">
-                                    <Landmark className="h-5 w-5 text-[#99782b]" />
-                                </div>
-                                <div>
-                                    <h3 className="font-semibold text-sm text-[#211e18]">VCB QR primary</h3>
-                                    <p className="text-xs text-[#71685a] mt-0.5">Vietcombank QR collection</p>
-                                </div>
-                            </div>
-                            <span className="bg-[#e6f4ea] text-[#137333] text-xs font-semibold px-2 py-0.5 rounded-full">
-                                Active
-                            </span>
-                        </div>
-                    </div>
-
-                    {/* ACB */}
-                    <div 
-                        onClick={() => setSelectedSource("acb")}
-                        className={`rounded-lg p-4 border transition-all cursor-pointer ${
-                            selectedSource === "acb" 
-                            ? "bg-[#fffbf5] border-[#99782b] ring-1 ring-[#99782b]" 
-                            : "bg-white border-[#e7e1d7] hover:border-[#99782b]"
-                        }`}
-                    >
-                        <div className="flex items-start justify-between">
-                            <div className="flex gap-3">
-                                <div className="mt-1 p-2 rounded bg-[#faf9f6] border border-[#e7e1d7]">
-                                    <Landmark className="h-5 w-5 text-[#99782b]" />
-                                </div>
-                                <div>
-                                    <h3 className="font-semibold text-sm text-[#211e18]">ACB transfer fallback</h3>
-                                    <p className="text-xs text-[#71685a] mt-0.5">Asia Commercial Bank transfer</p>
+                    {(sources && sources.length > 0 ? sources : [
+                        { id: "vcb", key: "vcb", label: "VCB QR primary", enabled: true, status: "active" },
+                        { id: "acb", key: "acb", label: "ACB transfer fallback", enabled: true, status: "active" },
+                        { id: "momo", key: "momo", label: "MoMo disabled", enabled: false, status: "inactive" },
+                        { id: "cash", key: "cash", label: "Store cash pickup", enabled: true, status: "active" }
+                    ]).map((src) => {
+                        const isSelected = selectedSource === src.key
+                        const Icon = src.key === "momo" ? Wallet : (src.key === "cash" ? Banknote : Landmark)
+                        const isActive = isReady && (src.status === "active" || src.enabled)
+                        return (
+                            <div 
+                                key={src.id}
+                                onClick={() => setSelectedSource(src.key)}
+                                className={`rounded-lg p-4 border transition-all cursor-pointer ${
+                                    isSelected 
+                                    ? "bg-[#fffbf5] border-[#99782b] ring-1 ring-[#99782b]" 
+                                    : "bg-white border-[#e7e1d7] hover:border-[#99782b]"
+                                }`}
+                            >
+                                <div className="flex items-start justify-between">
+                                    <div className="flex gap-3">
+                                        <div className="mt-1 p-2 rounded bg-[#faf9f6] border border-[#e7e1d7]">
+                                            <Icon className={`h-5 w-5 ${isActive ? "text-[#99782b]" : "text-[#a89f91]"}`} />
+                                        </div>
+                                        <div>
+                                            <h3 className="font-semibold text-sm text-[#211e18]">{src.label}</h3>
+                                            <p className="text-xs text-[#71685a] mt-0.5">
+                                                {src.key === "vcb" ? "Vietcombank QR collection" : src.key === "momo" ? "MoMo e-wallet gateway" : "Asia Commercial Bank transfer"}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
+                                        isActive ? "bg-[#e6f4ea] text-[#137333]" : "bg-[#f1f3f4] text-[#5f6368]"
+                                    }`}>
+                                        {isActive ? "Active" : "Inactive"}
+                                    </span>
                                 </div>
                             </div>
-                            <span className="bg-[#e6f4ea] text-[#137333] text-xs font-semibold px-2 py-0.5 rounded-full">
-                                Active
-                            </span>
-                        </div>
-                    </div>
-
-                    {/* MoMo */}
-                    <div 
-                        onClick={() => setSelectedSource("momo")}
-                        className={`rounded-lg p-4 border transition-all cursor-pointer ${
-                            selectedSource === "momo" 
-                            ? "bg-[#fffbf5] border-[#99782b] ring-1 ring-[#99782b]" 
-                            : "bg-white border-[#e7e1d7] hover:border-[#99782b]"
-                        }`}
-                    >
-                        <div className="flex items-start justify-between">
-                            <div className="flex gap-3">
-                                <div className="mt-1 p-2 rounded bg-[#faf9f6] border border-[#e7e1d7]">
-                                    <Wallet className="h-5 w-5 text-[#a89f91]" />
-                                </div>
-                                <div>
-                                    <h3 className="font-semibold text-sm text-[#71685a]">MoMo disabled</h3>
-                                    <p className="text-xs text-[#a89f91] mt-0.5">MoMo e-wallet gateway</p>
-                                </div>
-                            </div>
-                            <span className="bg-[#f1f3f4] text-[#5f6368] text-xs font-semibold px-2 py-0.5 rounded-full">
-                                Inactive
-                            </span>
-                        </div>
-                    </div>
-
-                    {/* Store Cash */}
-                    <div 
-                        onClick={() => setSelectedSource("cash")}
-                        className={`rounded-lg p-4 border transition-all cursor-pointer ${
-                            selectedSource === "cash" 
-                            ? "bg-[#fffbf5] border-[#99782b] ring-1 ring-[#99782b]" 
-                            : "bg-white border-[#e7e1d7] hover:border-[#99782b]"
-                        }`}
-                    >
-                        <div className="flex items-start justify-between">
-                            <div className="flex gap-3">
-                                <div className="mt-1 p-2 rounded bg-[#faf9f6] border border-[#e7e1d7]">
-                                    <Banknote className="h-5 w-5 text-[#99782b]" />
-                                </div>
-                                <div>
-                                    <h3 className="font-semibold text-sm text-[#211e18]">Store cash pickup</h3>
-                                    <p className="text-xs text-[#71685a] mt-0.5">Direct storefront cash payment</p>
-                                </div>
-                            </div>
-                            <span className="bg-[#e6f4ea] text-[#137333] text-xs font-semibold px-2 py-0.5 rounded-full">
-                                Active
-                            </span>
-                        </div>
-                    </div>
+                        )
+                    })}
                 </div>
+
 
                 {/* Right panel - Form & Live Preview */}
                 <div className="lg:col-span-7 space-y-6">

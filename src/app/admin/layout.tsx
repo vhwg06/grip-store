@@ -79,15 +79,15 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     if (!isAdmin) return <AdminLayoutFallback />
 
     return (
-        <div className="flex min-h-screen flex-col bg-[#fafaf8]">
+        <section className="flex min-h-screen flex-col bg-[#fafaf8]">
             <UpdateNotification currentVersion={APP_VERSION} />
             <RegistryPrompt shouldPrompt={shouldPrompt} registryEnabled={registryEnabled} />
-            <div className="flex flex-1 flex-col md:flex-row">
+            <section className="flex flex-1 flex-col md:flex-row">
                 <AdminSidebar username={user?.username || user?.email || "admin"} />
                 <main className={`flex-1 pt-0 pb-12 pl-[49px] pr-[79px] overflow-y-auto bg-[#fafaf8] ${isE2E ? "scrollbar-none" : ""}`}>
                     {children}
                 </main>
-            </div>
-        </div>
+            </section>
+        </section>
     )
 }

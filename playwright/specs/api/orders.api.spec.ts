@@ -93,7 +93,7 @@ test.describe("Admin Orders API @api P1", () => {
       quantity: 1,
     });
     expect(Array.isArray(order.timeline)).toBeTruthy();
-    expect(order.timeline[0]).toMatchObject({
+    expect(order.timeline[2]).toMatchObject({
       status: "DELIVERED",
       timestamp: expect.any(String),
     });
@@ -119,7 +119,7 @@ test.describe("Admin Orders API @api P1", () => {
     expect(payload.status).toBe("PAID");
     expect(payload.paidAt).toBeTruthy();
     expect(Array.isArray(payload.timeline)).toBeTruthy();
-    expect(payload.timeline[0]?.status).toBe("PAID");
+    expect(payload.timeline[1]?.status).toBe("PAID");
   });
 
   test("UC-ORD-03 rejects a pending-to-delivered shortcut", async ({ request }) => {

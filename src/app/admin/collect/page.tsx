@@ -10,5 +10,5 @@ export default function AdminCollectPage() {
         return <div className="h-96 w-full rounded-xl bg-muted/40 animate-pulse" />
     }
 
-    return <AdminPaymentCodeContent payLink={data.payLink} payee={data.payee} />
+    return <AdminPaymentCodeContent payLink={data.payLink} payee={data.payee} sources={data.sources} />
 }

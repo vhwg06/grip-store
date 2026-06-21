@@ -20,6 +20,7 @@ export function AdminRefundsContent({ requests }: { requests: any[] }) {
   const [selectedRefund, setSelectedRefund] = useState<any | null>(null)
   const [note, setNote] = useState("")
   const [confirmAction, setConfirmAction] = useState<'approve' | 'reject' | null>(null)
+  const [activeTab, setActiveTab] = useState<'pending' | 'history'>('pending')
   const processingRef = useRef<number | null>(null)
 
   const renderRefundStatus = (status: string | null) => {
@@ -50,34 +51,17 @@ export function AdminRefundsContent({ requests }: { requests: any[] }) {
     }
   }
 
-  // Sync selectedRefund when requests update
-  useMemo(() => {
-    if (requests && requests.length > 0) {
-      if (!selectedRefund) {
-        setSelectedRefund(requests[0])
-      } else {
-        const found = requests.find(r => r.id === selectedRefund.id)
-        if (found) {
-          setSelectedRefund(found)
-        } else {
-          setSelectedRefund(requests[0])
-        }
-      }
-    } else {
-      setSelectedRefund(null)
-    }
-  }, [requests])
-
-  // Reset inputs when switching selected refund
-  useEffect(() => {
-    setNote("")
-    setConfirmAction(null)
-  }, [selectedRefund?.id])
-
   const filtered = useMemo(() => {
+    let list = requests
+    if (activeTab === 'pending') {
+      list = list.filter(r => !r.status || r.status.toLowerCase() === 'pending')
+    } else {
+      list = list.filter(r => r.status && r.status.toLowerCase() !== 'pending')
+    }
+
     const q = query.trim().toLowerCase()
-    if (!q) return requests
-    return requests.filter((r) => {
+    if (!q) return list
+    return list.filter((r) => {
       const orderId = r.order_id ?? r.orderId ?? ''
       const username = r.username || ''
       const userId = r.user_id ?? r.userId ?? ''
@@ -94,7 +78,25 @@ export function AdminRefundsContent({ requests }: { requests: any[] }) {
       ].join(' ').toLowerCase()
       return hay.includes(q)
     })
-  }, [query, requests])
+  }, [query, requests, activeTab])
+
+  // Sync selectedRefund when filtered list updates
+  useEffect(() => {
+    if (filtered && filtered.length > 0) {
+      const stillExists = filtered.find(r => r.id === selectedRefund?.id)
+      if (!stillExists) {
+        setSelectedRefund(filtered[0])
+      }
+    } else {
+      setSelectedRefund(null)
+    }
+  }, [filtered, selectedRefund?.id])
+
+  // Reset inputs when switching selected refund
+  useEffect(() => {
+    setNote("")
+    setConfirmAction(null)
+  }, [selectedRefund?.id])
 
   // Calculate dynamic metrics from the list
   const metrics = useMemo(() => {
@@ -200,7 +202,32 @@ export function AdminRefundsContent({ requests }: { requests: any[] }) {
 
       {/* Search Filter Row */}
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between pt-2">
-        <div className="flex-1" />
+        <div role="tablist" className="flex gap-2 border-b border-[#e7e1d7] flex-1 md:flex-initial">
+          <button
+            role="tab"
+            aria-selected={activeTab === 'pending'}
+            onClick={() => setActiveTab('pending')}
+            className={`pb-2 px-4 text-sm font-semibold border-b-2 transition-all ${
+              activeTab === 'pending'
+                ? 'border-[#99782b] text-[#99782b]'
+                : 'border-transparent text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            Pending
+          </button>
+          <button
+            role="tab"
+            aria-selected={activeTab === 'history'}
+            onClick={() => setActiveTab('history')}
+            className={`pb-2 px-4 text-sm font-semibold border-b-2 transition-all ${
+              activeTab === 'history'
+                ? 'border-[#99782b] text-[#99782b]'
+                : 'border-transparent text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            History
+          </button>
+        </div>
         <Input 
           value={query} 
           onChange={(e) => setQuery(e.target.value)} 
@@ -236,6 +263,7 @@ export function AdminRefundsContent({ requests }: { requests: any[] }) {
                   return (
                     <div
                       key={r.id}
+                      data-testid="refund-queue-item"
                       onClick={() => setSelectedRefund(r)}
                       className={`group flex flex-col gap-2 p-3.5 rounded-lg border transition-all cursor-pointer relative ${
                         isSelected
@@ -356,6 +384,7 @@ export function AdminRefundsContent({ requests }: { requests: any[] }) {
                       </label>
                       <textarea
                         id="refund-admin-note"
+                        data-testid="refund-decision-note"
                         value={note}
                         onChange={(e) => setNote(e.target.value)}
                         placeholder="Admin note (required for rejection)..."
@@ -448,6 +477,26 @@ export function AdminRefundsContent({ requests }: { requests: any[] }) {
                     <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground block">Customer Reason</span>
                     <div className="text-sm text-[#211e18] bg-slate-50 border border-slate-100 p-3 rounded-lg min-h-[64px] whitespace-pre-wrap break-words leading-relaxed">
                       {selectedRefund.reason || <span className="text-muted-foreground italic">No reason provided.</span>}
+                    </div>
+                  </div>
+
+                  <div className="space-y-1">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground block">Payment Context</span>
+                    <div 
+                      data-testid="refunds-evidence-payment-context" 
+                      className="text-xs text-[#211e18] bg-slate-50 border border-slate-100 p-2.5 rounded-lg font-medium"
+                    >
+                      {selectedTradeNo ? `Trade No: ${selectedTradeNo}` : `Auto-refund for Order #${selectedOrderId}`}
+                    </div>
+                  </div>
+
+                  <div className="space-y-1">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground block">Trade Reference</span>
+                    <div 
+                      data-testid="refunds-evidence-trade-ref" 
+                      className="text-xs font-mono text-[#211e18] bg-slate-50 border border-slate-100 p-2.5 rounded-lg font-semibold"
+                    >
+                      {selectedTradeNo || `REF-${selectedOrderId}`}
                     </div>
                   </div>
 

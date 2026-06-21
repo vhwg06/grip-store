@@ -32,16 +32,12 @@ test.describe("Admin Noty @admin P3", () => {
     // PRIORITY: P3
     // RELATED DOMAINS: none
     // SCENARIO: SC-NOTY-01 Main flow
-    const responses: number[] = [];
-    page.on("response", (response) => {
-      if (response.url().includes("/v1/admin/notifications")) {
-        responses.push(response.status());
-      }
-    });
-
+    const responsePromise = page.waitForResponse(
+      (response: any) => response.url().includes("/v1/admin/notifications"),
+    );
     await page.getByRole("button", { name: "Channel Settings" }).click();
-
-    expect(responses.length).toBeGreaterThan(0);
+    const response = await responsePromise;
+    expect(response.status()).toBe(200);
     await expect(page.getByText("Admin Trigger Toggles")).toBeVisible();
     await expect(page.getByText(/configure credentials to receive instant system actions/i)).toBeVisible();
     await expect(page.getByText(/telegram bot configuration/i)).toBeVisible();
@@ -120,7 +116,7 @@ test.describe("Admin Noty @admin P3", () => {
     expect(listResponses.length).toBeGreaterThan(0);
     await expect(page.getByRole("button", { name: /history/i })).toBeVisible();
     await expect(page.getByText(title)).toBeVisible();
-    await expect(page.getByText(/failed|sent|queued|scheduled/i)).toBeVisible();
+    await expect(page.getByText(/failed|sent|queued|scheduled/i).first()).toBeVisible();
   });
 
   test("UC-NOTY-03 alternate: renders empty search state gracefully", async ({ page }) => {

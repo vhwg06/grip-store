@@ -320,7 +320,7 @@
                 "telegramChatId": "Chat ID",
                 "telegramChatIdPlaceholder": "e.g. 123456789 or -100123456789 (for groups)",
                 "telegramEnabled": "Enable Telegram notifications",
-                "save": "Save Settings",
+                "save": "Save",
                 "test": "Send Test Message",
                 "testSuccess": "Test message sent successfully! Check your Telegram.",
                 "testFailed": "Test message failed: {{error}}",

@@ -23,6 +23,7 @@ export function AdminProductsContent({ products, lowStockThreshold }: AdminProdu
     const [busy, setBusy] = useState(false)
     const busyRef = useRef(false)
     const [activeTab, setActiveTab] = useState<'visible' | 'hidden' | 'lowstock'>('visible')
+    const [searchQuery, setSearchQuery] = useState("")
 
     const threshold = lowStockThreshold || 5
 
@@ -87,11 +88,23 @@ export function AdminProductsContent({ products, lowStockThreshold }: AdminProdu
     }
 
 
-    const displayProducts = activeTab === 'hidden'
-        ? products.filter(p => !p.isActive)
-        : activeTab === 'lowstock'
-        ? products.filter(p => p.stock <= threshold)
-        : products.filter(p => p.isActive)
+    const displayProducts = useMemo(() => {
+        let list = activeTab === 'hidden'
+            ? products.filter(p => !p.isActive)
+            : activeTab === 'lowstock'
+            ? products.filter(p => p.stock <= threshold)
+            : products.filter(p => p.isActive)
+
+        const q = searchQuery.trim().toLowerCase()
+        if (!q) return list
+
+        return list.filter(p => {
+            const name = p.name.toLowerCase()
+            const sku = (p.sku || '').toLowerCase()
+            const category = getCategoryName(p.categoryId).toLowerCase()
+            return name.includes(q) || sku.includes(q) || category.includes(q)
+        })
+    }, [products, activeTab, searchQuery, threshold])
 
     return (
         <div className="w-[1056px]">
@@ -153,6 +166,8 @@ export function AdminProductsContent({ products, lowStockThreshold }: AdminProdu
                             <span className="text-gray-400 text-sm">🔍</span>
                             <input
                                 type="text"
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
                                 placeholder="Search product, SKU, category..."
                                 className="border-none bg-transparent text-sm focus:outline-none w-full placeholder-[#9a9184]"
                             />
@@ -174,109 +189,115 @@ export function AdminProductsContent({ products, lowStockThreshold }: AdminProdu
                     </div>
 
                     {/* Table element wrapper to support Playwright masking and row counts */}
-                    <table data-testid="admin-table" className="w-[648px] bg-transparent border-none">
-                        <tbody className="flex flex-col gap-3 w-full">
-                            {displayProducts.map((product, idx) => {
-                                const isLowStock = product.stock <= threshold
-                                const hasMissingImage = !product.image
-                                const hasInvalidCompareAtPrice = product.compareAtPrice != null && product.compareAtPrice <= (product.price ?? 0)
-                                
-                                return (
-                                    <tr
-                                        key={product.id}
-                                        data-item-id={product.id}
-                                        onClick={() => setSelectedProduct(product)}
-                                        className={`block bg-white border border-[#e7e1d7] rounded-lg p-4 w-[648px] transition-all hover:shadow-sm cursor-pointer ${!product.isActive ? 'opacity-90' : ''} ${selectedProduct?.id === product.id ? 'ring-1 ring-[#99782b]' : ''}`}
-                                    >
-                                        <td className="block p-0">
-                                            <div className="flex items-center justify-between">
-                                                {/* Checkbox, Image and Info */}
-                                                <div className="flex items-center gap-3">
-                                                    <input 
-                                                        type="checkbox" 
-                                                        className="rounded border-[#e7e1d7] text-[#99782b] focus:ring-[#99782b] h-4 w-4" 
-                                                        defaultChecked={idx === 0}
-                                                    />
-                                                    {/* Thumbnail Box */}
-                                                    <div className={`w-[60px] h-[60px] rounded-lg flex items-center justify-center text-[10px] font-bold overflow-hidden ${!hasMissingImage ? 'bg-[#e9dfc8]' : 'bg-[#f3f1ec] text-[#a3a3a3]'}`}>
-                                                        {!hasMissingImage && product.image
-                                                            ? <img src={product.image} alt="" className="w-full h-full object-cover" />
-                                                            : <span className="text-[10px] font-bold text-[#a3a3a3]">NO IMG</span>
-                                                        }
+                    {displayProducts.length === 0 ? (
+                        <div data-testid="admin-table-empty" className="text-center py-16 text-[#71685a] text-sm leading-relaxed bg-white border border-[#e7e1d7] rounded-lg">
+                            No products found matching the filters.
+                        </div>
+                    ) : (
+                        <table data-testid="admin-table" className="w-[648px] bg-transparent border-none">
+                            <tbody className="flex flex-col gap-3 w-full">
+                                {displayProducts.map((product, idx) => {
+                                    const isLowStock = product.stock <= threshold
+                                    const hasMissingImage = !product.image
+                                    const hasInvalidCompareAtPrice = product.compareAtPrice != null && product.compareAtPrice <= (product.price ?? 0)
+                                    
+                                    return (
+                                        <tr
+                                            key={product.id}
+                                            data-item-id={product.id}
+                                            onClick={() => setSelectedProduct(product)}
+                                            className={`block bg-white border border-[#e7e1d7] rounded-lg p-4 w-[648px] transition-all hover:shadow-sm cursor-pointer ${!product.isActive ? 'opacity-90' : ''} ${selectedProduct?.id === product.id ? 'ring-1 ring-[#99782b]' : ''}`}
+                                        >
+                                            <td className="block p-0">
+                                                <div className="flex items-center justify-between">
+                                                    {/* Checkbox, Image and Info */}
+                                                    <div className="flex items-center gap-3">
+                                                        <input 
+                                                            type="checkbox" 
+                                                            className="rounded border-[#e7e1d7] text-[#99782b] focus:ring-[#99782b] h-4 w-4" 
+                                                            defaultChecked={idx === 0}
+                                                        />
+                                                        {/* Thumbnail Box */}
+                                                        <div className={`w-[60px] h-[60px] rounded-lg flex items-center justify-center text-[10px] font-bold overflow-hidden ${!hasMissingImage ? 'bg-[#e9dfc8]' : 'bg-[#f3f1ec] text-[#a3a3a3]'}`}>
+                                                            {!hasMissingImage && product.image
+                                                                ? <img src={product.image} alt="" className="w-full h-full object-cover" />
+                                                                : <span className="text-[10px] font-bold text-[#a3a3a3]">NO IMG</span>
+                                                            }
+                                                        </div>
+                                                        {/* Product Details */}
+                                                        <div className="flex flex-col">
+                                                            <span className="text-sm font-bold text-[#211e18] leading-snug">
+                                                                {product.name}
+                                                            </span>
+                                                            <span className="text-[11px] text-[#787774] mt-0.5 font-medium">
+                                                                SKU: {product.sku || 'N/A'} | {getCategoryName(product.categoryId)}
+                                                            </span>
+                                                            <span className="text-[11px] text-[#787774] mt-0.5 font-medium">
+                                                                {Number(product.price).toFixed(2)} • {product.stock} in stock
+                                                            </span>
+                                                        </div>
                                                     </div>
-                                                    {/* Product Details */}
-                                                    <div className="flex flex-col">
-                                                        <span className="text-sm font-bold text-[#211e18] leading-snug">
-                                                            {product.name}
+
+                                                    {/* Actions & Status */}
+                                                    <div className="flex items-center gap-2">
+                                                        {/* Status Badge */}
+                                                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${product.isActive ? 'bg-[#e6f4ea] text-[#137333]' : 'bg-[#f1f3f4] text-[#3c4043]'}`}>
+                                                            {product.isActive ? 'Visible' : 'Hidden'}
                                                         </span>
-                                                        <span className="text-[11px] text-[#787774] mt-0.5 font-medium">
-                                                            SKU: {product.sku || 'N/A'} | {getCategoryName(product.categoryId)}
-                                                        </span>
-                                                        <span className="text-[11px] text-[#787774] mt-0.5 font-medium">
-                                                            {Number(product.price).toFixed(2)} • {product.stock} in stock
-                                                        </span>
+                                                        {/* Action Buttons */}
+                                                        <Button 
+                                                            asChild 
+                                                            variant="outline" 
+                                                            size="sm" 
+                                                            data-testid="edit-btn"
+                                                            className="h-7 px-3 bg-[#99782b] hover:bg-[#99782b]/90 text-white border-none rounded-md text-xs font-semibold"
+                                                        >
+                                                            <Link href={buildExportRoutePath("/admin/product/edit", product.id)}>Edit</Link>
+                                                        </Button>
+                                                        <Button
+                                                            data-testid="toggle-btn"
+                                                            variant="outline"
+                                                            size="sm"
+                                                            onClick={() => handleToggle(product.id, product.isActive ?? false)}
+                                                            className="h-7 px-2.5 bg-[#f3f1ec] text-[#50483d] hover:bg-[#e9dfc8]/30 border-none rounded-md text-xs font-semibold"
+                                                        >
+                                                            {product.isActive ? 'Hide' : 'Show'}
+                                                        </Button>
+
+                                                        <Button 
+                                                            data-testid="delete-btn" 
+                                                            variant="destructive" 
+                                                            size="sm" 
+                                                            onClick={() => handleDelete(product.id)}
+                                                            className="h-7 w-7 p-0 bg-[#fff1f0] text-[#a33b2b] border border-[#ffccc7] hover:bg-[#fff1f0]/80 flex items-center justify-center rounded-md"
+                                                        >
+                                                            ×
+                                                        </Button>
                                                     </div>
                                                 </div>
 
-                                                {/* Actions & Status */}
-                                                <div className="flex items-center gap-2">
-                                                    {/* Status Badge */}
-                                                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${product.isActive ? 'bg-[#e6f4ea] text-[#137333]' : 'bg-[#f1f3f4] text-[#3c4043]'}`}>
-                                                        {product.isActive ? 'Visible' : 'Hidden'}
-                                                    </span>
-                                                    {/* Action Buttons */}
-                                                    <Button 
-                                                        asChild 
-                                                        variant="outline" 
-                                                        size="sm" 
-                                                        data-testid="edit-btn"
-                                                        className="h-7 px-3 bg-[#99782b] hover:bg-[#99782b]/90 text-white border-none rounded-md text-xs font-semibold"
-                                                    >
-                                                        <Link href={buildExportRoutePath("/admin/product/edit", product.id)}>Edit</Link>
-                                                    </Button>
-                                                    <Button
-                                                        data-testid="toggle-btn"
-                                                        variant="outline"
-                                                        size="sm"
-                                                        onClick={() => handleToggle(product.id, product.isActive ?? false)}
-                                                        className="h-7 px-2.5 bg-[#f3f1ec] text-[#50483d] hover:bg-[#e9dfc8]/30 border-none rounded-md text-xs font-semibold"
-                                                    >
-                                                        {product.isActive ? 'Hide' : 'Show'}
-                                                    </Button>
-
-                                                    <Button 
-                                                        data-testid="delete-btn" 
-                                                        variant="destructive" 
-                                                        size="sm" 
-                                                        onClick={() => handleDelete(product.id)}
-                                                        className="h-7 w-7 p-0 bg-[#fff1f0] text-[#a33b2b] border border-[#ffccc7] hover:bg-[#fff1f0]/80 flex items-center justify-center rounded-md"
-                                                    >
-                                                        ×
-                                                    </Button>
-                                                </div>
-                                            </div>
-
-                                            {/* Warnings block */}
-                                            {(hasMissingImage || hasInvalidCompareAtPrice) && (
-                                                <div className="mt-2 pt-2 border-t border-[#f0ebe1] flex flex-col gap-1">
-                                                    {hasMissingImage && (
-                                                        <span className="text-[11px] text-[#a33b2b] font-semibold flex items-center gap-1">
-                                                            ⚠️ Missing gallery image
-                                                        </span>
-                                                    )}
-                                                    {hasInvalidCompareAtPrice && (
-                                                        <span className="text-[11px] text-[#a33b2b] font-semibold flex items-center gap-1">
-                                                            ⚠️ Invalid compare-at price
-                                                        </span>
-                                                    )}
-                                                </div>
-                                            )}
-                                        </td>
-                                    </tr>
-                                )
-                            })}
-                        </tbody>
-                    </table>
+                                                {/* Warnings block */}
+                                                {(hasMissingImage || hasInvalidCompareAtPrice) && (
+                                                    <div className="mt-2 pt-2 border-t border-[#f0ebe1] flex flex-col gap-1">
+                                                        {hasMissingImage && (
+                                                            <span className="text-[11px] text-[#a33b2b] font-semibold flex items-center gap-1">
+                                                                ⚠️ Missing gallery image
+                                                            </span>
+                                                        )}
+                                                        {hasInvalidCompareAtPrice && (
+                                                            <span className="text-[11px] text-[#a33b2b] font-semibold flex items-center gap-1">
+                                                                ⚠️ Invalid compare-at price
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                )}
+                                            </td>
+                                        </tr>
+                                    )
+                                })}
+                            </tbody>
+                        </table>
+                    )}
                 </div>
 
                 {/* Right Column: Selected Product & Audit */}

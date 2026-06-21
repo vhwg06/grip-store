@@ -92,7 +92,6 @@ test.describe("Admin Refund @admin P2", () => {
     // SCENARIO: SC-REF-02 Main flow
     // INVARIANT: evidence review là bước nghiệp vụ bắt buộc trước decision — panel phải expose actual values
     // INVARIANT: refund decision không được ra chỉ từ queue row
-    test.fail(true, "blocked-be-gap: checkout /v1/checkout/orders returns 500");
     const created = await createRefundRequest(request, `evidence-probe ${Date.now()}`);
     await searchRefund(page, created.orderId);
     await page.getByText(created.orderId, { exact: false }).first().click();
@@ -101,7 +100,6 @@ test.describe("Admin Refund @admin P2", () => {
     await expect(page.locator('[data-testid="refunds-evidence-panel"]')).toContainText("Customer Reason");
     await expect(page.locator('[data-testid="refunds-evidence-panel"]')).not.toContainText("undefined");
 
-    test.fail(true, "blocked-both: refund detail endpoint /v1/admin/refunds/:id missing — payment context unavailable");
     await expect(page.locator('[data-testid="refunds-evidence-payment-context"]')).not.toBeEmpty();
     await expect(page.locator('[data-testid="refunds-evidence-trade-ref"]')).not.toBeEmpty();
   });
@@ -113,7 +111,6 @@ test.describe("Admin Refund @admin P2", () => {
     // SCENARIO: SC-REF-03 Main flow
     // INVARIANT: approved refund phải disappear khỏi pending queue (reconciled out)
     // INVARIANT: duplicate approve không được tạo extra transition
-    test.fail(true, "blocked-be-gap: checkout /v1/checkout/orders returns 500");
     const created = await createRefundRequest(request, `approve-fe ${Date.now()}`);
 
     await page.goto(`/admin/refunds`);
@@ -145,7 +142,6 @@ test.describe("Admin Refund @admin P2", () => {
     // SCENARIO: SC-REF-04 Exception flow
     // INVARIANT: reject phải kết thúc pending decision state — không thể reject thêm lần 2
     // INVARIANT: rejected refund vẫn phải để lại decision history (admin_note)
-    test.fail(true, "blocked-be-gap: checkout /v1/checkout/orders returns 500");
     const created = await createRefundRequest(request, `reject-fe ${Date.now()}`);
 
     await page.goto(`/admin/refunds`);
@@ -175,7 +171,6 @@ test.describe("Admin Refund @admin P2", () => {
     // PRIORITY: P2
     // RELATED DOMAINS: none
     // SCENARIO: SC-REF-05 Main flow
-    test.fail(true, "blocked-both: approved refunds tab does not list resolved refunds from API");
     const approvedPayload = await fetchRefunds(request, "approved");
     const approvedItems = Array.isArray(approvedPayload?.data) ? approvedPayload.data : [];
     expect(approvedItems.length).toBeGreaterThan(0);
@@ -204,7 +199,6 @@ test.describe("Admin Refund @admin P2", () => {
     // RELATED DOMAINS: order
     // SCENARIO: SC-REF-01 Exception flow
     // INVARIANT: approved refund must not be present in the pending queue
-    test.fail(true, "blocked-be-gap: checkout /v1/checkout/orders returns 500");
     const created = await createRefundRequest(request, `approved-disappear ${Date.now()}`);
 
     const adminToken = await getAdminToken(request);
@@ -229,7 +223,6 @@ test.describe("Admin Refund @admin P2", () => {
     // RELATED DOMAINS: order
     // SCENARIO: SC-REF-04 Exception flow
     // INVARIANT: a refund with a final decision cannot be rejected again
-    test.fail(true, "blocked-be-gap: checkout /v1/checkout/orders returns 500");
     const created = await createRefundRequest(request, `reject-already-decided ${Date.now()}`);
 
     const adminToken = await getAdminToken(request);
@@ -255,7 +248,6 @@ test.describe("Admin Refund @admin P2", () => {
     // PRIORITY: P2
     // RELATED DOMAINS: order, payment
     // SCENARIO: SC-REF-02 Alternate flow
-    test.fail(true, "blocked-be-gap: checkout /v1/checkout/orders returns 500");
     const created = await createRefundRequest(request, `approve-with-note ${Date.now()}`);
 
     await page.goto(`/admin/refunds`);

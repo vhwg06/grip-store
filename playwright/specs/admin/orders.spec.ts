@@ -51,7 +51,6 @@ test.describe("Admin Orders @admin P1 P2", () => {
     // SCENARIO: SC-ORD-01 Main flow
     // INVARIANT: order queue là projection của server state, không phải kết quả FE tự suy diễn
     // INVARIANT: action availability phải phản ánh business state hiện tại của order
-    test.fail(true, "blocked-fe-gap: /admin/orders/[id] route fails under static export");
     await expect(page.getByRole("heading", { name: "Order Management" })).toBeVisible();
     await expect(page.locator('[data-testid="admin-table"]')).toBeVisible();
 
@@ -70,7 +69,6 @@ test.describe("Admin Orders @admin P1 P2", () => {
     // PRIORITY: P1
     // RELATED DOMAINS: customer
     // SCENARIO: SC-ORD-02 Main flow
-    test.fail(true, "blocked-fe-gap: /admin/orders/[id] route is broken under static export, direct navigation fails");
     await page.goto("/admin/orders/test-order-0001");
     await expect(page.locator('[data-testid="order-detail"]')).toBeVisible();
 

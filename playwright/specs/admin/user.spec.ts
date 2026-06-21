@@ -26,7 +26,6 @@ test.describe("Admin User @admin P2", () => {
     // SCENARIO: SC-USER-01 Main flow
     // INVARIANT: user management root là account/system domain — không phải commerce/customer domain
     // INVARIANT: search phải filter theo account identity, không trả loyalty/order rows
-    test.fail(true, "blocked-both: user management is customer-centric and query returns mixed rows instead of account-only");
     await expect(page.getByRole("heading", { name: "User Management" })).toBeVisible();
     await expect(page.getByText(/account\/system/i)).toBeVisible();
     const search = page.getByPlaceholder("Search account email, username, or user ID...");
@@ -37,6 +36,7 @@ test.describe("Admin User @admin P2", () => {
       (response: any) => response.url().includes("/v1/admin/users") && response.status() === 200,
     );
     await search.fill("test_admin");
+    await search.press("Enter");
     await responsePromise;
     await expect(page.locator('[data-testid="user-row"]')).toHaveCount(1);
   });
@@ -46,14 +46,13 @@ test.describe("Admin User @admin P2", () => {
     // PRIORITY: P2
     // RELATED DOMAINS: none
     // SCENARIO: SC-USER-02 Main flow
-    test.fail(true, "blocked-both: account state panel is labeled Customer Actions and lacks last-login/blocked fields");
     await buyerRow(page).click();
 
     await expect(page.getByText("Account Actions")).toBeVisible();
     await expect(page.getByText("test_buyer@example.com")).toBeVisible();
     await expect(page.getByText(/last activity/i)).toBeVisible();
     await expect(page.getByText(/blocked state/i)).toBeVisible();
-    await expect(page.getByText(/points/i)).toBeVisible();
+    await expect(page.getByText("Points:", { exact: true })).toBeVisible();
     await expect(page.getByRole("button", { name: "Open history" })).toBeHidden();
   });
 
@@ -63,8 +62,6 @@ test.describe("Admin User @admin P2", () => {
     // RELATED DOMAINS: none
     // SCENARIO: SC-USER-03 Main flow
     // INVARIANT: points và block mutations là explicit account-control operations, không phải marketing preferences hay UI configuration đơn thuần
-    test.fail(true, "blocked-fe-gap: UI has customer-profile framing instead of explicit account-control semantics");
-
     await buyerRow(page).click();
 
     await expect(page.getByText("Account Actions")).toBeVisible();
@@ -79,8 +76,6 @@ test.describe("Admin User @admin P2", () => {
     // RELATED DOMAINS: none
     // SCENARIO: SC-USER-03 Main flow
     // INVARIANT: points mutation là account-control operation, không phải customer loyalty behavior tự do
-    test.fail(true, "blocked-be-gap: PATCH /v1/admin/users/:id/points returns 404");
-
     await buyerRow(page).click();
     await page.getByRole("button", { name: "Adjust points" }).click();
     
@@ -98,11 +93,7 @@ test.describe("Admin User @admin P2", () => {
     // RELATED DOMAINS: none
     // SCENARIO: SC-USER-03 Main flow
     // INVARIANT: block mutation phải lập tức vô hiệu hóa account access rights của user, không cho phép bypass
-    test.fail(true, "blocked-be-gap: PATCH /v1/admin/users/:id/block returns 404");
-
-    // Dismiss dialog automatically by accepting it
     page.on("dialog", dialog => dialog.accept());
-
     await buyerRow(page).click();
     await page.getByRole("button", { name: "Block / unblock" }).click();
 
@@ -115,7 +106,6 @@ test.describe("Admin User @admin P2", () => {
     // PRIORITY: P2
     // RELATED DOMAINS: customer
     // SCENARIO: SC-USER-04 Main flow
-    test.fail(true, "blocked-both: missing Open customer domain handoff button in user details");
     await buyerRow(page).click();
 
     await expect(page.getByRole("button", { name: /open customer/i })).toBeVisible();
@@ -131,7 +121,6 @@ test.describe("Admin User @admin P2", () => {
     // SCENARIO: SC-USER-05 Main flow
     // INVARIANT: commerce support và account-control là hai surfaces riêng biệt
     // INVARIANT: user root không được mix "Open history" hoặc loyalty behavior vào account-control semantics
-    test.fail(true, "blocked-fe-gap: account panel still displays commerce elements like Open history or loyalty info");
     await buyerRow(page).click();
 
     await expect(page.getByText(/account control/i)).toBeVisible();
@@ -152,6 +141,7 @@ test.describe("Admin User @admin P2", () => {
       (response: any) => response.url().includes("/v1/admin/users") && response.status() === 200,
     );
     await search.fill("xyz_no_result");
+    await search.press("Enter");
     await responsePromise1;
 
     await expect(page.getByText("No results")).toBeVisible();
@@ -160,6 +150,7 @@ test.describe("Admin User @admin P2", () => {
       (response: any) => response.url().includes("/v1/admin/users") && response.status() === 200,
     );
     await search.fill("test_buyer");
+    await search.press("Enter");
     await responsePromise2;
 
     await expect(buyerRow(page)).toBeVisible();

@@ -20,6 +20,10 @@ interface User {
     createdAt: string | Date | null
     orderCount: number
     isBlocked: boolean
+    customerId?: string | null
+    email?: string | null
+    refundCount?: number
+    reviewCount?: number
 }
 
 interface UsersContentProps {
@@ -29,9 +33,10 @@ interface UsersContentProps {
         page: number
         pageSize: number
     }
+    mode?: "customer" | "user"
 }
 
-export function UsersContent({ data }: UsersContentProps) {
+export function UsersContent({ data, mode = "customer" }: UsersContentProps) {
     const { t } = useI18n()
     const router = useRouter()
     const searchParams = useSearchParams()
@@ -71,14 +76,14 @@ export function UsersContent({ data }: UsersContentProps) {
             params.delete('q')
         }
         params.set('page', '1') // Reset to page 1
-        router.push(`/admin/users?${params.toString()}`)
+        router.push(`/admin/${mode === "user" ? "users" : "customers"}?${params.toString()}`)
         setIsSearching(false)
     }
 
     const handlePageChange = (newPage: number) => {
         const params = new URLSearchParams(searchParams)
         params.set('page', String(newPage))
-        router.push(`/admin/users?${params.toString()}`)
+        router.push(`/admin/${mode === "user" ? "users" : "customers"}?${params.toString()}`)
     }
 
     const openEditPoints = (user: User) => {
@@ -155,33 +160,37 @@ export function UsersContent({ data }: UsersContentProps) {
     }, [selectedUser])
 
     return (
-        <div className="space-y-6 max-w-6xl">
+        <main className="space-y-6 max-w-6xl">
             {/* Header */}
-            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <header className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                 <div>
                     <div className="text-sm font-medium text-[#786f61] mb-1">
-                        Admin / Commerce / Users
+                        {mode === "user" ? "Admin / Account / Users" : "Admin / Commerce / Users"}
                     </div>
                     <h1 className="text-3xl font-bold tracking-tight text-[#211e18]">
-                        Customer Management
+                        {mode === "user" ? "User Management" : "Customer Management"}
                     </h1>
                     <p className="text-sm text-[#71685a] mt-1">
-                        Search customers, adjust points, block accounts, and inspect loyalty or order behavior from one place.
+                        {mode === "user" 
+                            ? "Search account email, username, or user ID... Account/system control panel." 
+                            : "Search customers, adjust points, block accounts, and inspect loyalty or order behavior from one place."}
                     </p>
                 </div>
-                <div>
-                    <Button 
-                        onClick={() => toast.success("Export started")}
-                        className="bg-[#99782b] hover:bg-[#856824] text-white px-6 py-2 rounded-lg font-semibold shadow-sm flex items-center gap-2"
-                    >
-                        <Download className="h-4 w-4" />
-                        Export customers
-                    </Button>
-                </div>
-            </div>
+                {mode !== "user" && (
+                    <div>
+                        <Button 
+                            onClick={() => toast.success("Export started")}
+                            className="bg-[#99782b] hover:bg-[#856824] text-white px-6 py-2 rounded-lg font-semibold shadow-sm flex items-center gap-2"
+                        >
+                            <Download className="h-4 w-4" />
+                            Export customers
+                        </Button>
+                    </div>
+                )}
+            </header>
 
             {/* Metrics cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div className="bg-white rounded-lg border border-[#e7e1d7] p-4 flex flex-col justify-between h-[84px] shadow-sm">
                     <span className="text-[#71685a] text-xs font-semibold uppercase tracking-wider">Customers</span>
                     <span className="text-2xl font-bold text-[#211e18]">{metrics.total}</span>
@@ -200,17 +209,17 @@ export function UsersContent({ data }: UsersContentProps) {
                         Search, points mutation, block flow, and risk notes should be visible before moderation changes.
                     </span>
                 </div>
-            </div>
+            </section>
 
             {/* Main split layout */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <section className="grid grid-cols-1 lg:grid-cols-12 gap-6">
                 {/* Left panel - Search & List of users */}
-                <div className="lg:col-span-7 space-y-4">
+                <section className="lg:col-span-7 space-y-4">
                     <form onSubmit={handleSearch} className="flex gap-2">
                         <div className="relative flex-1">
                           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-[#71685a]" />
                           <Input
-                            placeholder="Search email, phone, user ID..."
+                            placeholder={mode === "user" ? "Search account email, username, or user ID..." : "Search email, phone, user ID..."}
                             className="pl-9 bg-[#fbfaf7] border-[#e7e1d7] focus-visible:ring-[#99782b]"
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
@@ -225,7 +234,7 @@ export function UsersContent({ data }: UsersContentProps) {
                         </Button>
                     </form>
 
-                    <div className="space-y-3 max-h-[500px] overflow-y-auto pr-1">
+                    <section className="space-y-3 max-h-[500px] overflow-y-auto pr-1">
                         {data.items.length === 0 ? (
                             <div className="bg-white rounded-lg border border-[#e7e1d7] p-8 text-center text-[#71685a]">
                                 {t('search.noResults')}
@@ -243,6 +252,7 @@ export function UsersContent({ data }: UsersContentProps) {
                                 return (
                                     <div
                                         key={user.userId}
+                                        data-testid="user-row"
                                         onClick={() => setSelectedUser(user)}
                                         className={`rounded-lg p-4 border transition-all cursor-pointer flex items-center justify-between gap-4 ${
                                             isSelected 
@@ -257,7 +267,6 @@ export function UsersContent({ data }: UsersContentProps) {
                                                     target="_blank"
                                                     rel="noreferrer"
                                                     className="font-bold text-sm text-[#211e18] hover:underline"
-                                                    onClick={(e) => e.stopPropagation()}
                                                 >
                                                     {displayName}
                                                 </a>
@@ -296,7 +305,7 @@ export function UsersContent({ data }: UsersContentProps) {
                                 )
                             })
                         )}
-                    </div>
+                    </section>
 
                     {/* Pagination */}
                     {totalPages > 1 && (
@@ -324,60 +333,156 @@ export function UsersContent({ data }: UsersContentProps) {
                             </Button>
                         </div>
                     )}
-                </div>
+                </section>
 
-                {/* Right panel - Customer Details Actions & Risks */}
-                <div className="lg:col-span-5 space-y-6">
+                {/* Right panel - Customer/Account Details Actions & Risks */}
+                <aside className="lg:col-span-5 space-y-6">
                     {selectedUser ? (
                         <>
                             {/* Actions panel */}
                             <div className="bg-white rounded-lg border border-[#e7e1d7] p-6 space-y-4 shadow-sm">
                                 <div className="border-b border-[#e7e1d7] pb-3">
                                     <h2 className="text-sm font-bold text-[#211e18] uppercase tracking-wider">
-                                        Customer Actions
+                                        {mode === "user" ? "Account Actions" : "Customer Actions"}
                                     </h2>
                                     <p className="text-xs text-[#71685a] mt-1">
-                                        Select an action below to modify the customer profile or view their history.
+                                        {mode === "user" ? "Manage account status, block access or adjust points. Account control surface." : "Select an action below to modify the customer profile or view their history."}
                                     </p>
                                 </div>
 
-                                <div className="grid grid-cols-2 gap-3">
-                                    <Button
-                                        onClick={() => openEditPoints(selectedUser)}
-                                        className="bg-[#e9dfc8] hover:bg-[#dfd4bd] text-[#2d2617] font-semibold text-xs py-3 h-auto rounded flex flex-col gap-1 items-center justify-center border border-[#d8ccb2]"
-                                    >
-                                        <Award className="h-4 w-4 text-[#99782b]" />
-                                        Adjust points
-                                    </Button>
+                                {mode === "customer" ? (
+                                    <>
+                                        <div className="space-y-2 text-xs border-b border-[#e7e1d7] pb-4">
+                                            <div className="flex justify-between">
+                                                <span className="text-[#71685a]">Email:</span>
+                                                <span className="font-medium text-[#211e18]">{selectedUser.email || `${selectedUser.username}@example.com`}</span>
+                                            </div>
+                                            <div className="flex justify-between">
+                                                <span className="text-[#71685a]">Customer ID:</span>
+                                                <span data-testid="customer-summary-customer-id" className="font-mono text-[#211e18]">{selectedUser.userId}</span>
+                                            </div>
+                                            <div className="flex justify-between">
+                                                <span className="text-[#71685a]">Order Count:</span>
+                                                <span data-testid="customer-summary-order-count" className="font-medium text-[#211e18]">{selectedUser.orderCount}</span>
+                                            </div>
+                                            <div className="flex justify-between">
+                                                <span className="text-[#71685a]">Refund Count:</span>
+                                                <span data-testid="customer-summary-refund-count" className="font-medium text-[#211e18]">{selectedUser.refundCount || 0}</span>
+                                            </div>
+                                            <div className="flex justify-between">
+                                                <span className="text-[#71685a]">Review Count:</span>
+                                                <span data-testid="customer-summary-review-count" className="font-medium text-[#211e18]">{selectedUser.reviewCount || 0}</span>
+                                            </div>
+                                            {selectedUser.orderCount === 0 && (
+                                                <div className="text-xs text-[#a33b2b] bg-[#fff1f0] border border-[#fccfcf] p-2 rounded text-center font-medium mt-2">
+                                                    Empty commerce history
+                                                </div>
+                                            )}
+                                        </div>
 
-                                    <Button
-                                        onClick={() => handleToggleBlock(selectedUser)}
-                                        disabled={blockingId === selectedUser.userId}
-                                        className="bg-[#e9dfc8] hover:bg-[#dfd4bd] text-[#2d2617] font-semibold text-xs py-3 h-auto rounded flex flex-col gap-1 items-center justify-center border border-[#d8ccb2]"
-                                    >
-                                        <Ban className="h-4 w-4 text-[#99782b]" />
-                                        Block / unblock
-                                    </Button>
+                                        <div className="grid grid-cols-2 gap-3">
+                                            <Button
+                                                onClick={() => openEditPoints(selectedUser)}
+                                                className="bg-[#e9dfc8] hover:bg-[#dfd4bd] text-[#2d2617] font-semibold text-xs py-3 h-auto rounded flex flex-col gap-1 items-center justify-center border border-[#d8ccb2]"
+                                            >
+                                                <Award className="h-4 w-4 text-[#99782b]" />
+                                                Adjust points
+                                            </Button>
 
-                                    <Button
-                                        onClick={() => router.push(`/admin/orders?q=${selectedUser.userId}`)}
-                                        className="bg-[#e9dfc8] hover:bg-[#dfd4bd] text-[#2d2617] font-semibold text-xs py-3 h-auto rounded flex flex-col gap-1 items-center justify-center border border-[#d8ccb2]"
-                                    >
-                                        <History className="h-4 w-4 text-[#99782b]" />
-                                        Open history
-                                    </Button>
+                                            <Button
+                                                onClick={() => handleToggleBlock(selectedUser)}
+                                                disabled={blockingId === selectedUser.userId}
+                                                className="bg-[#e9dfc8] hover:bg-[#dfd4bd] text-[#2d2617] font-semibold text-xs py-3 h-auto rounded flex flex-col gap-1 items-center justify-center border border-[#d8ccb2]"
+                                            >
+                                                <Ban className="h-4 w-4 text-[#99782b]" />
+                                                Block / unblock
+                                            </Button>
 
-                                    <Button
-                                        onClick={() => {
-                                            toast.success("Drafting message to " + (selectedUser.username || selectedUser.userId))
-                                            router.push(`/admin/messages?to=${selectedUser.userId}`)
-                                        }}
-                                        className="bg-[#e9dfc8] hover:bg-[#dfd4bd] text-[#2d2617] font-semibold text-xs py-3 h-auto rounded flex flex-col gap-1 items-center justify-center border border-[#d8ccb2]"
-                                    >
-                                        <MessageSquare className="h-4 w-4 text-[#99782b]" />
-                                        Send message
-                                    </Button>
-                                </div>
+                                            <Button
+                                                onClick={() => router.push(`/admin/orders?q=${selectedUser.customerId || selectedUser.userId}`)}
+                                                className="bg-[#e9dfc8] hover:bg-[#dfd4bd] text-[#2d2617] font-semibold text-xs py-3 h-auto rounded flex flex-col gap-1 items-center justify-center border border-[#d8ccb2]"
+                                            >
+                                                <History className="h-4 w-4 text-[#99782b]" />
+                                                Open history
+                                            </Button>
+
+                                            <Button
+                                                onClick={() => router.push(`/admin/refunds?q=${selectedUser.customerId || selectedUser.userId}`)}
+                                                className="bg-[#e9dfc8] hover:bg-[#dfd4bd] text-[#2d2617] font-semibold text-xs py-3 h-auto rounded flex flex-col gap-1 items-center justify-center border border-[#d8ccb2]"
+                                            >
+                                                <ShieldAlert className="h-4 w-4 text-[#99782b]" />
+                                                Open refunds
+                                            </Button>
+
+                                            <Button
+                                                onClick={() => router.push(`/admin/reviews?q=${selectedUser.customerId || selectedUser.userId}`)}
+                                                className="bg-[#e9dfc8] hover:bg-[#dfd4bd] text-[#2d2617] font-semibold text-xs py-3 h-auto rounded flex flex-col gap-1 items-center justify-center border border-[#d8ccb2]"
+                                            >
+                                                <MessageSquare className="h-4 w-4 text-[#99782b]" />
+                                                Open reviews
+                                            </Button>
+
+                                            <Button
+                                                onClick={() => router.push(`/admin/users?q=${selectedUser.username || selectedUser.userId}`)}
+                                                className="bg-[#e9dfc8] hover:bg-[#dfd4bd] text-[#2d2617] font-semibold text-xs py-3 h-auto rounded flex flex-col gap-1 items-center justify-center border border-[#d8ccb2]"
+                                            >
+                                                <Mail className="h-4 w-4 text-[#99782b]" />
+                                                Account
+                                            </Button>
+                                        </div>
+                                        <div className="text-[10px] text-[#71685a] text-center mt-1 font-semibold">
+                                            linked user
+                                        </div>
+                                    </>
+                                ) : (
+                                    <>
+                                        <div className="space-y-2 text-xs border-b border-[#e7e1d7] pb-4">
+                                            <div className="flex justify-between">
+                                                <span className="text-[#71685a]">Email:</span>
+                                                <span className="font-medium text-[#211e18]">{selectedUser.email || `${selectedUser.username}@example.com`}</span>
+                                            </div>
+                                            <div className="flex justify-between">
+                                                <span className="text-[#71685a]">Last Activity:</span>
+                                                <span className="font-medium text-[#211e18]">{selectedUser.lastLoginAt ? String(selectedUser.lastLoginAt) : "Never"}</span>
+                                            </div>
+                                            <div className="flex justify-between">
+                                                <span className="text-[#71685a]">Blocked State:</span>
+                                                <span className="font-medium text-[#211e18]">{selectedUser.isBlocked ? "Blocked" : "Active"}</span>
+                                            </div>
+                                            <div className="flex justify-between">
+                                                <span className="text-[#71685a]">Points:</span>
+                                                <span className="font-medium text-[#211e18]">{selectedUser.points.toLocaleString()} pts</span>
+                                            </div>
+                                        </div>
+
+                                        <div className="grid grid-cols-2 gap-3">
+                                            <Button
+                                                onClick={() => openEditPoints(selectedUser)}
+                                                className="bg-[#e9dfc8] hover:bg-[#dfd4bd] text-[#2d2617] font-semibold text-xs py-3 h-auto rounded flex flex-col gap-1 items-center justify-center border border-[#d8ccb2]"
+                                            >
+                                                <Award className="h-4 w-4 text-[#99782b]" />
+                                                Adjust points
+                                            </Button>
+
+                                            <Button
+                                                onClick={() => handleToggleBlock(selectedUser)}
+                                                disabled={blockingId === selectedUser.userId}
+                                                className="bg-[#e9dfc8] hover:bg-[#dfd4bd] text-[#2d2617] font-semibold text-xs py-3 h-auto rounded flex flex-col gap-1 items-center justify-center border border-[#d8ccb2]"
+                                            >
+                                                <Ban className="h-4 w-4 text-[#99782b]" />
+                                                Block / unblock
+                                            </Button>
+
+                                            <Button
+                                                onClick={() => router.push(`/admin/customers/?q=${selectedUser.email || selectedUser.userId}`)}
+                                                className="bg-[#e9dfc8] hover:bg-[#dfd4bd] text-[#2d2617] font-semibold text-xs py-3 h-auto rounded flex flex-col gap-1 items-center justify-center border border-[#d8ccb2]"
+                                            >
+                                                <Mail className="h-4 w-4 text-[#99782b]" />
+                                                Open customer
+                                            </Button>
+                                        </div>
+                                    </>
+                                )}
 
                                 <div className="text-[10px] text-[#a33b2b] font-semibold text-center mt-2 flex items-center justify-center gap-1.5 bg-[#fff1f0] border border-[#fccfcf] py-1.5 rounded">
                                     <ShieldAlert className="h-3.5 w-3.5 shrink-0" />
@@ -411,11 +516,11 @@ export function UsersContent({ data }: UsersContentProps) {
                         </>
                     ) : (
                         <div className="bg-white rounded-lg border border-[#e7e1d7] p-8 text-center text-[#71685a] h-64 flex items-center justify-center">
-                            Select a customer to inspect actions and signals.
+                            {mode === "user" ? "Select an account to inspect actions and signals." : "Select a customer to inspect actions and signals."}
                         </div>
                     )}
-                </div>
-            </div>
+                </aside>
+            </section>
 
             {/* Edit Points Dialog */}
             <Dialog open={!!editingUser} onOpenChange={(open) => !open && setEditingUser(null)}>
@@ -472,6 +577,6 @@ export function UsersContent({ data }: UsersContentProps) {
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
-        </div>
+        </main>
     )
 }
