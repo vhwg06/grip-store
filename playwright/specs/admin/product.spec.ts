@@ -1,16 +1,11 @@
 import { test, expect } from "../../src/fixtures/base-test";
+import { getAdminToken as getPlaywrightAdminToken } from "../../src/api-helpers/auth.helpers";
 
 const BACKEND_URL = process.env.GO_BACKEND_URL ?? "https://grip.vn/api";
 const DEFAULT_CATEGORY_ID = "a1111111-1111-1111-1111-111111111111";
 
-async function getAdminToken(): Promise<string | null> {
-  const token = process.env.ADMIN_USER_TOKEN?.trim();
-  return token || null;
-}
-
 async function createProductViaApi(request: any, suffix: string) {
-  const token = await getAdminToken();
-  test.skip(!token, "ADMIN_USER_TOKEN is required");
+  const token = await getPlaywrightAdminToken(request);
 
   const response = await request.post(`${BACKEND_URL}/v1/admin/products`, {
     headers: { Authorization: `Bearer ${token}` },
@@ -28,8 +23,7 @@ async function createProductViaApi(request: any, suffix: string) {
 }
 
 async function createCategoryViaApi(request: any, suffix: string, position: number) {
-  const token = await getAdminToken();
-  test.skip(!token, "ADMIN_USER_TOKEN is required");
+  const token = await getPlaywrightAdminToken(request);
 
   const response = await request.post(`${BACKEND_URL}/v1/admin/categories`, {
     headers: { Authorization: `Bearer ${token}` },
@@ -78,8 +72,7 @@ test.describe("Admin Product @admin P1", () => {
     // PRIORITY: P1
     // RELATED DOMAINS: none
     // SCENARIO: SC-PROD-06 Main flow
-    const token = await getAdminToken();
-    test.skip(!token, "ADMIN_USER_TOKEN is required");
+    const token = await getPlaywrightAdminToken(request);
 
     const response = await request.get(`${BACKEND_URL}/v1/admin/products`, {
       headers: { Authorization: `Bearer ${token}` },
@@ -116,14 +109,13 @@ test.describe("Admin Product @admin P1", () => {
     await expect(page.getByRole("button", { name: "Hidden" })).toBeVisible();
   });
 
-  test("UC-PROD-02 creates a product draft from the admin create flow", async ({ page }) => {
+  test("UC-PROD-02 creates a product draft from the admin create flow", async ({ page, request }) => {
     // GOAL: Admin Creates A Product: đưa một product mới vào catalog với business meaning đầy đủ.
     // PRIORITY: P1
     // RELATED DOMAINS: review
     // SCENARIO: SC-PROD-02 Main flow
     const suffix = `${Date.now()}-${Math.floor(Math.random() * 1000)}`;
-    const token = await getAdminToken();
-    test.skip(!token, "ADMIN_USER_TOKEN is required");
+    const token = await getPlaywrightAdminToken(request);
 
     await page.goto("/admin/product/new");
     await page.waitForLoadState("networkidle");
@@ -156,8 +148,7 @@ test.describe("Admin Product @admin P1", () => {
     // SCENARIO: SC-PROD-03 Main flow
     const suffix = `${Date.now()}-${Math.floor(Math.random() * 1000)}`;
     const created = await createProductViaApi(request, suffix);
-    const token = await getAdminToken();
-    test.skip(!token, "ADMIN_USER_TOKEN is required");
+    const token = await getPlaywrightAdminToken(request);
 
     await page.goto("/admin/products");
     await page.waitForLoadState("networkidle");
@@ -192,8 +183,7 @@ test.describe("Admin Product @admin P1", () => {
     // SCENARIO: SC-PROD-04 Main flow
     const upper = await createCategoryViaApi(request, `${Date.now()}-a`, 20);
     const lower = await createCategoryViaApi(request, `${Date.now()}-b`, 30);
-    const token = await getAdminToken();
-    test.skip(!token, "ADMIN_USER_TOKEN is required");
+    const token = await getPlaywrightAdminToken(request);
 
     await page.goto("/admin/categories");
     await page.waitForLoadState("networkidle");

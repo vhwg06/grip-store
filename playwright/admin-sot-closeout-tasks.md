@@ -65,7 +65,8 @@ The test may remain a normal test when implementation is green. Add `test.fail` 
 
 ## Gate 4 - Exception And Rejection Coverage
 
-- [~] **EXC-PROD-01** Verify UC-PROD-03 proves `is_active` persists through the backend, not only local UI state.
+- [ ] **EXC-PROD-01** Verify UC-PROD-03 proves `is_active` persists through the backend, not only local UI state.
+  - Current blocker: focused Chromium rerun on 2026-06-21 still shows the product list quick-toggle leaving backend `product.is_active === true` after the FE action. Direct live probes also show `PATCH /v1/admin/products/:id/status` returns `404` and sparse or multipart patches to `/v1/admin/products/:id` do not persist `is_active=false`.
 - [ ] **EXC-PROD-02** Add/verify UC-PROD-05 graceful behavior when product-linked cards cannot be loaded.
 - [ ] **EXC-REV-01** Add UC-REV-02 rejection coverage proving a hidden review cannot be hidden again.
 - [~] **EXC-CONT-01** Verify UC-CONT-04 public non-leak and UC-CONT-06 commercial-state preservation are enforced by canonical API tests.
@@ -78,9 +79,12 @@ The test may remain a normal test when implementation is green. Add `test.fail` 
 
 ## Gate 5 - Assertion Quality
 
-- [ ] **QUAL-USER-01** Refactor UC-USER-01 away from account/system copy assertions; assert exact search narrowing and account-row semantics.
-- [ ] **QUAL-USER-02** Refactor UC-USER-05 away from explanatory copy; assert commerce actions are absent and the customer handoff is separate.
-- [ ] **QUAL-CUS-01** Strengthen UC-CUS-04 by navigating through the linked-account handoff and verifying the destination identity.
+- [x] **QUAL-USER-01** Refactor UC-USER-01 away from account/system copy assertions; assert exact search narrowing and account-row semantics.
+  - Evidence: `playwright/specs/admin/user.spec.ts` now asserts the `/admin/users` search contract via stable test IDs and exact row narrowing; focused Chromium rerun on 2026-06-21 finished green for the user/customer admin slice (`17 passed`, `1 explicit data-blocked skip`, `0 unexpected`).
+- [x] **QUAL-USER-02** Refactor UC-USER-05 away from explanatory copy; assert commerce actions are absent and the customer handoff is separate.
+  - Evidence: `playwright/specs/admin/user.spec.ts` now proves account-control separation by asserting the account panel exposes only account controls plus the explicit customer handoff while customer-history/refund/review actions are absent; verified in the same 2026-06-21 focused Chromium rerun.
+- [x] **QUAL-CUS-01** Strengthen UC-CUS-04 by navigating through the linked-account handoff and verifying the destination identity.
+  - Evidence: `playwright/specs/admin/customer.spec.ts` now clicks the linked `Account` action, verifies navigation into `/admin/users`, confirms the user search is prefilled with the linked identity, and asserts the account-control panel is shown; verified in the 2026-06-21 focused Chromium rerun.
 - [ ] **QUAL-NOTY-01** Assert backend readiness/error state directly instead of success caused by local fallback data.
 - [x] **QUAL-PAY-01** Scope UC-PAY-03 assertions to the refund decision surface so unrelated page buttons cannot create false failures.
 - [ ] **QUAL-PCOL-01** Assert source identity/state from the backend response rather than only absence of known hardcoded labels.
@@ -110,20 +114,25 @@ The test may remain a normal test when implementation is green. Add `test.fail` 
 
 ### Backend Contracts
 
-- [~] **RUN-BE-ORD** Verify order transition and refund-status contracts.
-  - Current evidence: local `go-grip` patch now restores `locked_count` from actual pending reservations before checkout stock validation; direct local verification against `http://127.0.0.1:8080` returned `201` for `POST /v1/checkout/orders` after the fix.
-- [~] **RUN-BE-CUSUSER** Verify customer/account filtering, commerce summary, points, block, and handoff identifiers.
+- [x] **RUN-BE-ORD** Verify order transition and refund-status contracts.
+  - Evidence: focused API rerun on 2026-06-21 for `playwright/specs/api/admin-order.spec.ts` and `playwright/specs/api/orders.api.spec.ts` passed cleanly (`13 passed`, `0 skipped`, `0 unexpected`, `0 flaky`), covering allowed/forbidden order transitions, purchase-history resolution, refund-status relevance, and incomplete-context order detail.
+- [x] **RUN-BE-CUSUSER** Verify customer/account filtering, commerce summary, points, block, and handoff identifiers.
+  - Evidence: focused API rerun on 2026-06-21 for `playwright/specs/api/admin-user.spec.ts` and `playwright/specs/api/admin-customer.spec.ts` passed cleanly (`12 passed`, `0 skipped`, `0 unexpected`, `0 flaky`), covering customer/account filtering, summary fields, points/block mutations, and linked-customer handoff metadata.
 - [~] **RUN-BE-REF** Verify refund detail and payment evidence.
 - [~] **RUN-BE-NOTY** Verify readiness, message list, durable outbound artifact, and history outcome fields.
 - [~] **RUN-BE-PROFILE** Verify security posture and session contracts.
 - [~] **RUN-BE-PCOL** Verify sources, validation, persistence, readiness, and warnings contracts.
 - [~] **RUN-BE-SETCONT** Verify store presence, FAQ visibility, cards, and product commercial-state preservation.
+- [~] **RUN-BE-SETCONT** Verify store presence, FAQ visibility, cards, and product commercial-state preservation.
+  - Current evidence: focused API rerun on 2026-06-21 for `playwright/specs/api/store-settings.api.spec.ts` passed cleanly (`8 passed`, `0 skipped`, `0 unexpected`, `0 flaky`), proving store-settings backend contracts for storefront identity, homepage composition, visibility, support/footer, presence controls, and registry commitments. FAQ visibility, cards, and product commercial-state persistence still require separate verification.
 
 ### Frontend Surfaces
 
 - [~] **RUN-FE-ORDPROD** Verify order detail, persisted product active state, history handoff, and category refresh.
+  - Current evidence: focused Chromium rerun on 2026-06-21 for `playwright/specs/admin/orders.spec.ts` passed cleanly (`14 passed`, `0 skipped`, `0 unexpected`) after wiring pending-refund relevance into the order signals panel and normalizing the row-to-detail handoff URL assertion. Product active-state persistence and category refresh still need their own focused verification.
 - [~] **RUN-FE-SET** Verify settings success feedback, homepage controls, discovery controls, and registry controls.
-- [~] **RUN-FE-CUSUSER** Verify separate customer/account roots, state summary, and explicit domain handoffs.
+- [x] **RUN-FE-CUSUSER** Verify separate customer/account roots, state summary, and explicit domain handoffs.
+  - Evidence: focused Chromium rerun on 2026-06-21 for `playwright/specs/admin/user.spec.ts` and `playwright/specs/admin/customer.spec.ts` passed with `17 passed`, `1 explicit data-blocked skip`, `0 unexpected`, proving distinct customer/account roots, account/customer state panels, and cross-domain handoffs in both directions.
 - [x] **RUN-FE-REF** Verify pending queue reconciliation and historical refund search.
   - Current evidence: `/admin/refunds` now fetches `status=all`, filters pending/history client-side, and hydrates the selected refund from `/v1/admin/refunds/:id`; targeted Chromium reruns proved pending-queue reconciliation and historical decision reading on the live backend.
 - [~] **RUN-FE-NOTY** Verify server-backed readiness/history and explicit backend error state.

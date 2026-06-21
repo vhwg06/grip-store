@@ -1,5 +1,6 @@
 import { test, expect } from "../../src/fixtures/base-test";
 import { GoBackendClient } from "../../src/api-helpers/go-backend.client";
+import { getAdminToken, getUserToken } from "../../src/api-helpers/auth.helpers";
 
 type AdminSettingsPayload = {
   config?: {
@@ -25,26 +26,20 @@ type AdminSettingsPayload = {
   [key: string]: unknown;
 };
 
-function adminAuth() {
-  const token = process.env.ADMIN_USER_TOKEN;
-  return token ? { Authorization: `Bearer ${token}` } : undefined;
-}
-
-function userAuth() {
-  const token = process.env.TEST_USER_TOKEN;
-  return token ? { Authorization: `Bearer ${token}` } : undefined;
-}
-
 test.describe("Store Settings API Contract @api P1 P2", () => {
   let client: GoBackendClient;
+  let adminHeaders: Record<string, string>;
+  let userHeaders: Record<string, string>;
 
   test.beforeEach(async ({ request }) => {
     client = new GoBackendClient(request);
+    adminHeaders = { Authorization: `Bearer ${await getAdminToken(request)}` };
+    userHeaders = { Authorization: `Bearer ${await getUserToken(request)}` };
   });
 
   async function getAdminSettings() {
     return client.get<AdminSettingsPayload>("/v1/admin/store-settings", {
-      headers: adminAuth(),
+      headers: adminHeaders,
     });
   }
 
@@ -61,8 +56,6 @@ test.describe("Store Settings API Contract @api P1 P2", () => {
     // PRIORITY: P1
     // RELATED DOMAINS: none
     // SCENARIO: SC-SET-01 Main flow
-    test.skip(!process.env.ADMIN_USER_TOKEN, "ADMIN_USER_TOKEN not set");
-
     const [adminResponse, siteConfigResponse, catalogSettingsResponse] = await Promise.all([
       getAdminSettings(),
       getSiteConfig(),
@@ -98,8 +91,6 @@ test.describe("Store Settings API Contract @api P1 P2", () => {
     // PRIORITY: P1
     // RELATED DOMAINS: none
     // SCENARIO: SC-SET-01 Main flow
-    test.skip(!process.env.ADMIN_USER_TOKEN, "ADMIN_USER_TOKEN not set");
-
     const brandPayload = {
       shopName: "playwright-store-identity",
       shopDescription: "playwright storefront identity contract",
@@ -113,10 +104,10 @@ test.describe("Store Settings API Contract @api P1 P2", () => {
     };
 
     const brandUpdate = await client.put("/v1/admin/store-settings/brand", brandPayload, {
-      headers: adminAuth(),
+      headers: adminHeaders,
     });
     const contactUpdate = await client.put("/v1/admin/store-settings/contact", contactPayload, {
-      headers: adminAuth(),
+      headers: adminHeaders,
     });
 
     expect(brandUpdate.status).toBe(200);
@@ -152,9 +143,8 @@ test.describe("Store Settings API Contract @api P1 P2", () => {
     const unauthenticated = await client.get("/v1/admin/store-settings");
     expect(unauthenticated.status).toBe(401);
 
-    test.skip(!process.env.TEST_USER_TOKEN, "TEST_USER_TOKEN not set");
     const nonAdmin = await client.get("/v1/admin/store-settings", {
-      headers: userAuth(),
+      headers: userHeaders,
     });
     expect(nonAdmin.status).toBe(403);
   });
@@ -164,8 +154,6 @@ test.describe("Store Settings API Contract @api P1 P2", () => {
     // PRIORITY: P1
     // RELATED DOMAINS: none
     // SCENARIO: SC-SET-02 Exception flow
-    test.skip(!process.env.ADMIN_USER_TOKEN, "ADMIN_USER_TOKEN not set");
-
     const validPayload = {
       blocks: [
         { key: "hero", enabled: true, order: 1 },
@@ -178,7 +166,7 @@ test.describe("Store Settings API Contract @api P1 P2", () => {
     const updateResponse = await client.put(
       "/v1/admin/store-settings/homepage",
       validPayload,
-      { headers: adminAuth() },
+      { headers: adminHeaders },
     );
 
     expect(updateResponse.status).toBe(200);
@@ -208,7 +196,7 @@ test.describe("Store Settings API Contract @api P1 P2", () => {
         ],
         newsCount: -1,
       },
-      { headers: adminAuth() },
+      { headers: adminHeaders },
     );
 
     expect(invalidResponse.status).toBe(400);
@@ -219,8 +207,6 @@ test.describe("Store Settings API Contract @api P1 P2", () => {
     // PRIORITY: P1
     // RELATED DOMAINS: none
     // SCENARIO: SC-SET-03 Exception flow
-    test.skip(!process.env.ADMIN_USER_TOKEN, "ADMIN_USER_TOKEN not set");
-
     const payload = {
       noIndexEnabled: true,
       wishlistEnabled: false,
@@ -232,7 +218,7 @@ test.describe("Store Settings API Contract @api P1 P2", () => {
     const updateResponse = await client.put(
       "/v1/admin/store-settings/visibility",
       payload,
-      { headers: adminAuth() },
+      { headers: adminHeaders },
     );
 
     expect(updateResponse.status).toBe(200);
@@ -264,7 +250,7 @@ test.describe("Store Settings API Contract @api P1 P2", () => {
         checkinReward: -1,
         refundReclaimCards: false,
       },
-      { headers: adminAuth() },
+      { headers: adminHeaders },
     );
 
     expect(invalidResponse.status).toBe(400);
@@ -275,8 +261,6 @@ test.describe("Store Settings API Contract @api P1 P2", () => {
     // PRIORITY: P1
     // RELATED DOMAINS: none
     // SCENARIO: SC-SET-04 Main flow
-    test.skip(!process.env.ADMIN_USER_TOKEN, "ADMIN_USER_TOKEN not set");
-
     const footerPayload = {
       columns: [
         {
@@ -302,12 +286,12 @@ test.describe("Store Settings API Contract @api P1 P2", () => {
     const footerUpdate = await client.put(
       "/v1/admin/store-settings/footer",
       footerPayload,
-      { headers: adminAuth() },
+      { headers: adminHeaders },
     );
     const supportUpdate = await client.put(
       "/v1/admin/store-settings/floating-support",
       supportPayload,
-      { headers: adminAuth() },
+      { headers: adminHeaders },
     );
 
     expect(footerUpdate.status).toBe(200);
@@ -341,7 +325,7 @@ test.describe("Store Settings API Contract @api P1 P2", () => {
           { key: "scroll_to_top", enabled: true, target: "unexpected" },
         ],
       },
-      { headers: adminAuth() },
+      { headers: adminHeaders },
     );
 
     expect(malformedSupport.status).toBe(400);
@@ -352,8 +336,6 @@ test.describe("Store Settings API Contract @api P1 P2", () => {
     // PRIORITY: P2
     // RELATED DOMAINS: none
     // SCENARIO: SC-SET-05 Main flow
-    test.skip(!process.env.ADMIN_USER_TOKEN, "ADMIN_USER_TOKEN not set");
-
     const response = await getAdminSettings();
 
     expect(response.status).toBe(200);
@@ -370,8 +352,6 @@ test.describe("Store Settings API Contract @api P1 P2", () => {
     // PRIORITY: P2
     // RELATED DOMAINS: none
     // SCENARIO: SC-SET-06 Main flow
-    test.skip(!process.env.ADMIN_USER_TOKEN, "ADMIN_USER_TOKEN not set");
-
     const payload = {
       enabled: true,
       joined: true,
@@ -381,7 +361,7 @@ test.describe("Store Settings API Contract @api P1 P2", () => {
     const updateResponse = await client.put(
       "/v1/admin/store-settings/registry",
       payload,
-      { headers: adminAuth() },
+      { headers: adminHeaders },
     );
 
     expect(updateResponse.status).toBe(200);

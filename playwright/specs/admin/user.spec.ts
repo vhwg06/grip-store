@@ -4,6 +4,7 @@ import { BACKEND_URL, getAdminToken } from "../../src/api-helpers/auth.helpers";
 const TEST_USER_ID = "22222222-2222-2222-2222-222222222222";
 
 test.describe("Admin User @admin P2", () => {
+  test.describe.configure({ mode: "serial" });
   test.use({
     storageState: "./playwright/src/fixtures/.auth/admin.json",
   });
@@ -13,11 +14,11 @@ test.describe("Admin User @admin P2", () => {
     await page.waitForLoadState("networkidle");
   });
 
-  function buyerRow(page: any) {
+  function userRow(page: any, username: string) {
     return page
-      .locator("div")
+      .locator('[data-testid="user-row"]')
       .filter({
-        has: page.getByRole("link", { name: "test_buyer" }),
+        has: page.getByRole("link", { name: username }),
       })
       .first();
   }
@@ -50,6 +51,23 @@ test.describe("Admin User @admin P2", () => {
     });
   }
 
+  async function expectBuyerState(
+    request: any,
+    expected: Partial<{ points: number; isBlocked: boolean }>,
+  ) {
+    await expect
+      .poll(async () => {
+        const current = await readBuyerState(request);
+        return JSON.stringify(current);
+      })
+      .toBe(
+        JSON.stringify({
+          points: expected.points,
+          isBlocked: expected.isBlocked,
+        }),
+      );
+  }
+
   test("UC-USER-01 presents an account-centric management root", async ({ page }) => {
     // GOAL: Admin Finds An Account: xác định account nào cần được kiểm tra hoặc quản trị.
     // PRIORITY: P2
@@ -57,11 +75,9 @@ test.describe("Admin User @admin P2", () => {
     // SCENARIO: SC-USER-01 Main flow
     // INVARIANT: user management root là account/system domain — không phải commerce/customer domain
     // INVARIANT: search phải filter theo account identity, không trả loyalty/order rows
-    await expect(page.getByRole("heading", { name: "User Management" })).toBeVisible();
-    await expect(page.getByText(/account\/system/i)).toBeVisible();
-    const search = page.getByPlaceholder("Search account email, username, or user ID...");
+    await expect(page.getByTestId("user-management-title")).toBeVisible();
+    const search = page.getByTestId("user-search-input");
     await expect(search).toBeVisible();
-    await expect(page.getByText(/loyalty or order behavior/i)).toBeHidden();
 
     const responsePromise = page.waitForResponse(
       (response: any) => response.url().includes("/v1/admin/users") && response.status() === 200,
@@ -69,7 +85,10 @@ test.describe("Admin User @admin P2", () => {
     await search.fill("test_admin");
     await search.press("Enter");
     await responsePromise;
-    await expect(page.locator('[data-testid="user-row"]')).toHaveCount(1);
+    const rows = page.locator('[data-testid="user-row"]');
+    await expect(rows).toHaveCount(1);
+    await expect(userRow(page, "test_admin")).toBeVisible();
+    await expect(userRow(page, "test_buyer")).toHaveCount(0);
   });
 
   test("UC-USER-02 reads account state without switching into customer-domain actions", async ({ page }) => {
@@ -77,14 +96,15 @@ test.describe("Admin User @admin P2", () => {
     // PRIORITY: P2
     // RELATED DOMAINS: none
     // SCENARIO: SC-USER-02 Main flow
-    await buyerRow(page).click();
+    await userRow(page, "test_buyer").click();
 
-    await expect(page.getByText("Account Actions")).toBeVisible();
-    await expect(page.getByText("test_buyer@example.com")).toBeVisible();
-    await expect(page.getByText(/last activity/i)).toBeVisible();
-    await expect(page.getByText(/blocked state/i)).toBeVisible();
-    await expect(page.getByText("Points:", { exact: true })).toBeVisible();
-    await expect(page.getByRole("button", { name: "Open history" })).toBeHidden();
+    const panel = page.getByTestId("account-actions-panel");
+    await expect(panel).toBeVisible();
+    await expect(panel.getByTestId("summary-email")).toHaveText("test_buyer@example.com");
+    await expect(panel.getByTestId("summary-last-activity")).not.toHaveText("");
+    await expect(panel.getByTestId("summary-blocked-state")).toHaveText(/Blocked|Active/);
+    await expect(panel.getByTestId("summary-points")).toContainText("pts");
+    await expect(panel.getByRole("button", { name: "Open history" })).toHaveCount(0);
   });
 
   test("UC-USER-03 keeps points and block mutations in explicit account-control semantics", async ({ page }) => {
@@ -93,12 +113,13 @@ test.describe("Admin User @admin P2", () => {
     // RELATED DOMAINS: none
     // SCENARIO: SC-USER-03 Main flow
     // INVARIANT: points và block mutations là explicit account-control operations, không phải marketing preferences hay UI configuration đơn thuần
-    await buyerRow(page).click();
+    await userRow(page, "test_buyer").click();
 
-    await expect(page.getByText("Account Actions")).toBeVisible();
-    await expect(page.getByText(/customer profile/i)).toBeHidden();
-    await expect(page.getByRole("button", { name: "Adjust points" })).toBeVisible();
-    await expect(page.getByRole("button", { name: "Block / unblock" })).toBeVisible();
+    const panel = page.getByTestId("account-actions-panel");
+    await expect(panel).toBeVisible();
+    await expect(panel.getByTestId("account-adjust-points")).toBeVisible();
+    await expect(panel.getByTestId("account-block-toggle")).toBeVisible();
+    await expect(panel.getByRole("button", { name: "Open history" })).toHaveCount(0);
   });
 
   test("UC-USER-03 submits points adjustment (blocked-be-gap)", async ({ page, request }) => {
@@ -110,13 +131,16 @@ test.describe("Admin User @admin P2", () => {
     const original = await readBuyerState(request);
 
     try {
-      await buyerRow(page).click();
+      await userRow(page, "test_buyer").click();
       await page.getByRole("button", { name: "Adjust points" }).click();
       
       await page.locator("#new-points").fill(String(original.points + 100));
       await page.getByRole("button", { name: "Save" }).click();
 
-      await expect(page.locator(".toast-success, [role='status']").first()).toBeVisible();
+      await expectBuyerState(request, {
+        points: original.points + 100,
+        isBlocked: original.isBlocked,
+      });
     } finally {
       await restoreBuyerState(request, original);
     }
@@ -132,10 +156,13 @@ test.describe("Admin User @admin P2", () => {
     page.on("dialog", dialog => dialog.accept());
 
     try {
-      await buyerRow(page).click();
+      await userRow(page, "test_buyer").click();
       await page.getByRole("button", { name: "Block / unblock" }).click();
 
-      await expect(page.locator(".toast-success, [role='status']").first()).toBeVisible();
+      await expectBuyerState(request, {
+        points: original.points,
+        isBlocked: !original.isBlocked,
+      });
     } finally {
       await restoreBuyerState(request, original);
     }
@@ -146,10 +173,10 @@ test.describe("Admin User @admin P2", () => {
     // PRIORITY: P2
     // RELATED DOMAINS: customer
     // SCENARIO: SC-USER-04 Main flow
-    await buyerRow(page).click();
+    await userRow(page, "test_buyer").click();
 
-    await expect(page.getByRole("button", { name: /open customer/i })).toBeVisible();
-    await page.getByRole("button", { name: /open customer/i }).click();
+    await expect(page.getByTestId("account-open-customer")).toBeVisible();
+    await page.getByTestId("account-open-customer").click();
 
     await expect(page).toHaveURL(/\/admin\/customers\//);
   });
@@ -161,12 +188,16 @@ test.describe("Admin User @admin P2", () => {
     // SCENARIO: SC-USER-05 Main flow
     // INVARIANT: commerce support và account-control là hai surfaces riêng biệt
     // INVARIANT: user root không được mix "Open history" hoặc loyalty behavior vào account-control semantics
-    await buyerRow(page).click();
+    await userRow(page, "test_buyer").click();
 
-    await expect(page.getByText(/account control/i)).toBeVisible();
-    await expect(page.getByRole("button", { name: "Open history" })).toBeHidden();
-    await expect(page.getByRole("button", { name: "Send message" })).toBeHidden();
-    await expect(page.getByText(/loyalty or order behavior/i)).toBeHidden();
+    const panel = page.getByTestId("account-actions-panel");
+    await expect(panel).toBeVisible();
+    await expect(panel.getByTestId("account-adjust-points")).toBeVisible();
+    await expect(panel.getByTestId("account-block-toggle")).toBeVisible();
+    await expect(panel.getByTestId("account-open-customer")).toBeVisible();
+    await expect(panel.getByRole("button", { name: "Open history" })).toHaveCount(0);
+    await expect(panel.getByRole("button", { name: "Open refunds" })).toHaveCount(0);
+    await expect(panel.getByRole("button", { name: "Open reviews" })).toHaveCount(0);
   });
 
   test("UC-USER-01 alternate: admin refines search multiple times before reaching the correct account", async ({ page }) => {
@@ -174,7 +205,7 @@ test.describe("Admin User @admin P2", () => {
     // PRIORITY: P2
     // RELATED DOMAINS: none
     // SCENARIO: SC-USER-01 Alternate flow
-    const search = page.getByPlaceholder("Search account email, username, or user ID...");
+    const search = page.getByTestId("user-search-input");
     await expect(search).toBeVisible();
 
     const responsePromise1 = page.waitForResponse(
@@ -193,6 +224,6 @@ test.describe("Admin User @admin P2", () => {
     await search.press("Enter");
     await responsePromise2;
 
-    await expect(buyerRow(page)).toBeVisible();
+    await expect(userRow(page, "test_buyer")).toBeVisible();
   });
 });

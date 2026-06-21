@@ -10,7 +10,7 @@ import { ClientDate } from "@/components/client-date"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { deleteOrders, updateAdminOrderStatus } from "@/adapters/api/admin.api"
+import { deleteOrders, updateAdminOrderStatus, verifyOrderRefundStatus } from "@/adapters/api/admin.api"
 import { useAdminOrders } from "@/application/hooks/useAdmin"
 import { toast } from "sonner"
 import { getDisplayUsername, getExternalProfileUrl } from "@/lib/user-profile-link"
@@ -79,6 +79,7 @@ export function AdminOrdersContent({
     const [activeOrderId, setActiveOrderId] = useState<string | null>(null)
     const [updateNote, setUpdateNote] = useState("")
     const [actionLoading, setActionLoading] = useState(false)
+    const [hasPendingRefund, setHasPendingRefund] = useState(false)
     const actionLock = useRef(false)
 
     // Fetch dynamic counts for pending, paid, and delivered orders from real database state
@@ -106,6 +107,31 @@ export function AdminOrdersContent({
     useEffect(() => {
         setSelected({})
     }, [orders, page, status, query])
+
+    useEffect(() => {
+        let cancelled = false
+
+        if (!activeOrder?.orderId) {
+            setHasPendingRefund(false)
+            return () => {
+                cancelled = true
+            }
+        }
+
+        verifyOrderRefundStatus(activeOrder.orderId)
+            .then((payload) => {
+                if (cancelled) return
+                setHasPendingRefund(Boolean(payload?.hasPendingRefund))
+            })
+            .catch(() => {
+                if (cancelled) return
+                setHasPendingRefund(false)
+            })
+
+        return () => {
+            cancelled = true
+        }
+    }, [activeOrder?.orderId])
 
     const renderStatusBadge = (status: string | null) => {
         const text = getStatusText(status)
@@ -617,7 +643,7 @@ export function AdminOrdersContent({
                                     {/* Signal 1: Refund requested */}
                                     <div className="flex items-center justify-between py-1.5 border-b border-[#e7e1d7]/60">
                                         <span className="text-xs font-medium text-[#71685a]">Refund requested</span>
-                                        {activeOrder.status === 'refunded' ? (
+                                        {hasPendingRefund || activeOrder.status === 'refunded' ? (
                                             <Badge className="bg-amber-500 hover:bg-amber-500 text-white font-bold text-[9px] px-2 py-0.5 rounded">
                                                 Requested
                                             </Badge>

@@ -60,7 +60,7 @@ test.describe("Admin Orders @admin P1 P2", () => {
     await expect(deliveredRow.getByRole("button", { name: "Mark delivered" })).toBeDisabled();
 
     await deliveredRow.getByRole("link", { name: "Open detail" }).click();
-    await expect(page).toHaveURL(/\/admin\/orders\/test-order-0001$/);
+    await expect(page).toHaveURL(/\/admin\/orders\/test-order-0001\/?$/);
     await expect(page.locator('[data-testid="order-detail"]')).toBeVisible();
   });
 

@@ -8,6 +8,7 @@ import type {
   AdminMessagesPayload,
   AdminNotificationsSettings,
   AdminProductsPayload,
+  AdminCard,
   AdminTargetType,
   AnnouncementConfig,
   AdminProduct,
@@ -304,6 +305,24 @@ export async function getAdminCategories(): Promise<AdminCategory[]> {
   }))
 }
 
+export async function getAdminCards(): Promise<AdminCard[]> {
+  const payload = await apiFetch<any>("/api/admin/cards")
+  const raw = payload?.data || payload
+  const list = Array.isArray(raw) ? raw : raw.cards ?? []
+
+  return list.map((item: any) => ({
+    id: Number(item?.id ?? 0),
+    productId: String(item?.product_id ?? item?.productId ?? ""),
+    cardKey: String(item?.card_key ?? item?.cardKey ?? ""),
+    isUsed: Boolean(item?.is_used ?? item?.isUsed),
+    reservedOrderId: item?.reserved_order_id ?? item?.reservedOrderId ?? null,
+    reservedAt: item?.reserved_at ?? item?.reservedAt ?? null,
+    expiresAt: item?.expires_at ?? item?.expiresAt ?? null,
+    usedAt: item?.used_at ?? item?.usedAt ?? null,
+    createdAt: item?.created_at ?? item?.createdAt ?? null,
+  }))
+}
+
 
 export async function getAdminUsers(params: { page?: number; q?: string; pageSize?: number; role?: string }) {
   const payload = await apiFetch<unknown>(`/api/admin/users${qs(params)}`)
@@ -504,7 +523,7 @@ export async function deleteProduct(id: string) {
 }
 
 export async function toggleProductStatus(id: string, isActive: boolean) {
-  return patchJson(`/api/admin/products/${encodeURIComponent(id)}`, { isActive })
+  return patchJson(`/api/admin/products/${encodeURIComponent(id)}/status`, { isActive })
 }
 
 export async function reorderProduct(id: string, newOrder: number) {

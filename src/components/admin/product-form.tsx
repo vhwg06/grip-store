@@ -164,16 +164,33 @@ export default function ProductForm({ product, categories = [], isCreate = false
                 <h1 className="text-[32px] font-bold tracking-tight text-[#211e18] font-svn-gilroy">
                     {isCreate ? "Product Create" : "Product Editor"}
                 </h1>
-                <Button
-                    type="submit"
-                    form="product-general-form"
-                    disabled={generalSaving}
-                    className="w-[153px] h-10 bg-[#99782b] hover:bg-[#99782b]/90 text-white rounded-lg text-sm font-semibold border-none"
-                >
-                    {generalSaving
-                        ? "Saving..."
-                        : isCreate ? "Create draft" : "Save product"}
-                </Button>
+                <div className="flex items-center gap-3">
+                    {!isCreate && currentProduct?.id && (
+                        <Button
+                            asChild
+                            type="button"
+                            variant="outline"
+                            className="h-10 border-[#d8cfbf] bg-white text-[#50483d] hover:bg-[#f8f5ef] rounded-lg text-sm font-semibold"
+                        >
+                            <Link
+                                data-testid="product-linked-cards-btn"
+                                href={`/admin/cards?productId=${encodeURIComponent(String(currentProduct.id))}&productName=${encodeURIComponent(String(currentProduct.name || ""))}&productSku=${encodeURIComponent(String(currentProduct.sku || ""))}`}
+                            >
+                                Linked cards
+                            </Link>
+                        </Button>
+                    )}
+                    <Button
+                        type="submit"
+                        form="product-general-form"
+                        disabled={generalSaving}
+                        className="w-[153px] h-10 bg-[#99782b] hover:bg-[#99782b]/90 text-white rounded-lg text-sm font-semibold border-none"
+                    >
+                        {generalSaving
+                            ? "Saving..."
+                            : isCreate ? "Create draft" : "Save product"}
+                    </Button>
+                </div>
             </div>
 
             {/* Subtitle */}

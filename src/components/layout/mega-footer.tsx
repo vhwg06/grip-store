@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useSiteConfig } from "@/application/hooks/useSiteConfig";
 import { useLeads } from "@/application/hooks/useLeads";
+import type { FooterColumn } from "@/domain/site-config";
 import { toast } from "sonner";
 import { Phone, MessageSquare, Facebook, Mail, MapPin, Youtube, Instagram, Send } from "lucide-react";
 
@@ -158,7 +159,7 @@ export function MegaFooter() {
 
             {/* Dynamic and Fallback Columns */}
             {config?.footerColumns && config.footerColumns.length > 0 ? (
-              config.footerColumns.map((col) => (
+              config.footerColumns.map((col: FooterColumn) => (
                 <div key={col.id} className="space-y-4">
                   <h4 className="text-white font-bold text-[15px] uppercase tracking-wider font-svn-gilroy border-b border-[#9c702a]/30 pb-2">
                     {col.title}

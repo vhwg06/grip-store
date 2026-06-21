@@ -30,9 +30,39 @@ test.describe("Admin Customer @admin P1", () => {
     const responsePromise = page.waitForResponse(
       (response: any) => response.url().includes("/v1/admin/users") && response.status() === 200,
     );
-    await page.getByPlaceholder("Search email, phone, user ID...").fill(query);
+    await page.getByTestId("customer-search-input").fill(query);
     await page.getByRole("button", { name: "Search" }).click();
     await responsePromise;
+  }
+
+  async function findCustomerWithOrdersButNoRefunds(request: any) {
+    const token = await getAdminToken(request);
+    const response = await request.get(`${BACKEND_URL}/v1/admin/users?page=1&pageSize=100`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    expect(response.ok()).toBeTruthy();
+    const payload = await response.json();
+    const users = Array.isArray(payload?.data) ? payload.data : [];
+    const candidate = users.find(
+      (item: any) =>
+        Number(item.orderCount ?? item.order_count ?? 0) > 0 &&
+        Number(item.refundCount ?? item.refund_count ?? 0) === 0 &&
+        !Boolean(item.is_admin ?? item.isAdmin ?? item.role === "Administrator"),
+    );
+    if (!candidate) return null;
+    return {
+      query: candidate.email ?? candidate.username ?? candidate.id ?? candidate.user_id,
+      username: candidate.username,
+    };
+  }
+
+  function customerRow(page: any, username: string) {
+    return page
+      .locator('[data-testid="user-row"]')
+      .filter({
+        has: page.getByRole("link", { name: username }),
+      })
+      .first();
   }
 
   test("UC-CUS-01 finds a customer record from customer-centric search", async ({ page }) => {
@@ -58,16 +88,15 @@ test.describe("Admin Customer @admin P1", () => {
     // RELATED DOMAINS: order
     // SCENARIO: SC-CUS-02 Main flow
     await searchForUser(page, "test_buyer");
-    await page.getByText("test_buyer", { exact: false }).first().click();
+    await customerRow(page, "test_buyer").click();
 
-    await expect(page.getByText("Customer Actions")).toBeVisible();
-    await expect(page.getByText("test_buyer@example.com")).toBeVisible();
-    await expect(page.locator('[data-testid="customer-summary-order-count"]')).toBeVisible();
-    await expect(page.locator('[data-testid="customer-summary-customer-id"]')).toBeVisible();
-    const detailPanel = page.locator("div").filter({ hasText: "Customer Actions" }).last();
-    await expect(detailPanel.getByText(/order/i).first()).toBeVisible();
-    await expect(detailPanel.getByText(/refund/i).first()).toBeVisible();
-    await expect(detailPanel.getByText(/review/i).first()).toBeVisible();
+    const panel = page.getByTestId("customer-actions-panel");
+    await expect(panel).toBeVisible();
+    await expect(panel.getByTestId("summary-email")).toHaveText("test_buyer@example.com");
+    await expect(panel.getByTestId("customer-summary-order-count")).toContainText(/\d+/);
+    await expect(panel.getByTestId("customer-summary-refund-count")).toContainText(/\d+/);
+    await expect(panel.getByTestId("customer-summary-review-count")).toContainText(/\d+/);
+    await expect(panel.getByTestId("customer-summary-customer-id")).not.toHaveText("");
   });
 
   test("UC-CUS-03 traverses commerce links from the customer root", async ({ page }) => {
@@ -76,7 +105,7 @@ test.describe("Admin Customer @admin P1", () => {
     // RELATED DOMAINS: order
     // SCENARIO: SC-CUS-03 Main flow
     await searchForUser(page, "test_buyer");
-    await page.getByText("test_buyer", { exact: false }).first().click();
+    await customerRow(page, "test_buyer").click();
 
     await expect(page.getByRole("button", { name: "Open history" })).toBeVisible();
     await expect(page.getByRole("button", { name: /refund/i })).toBeVisible();
@@ -91,10 +120,21 @@ test.describe("Admin Customer @admin P1", () => {
     // INVARIANT: customer và user có thể liên kết nhưng không đồng nhất
     // INVARIANT: commerce history bám theo customer, không bám theo user management view
     await searchForUser(page, "test_buyer");
-    await page.getByText("test_buyer", { exact: false }).first().click();
+    await customerRow(page, "test_buyer").click();
 
-    await expect(page.getByText(/linked user/i)).toBeVisible();
-    await expect(page.getByRole("button", { name: /account/i })).toBeVisible();
+    const panel = page.getByTestId("customer-actions-panel");
+    await expect(panel).toBeVisible();
+    await expect(panel.getByRole("button", { name: /^Account$/ })).toBeVisible();
+    await panel.getByRole("button", { name: /^Account$/ }).click();
+
+    await expect(page).toHaveURL(/\/admin\/users/);
+    await expect(page.getByTestId("user-management-title")).toBeVisible();
+    await expect(page.getByTestId("user-search-input")).toHaveValue("test_buyer");
+    await expect(page.getByTestId("account-actions-panel")).toBeVisible();
+    await expect(page.getByTestId("account-open-customer")).toBeVisible();
+    await expect(page.getByRole("button", { name: "Open history" })).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "Open refunds" })).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "Open reviews" })).toHaveCount(0);
   });
 
   test("UC-CUS-05 treats empty commerce history as a valid customer state", async ({ page, request }) => {
@@ -122,7 +162,7 @@ test.describe("Admin Customer @admin P1", () => {
     const responsePromise = page.waitForResponse(
       (response: any) => response.url().includes("/v1/admin/users") && response.status() === 200,
     );
-    await page.getByPlaceholder("Search email, phone, user ID...").fill("nonexistent-customer-12345xyz");
+    await page.getByTestId("customer-search-input").fill("nonexistent-customer-12345xyz");
     await page.getByRole("button", { name: "Search" }).click();
     await responsePromise;
 
@@ -145,19 +185,22 @@ test.describe("Admin Customer @admin P1", () => {
     await expect(page.getByText("test_admin", { exact: false }).first()).toBeHidden();
   });
 
-  test("UC-CUS-02 alternate: customer with orders but no refunds shows correct commerce indicator set", async ({ page }) => {
+  test("UC-CUS-02 alternate: customer with orders but no refunds shows correct commerce indicator set", async ({ page, request }) => {
     // GOAL: Admin Reads Customer Profile Summary: hiểu customer này là ai trong bối cảnh commerce của hệ thống.
     // PRIORITY: P1
     // RELATED DOMAINS: order
     // SCENARIO: SC-CUS-02 Alternate flow
-    await expect(page.getByRole("heading", { name: "Customer Management" })).toBeVisible();
+    await expect(page.getByTestId("customer-management-title")).toBeVisible();
 
-    await searchForUser(page, "test_buyer");
-    const buyerRow = page.getByText("test_buyer", { exact: false }).first();
-    await buyerRow.click();
+    const candidate = await findCustomerWithOrdersButNoRefunds(request);
+    test.skip(
+      !candidate,
+      "data-blocked: no seeded customer currently exposes orderCount > 0 with refundCount = 0 in /v1/admin/users",
+    );
+    await searchForUser(page, candidate.query);
+    await customerRow(page, candidate.username).click();
 
-    await expect(page.locator('[data-testid="customer-summary-order-count"]')).toBeVisible();
+    await expect(page.locator('[data-testid="customer-summary-order-count"]')).toContainText(/[1-9]\d*/);
     await expect(page.locator('[data-testid="customer-summary-refund-count"]')).toContainText(/^0$/);
   });
 });
-

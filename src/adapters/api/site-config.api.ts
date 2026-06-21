@@ -1,7 +1,7 @@
 import { apiFetch } from "@/adapters/api/http-client";
 import { SiteConfig } from "@/domain/site-config";
 
-export async function getSiteConfig() {
+export async function getSiteConfig(): Promise<SiteConfig> {
   const payload = await apiFetch<any>("/api/site-config");
   const raw = payload?.data !== undefined ? payload.data : payload;
 

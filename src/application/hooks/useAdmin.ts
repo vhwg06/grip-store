@@ -3,6 +3,7 @@
 import useSWR, { type SWRConfiguration } from "swr"
 import {
   getAdminCategories,
+  getAdminCards,
   getAdminCollect,
   getAdminDashboard,
   getAdminData,
@@ -29,6 +30,7 @@ import type { AdminArticle } from "@/domain/admin"
 export const useAdminDashboard = () => useSWR("admin-dashboard", getAdminDashboard)
 export const useAdminProducts = () => useSWR("admin-products", getAdminProducts)
 export const useAdminCategories = () => useSWR("admin-categories", getAdminCategories)
+export const useAdminCards = () => useSWR("admin-cards", getAdminCards)
 export const useAdminProductForm = (id?: string) => useSWR(["admin-product-form", id ?? "new"], () => getAdminProductForm(id))
 export const useAdminUsers = (params: { page?: number; q?: string; pageSize?: number; role?: string }) => useSWR(["admin-users", params], () => getAdminUsers(params))
 export const useAdminOrders = (params: { page?: number; pageSize?: number; q?: string; status?: string }) => useSWR(["admin-orders", params], () => getAdminOrders(params))

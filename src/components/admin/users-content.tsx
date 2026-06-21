@@ -172,7 +172,10 @@ export function UsersContent({ data, mode = "customer" }: UsersContentProps) {
                     <div className="text-sm font-medium text-[#786f61] mb-1">
                         {mode === "user" ? "Admin / Account / Users" : "Admin / Commerce / Users"}
                     </div>
-                    <h1 className="text-3xl font-bold tracking-tight text-[#211e18]">
+                    <h1
+                        data-testid={mode === "user" ? "user-management-title" : "customer-management-title"}
+                        className="text-3xl font-bold tracking-tight text-[#211e18]"
+                    >
                         {mode === "user" ? "User Management" : "Customer Management"}
                     </h1>
                     <p className="text-sm text-[#71685a] mt-1">
@@ -224,6 +227,7 @@ export function UsersContent({ data, mode = "customer" }: UsersContentProps) {
                         <div className="relative flex-1">
                           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-[#71685a]" />
                           <Input
+                            data-testid={mode === "user" ? "user-search-input" : "customer-search-input"}
                             placeholder={mode === "user" ? "Search account email, username, or user ID..." : "Search email, phone, user ID..."}
                             className="pl-9 bg-[#fbfaf7] border-[#e7e1d7] focus-visible:ring-[#99782b]"
                             value={searchTerm}
@@ -258,6 +262,7 @@ export function UsersContent({ data, mode = "customer" }: UsersContentProps) {
                                     <div
                                         key={user.userId}
                                         data-testid="user-row"
+                                        data-user-id={user.userId}
                                         onClick={() => setSelectedUser(user)}
                                         className={`rounded-lg p-4 border transition-all cursor-pointer flex items-center justify-between gap-4 ${
                                             isSelected 
@@ -345,7 +350,10 @@ export function UsersContent({ data, mode = "customer" }: UsersContentProps) {
                     {selectedUser ? (
                         <>
                             {/* Actions panel */}
-                            <div className="bg-white rounded-lg border border-[#e7e1d7] p-6 space-y-4 shadow-sm">
+                            <div
+                                data-testid={mode === "user" ? "account-actions-panel" : "customer-actions-panel"}
+                                className="bg-white rounded-lg border border-[#e7e1d7] p-6 space-y-4 shadow-sm"
+                            >
                                 <div className="border-b border-[#e7e1d7] pb-3">
                                     <h2 className="text-sm font-bold text-[#211e18] uppercase tracking-wider">
                                         {mode === "user" ? "Account Actions" : "Customer Actions"}
@@ -360,7 +368,7 @@ export function UsersContent({ data, mode = "customer" }: UsersContentProps) {
                                         <div className="space-y-2 text-xs border-b border-[#e7e1d7] pb-4">
                                             <div className="flex justify-between">
                                                 <span className="text-[#71685a]">Email:</span>
-                                                <span className="font-medium text-[#211e18]">{selectedUser.email || `${selectedUser.username}@example.com`}</span>
+                                                <span data-testid="summary-email" className="font-medium text-[#211e18]">{selectedUser.email || `${selectedUser.username}@example.com`}</span>
                                             </div>
                                             <div className="flex justify-between">
                                                 <span className="text-[#71685a]">Customer ID:</span>
@@ -447,24 +455,25 @@ export function UsersContent({ data, mode = "customer" }: UsersContentProps) {
                                         <div className="space-y-2 text-xs border-b border-[#e7e1d7] pb-4">
                                             <div className="flex justify-between">
                                                 <span className="text-[#71685a]">Email:</span>
-                                                <span className="font-medium text-[#211e18]">{selectedUser.email || `${selectedUser.username}@example.com`}</span>
+                                                <span data-testid="summary-email" className="font-medium text-[#211e18]">{selectedUser.email || `${selectedUser.username}@example.com`}</span>
                                             </div>
                                             <div className="flex justify-between">
                                                 <span className="text-[#71685a]">Last Activity:</span>
-                                                <span className="font-medium text-[#211e18]">{selectedUser.lastLoginAt ? String(selectedUser.lastLoginAt) : "Never"}</span>
+                                                <span data-testid="summary-last-activity" className="font-medium text-[#211e18]">{selectedUser.lastLoginAt ? String(selectedUser.lastLoginAt) : "Never"}</span>
                                             </div>
                                             <div className="flex justify-between">
                                                 <span className="text-[#71685a]">Blocked State:</span>
-                                                <span className="font-medium text-[#211e18]">{selectedUser.isBlocked ? "Blocked" : "Active"}</span>
+                                                <span data-testid="summary-blocked-state" className="font-medium text-[#211e18]">{selectedUser.isBlocked ? "Blocked" : "Active"}</span>
                                             </div>
                                             <div className="flex justify-between">
                                                 <span className="text-[#71685a]">Points:</span>
-                                                <span className="font-medium text-[#211e18]">{selectedUser.points.toLocaleString()} pts</span>
+                                                <span data-testid="summary-points" className="font-medium text-[#211e18]">{selectedUser.points.toLocaleString()} pts</span>
                                             </div>
                                         </div>
 
                                         <div className="grid grid-cols-2 gap-3">
                                             <Button
+                                                data-testid="account-adjust-points"
                                                 onClick={() => openEditPoints(selectedUser)}
                                                 className="bg-[#e9dfc8] hover:bg-[#dfd4bd] text-[#2d2617] font-semibold text-xs py-3 h-auto rounded flex flex-col gap-1 items-center justify-center border border-[#d8ccb2]"
                                             >
@@ -473,6 +482,7 @@ export function UsersContent({ data, mode = "customer" }: UsersContentProps) {
                                             </Button>
 
                                             <Button
+                                                data-testid="account-block-toggle"
                                                 onClick={() => handleToggleBlock(selectedUser)}
                                                 disabled={blockingId === selectedUser.userId}
                                                 className="bg-[#e9dfc8] hover:bg-[#dfd4bd] text-[#2d2617] font-semibold text-xs py-3 h-auto rounded flex flex-col gap-1 items-center justify-center border border-[#d8ccb2]"
@@ -482,6 +492,7 @@ export function UsersContent({ data, mode = "customer" }: UsersContentProps) {
                                             </Button>
 
                                             <Button
+                                                data-testid="account-open-customer"
                                                 onClick={() => router.push(`/admin/customers/?q=${selectedUser.email || selectedUser.userId}`)}
                                                 className="bg-[#e9dfc8] hover:bg-[#dfd4bd] text-[#2d2617] font-semibold text-xs py-3 h-auto rounded flex flex-col gap-1 items-center justify-center border border-[#d8ccb2]"
                                             >
