@@ -24,7 +24,6 @@ test.describe("Admin Payment @admin P1 P3", () => {
     // PRIORITY: P3
     // RELATED DOMAINS: refund
     // SCENARIO: SC-PAY-02 Main flow
-    test.fail(true, "blocked-fe-gap: refund decision panel omits trade/payment context");
     await page.goto("/admin/refunds");
     await page.waitForLoadState("networkidle");
 
@@ -38,12 +37,12 @@ test.describe("Admin Payment @admin P1 P3", () => {
     // PRIORITY: P3
     // RELATED DOMAINS: none
     // SCENARIO: SC-PAY-03 Main flow
-    test.fail(true, "blocked-fe-gap: refund decision panel exposes payment execution controls");
     await page.goto("/admin/refunds");
     await page.waitForLoadState("networkidle");
 
-    await expect(page.getByRole("button", { name: "Refund" })).toHaveCount(0);
-    await expect(page.getByRole("button", { name: "Mark Refunded" })).toHaveCount(0);
-    await expect(page.getByRole("button", { name: "Check Status" })).toHaveCount(0);
+    const decisionPanel = page.locator('[data-testid="refunds-decision-panel"]');
+    await expect(decisionPanel.getByRole("button", { name: /^Refund$/i })).toHaveCount(0);
+    await expect(decisionPanel.getByRole("button", { name: /Mark Refunded/i })).toHaveCount(0);
+    await expect(decisionPanel.getByRole("button", { name: /Check Status/i })).toHaveCount(0);
   });
 });

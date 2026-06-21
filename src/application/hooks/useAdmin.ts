@@ -1,6 +1,6 @@
 "use client"
 
-import useSWR from "swr"
+import useSWR, { type SWRConfiguration } from "swr"
 import {
   getAdminCategories,
   getAdminCollect,
@@ -33,7 +33,10 @@ export const useAdminProductForm = (id?: string) => useSWR(["admin-product-form"
 export const useAdminUsers = (params: { page?: number; q?: string; pageSize?: number; role?: string }) => useSWR(["admin-users", params], () => getAdminUsers(params))
 export const useAdminOrders = (params: { page?: number; pageSize?: number; q?: string; status?: string }) => useSWR(["admin-orders", params], () => getAdminOrders(params))
 export const useAdminOrder = (id?: string) => useSWR(id ? ["admin-order", id] : null, () => getAdminOrder(id as string))
-export const useAdminRefunds = () => useSWR("admin-refunds", getAdminRefunds)
+export const useAdminRefunds = (
+  status: "pending" | "approved" | "all" = "all",
+  config?: SWRConfiguration,
+) => useSWR(["admin-refunds", status], () => getAdminRefunds(status), config)
 export const useAdminReviews = () => useSWR("admin-reviews", getAdminReviews)
 export const useAdminMessages = () => useSWR("admin-messages", getAdminMessages)
 export const useAdminData = () => useSWR("admin-data", getAdminData)

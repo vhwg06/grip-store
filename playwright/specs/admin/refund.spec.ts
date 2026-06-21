@@ -5,6 +5,10 @@ const CHECKOUT_PRODUCT_ID = "b2222222-2222-2222-2222-222222222222";
 async function createRefundRequest(request: any, reason: string) {
   const adminToken = await getAdminToken(request);
   const userToken = await getUserToken(request);
+  await request.patch(`${BACKEND_URL}/v1/admin/users/22222222-2222-2222-2222-222222222222/block`, {
+    headers: { Authorization: `Bearer ${adminToken}` },
+    data: { isBlocked: false },
+  });
 
   const createdOrder = await request.post(`${BACKEND_URL}/v1/checkout/orders`, {
     headers: { Authorization: `Bearer ${userToken}` },
@@ -50,8 +54,14 @@ async function fetchRefunds(request: any, status = "all") {
 }
 
 async function searchRefund(page: any, query: string) {
+  const responsePromise = page.waitForResponse(
+    (response: any) =>
+      response.request().method() === "GET" &&
+      response.url().includes("/v1/admin/refunds") &&
+      response.status() === 200,
+  );
   await page.getByPlaceholder("Search refund or order...").fill(query);
-  await page.waitForTimeout(300);
+  await responsePromise;
 }
 
 test.describe("Admin Refund @admin P2", () => {
@@ -171,16 +181,28 @@ test.describe("Admin Refund @admin P2", () => {
     // PRIORITY: P2
     // RELATED DOMAINS: none
     // SCENARIO: SC-REF-05 Main flow
-    const approvedPayload = await fetchRefunds(request, "approved");
-    const approvedItems = Array.isArray(approvedPayload?.data) ? approvedPayload.data : [];
-    expect(approvedItems.length).toBeGreaterThan(0);
-    const approved = approvedItems[0];
+    const created = await createRefundRequest(request, `history-approved ${Date.now()}`);
+    const adminToken = await getAdminToken(request);
+    const approveResp = await request.post(`${BACKEND_URL}/v1/admin/refunds/${created.refundId}/approve`, {
+      headers: { Authorization: `Bearer ${adminToken}` },
+      data: {
+        note: "Historical decision note from test",
+        adminNote: "Historical decision note from test",
+      },
+    });
+    expect(approveResp.ok()).toBeTruthy();
 
-    await searchRefund(page, String(approved.order_id));
+    await page.getByRole("tab", { name: "History" }).click();
+    await searchRefund(page, created.orderId);
 
-    await expect(page.getByText(String(approved.order_id), { exact: false })).toBeVisible();
-    await expect(page.getByText(/approved/i)).toBeVisible();
-    await expect(page.getByText(String(approved.admin_note), { exact: false })).toBeVisible();
+    const queueItem = page.locator('[data-testid="refund-queue-item"]').filter({ hasText: created.orderId }).first();
+    await expect(queueItem).toBeVisible();
+    await expect(queueItem).toContainText(/approved/i);
+    await queueItem.click();
+
+    await expect(page.locator('[data-testid="refunds-decision-panel"]')).toContainText(created.orderId);
+    await expect(page.locator('[data-testid="refunds-decision-panel"]')).toContainText(/approved/i);
+    await expect(page.locator('[data-testid="refunds-evidence-panel"]')).toContainText("Historical decision note from test");
   });
 
   test("UC-REF-01 alternate: renders empty state gracefully", async ({ page }) => {
@@ -234,6 +256,7 @@ test.describe("Admin Refund @admin P2", () => {
 
     await page.goto(`/admin/refunds`);
     await page.waitForLoadState("networkidle");
+    await page.getByRole("tab", { name: "History" }).click();
     await searchRefund(page, created.orderId);
 
     const refundCard = page.getByText(created.orderId, { exact: false }).first();
@@ -262,13 +285,20 @@ test.describe("Admin Refund @admin P2", () => {
     await expect(noteInput).toBeVisible();
     await noteInput.fill("Persisted decision note from test");
 
-    await page.getByRole("button", { name: "Approve request" }).click();
-    await expect(page.locator(".toast-success, [data-type='success'], [role='status']").first()).toBeVisible();
+    const approveResponse = page.waitForResponse(
+      (response: any) =>
+        response.url().includes(`/v1/admin/refunds/${created.refundId}/approve`) &&
+        [200, 201, 204].includes(response.status()),
+    );
+    await page.getByRole("button", { name: "Approve refund" }).click();
+    await page.getByRole("button", { name: "Yes, Confirm" }).click();
+    await approveResponse;
 
     await page.getByRole("tab", { name: "History" }).click();
     await searchRefund(page, created.orderId);
-    await page.getByText(created.orderId, { exact: false }).first().click();
-    await expect(page.getByText("Persisted decision note from test")).toBeVisible();
+    const queueItem = page.locator('[data-testid="refund-queue-item"]').filter({ hasText: created.orderId }).first();
+    await expect(queueItem).toBeVisible();
+    await queueItem.click();
+    await expect(page.locator('[data-testid="refunds-evidence-panel"]')).toContainText("Persisted decision note from test");
   });
 });
-

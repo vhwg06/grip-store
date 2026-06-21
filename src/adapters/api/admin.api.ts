@@ -345,10 +345,15 @@ export async function getAdminOrder(id: string) {
   return apiFetch<any>(`/api/admin/orders/${encodeURIComponent(id)}`)
 }
 
-export async function getAdminRefunds() {
-  const payload = await apiFetch<any>("/api/admin/refunds")
+export async function getAdminRefunds(status: "pending" | "approved" | "all" = "all") {
+  const payload = await apiFetch<any>(`/api/admin/refunds${qs({ status })}`)
   const raw = payload?.data || payload
   return Array.isArray(raw) ? raw : raw.requests ?? []
+}
+
+export async function getAdminRefundDetail(id: number | string) {
+  const payload = await apiFetch<any>(`/api/admin/refunds/${encodeURIComponent(String(id))}`)
+  return payload?.data || payload
 }
 
 export async function getAdminReviews() {

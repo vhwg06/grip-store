@@ -2,9 +2,15 @@
 
 import { AdminRefundsContent } from "@/components/admin/refunds-content"
 import { useAdminRefunds } from "@/application/hooks/useAdmin"
+import { useSearchParams } from "next/navigation"
 
 export default function AdminRefundsPage() {
-  const { data, isLoading } = useAdminRefunds()
+  const searchParams = useSearchParams()
+  const initialQuery = searchParams.get("q") ?? ""
+  const { data, isLoading, mutate } = useAdminRefunds("all", {
+    revalidateOnFocus: true,
+    dedupingInterval: 0,
+  })
 
   if (isLoading || !data) {
     return (
@@ -16,5 +22,11 @@ export default function AdminRefundsPage() {
     )
   }
 
-  return <AdminRefundsContent requests={data} />
+  return (
+    <AdminRefundsContent
+      requests={data}
+      initialQuery={initialQuery}
+      refreshRequests={() => mutate()}
+    />
+  )
 }

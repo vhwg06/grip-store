@@ -1,4 +1,7 @@
 import { test, expect } from "../../src/fixtures/base-test";
+import { BACKEND_URL, getAdminToken } from "../../src/api-helpers/auth.helpers";
+
+const TEST_USER_ID = "22222222-2222-2222-2222-222222222222";
 
 test.describe("Admin User @admin P2", () => {
   test.use({
@@ -17,6 +20,34 @@ test.describe("Admin User @admin P2", () => {
         has: page.getByRole("link", { name: "test_buyer" }),
       })
       .first();
+  }
+
+  async function readBuyerState(request: any) {
+    const token = await getAdminToken(request);
+    const response = await request.get(`${BACKEND_URL}/v1/admin/users?page=1&pageSize=20`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    expect(response.ok()).toBeTruthy();
+    const payload = await response.json();
+    const users = Array.isArray(payload?.data) ? payload.data : [];
+    const user = users.find((item: any) => item.id === TEST_USER_ID || item.user_id === TEST_USER_ID);
+    expect(user).toBeTruthy();
+    return {
+      points: Number(user.points ?? 0),
+      isBlocked: Boolean(user.is_blocked ?? user.isBlocked),
+    };
+  }
+
+  async function restoreBuyerState(request: any, state: { points: number; isBlocked: boolean }) {
+    const token = await getAdminToken(request);
+    await request.patch(`${BACKEND_URL}/v1/admin/users/${TEST_USER_ID}/points`, {
+      headers: { Authorization: `Bearer ${token}` },
+      data: { points: state.points },
+    });
+    await request.patch(`${BACKEND_URL}/v1/admin/users/${TEST_USER_ID}/block`, {
+      headers: { Authorization: `Bearer ${token}` },
+      data: { isBlocked: state.isBlocked },
+    });
   }
 
   test("UC-USER-01 presents an account-centric management root", async ({ page }) => {
@@ -70,35 +101,44 @@ test.describe("Admin User @admin P2", () => {
     await expect(page.getByRole("button", { name: "Block / unblock" })).toBeVisible();
   });
 
-  test("UC-USER-03 submits points adjustment (blocked-be-gap)", async ({ page }) => {
+  test("UC-USER-03 submits points adjustment (blocked-be-gap)", async ({ page, request }) => {
     // GOAL: Admin Manages Account State: thay đổi account state ở phạm vi admin được phép.
     // PRIORITY: P2
     // RELATED DOMAINS: none
     // SCENARIO: SC-USER-03 Main flow
     // INVARIANT: points mutation là account-control operation, không phải customer loyalty behavior tự do
-    await buyerRow(page).click();
-    await page.getByRole("button", { name: "Adjust points" }).click();
-    
-    // Fill new points
-    await page.locator("#new-points").fill("1500");
-    await page.getByRole("button", { name: "Save" }).click();
+    const original = await readBuyerState(request);
 
-    // Verify success toast appears if fixed, otherwise fails due to 404
-    await expect(page.locator(".toast-success, [role='status']").first()).toBeVisible();
+    try {
+      await buyerRow(page).click();
+      await page.getByRole("button", { name: "Adjust points" }).click();
+      
+      await page.locator("#new-points").fill(String(original.points + 100));
+      await page.getByRole("button", { name: "Save" }).click();
+
+      await expect(page.locator(".toast-success, [role='status']").first()).toBeVisible();
+    } finally {
+      await restoreBuyerState(request, original);
+    }
   });
 
-  test("UC-USER-03 submits block mutation (blocked-be-gap)", async ({ page }) => {
+  test("UC-USER-03 submits block mutation (blocked-be-gap)", async ({ page, request }) => {
     // GOAL: Admin Manages Account State: thay đổi account state ở phạm vi admin được phép.
     // PRIORITY: P2
     // RELATED DOMAINS: none
     // SCENARIO: SC-USER-03 Main flow
     // INVARIANT: block mutation phải lập tức vô hiệu hóa account access rights của user, không cho phép bypass
+    const original = await readBuyerState(request);
     page.on("dialog", dialog => dialog.accept());
-    await buyerRow(page).click();
-    await page.getByRole("button", { name: "Block / unblock" }).click();
 
-    // Verify success toast appears if fixed, otherwise fails due to 404
-    await expect(page.locator(".toast-success, [role='status']").first()).toBeVisible();
+    try {
+      await buyerRow(page).click();
+      await page.getByRole("button", { name: "Block / unblock" }).click();
+
+      await expect(page.locator(".toast-success, [role='status']").first()).toBeVisible();
+    } finally {
+      await restoreBuyerState(request, original);
+    }
   });
 
   test("UC-USER-04 exposes a domain handoff from account context into customer context", async ({ page }) => {
@@ -156,4 +196,3 @@ test.describe("Admin User @admin P2", () => {
     await expect(buyerRow(page)).toBeVisible();
   });
 });
-

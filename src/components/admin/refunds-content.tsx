@@ -7,20 +7,51 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ClientDate } from "@/components/client-date"
-import { adminApproveRefund, adminRejectRefund } from "@/adapters/api/admin.api"
+import { adminApproveRefund, adminRejectRefund, getAdminRefundDetail } from "@/adapters/api/admin.api"
 import { toast } from "sonner"
 import { getDisplayUsername, getExternalProfileUrl } from "@/lib/user-profile-link"
 import { AlertCircle, CheckCircle2, XCircle, Info, HelpCircle } from "lucide-react"
 
-export function AdminRefundsContent({ requests }: { requests: any[] }) {
+type AdminRefundsContentProps = {
+  requests: any[]
+  initialQuery?: string
+  refreshRequests?: () => Promise<unknown>
+}
+
+export function AdminRefundsContent({
+  requests,
+  initialQuery = "",
+  refreshRequests,
+}: AdminRefundsContentProps) {
   const { t } = useI18n()
-  const [query, setQuery] = useState("")
+  const [query, setQuery] = useState(initialQuery)
   const [processingId, setProcessingId] = useState<number | null>(null)
   const [selectedRefund, setSelectedRefund] = useState<any | null>(null)
   const [note, setNote] = useState("")
   const [confirmAction, setConfirmAction] = useState<'approve' | 'reject' | null>(null)
   const [activeTab, setActiveTab] = useState<'pending' | 'history'>('pending')
   const processingRef = useRef<number | null>(null)
+
+  useEffect(() => {
+    setQuery(initialQuery)
+  }, [initialQuery])
+
+  useEffect(() => {
+    if (!refreshRequests) return
+    const handle = window.setTimeout(() => {
+      void refreshRequests()
+    }, 150)
+    return () => window.clearTimeout(handle)
+  }, [query, refreshRequests])
+
+  useEffect(() => {
+    if (!refreshRequests || typeof window === "undefined") return
+    const handle = () => {
+      void refreshRequests()
+    }
+    window.addEventListener("grip-store:refunds-updated", handle)
+    return () => window.removeEventListener("grip-store:refunds-updated", handle)
+  }, [refreshRequests])
 
   const renderRefundStatus = (status: string | null) => {
     const text = t(`admin.refunds.statusValues.${status || 'pending'}`)
@@ -79,15 +110,37 @@ export function AdminRefundsContent({ requests }: { requests: any[] }) {
     })
   }, [query, requests, activeTab])
 
-  // Sync selectedRefund when filtered list updates
   useEffect(() => {
-    if (filtered && filtered.length > 0) {
-      const stillExists = filtered.find(r => r.id === selectedRefund?.id)
-      if (!stillExists) {
-        setSelectedRefund(filtered[0])
+    let cancelled = false
+
+    async function syncSelectedRefund() {
+      if (filtered.length === 0) {
+        setSelectedRefund(null)
+        return
       }
-    } else {
-      setSelectedRefund(null)
+
+      const nextRefund = filtered.find(r => r.id === selectedRefund?.id) ?? filtered[0]
+      setSelectedRefund(nextRefund)
+
+      try {
+        const detail = await getAdminRefundDetail(nextRefund.id)
+        if (cancelled) return
+        setSelectedRefund((current: any) => (
+          current?.id === nextRefund.id
+            ? { ...nextRefund, ...detail }
+            : current
+        ))
+      } catch {
+        if (!cancelled) {
+          setSelectedRefund((current: any) => current?.id === nextRefund.id ? nextRefund : current)
+        }
+      }
+    }
+
+    void syncSelectedRefund()
+
+    return () => {
+      cancelled = true
     }
   }, [filtered, selectedRefund?.id])
 
@@ -126,6 +179,7 @@ export function AdminRefundsContent({ requests }: { requests: any[] }) {
       }
       setConfirmAction(null)
       setNote("")
+      await refreshRequests?.()
       if (typeof window !== "undefined") {
         window.dispatchEvent(new CustomEvent("grip-store:refunds-updated"))
       }
@@ -256,6 +310,7 @@ export function AdminRefundsContent({ requests }: { requests: any[] }) {
                   const isSelected = selectedRefund?.id === r.id
                   const username = r.username || ''
                   const userId = r.user_id ?? r.userId ?? ''
+                  const orderId = r.order_id ?? r.orderId ?? ''
                   const productName = r.product_name ?? r.productName ?? ''
                   const createdAt = r.created_at ?? r.createdAt ?? null
                   
@@ -271,12 +326,19 @@ export function AdminRefundsContent({ requests }: { requests: any[] }) {
                       }`}
                     >
                       <div className="flex items-start justify-between gap-2">
-                        <span className="font-bold text-sm text-[#211e18] truncate">
-                          {username ? getDisplayUsername(username, userId) : "Guest User"}
-                        </span>
-                        <span className="text-[10px] font-mono text-muted-foreground shrink-0 font-semibold bg-slate-100 px-1.5 py-0.5 rounded">
-                          #{r.id}
-                        </span>
+                        <div className="min-w-0">
+                          <span className="font-bold text-sm text-[#211e18] truncate block">
+                            {username ? getDisplayUsername(username, userId) : "Guest User"}
+                          </span>
+                          <span className="text-[10px] font-mono text-muted-foreground block mt-0.5">
+                            Order {orderId || "-"}
+                          </span>
+                        </div>
+                        <div className="text-right shrink-0">
+                          <span className="text-[10px] font-mono text-muted-foreground font-semibold bg-slate-100 px-1.5 py-0.5 rounded block">
+                            #{r.id}
+                          </span>
+                        </div>
                       </div>
 
                       <div className="flex items-center gap-2 flex-wrap">

@@ -27,6 +27,18 @@ function findUser(users: any[], id: string) {
   return users.find((item: any) => item.id === id || item.userId === id || item.user_id === id);
 }
 
+async function getBuyerState(request: any) {
+  const response = await adminGet(request, "/v1/admin/users?page=1&pageSize=20");
+  expect(response.ok()).toBeTruthy();
+  const payload = await response.json();
+  const user = findUser(extractUsers(payload), TEST_USER_ID);
+  expect(user).toBeTruthy();
+  return {
+    points: Number(user.points ?? 0),
+    isBlocked: Boolean(user.is_blocked ?? user.isBlocked),
+  };
+}
+
 test.describe("Admin User API @api P2", () => {
   test("UC-USER-01 finds an account from account-centric search", async ({ request }) => {
     // GOAL: Admin Finds An Account: xác định account nào cần được kiểm tra hoặc quản trị.
@@ -75,16 +87,28 @@ test.describe("Admin User API @api P2", () => {
     // PRIORITY: P2
     // RELATED DOMAINS: none
     // SCENARIO: SC-USER-03 Main flow
+    const original = await getBuyerState(request);
+    const mutatedPoints = original.points + 100;
+    const mutatedBlocked = !original.isBlocked;
 
-    const points = await adminPatch(request, `/v1/admin/users/${TEST_USER_ID}/points`, {
-      points: 1300,
-    });
-    expect(points.status()).toBe(200);
+    try {
+      const points = await adminPatch(request, `/v1/admin/users/${TEST_USER_ID}/points`, {
+        points: mutatedPoints,
+      });
+      expect(points.status()).toBe(200);
 
-    const block = await adminPatch(request, `/v1/admin/users/${TEST_USER_ID}/block`, {
-      isBlocked: true,
-    });
-    expect(block.status()).toBe(200);
+      const block = await adminPatch(request, `/v1/admin/users/${TEST_USER_ID}/block`, {
+        isBlocked: mutatedBlocked,
+      });
+      expect(block.status()).toBe(200);
+    } finally {
+      await adminPatch(request, `/v1/admin/users/${TEST_USER_ID}/points`, {
+        points: original.points,
+      });
+      await adminPatch(request, `/v1/admin/users/${TEST_USER_ID}/block`, {
+        isBlocked: original.isBlocked,
+      });
+    }
   });
 
   test("UC-USER-04 traverses from user to customer context via linked customer metadata", async ({ request }) => {
