@@ -194,29 +194,49 @@ export function AdminBannersContent() {
               </div>
             ) : (
               filteredBanners.map((banner) => (
-                <button
+                <div
                   key={banner.id}
-                  type="button"
-                  onClick={() => setSelectedId(banner.id)}
-                  className={`flex w-full gap-4 rounded-lg border p-4 text-left transition-all ${
+                  data-testid="banner-item"
+                  className={`flex w-full items-center justify-between gap-4 rounded-lg border p-4 text-left transition-all ${
                     selectedBanner?.id === banner.id
                       ? "border-[#99782b] bg-[#fbfaf7] shadow-[0_0_0_1px_#99782b]"
                       : "border-[#e7e1d7] bg-white hover:border-[#d8ccb2]"
                   }`}
                 >
-                  <div className="h-[54px] w-24 overflow-hidden rounded-md bg-[#f3f1ec]">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={banner.image} alt={banner.title || "Banner"} className="h-full w-full object-cover" />
-                  </div>
-                  <div className="space-y-1">
-                    <div className="text-[13px] font-semibold text-[#211e18]">
-                      {banner.title || "Untitled banner"}
+                  <button
+                    type="button"
+                    onClick={() => setSelectedId(banner.id)}
+                    className="flex flex-1 gap-4 text-left"
+                  >
+                    <div className="h-[54px] w-24 overflow-hidden rounded-md bg-[#f3f1ec] flex-shrink-0">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={banner.image} alt={banner.title || "Banner"} className="h-full w-full object-cover" />
                     </div>
-                    <div className="text-[13px] text-[#71685a]">
-                      Sort {banner.sortOrder} · {banner.isActive ? "Active" : "Hidden"}
+                    <div className="space-y-1">
+                      <div className="text-[13px] font-semibold text-[#211e18]">
+                        {banner.title || "Untitled banner"}
+                      </div>
+                      <div className="text-[13px] text-[#71685a]">
+                        Sort {banner.sortOrder} · {banner.isActive ? "Active" : "Hidden"}
+                      </div>
                     </div>
-                  </div>
-                </button>
+                  </button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    data-testid="banner-delete-btn"
+                    onClick={async (e) => {
+                      e.stopPropagation();
+                      setSelectedId(banner.id);
+                      setEditor(toEditorState(banner));
+                      setTimeout(handleDelete, 0);
+                    }}
+                    className="h-8 w-8 text-[#a33b2b] hover:bg-[#fff1f0] hover:text-[#a33b2b] flex-shrink-0"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
               ))
             )}
           </div>
@@ -254,6 +274,7 @@ export function AdminBannersContent() {
               <label className="text-xs font-semibold uppercase tracking-[0.08em] text-[#71685a]">Target page</label>
               <select
                 value={editor.targetPage}
+                data-testid="banner-target-page-select"
                 onChange={(event) => handleField("targetPage", event.target.value as BannerPageKey)}
                 className="h-10 w-full rounded-lg border border-[#e7e1d7] bg-white px-3 text-sm text-[#211e18]"
               >
@@ -264,7 +285,7 @@ export function AdminBannersContent() {
               </select>
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-2" data-testid="banner-desktop-media">
               <label className="text-xs font-semibold uppercase tracking-[0.08em] text-[#71685a]">Desktop image</label>
               <MediaUploader label="Desktop image" value={editor.image} onChange={(value) => handleField("image", String(value))} />
             </div>
@@ -276,12 +297,12 @@ export function AdminBannersContent() {
 
             <div className="space-y-2">
               <label className="text-xs font-semibold uppercase tracking-[0.08em] text-[#71685a]">Alt title</label>
-              <Input value={editor.title} onChange={(event) => handleField("title", event.target.value)} className="h-10 border-[#e7e1d7]" />
+              <Input id="banner-title" value={editor.title} onChange={(event) => handleField("title", event.target.value)} className="h-10 border-[#e7e1d7]" />
             </div>
 
             <div className="space-y-2">
               <label className="text-xs font-semibold uppercase tracking-[0.08em] text-[#71685a]">Subtitle</label>
-              <Input value={editor.subtitle} onChange={(event) => handleField("subtitle", event.target.value)} className="h-10 border-[#e7e1d7]" />
+              <Input id="banner-subtitle" value={editor.subtitle} onChange={(event) => handleField("subtitle", event.target.value)} className="h-10 border-[#e7e1d7]" />
             </div>
 
             <div className="grid grid-cols-2 gap-3">
@@ -289,6 +310,7 @@ export function AdminBannersContent() {
                 <label className="text-xs font-semibold uppercase tracking-[0.08em] text-[#71685a]">Sort order</label>
                 <Input
                   type="number"
+                  id="banner-sort"
                   value={String(editor.sortOrder)}
                   onChange={(event) => handleField("sortOrder", Number(event.target.value) || 0)}
                   className="h-10 border-[#e7e1d7]"
@@ -296,28 +318,27 @@ export function AdminBannersContent() {
               </div>
               <div className="space-y-2">
                 <label className="text-xs font-semibold uppercase tracking-[0.08em] text-[#71685a]">Active</label>
-                <button
-                  type="button"
-                  onClick={() => handleField("isActive", !editor.isActive)}
-                  className={`flex h-10 w-full items-center justify-center rounded-lg border text-sm font-semibold ${
-                    editor.isActive
-                      ? "border-[#cfe5d3] bg-[#ecf7ed] text-[#2f6c3b]"
-                      : "border-[#e2ddd3] bg-white text-[#71685a]"
-                  }`}
-                >
-                  {editor.isActive ? "On" : "Off"}
-                </button>
+                <div className="flex h-10 w-full items-center gap-2 rounded-lg border border-[#e7e1d7] bg-white px-3">
+                  <input
+                    type="checkbox"
+                    id="banner-active"
+                    checked={editor.isActive}
+                    onChange={(event) => handleField("isActive", event.target.checked)}
+                    className="h-4 w-4 rounded border-[#e7e1d7] text-[#99782b] focus:ring-[#99782b]"
+                  />
+                  <span className="text-sm text-[#71685a]">{editor.isActive ? "On" : "Off"}</span>
+                </div>
               </div>
             </div>
 
             <div className="space-y-2">
               <label className="text-xs font-semibold uppercase tracking-[0.08em] text-[#71685a]">CTA text</label>
-              <Input value={editor.ctaText} onChange={(event) => handleField("ctaText", event.target.value)} className="h-10 border-[#e7e1d7]" />
+              <Input id="banner-cta" value={editor.ctaText} onChange={(event) => handleField("ctaText", event.target.value)} className="h-10 border-[#e7e1d7]" />
             </div>
 
             <div className="space-y-2">
               <label className="text-xs font-semibold uppercase tracking-[0.08em] text-[#71685a]">CTA link</label>
-              <Input value={editor.ctaLink} onChange={(event) => handleField("ctaLink", event.target.value)} className="h-10 border-[#e7e1d7]" />
+              <Input id="banner-link" value={editor.ctaLink} onChange={(event) => handleField("ctaLink", event.target.value)} className="h-10 border-[#e7e1d7]" />
             </div>
 
             <div className="flex flex-col gap-3 pt-4">
@@ -337,6 +358,7 @@ export function AdminBannersContent() {
                 type="button"
                 onClick={handleSave}
                 disabled={saving}
+                data-testid="banner-add-btn"
                 className="h-10 rounded-lg bg-[#99782b] text-sm font-semibold text-white hover:bg-[#99782b]/90"
               >
                 {saving ? "Saving..." : "Save banner"}

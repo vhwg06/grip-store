@@ -13,8 +13,8 @@ test.describe("Admin Media Library @admin", () => {
   test.beforeEach(async ({ adminPage, page }) => {
     await adminPage.goto();
     // Navigate to /admin/media
-    await page.goto("/admin/media");
-    await page.waitForLoadState("networkidle");
+    await page.goto("/admin/media", { timeout: 10000 });
+    await page.waitForLoadState("networkidle", { timeout: 10000 });
   });
 
   test("should display uploaded media assets and support upload operations", async ({ page }) => {
@@ -26,7 +26,7 @@ test.describe("Admin Media Library @admin", () => {
       mimeType: "image/png",
       buffer: tinyPng,
     });
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("networkidle", { timeout: 10000 });
 
     // Wait for the upload card to appear
     const card = page.locator('[data-testid="media-asset-card"]').first();
@@ -41,13 +41,13 @@ test.describe("Admin Media Library @admin", () => {
       buffer: largeBuffer,
     });
     // Should show error notification
-    await expect(page.locator('.toast-error, [role="status"]')).toBeVisible();
+    await expect(page.locator(".toast-error, [data-type='error'], [role='status']").first()).toBeVisible();
   });
 
   test("should open media picker from various forms and select an item", async ({ page }) => {
     // Open admin settings to check logo picker
-    await page.goto("/admin/settings");
-    await page.waitForLoadState("networkidle");
+    await page.goto("/admin/settings", { timeout: 10000 });
+    await page.waitForLoadState("networkidle", { timeout: 10000 });
 
     const openPickerBtn = page.locator('[data-testid="settings-brand-logo-open-media-picker"]');
     await expect(openPickerBtn).toBeVisible();

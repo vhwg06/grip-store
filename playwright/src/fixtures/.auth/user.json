@@ -1,18 +1,8 @@
 {
   "cookies": [
     {
-      "name": "grip-store-locale",
-      "value": "en",
-      "domain": "localhost",
-      "path": "/",
-      "expires": 1813512019.901248,
-      "httpOnly": false,
-      "secure": false,
-      "sameSite": "Lax"
-    },
-    {
       "name": "grip_store_access_token",
-      "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc19hZG1pbiI6ZmFsc2UsInVzZXJuYW1lIjoidGVzdF9idXllciIsInN1YiI6IjIyMjIyMjIyLTIyMjItMjIyMi0yMjIyLTIyMjIyMjIyMjIyMiIsImV4cCI6MTc4MjA2MjQyMH0.0uNx5I7Zv6m4nHptN9QsCaAS6VWXwFZGW1M6rzLMPmw",
+      "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc19hZG1pbiI6ZmFsc2UsInVzZXJuYW1lIjoidGVzdF9idXllciIsInN1YiI6IjIyMjIyMjIyLTIyMjItMjIyMi0yMjIyLTIyMjIyMjIyMjIyMiIsImV4cCI6MTc4MjE1MDQxMn0.wFLO440dJ315d_XF6gz4BJE6jITWH2ZqCowAliWIirg",
       "domain": "localhost",
       "path": "/",
       "expires": -1,
@@ -22,17 +12,17 @@
     },
     {
       "name": "grip_store_refresh_token",
-      "value": "834c40f9-9a02-46e6-8edd-49bd6d32f316",
+      "value": "64bdeea2-4303-4b5b-95a6-781bdc696cbf",
       "domain": "localhost",
       "path": "/",
-      "expires": 1784568020,
+      "expires": -1,
       "httpOnly": false,
       "secure": false,
       "sameSite": "Lax"
     },
     {
       "name": "grip_store_access_token_expires_at",
-      "value": "1781979620681",
+      "value": "1782067612491",
       "domain": "localhost",
       "path": "/",
       "expires": -1,
@@ -41,19 +31,5 @@
       "sameSite": "Lax"
     }
   ],
-  "origins": [
-    {
-      "origin": "http://localhost:3000",
-      "localStorage": [
-        {
-          "name": "grip-cart",
-          "value": "{\"items\":[],\"totalQuantity\":0,\"subtotal\":0}"
-        },
-        {
-          "name": "grip-store-locale",
-          "value": "en"
-        }
-      ]
-    }
-  ]
+  "origins": []
 }

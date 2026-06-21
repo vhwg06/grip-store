@@ -171,7 +171,7 @@ export function AdminFAQsContent() {
                 className="bg-[#99782b] hover:bg-[#99782b]/90 text-white text-xs font-semibold h-8 flex items-center gap-1"
               >
                 <Plus className="w-3.5 h-3.5" />
-                Add FAQ
+                Create FAQ
               </Button>
             </div>
 
@@ -228,43 +228,62 @@ export function AdminFAQsContent() {
             ) : filteredFAQs.length === 0 ? (
               <div className="text-center py-12 text-muted-foreground italic">No FAQs found</div>
             ) : (
-              <div className="space-y-2.5 max-h-[500px] overflow-y-auto pr-1">
-                {filteredFAQs.map((f: any) => {
-                  const isSelected = selectedFaq?.id === f.id
-                  return (
-                    <div
-                      key={f.id}
-                      onClick={() => setSelectedFaq(f)}
-                      className={`group flex items-start gap-3 p-3.5 rounded-lg border transition-all cursor-pointer relative ${
-                        isSelected
-                          ? "border-primary bg-primary/5 shadow-sm ring-1 ring-primary/20"
-                          : "border-border/60 bg-muted/20 hover:bg-muted/40"
-                      }`}
-                    >
-                      <div className="flex-1 min-w-0 space-y-1">
-                        <div className="flex items-start justify-between gap-2">
-                          <span className="font-bold text-sm text-foreground line-clamp-1">{f.question}</span>
-                          <span className="text-[10px] font-mono text-muted-foreground shrink-0">Order: {f.sortOrder}</span>
-                        </div>
-                        <p className="text-xs text-muted-foreground line-clamp-2 italic">
-                          "{f.answer}"
-                        </p>
-                        <div className="flex items-center gap-1.5 pt-1">
-                          <Badge
-                            variant="outline"
-                            className={`text-[10px] px-1.5 py-0 font-medium ${
-                              f.isActive
-                                ? "bg-green-500/10 text-green-600 border-none"
-                                : "bg-neutral-500/10 text-neutral-600 border-none"
-                            }`}
-                          >
-                            {f.isActive ? "Active" : "Draft"}
-                          </Badge>
-                        </div>
-                      </div>
-                    </div>
-                  )
-                })}
+              <div className="max-h-[500px] overflow-y-auto pr-1">
+                <table className="w-full text-left border-collapse">
+                  <tbody>
+                    {filteredFAQs.map((f: any) => {
+                      const isSelected = selectedFaq?.id === f.id
+                      return (
+                        <tr
+                          key={f.id}
+                          onClick={() => setSelectedFaq(f)}
+                          className={`group border-b last:border-b-0 transition-all cursor-pointer ${
+                            isSelected
+                              ? "bg-primary/5"
+                              : "hover:bg-muted/40"
+                          }`}
+                        >
+                          <td className="p-3.5 flex items-start justify-between gap-3">
+                            <div className="flex-1 min-w-0 space-y-1">
+                              <div className="flex items-start justify-between gap-2">
+                                <span className="font-bold text-sm text-foreground line-clamp-1">{f.question}</span>
+                                <span className="text-[10px] font-mono text-muted-foreground shrink-0">Order: {f.sortOrder}</span>
+                              </div>
+                              <p className="text-xs text-muted-foreground line-clamp-2 italic">
+                                "{f.answer}"
+                              </p>
+                              <div className="flex items-center gap-1.5 pt-1">
+                                <Badge
+                                  variant="outline"
+                                  className={`text-[10px] px-1.5 py-0 font-medium ${
+                                    f.isActive
+                                      ? "bg-green-500/10 text-green-600 border-none"
+                                      : "bg-neutral-500/10 text-neutral-600 border-none"
+                                  }`}
+                                >
+                                  {f.isActive ? "Active" : "Draft"}
+                                </Badge>
+                              </div>
+                            </div>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={async (e) => {
+                                  e.stopPropagation();
+                                  setSelectedFaq(f);
+                                  setTimeout(handleDelete, 0);
+                              }}
+                              className="text-xs font-semibold text-[#a33b2b] hover:bg-[#fff1f0] hover:text-[#a33b2b] h-8 px-2 shrink-0"
+                            >
+                              Delete
+                            </Button>
+                          </td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
               </div>
             )}
           </div>
@@ -350,7 +369,7 @@ export function AdminFAQsContent() {
                   disabled={saving || !question.trim() || !answer.trim()}
                   className="w-full flex items-center justify-center gap-2 bg-[#99782b] hover:bg-[#99782b]/90 text-white"
                 >
-                  {saving ? "Saving..." : selectedFaq ? "Save Changes" : "Create FAQ"}
+                  {saving ? "Saving..." : selectedFaq ? "Save Changes" : "Add / Create FAQ"}
                 </Button>
 
                 {selectedFaq && (

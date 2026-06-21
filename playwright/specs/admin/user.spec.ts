@@ -1,7 +1,22 @@
 import { test, expect } from "../../src/fixtures/base-test";
 import { BACKEND_URL, getAdminToken } from "../../src/api-helpers/auth.helpers";
 
-const TEST_USER_ID = "22222222-2222-2222-2222-222222222222";
+let testUserId: string | null = null;
+
+async function getBuyerUserId(request: any): Promise<string> {
+  if (testUserId) return testUserId;
+  const token = await getAdminToken(request);
+  const response = await request.get(`${BACKEND_URL}/v1/admin/users?q=test_buyer&page=1&pageSize=20`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  expect(response.ok()).toBeTruthy();
+  const payload = await response.json();
+  const users = Array.isArray(payload?.data) ? payload.data : [];
+  const user = users.find((u: any) => u.email === "test_buyer@example.com" || u.username === "test_buyer");
+  expect(user).toBeTruthy();
+  testUserId = user.id ?? user.user_id;
+  return testUserId;
+}
 
 test.describe("Admin User @admin P2", () => {
   test.describe.configure({ mode: "serial" });
@@ -10,8 +25,8 @@ test.describe("Admin User @admin P2", () => {
   });
 
   test.beforeEach(async ({ page }) => {
-    await page.goto("/admin/users");
-    await page.waitForLoadState("networkidle");
+    await page.goto("/admin/users", { timeout: 10000 });
+    await page.waitForLoadState("networkidle", { timeout: 10000 });
   });
 
   function userRow(page: any, username: string) {
@@ -23,15 +38,26 @@ test.describe("Admin User @admin P2", () => {
       .first();
   }
 
+  async function searchForUser(page: any, query: string) {
+    const responsePromise = page.waitForResponse(
+      (response: any) => response.url().includes("/v1/admin/users") && response.status() === 200,
+    );
+    const search = page.getByTestId("user-search-input");
+    await search.fill(query);
+    await search.press("Enter");
+    await responsePromise;
+  }
+
   async function readBuyerState(request: any) {
     const token = await getAdminToken(request);
-    const response = await request.get(`${BACKEND_URL}/v1/admin/users?page=1&pageSize=20`, {
+    const userId = await getBuyerUserId(request);
+    const response = await request.get(`${BACKEND_URL}/v1/admin/users?q=test_buyer&page=1&pageSize=20`, {
       headers: { Authorization: `Bearer ${token}` },
     });
     expect(response.ok()).toBeTruthy();
     const payload = await response.json();
     const users = Array.isArray(payload?.data) ? payload.data : [];
-    const user = users.find((item: any) => item.id === TEST_USER_ID || item.user_id === TEST_USER_ID);
+    const user = users.find((item: any) => item.id === userId || item.user_id === userId);
     expect(user).toBeTruthy();
     return {
       points: Number(user.points ?? 0),
@@ -41,11 +67,12 @@ test.describe("Admin User @admin P2", () => {
 
   async function restoreBuyerState(request: any, state: { points: number; isBlocked: boolean }) {
     const token = await getAdminToken(request);
-    await request.patch(`${BACKEND_URL}/v1/admin/users/${TEST_USER_ID}/points`, {
+    const userId = await getBuyerUserId(request);
+    await request.patch(`${BACKEND_URL}/v1/admin/users/${userId}/points`, {
       headers: { Authorization: `Bearer ${token}` },
       data: { points: state.points },
     });
-    await request.patch(`${BACKEND_URL}/v1/admin/users/${TEST_USER_ID}/block`, {
+    await request.patch(`${BACKEND_URL}/v1/admin/users/${userId}/block`, {
       headers: { Authorization: `Bearer ${token}` },
       data: { isBlocked: state.isBlocked },
     });
@@ -96,6 +123,7 @@ test.describe("Admin User @admin P2", () => {
     // PRIORITY: P2
     // RELATED DOMAINS: none
     // SCENARIO: SC-USER-02 Main flow
+    await searchForUser(page, "test_buyer");
     await userRow(page, "test_buyer").click();
 
     const panel = page.getByTestId("account-actions-panel");
@@ -113,6 +141,7 @@ test.describe("Admin User @admin P2", () => {
     // RELATED DOMAINS: none
     // SCENARIO: SC-USER-03 Main flow
     // INVARIANT: points và block mutations là explicit account-control operations, không phải marketing preferences hay UI configuration đơn thuần
+    await searchForUser(page, "test_buyer");
     await userRow(page, "test_buyer").click();
 
     const panel = page.getByTestId("account-actions-panel");
@@ -131,6 +160,7 @@ test.describe("Admin User @admin P2", () => {
     const original = await readBuyerState(request);
 
     try {
+      await searchForUser(page, "test_buyer");
       await userRow(page, "test_buyer").click();
       await page.getByRole("button", { name: "Adjust points" }).click();
       
@@ -156,6 +186,7 @@ test.describe("Admin User @admin P2", () => {
     page.on("dialog", dialog => dialog.accept());
 
     try {
+      await searchForUser(page, "test_buyer");
       await userRow(page, "test_buyer").click();
       await page.getByRole("button", { name: "Block / unblock" }).click();
 
@@ -173,6 +204,7 @@ test.describe("Admin User @admin P2", () => {
     // PRIORITY: P2
     // RELATED DOMAINS: customer
     // SCENARIO: SC-USER-04 Main flow
+    await searchForUser(page, "test_buyer");
     await userRow(page, "test_buyer").click();
 
     await expect(page.getByTestId("account-open-customer")).toBeVisible();
@@ -188,6 +220,7 @@ test.describe("Admin User @admin P2", () => {
     // SCENARIO: SC-USER-05 Main flow
     // INVARIANT: commerce support và account-control là hai surfaces riêng biệt
     // INVARIANT: user root không được mix "Open history" hoặc loyalty behavior vào account-control semantics
+    await searchForUser(page, "test_buyer");
     await userRow(page, "test_buyer").click();
 
     const panel = page.getByTestId("account-actions-panel");

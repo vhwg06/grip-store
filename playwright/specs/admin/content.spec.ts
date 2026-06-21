@@ -10,8 +10,8 @@ test.describe("Admin Content @admin P2", () => {
     // PRIORITY: P2
     // RELATED DOMAINS: none
     // SCENARIO: SC-CONT-01 Main flow
-    await page.goto("/admin/media");
-    await page.waitForLoadState("networkidle");
+    await page.goto("/admin/media", { timeout: 10000 });
+    await page.waitForLoadState("networkidle", { timeout: 10000 });
 
     await expect(page.getByRole("heading", { name: "Media Management" })).toBeVisible();
     await expect(page.getByText(/central library for upload, reuse, and protection/i)).toBeVisible();
@@ -24,8 +24,8 @@ test.describe("Admin Content @admin P2", () => {
     // PRIORITY: P2
     // RELATED DOMAINS: store-setting
     // SCENARIO: SC-CONT-02 Main flow
-    await page.goto("/admin/banners");
-    await page.waitForLoadState("networkidle");
+    await page.goto("/admin/banners", { timeout: 10000 });
+    await page.waitForLoadState("networkidle", { timeout: 10000 });
 
     await expect(page.getByRole("heading", { name: "Banner Management" })).toBeVisible();
     await expect(page.getByRole("button", { name: "Homepage" })).toBeVisible();
@@ -39,8 +39,8 @@ test.describe("Admin Content @admin P2", () => {
     // PRIORITY: P2
     // RELATED DOMAINS: none
     // SCENARIO: SC-CONT-03 Main flow
-    await page.goto("/admin/articles");
-    await page.waitForLoadState("networkidle");
+    await page.goto("/admin/articles", { timeout: 10000 });
+    await page.waitForLoadState("networkidle", { timeout: 10000 });
 
     await expect(page.getByRole("heading", { name: "Article Management" })).toBeVisible();
     await expect(page.getByTestId("articles-list-container").getByRole("button", { name: "Published" })).toBeVisible();
@@ -54,8 +54,8 @@ test.describe("Admin Content @admin P2", () => {
     // PRIORITY: P2
     // RELATED DOMAINS: none
     // SCENARIO: SC-CONT-04 Main flow
-    await page.goto("/admin/faqs");
-    await page.waitForLoadState("networkidle");
+    await page.goto("/admin/faqs", { timeout: 10000 });
+    await page.waitForLoadState("networkidle", { timeout: 10000 });
 
     await expect(page.getByRole("heading", { name: "FAQ Management" })).toBeVisible();
     await expect(page.getByRole("button", { name: /active/i })).toBeVisible();
@@ -69,8 +69,8 @@ test.describe("Admin Content @admin P2", () => {
     // PRIORITY: P2
     // RELATED DOMAINS: none
     // SCENARIO: SC-CONT-05 Main flow
-    await page.goto("/admin/about");
-    await page.waitForLoadState("networkidle");
+    await page.goto("/admin/about", { timeout: 10000 });
+    await page.waitForLoadState("networkidle", { timeout: 10000 });
 
     await expect(page.getByRole("heading", { name: "About-Us Content" })).toBeVisible();
     await expect(page.getByText(/banner ownership stays in banner management/i)).toBeVisible();
@@ -84,8 +84,8 @@ test.describe("Admin Content @admin P2", () => {
     // PRIORITY: P2
     // RELATED DOMAINS: product
     // SCENARIO: SC-CONT-06 Main flow
-    await page.goto("/admin/product-content");
-    await page.waitForLoadState("networkidle");
+    await page.goto("/admin/product-content", { timeout: 10000 });
+    await page.waitForLoadState("networkidle", { timeout: 10000 });
 
     await expect(page.getByRole("heading", { name: "Product Media & Content" })).toBeVisible();
     await expect(page.getByText(/without drifting into core catalog editing/i)).toBeVisible();

@@ -32,17 +32,42 @@ if (!WEBKIT_AVAILABLE) {
   );
 }
 
+const IS_CI = !!process.env.CI;
+const IS_CI_OR_ALL_BROWSERS = IS_CI || process.env.ALL_BROWSERS === "true";
+let SKIP_SETUP = process.env.PLAYWRIGHT_SKIP_SETUP === "true";
+
+if (!SKIP_SETUP) {
+  try {
+    const checkFresh = (p: string) => {
+      if (!fs.existsSync(p)) return false;
+      const c = JSON.parse(fs.readFileSync(p, "utf-8"));
+      const exp = (c.cookies || []).find((x: any) => x.name === "grip_store_access_token_expires_at");
+      if (!exp) return false;
+      return Number(exp.value) > Date.now() + 300_000;
+    };
+    const adminPath = path.resolve(__dirname, "./playwright/src/fixtures/.auth/admin.json");
+    const userPath = path.resolve(__dirname, "./playwright/src/fixtures/.auth/user.json");
+    if (checkFresh(adminPath) && checkFresh(userPath)) {
+      SKIP_SETUP = true;
+      console.log("[playwright-config] Auth states are fresh. Setup project will be skipped.");
+    }
+  } catch (err) {
+    // Ignore error
+  }
+}
+
 const browserProjects = [
   {
     name: "chromium",
     use: {
       ...devices["Desktop Chrome"],
+      viewport: { width: 1600, height: 1200 },
       storageState: "./playwright/src/fixtures/.auth/user.json",
     },
     testIgnore: /specs\/api\/.+\.spec\.ts/,
-    dependencies: ["setup"],
+    dependencies: SKIP_SETUP ? [] : ["setup"],
   },
-  ...(FIREFOX_AVAILABLE
+  ...(IS_CI_OR_ALL_BROWSERS && FIREFOX_AVAILABLE
     ? [
         {
           name: "firefox",
@@ -51,11 +76,11 @@ const browserProjects = [
             storageState: "./playwright/src/fixtures/.auth/user.json",
           },
           testIgnore: /specs\/api\/.+\.spec\.ts/,
-          dependencies: ["setup"],
+          dependencies: SKIP_SETUP ? [] : ["setup"],
         },
       ]
     : []),
-  ...(WEBKIT_AVAILABLE
+  ...(IS_CI_OR_ALL_BROWSERS && WEBKIT_AVAILABLE
     ? [
         {
           name: "webkit",
@@ -64,20 +89,40 @@ const browserProjects = [
             storageState: "./playwright/src/fixtures/.auth/user.json",
           },
           testIgnore: /specs\/api\/.+\.spec\.ts/,
-          dependencies: ["setup"],
+          dependencies: SKIP_SETUP ? [] : ["setup"],
         },
       ]
     : []),
-  {
-    name: "mobile-chrome",
-    use: {
-      ...devices["Pixel 5"],
-      storageState: "./playwright/src/fixtures/.auth/user.json",
-    },
-    testIgnore: /specs\/api\/.+\.spec\.ts/,
-    dependencies: ["setup"],
-  },
+  ...(IS_CI_OR_ALL_BROWSERS
+    ? [
+        {
+          name: "mobile-chrome",
+          use: {
+            ...devices["Pixel 5"],
+            storageState: "./playwright/src/fixtures/.auth/user.json",
+          },
+          testIgnore: /specs\/api\/.+\.spec\.ts/,
+          dependencies: SKIP_SETUP ? [] : ["setup"],
+        },
+      ]
+    : []),
 ];
+
+const TEST_TIMEOUT = process.env.PLAYWRIGHT_TEST_TIMEOUT
+  ? parseInt(process.env.PLAYWRIGHT_TEST_TIMEOUT, 10)
+  : 30000;
+
+const EXPECT_TIMEOUT = process.env.PLAYWRIGHT_EXPECT_TIMEOUT
+  ? parseInt(process.env.PLAYWRIGHT_EXPECT_TIMEOUT, 10)
+  : 5000;
+
+const ACTION_TIMEOUT = process.env.PLAYWRIGHT_ACTION_TIMEOUT
+  ? parseInt(process.env.PLAYWRIGHT_ACTION_TIMEOUT, 10)
+  : 3000;
+
+const NAVIGATION_TIMEOUT = process.env.PLAYWRIGHT_NAVIGATION_TIMEOUT
+  ? parseInt(process.env.PLAYWRIGHT_NAVIGATION_TIMEOUT, 10)
+  : 8000;
 
 export default defineConfig({
   testDir: "./playwright/specs",
@@ -85,9 +130,9 @@ export default defineConfig({
   globalSetup: "./playwright/src/fixtures/global-setup.ts",
 
   /* Maximum time one test can run */
-  timeout: 30_000,
+  timeout: TEST_TIMEOUT,
   expect: {
-    timeout: 10_000,
+    timeout: EXPECT_TIMEOUT,
     toHaveScreenshot: {
       maxDiffPixelRatio: 0.05,
       threshold: 0.2,
@@ -96,7 +141,14 @@ export default defineConfig({
   },
 
   /* Run tests in files in parallel */
-  fullyParallel: true,
+  fullyParallel: process.env.PLAYWRIGHT_FULLY_PARALLEL !== "false",
+
+  /* Maximum number of concurrent worker processes. */
+  workers: process.env.PLAYWRIGHT_WORKERS
+    ? parseInt(process.env.PLAYWRIGHT_WORKERS, 10)
+    : process.env.CI
+    ? 2
+    : Math.max(2, Math.floor(require("os").cpus().length / 2)),
 
   /* Fail the build on CI if you accidentally left test.only in the source code */
   forbidOnly: !!process.env.CI,
@@ -112,9 +164,11 @@ export default defineConfig({
   /* Shared settings for all the projects below */
   use: {
     baseURL: BASE_URL,
-    trace: "on-first-retry",
-    screenshot: "only-on-failure",
-    video: "retain-on-failure",
+    actionTimeout: ACTION_TIMEOUT,
+    navigationTimeout: NAVIGATION_TIMEOUT,
+    trace: IS_CI ? "on-first-retry" : "off",
+    screenshot: IS_CI ? "only-on-failure" : "off",
+    video: IS_CI ? "retain-on-failure" : "off",
     extraHTTPHeaders: {
       "X-Playwright-Test": "true",
     },
@@ -126,6 +180,7 @@ export default defineConfig({
       name: "setup",
       testDir: "./playwright/src/fixtures",
       testMatch: /auth\.setup\.ts/,
+      timeout: 5000,
     },
 
     /* API-only tests — no browser, uses Go backend directly */
@@ -145,7 +200,7 @@ export default defineConfig({
   webServer: USE_EXTERNAL_BACKEND
     ? [
         {
-          command: "npm run dev",
+          command: process.env.PLAYWRIGHT_PROD === "true" ? "npx -y serve out -l 3000" : "npm run dev",
           url: BASE_URL,
           reuseExistingServer: !process.env.CI,
           timeout: 120_000,
@@ -161,7 +216,7 @@ export default defineConfig({
           timeout: 120_000,
         },
         {
-          command: "npm run dev",
+          command: process.env.PLAYWRIGHT_PROD === "true" ? "npx -y serve out -l 3000" : "npm run dev",
           url: BASE_URL,
           reuseExistingServer: !process.env.CI,
           timeout: 120_000,

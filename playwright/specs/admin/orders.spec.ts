@@ -39,28 +39,54 @@ test.describe("Admin Orders @admin P1 P2", () => {
     storageState: "./playwright/src/fixtures/.auth/admin.json",
   });
 
-  test.beforeEach(async ({ adminPage }) => {
+  test.beforeEach(async ({ adminPage, page }) => {
+    // Intercept dynamic route requests and serve the placeholder route bundle to bypass Next.js static export limits
+    await page.route("**/admin/orders/*", async (route, request) => {
+      const url = request.url();
+      if (request.resourceType() === "document") {
+        const parts = url.split("/");
+        const id = parts[parts.length - 1].split("?")[0];
+        if (id && id !== "placeholder" && id !== "test-order-0001" && id !== "test-order-0002" && id !== "nonexistent-order-12345xyz") {
+          const baseUrl = new URL(url).origin;
+          const response = await page.request.get(`${baseUrl}/admin/orders/placeholder/`);
+          await route.fulfill({
+            status: response.status(),
+            headers: response.headers(),
+            body: await response.body(),
+          });
+          return;
+        }
+      }
+      await route.continue();
+    });
+
     await adminPage.goto();
     await adminPage.navigateTo("orders");
+    await page.waitForLoadState("networkidle", { timeout: 10000 });
   });
 
-  test("UC-ORD-01 renders queue state and preserves row-to-detail handoff", async ({ page }) => {
+  test("UC-ORD-01 renders queue state and preserves row-to-detail handoff", async ({ page, request }) => {
     // GOAL: Admin Reviews Order Queue: xác định order nào cần được xử lý tiếp và order nào chỉ cần theo dõi.
     // PRIORITY: P1
     // RELATED DOMAINS: customer
     // SCENARIO: SC-ORD-01 Main flow
     // INVARIANT: order queue là projection của server state, không phải kết quả FE tự suy diễn
     // INVARIANT: action availability phải phản ánh business state hiện tại của order
+    const orderId = await createPendingOrderViaApi(request);
+
+    await page.goto("/admin/orders", { timeout: 10000 });
+    await page.waitForLoadState("networkidle", { timeout: 10000 });
+
     await expect(page.getByRole("heading", { name: "Order Management" })).toBeVisible();
     await expect(page.locator('[data-testid="admin-table"]')).toBeVisible();
 
-    const deliveredRow = page.locator('[data-testid="order-row"]').filter({ hasText: "test-order-0001" }).first();
-    await expect(deliveredRow).toBeVisible();
-    await expect(deliveredRow).toContainText("Delivered");
-    await expect(deliveredRow.getByRole("button", { name: "Mark delivered" })).toBeDisabled();
+    const pendingRow = page.locator('[data-testid="order-row"]').filter({ hasText: orderId }).first();
+    await expect(pendingRow).toBeVisible();
+    await expect(pendingRow).toContainText("Pending");
+    await expect(pendingRow.getByRole("button", { name: "Mark delivered" })).toBeDisabled();
 
-    await deliveredRow.getByRole("link", { name: "Open detail" }).click();
-    await expect(page).toHaveURL(/\/admin\/orders\/test-order-0001\/?$/);
+    await pendingRow.getByRole("link", { name: "Open detail" }).click();
+    await expect(page).toHaveURL(new RegExp(`/admin/orders/${orderId}/?$`));
     await expect(page.locator('[data-testid="order-detail"]')).toBeVisible();
   });
 
@@ -69,7 +95,7 @@ test.describe("Admin Orders @admin P1 P2", () => {
     // PRIORITY: P1
     // RELATED DOMAINS: customer
     // SCENARIO: SC-ORD-02 Main flow
-    await page.goto("/admin/orders/test-order-0001");
+    await page.goto("/admin/orders/test-order-0001", { timeout: 10000 });
     await expect(page.locator('[data-testid="order-detail"]')).toBeVisible();
 
     await expect(page.getByText("Order Detail #test-order-0001")).toBeVisible();
@@ -91,7 +117,7 @@ test.describe("Admin Orders @admin P1 P2", () => {
     const listResponse = page.waitForResponse(
       (response: any) => response.url().includes("/v1/admin/orders") && response.status() === 200,
     );
-    await page.goto(`/admin/orders?q=${orderId}`);
+    await page.goto(`/admin/orders?q=${orderId}`, { timeout: 10000 });
     await listResponse;
 
     const row = page.locator('[data-testid="order-row"]').filter({ hasText: orderId }).first();
@@ -104,7 +130,7 @@ test.describe("Admin Orders @admin P1 P2", () => {
 
     await row.click();
     await page.getByRole("button", { name: "Mark paid" }).click();
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("networkidle", { timeout: 10000 });
 
     const payload = await fetchAdminOrder(request, orderId);
     expect(payload.status).toBe("PAID");
@@ -121,7 +147,7 @@ test.describe("Admin Orders @admin P1 P2", () => {
     const listResponse = page.waitForResponse(
       (response: any) => response.url().includes("/v1/admin/orders") && response.status() === 200,
     );
-    await page.goto("/admin/orders?q=test-order-0001");
+    await page.goto("/admin/orders?q=test-order-0001", { timeout: 10000 });
     await listResponse;
 
     const row = page.locator('[data-testid="order-row"]').filter({ hasText: "test-order-0001" }).first();
@@ -139,7 +165,7 @@ test.describe("Admin Orders @admin P1 P2", () => {
     // PRIORITY: P2
     // RELATED DOMAINS: none
     // SCENARIO: SC-ORD-06 Main flow
-    await page.goto("/admin/orders/test-order-0002");
+    await page.goto("/admin/orders/test-order-0002", { timeout: 10000 });
     await expect(page.locator('[data-testid="order-detail"]')).toBeVisible();
     await expect(page.getByRole("button", { name: "Mark delivered" })).toBeDisabled();
     await expect(page.getByText("Awaiting fulfillment (missing tracking ID - safe fallback)")).toBeVisible();
@@ -156,9 +182,9 @@ test.describe("Admin Orders @admin P1 P2", () => {
     const listResponse = page.waitForResponse(
       (response: any) => response.url().includes("/v1/admin/orders") && response.status() === 200,
     );
-    await page.goto("/admin/orders?q=nonexistent-order-12345xyz");
+    await page.goto("/admin/orders?q=nonexistent-order-12345xyz", { timeout: 10000 });
     await listResponse;
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("networkidle", { timeout: 10000 });
 
     await expect(page.getByText("No orders found")).toBeVisible();
     await expect(page.locator('[data-testid="error-boundary"]')).toHaveCount(0);
@@ -169,8 +195,10 @@ test.describe("Admin Orders @admin P1 P2", () => {
     // PRIORITY: P1
     // RELATED DOMAINS: customer
     // SCENARIO: SC-ORD-04 Main flow
-    await page.goto("/admin/customers/");
-    await page.waitForLoadState("networkidle");
+    const orderId = await createPendingOrderViaApi(request);
+
+    await page.goto("/admin/customers/", { timeout: 10000 });
+    await page.waitForLoadState("networkidle", { timeout: 10000 });
     await expect(page.getByRole("heading", { name: "Customer Management" })).toBeVisible();
 
     const adminToken = await getAdminToken(request);
@@ -199,7 +227,7 @@ test.describe("Admin Orders @admin P1 P2", () => {
     await page.getByRole("button", { name: "Open history" }).click();
 
     await expect(page).toHaveURL(new RegExp(`/admin/orders/?\\?q=${buyerCustomerId}`));
-    await expect(page.locator('[data-testid="order-row"]').filter({ hasText: "test-order-0001" }).first()).toBeVisible();
+    await expect(page.locator('[data-testid="order-row"]').filter({ hasText: orderId }).first()).toBeVisible();
   });
 
   test("UC-ORD-01 exception: returns 404 for nonexistent order ID", async ({ page }) => {
@@ -208,7 +236,7 @@ test.describe("Admin Orders @admin P1 P2", () => {
     // RELATED DOMAINS: customer
     // SCENARIO: SC-ORD-01 Exception flow
     // INVARIANT: order detail request cho nonexistent ID phải render error state/boundary hoặc 404 page
-    await page.goto("/admin/orders/nonexistent-order-12345xyz");
+    await page.goto("/admin/orders/nonexistent-order-12345xyz", { timeout: 10000 });
     await expect(page.getByText("Order not found", { exact: false })).toBeVisible();
   });
 
@@ -220,8 +248,8 @@ test.describe("Admin Orders @admin P1 P2", () => {
     // INVARIANT: purchase history của customer chưa từng mua hàng phải render trạng thái trống, không crash
     const buyer = await registerFreshBuyer(request);
 
-    await page.goto("/admin/customers/");
-    await page.waitForLoadState("networkidle");
+    await page.goto("/admin/customers/", { timeout: 10000 });
+    await page.waitForLoadState("networkidle", { timeout: 10000 });
     await expect(page.getByRole("heading", { name: "Customer Management" })).toBeVisible();
 
     const responsePromise = page.waitForResponse(
@@ -248,7 +276,7 @@ test.describe("Admin Orders @admin P1 P2", () => {
     // RELATED DOMAINS: refund
     // SCENARIO: SC-ORD-03 Alternate flow
     // INVARIANT: order ở terminal state (DELIVERED) không cho phép bất kỳ transition nào tiếp theo
-    await page.goto("/admin/orders/test-order-0001");
+    await page.goto("/admin/orders/test-order-0001", { timeout: 10000 });
     await expect(page.locator('[data-testid="order-detail"]')).toBeVisible();
 
     await expect(page.getByRole("button", { name: "Mark paid" })).toBeDisabled();
@@ -263,9 +291,9 @@ test.describe("Admin Orders @admin P1 P2", () => {
     const listResponse = page.waitForResponse(
       (response: any) => response.url().includes("/v1/admin/orders") && response.status() === 200,
     );
-    await page.goto("/admin/orders?q=test-order-0001");
+    await page.goto("/admin/orders?q=test-order-0001", { timeout: 10000 });
     await listResponse;
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("networkidle", { timeout: 10000 });
 
     const orderRow = page.locator('[data-testid="order-row"]').filter({ hasText: "test-order-0001" });
     await expect(orderRow.first()).toBeVisible();
@@ -279,8 +307,10 @@ test.describe("Admin Orders @admin P1 P2", () => {
     // PRIORITY: P1
     // RELATED DOMAINS: customer
     // SCENARIO: SC-ORD-04 Alternate flow
-    await page.goto("/admin/customers/");
-    await page.waitForLoadState("networkidle");
+    const orderId = await createPendingOrderViaApi(request);
+
+    await page.goto("/admin/customers/", { timeout: 10000 });
+    await page.waitForLoadState("networkidle", { timeout: 10000 });
 
     const adminToken = await getAdminToken(request);
     const customerResp = await request.get(`${BACKEND_URL}/v1/admin/users?q=test_buyer&page=1&pageSize=20`, {
@@ -308,6 +338,6 @@ test.describe("Admin Orders @admin P1 P2", () => {
 
     await expect(page).toHaveURL(new RegExp(`/admin/orders/?\\?q=${buyerCustomerId}`));
     
-    await expect(page.locator('[data-testid="order-row"]').filter({ hasText: "test-order-0001" }).first()).toBeVisible();
+    await expect(page.locator('[data-testid="order-row"]').filter({ hasText: orderId }).first()).toBeVisible();
   });
 });

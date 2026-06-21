@@ -302,8 +302,8 @@ test.describe("Admin Store Settings Spec Coverage @admin P1 P2", () => {
         await request.put(`${BACKEND_URL}/v1/admin/store-settings/presence`, {
           headers: { Authorization: `Bearer ${adminToken}` },
           data: {
-            bannerPresence: originalBannerPresence,
-            aboutPresence: originalAboutPresence,
+            bannerPresenceEnabled: originalBannerPresence.enabled,
+            aboutPresenceEnabled: originalAboutPresence.enabled,
           },
         });
       }

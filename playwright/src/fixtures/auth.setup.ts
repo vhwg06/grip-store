@@ -1,5 +1,6 @@
 import { test as setup, expect } from "@playwright/test";
 import path from "path";
+import fs from "fs";
 
 const USER_STATE_PATH = path.resolve(__dirname, ".auth/user.json");
 const ADMIN_STATE_PATH = path.resolve(__dirname, ".auth/admin.json");
@@ -17,6 +18,24 @@ const BACKEND_URL = process.env.GO_BACKEND_URL ?? "https://grip.vn/api";
 const ACCESS_TOKEN_KEY = "grip_store_access_token";
 const REFRESH_TOKEN_KEY = "grip_store_refresh_token";
 const EXPIRES_AT_KEY = "grip_store_access_token_expires_at";
+
+function isStateFresh(statePath: string): boolean {
+  try {
+    if (!fs.existsSync(statePath)) {
+      return false;
+    }
+    const state = JSON.parse(fs.readFileSync(statePath, "utf-8"));
+    const cookies = state.cookies || [];
+    const expiresAtCookie = cookies.find((c: any) => c.name === EXPIRES_AT_KEY);
+    if (!expiresAtCookie) {
+      return false;
+    }
+    const expiresAt = Number(expiresAtCookie.value);
+    return Number.isFinite(expiresAt) && expiresAt > Date.now() + 300_000;
+  } catch {
+    return false;
+  }
+}
 
 function extractAuthTokens(payload: any) {
   const data = payload?.data ?? payload;
@@ -63,6 +82,10 @@ async function persistAuthenticatedState(
 }
 
 setup("authenticate test user", async ({ page, request }) => {
+  if (isStateFresh(USER_STATE_PATH)) {
+    console.log("[auth-setup] Reusing cached user session state.");
+    return;
+  }
   const email = process.env.TEST_USER_EMAIL ?? "test@example.com";
   const password = process.env.TEST_USER_PASSWORD ?? "TestPass123!";
   const response = await request.post(`${BACKEND_URL}/v1/auth/login`, {
@@ -76,6 +99,10 @@ setup("authenticate test user", async ({ page, request }) => {
 });
 
 setup("authenticate admin user", async ({ page, request }) => {
+  if (isStateFresh(ADMIN_STATE_PATH)) {
+    console.log("[auth-setup] Reusing cached admin session state.");
+    return;
+  }
   const email = process.env.ADMIN_USER_EMAIL ?? "admin@example.com";
   const password = process.env.ADMIN_USER_PASSWORD ?? "AdminPass123!";
   const response = await request.post(`${BACKEND_URL}/v1/auth/login`, {

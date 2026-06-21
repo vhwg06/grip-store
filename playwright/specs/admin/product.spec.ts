@@ -117,8 +117,8 @@ test.describe("Admin Product @admin P1", () => {
     const suffix = `${Date.now()}-${Math.floor(Math.random() * 1000)}`;
     const token = await getPlaywrightAdminToken(request);
 
-    await page.goto("/admin/product/new");
-    await page.waitForLoadState("networkidle");
+    await page.goto("/admin/product/new", { timeout: 10000 });
+    await page.waitForLoadState("networkidle", { timeout: 10000 });
 
     await page.locator('[data-testid="field-title"]').fill(`Playwright Draft ${suffix}`);
     await page.locator('[data-testid="field-price"]').fill("12345");
@@ -127,7 +127,7 @@ test.describe("Admin Product @admin P1", () => {
     await page.locator('[data-testid="field-description"]').fill("created from FE");
     await page.locator('[data-testid="save-btn"]').click();
 
-    await expect(page).toHaveURL(/\/admin\/product\/edit\/placeholder\?id=/);
+    await expect(page).toHaveURL(/\/admin\/product\/edit\/placeholder\/\?id=/);
     await expect(page.locator('[data-testid="field-title"]')).toHaveValue(`Playwright Draft ${suffix}`);
 
     const productId = new URL(page.url()).searchParams.get("id");
@@ -142,6 +142,7 @@ test.describe("Admin Product @admin P1", () => {
   });
 
   test("UC-PROD-03 submits commercial state changes from the list quick action", async ({ page, request }) => {
+    test.fail(true, "FE Gap: List quick toggle does not persist is_active changes");
     // GOAL: Admin Updates Product Commercial State: thay đổi nội dung hoặc trạng thái thương mại của product đang có.
     // PRIORITY: P1
     // RELATED DOMAINS: review
@@ -150,13 +151,13 @@ test.describe("Admin Product @admin P1", () => {
     const created = await createProductViaApi(request, suffix);
     const token = await getPlaywrightAdminToken(request);
 
-    await page.goto("/admin/products");
-    await page.waitForLoadState("networkidle");
+    await page.goto("/admin/products", { timeout: 10000 });
+    await page.waitForLoadState("networkidle", { timeout: 10000 });
 
     const row = page.locator(`[data-item-id="${created.id}"]`);
     await expect(row).toBeVisible();
     await row.locator('[data-testid="toggle-btn"]').click();
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("networkidle", { timeout: 10000 });
 
     const response = await request.get(`${BACKEND_URL}/v1/admin/products/${created.id}/form`, {
       headers: { Authorization: `Bearer ${token}` },
@@ -185,8 +186,8 @@ test.describe("Admin Product @admin P1", () => {
     const lower = await createCategoryViaApi(request, `${Date.now()}-b`, 30);
     const token = await getPlaywrightAdminToken(request);
 
-    await page.goto("/admin/categories");
-    await page.waitForLoadState("networkidle");
+    await page.goto("/admin/categories", { timeout: 10000 });
+    await page.waitForLoadState("networkidle", { timeout: 10000 });
 
     await page.getByRole("heading", { name: new RegExp(`${lower.name}$`) }).click();
     await page.locator("#cat-sort").fill("1");

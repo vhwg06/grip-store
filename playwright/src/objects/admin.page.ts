@@ -4,7 +4,18 @@ export class AdminPage extends BasePage {
   private static readonly NAV_TIMEOUT_MS = 30_000;
 
   async goto() {
-    await super.goto("/admin/products");
+    const currentUrl = this.page.url();
+    if (currentUrl.includes("/admin/")) {
+      return;
+    }
+
+    const navProducts = this.page.locator('[data-testid="admin-nav-products"]');
+    if (await navProducts.isVisible()) {
+      await navProducts.click();
+    } else {
+      await super.goto("/admin/products");
+    }
+
     await this.page.locator('[data-testid="admin-nav"]').first().waitFor({
       state: "visible",
       timeout: AdminPage.NAV_TIMEOUT_MS,
@@ -16,7 +27,18 @@ export class AdminPage extends BasePage {
   }
 
   async navigateTo(section: string) {
-    await super.goto(`/admin/${section}`);
+    const currentUrl = this.page.url();
+    if (currentUrl.endsWith(`/admin/${section}`) || currentUrl.endsWith(`/admin/${section}/`)) {
+      return;
+    }
+
+    const navLink = this.page.locator(`[data-testid="admin-nav-${section}"]`);
+    if (await navLink.isVisible()) {
+      await navLink.click();
+    } else {
+      await super.goto(`/admin/${section}`);
+    }
+
     await this.page.waitForURL(new RegExp(`/admin/${section}`), {
       timeout: AdminPage.NAV_TIMEOUT_MS,
     });

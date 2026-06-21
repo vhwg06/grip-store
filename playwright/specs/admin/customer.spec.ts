@@ -22,8 +22,8 @@ test.describe("Admin Customer @admin P1", () => {
   }
 
   test.beforeEach(async ({ page }) => {
-    await page.goto("/admin/customers/");
-    await page.waitForLoadState("networkidle");
+    await page.goto("/admin/customers/", { timeout: 10000 });
+    await page.waitForLoadState("networkidle", { timeout: 10000 });
   });
 
   async function searchForUser(page: any, query: string) {

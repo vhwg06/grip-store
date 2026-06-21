@@ -770,27 +770,34 @@ export async function deleteReview(reviewId: number) {
 }
 
 export async function getAdminArticles(): Promise<AdminArticle[]> {
-  const payload = await apiFetch<any>("/api/admin/articles")
+  const payload = await apiFetch<any>("/api/content/articles")
   const raw = payload?.data || payload
   const items = Array.isArray(raw) ? raw : raw.articles ?? []
   return items.map(normalizeAdminArticle)
 }
 
 export async function getAdminArticle(id: string) {
-  const payload = await apiFetch<any>(`/api/admin/articles/${encodeURIComponent(id)}`)
+  const payload = await apiFetch<any>(`/api/content/articles/${encodeURIComponent(id)}`)
   const raw = payload?.data || payload
   return normalizeAdminArticle(raw)
 }
 
 export async function saveArticle(formData: FormData) {
-  return apiFetch<unknown>("/api/admin/articles", {
+  const id = formData.get("id") as string | null
+  if (id && id.trim()) {
+    return apiFetch<unknown>(`/api/content/articles/${encodeURIComponent(id.trim())}`, {
+      method: "PATCH",
+      body: formData,
+    }).then(normalizeActionResult)
+  }
+  return apiFetch<unknown>("/api/content/articles", {
     method: "POST",
     body: formData,
   }).then(normalizeActionResult)
 }
 
 export async function deleteArticle(id: string) {
-  return deleteJson(`/api/admin/articles/${encodeURIComponent(id)}`)
+  return deleteJson(`/api/content/articles/${encodeURIComponent(id)}`)
 }
 
 export async function getAdminBanners() {

@@ -85,6 +85,14 @@ export function AdminMediaManagementContent() {
 
   const handleUpload = async (file: File | null) => {
     if (!file) return
+    if (!file.type.startsWith("image/")) {
+      toast.error("Vui lòng chọn tệp hình ảnh hợp lệ")
+      return
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Ảnh vượt quá giới hạn 5MB")
+      return
+    }
     setUploading(true)
     try {
       const presigned = await getPresignedUrl(file.name, file.type)
@@ -140,6 +148,7 @@ export function AdminMediaManagementContent() {
             ref={fileRef}
             type="file"
             accept="image/*"
+            data-testid="media-file-input"
             className="hidden"
             onChange={(event) => {
               const file = event.target.files?.[0] ?? null
@@ -208,6 +217,7 @@ export function AdminMediaManagementContent() {
                     <button
                       key={asset.id}
                       type="button"
+                      data-testid="media-asset-card"
                       onClick={() => setSelectedId(asset.id)}
                       className={`overflow-hidden rounded-lg border text-left transition-all ${
                         isSelected

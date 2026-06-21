@@ -288,10 +288,10 @@ export function AdminArticlesContent() {
             asChild
             className="h-[42px] rounded-lg bg-[#99782b] px-5 text-sm font-semibold text-white hover:bg-[#99782b]/90"
           >
-            <Link href="/admin/article/new">
+            <a href="/admin/article/new">
               <Plus className="mr-2 h-4 w-4" />
               New article
-            </Link>
+            </a>
           </Button>
         </div>
       </div>
@@ -622,7 +622,7 @@ export function AdminArticlesContent() {
                     Save draft
                   </Button>
                   <Button
-                    type="button"
+                    type="submit"
                     onClick={handleSave}
                     disabled={saving || deleting}
                     className="h-10 rounded-lg bg-[#99782b] px-5 text-sm font-semibold text-white hover:bg-[#99782b]/90"
