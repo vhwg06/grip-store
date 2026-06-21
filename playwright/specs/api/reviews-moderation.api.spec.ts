@@ -1,5 +1,5 @@
 import { test, expect } from "../../src/fixtures/base-test";
-import { BACKEND_URL, getAdminToken } from "../../src/api-helpers/auth.helpers";
+import { BACKEND_URL, getAdminToken, getUserToken } from "../../src/api-helpers/auth.helpers";
 
 async function adminGet(request: any, path: string) {
   const token = await getAdminToken(request);
@@ -45,12 +45,45 @@ async function listReviews(request: any, status?: string) {
   };
 }
 
+async function createReview(request: any, comment: string, status?: string) {
+  const userToken = await getUserToken(request);
+  const response = await request.post(`${BACKEND_URL}/v1/reviews`, {
+    headers: { Authorization: `Bearer ${userToken}` },
+    data: {
+      product_id: "b1111111-1111-1111-1111-111111111111",
+      rating: 5,
+      content: comment,
+    },
+  });
+  expect([200, 201]).toContain(response.status());
+  const payload = await response.json();
+  const reviewId = payload?.data?.id ?? payload?.id;
+
+  if (status && status !== "PENDING") {
+    const adminToken = await getAdminToken(request);
+    let path = "";
+    if (status === "APPROVED") {
+      path = `/v1/admin/reviews/${reviewId}/approve`;
+    } else if (status === "HIDDEN") {
+      path = `/v1/admin/reviews/${reviewId}/hide`;
+    }
+    if (path) {
+      const updateRes = await request.put(`${BACKEND_URL}${path}`, {
+        headers: { Authorization: `Bearer ${adminToken}` },
+      });
+      expect(updateRes.ok()).toBeTruthy();
+    }
+  }
+  return reviewId;
+}
+
 test.describe("Admin Review Moderation API @api P2", () => {
   test("UC-REV-01 reviews the moderation queue", async ({ request }) => {
     // GOAL: Admin Reviews Moderation Queue: xác định review nào cần moderation và review nào đã ở public-eligible state.
     // PRIORITY: P2
     // RELATED DOMAINS: product
     // SCENARIO: SC-REV-01 Main flow
+    await createReview(request, `pending-reviews-queue-${Date.now()}`, "PENDING");
     const pending = await listReviews(request, "PENDING");
     expect(pending.reviews.length).toBeGreaterThan(0);
     expect(pending.reviews.every((review: any) => review.status === "PENDING")).toBeTruthy();
@@ -62,8 +95,11 @@ test.describe("Admin Review Moderation API @api P2", () => {
     // PRIORITY: P2
     // RELATED DOMAINS: product
     // SCENARIO: SC-REV-02 Main flow
+    const comment = `probe bulk ${Date.now()}`;
+    const reviewId = await createReview(request, comment, "APPROVED");
+
     const approved = await listReviews(request, "APPROVED");
-    const target = approved.reviews.find((review: any) => review.comment?.includes("probe bulk"));
+    const target = approved.reviews.find((review: any) => review.comment?.includes(comment));
     expect(target?.id).toBeTruthy();
 
     const hide = await adminPut(request, `/v1/admin/reviews/${target.id}/hide`, {});
@@ -85,6 +121,9 @@ test.describe("Admin Review Moderation API @api P2", () => {
     // PRIORITY: P2
     // RELATED DOMAINS: none
     // SCENARIO: SC-REV-03 Main flow
+    await createReview(request, `pending-bulk-1-${Date.now()}`, "PENDING");
+    await createReview(request, `pending-bulk-2-${Date.now()}`, "PENDING");
+
     const pending = await listReviews(request, "PENDING");
     expect(pending.reviews.length).toBeGreaterThanOrEqual(2);
 
@@ -110,8 +149,11 @@ test.describe("Admin Review Moderation API @api P2", () => {
     // PRIORITY: P2
     // RELATED DOMAINS: product
     // SCENARIO: SC-REV-05 Main flow
+    const comment = `probe hide ${Date.now()}`;
+    const reviewId = await createReview(request, comment, "HIDDEN");
+
     const hidden = await listReviews(request, "HIDDEN");
-    const target = hidden.reviews.find((review: any) => review.comment?.includes("probe hide"));
+    const target = hidden.reviews.find((review: any) => review.comment?.includes(comment));
     expect(target?.id).toBeTruthy();
 
     const deleted = await adminDelete(request, `/v1/admin/reviews/${target.id}`);
