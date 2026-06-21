@@ -127,7 +127,6 @@ test.describe("Admin Orders API @api P1", () => {
     // PRIORITY: P1
     // RELATED DOMAINS: refund
     // SCENARIO: SC-ORD-03 Exception flow
-    test.fail(true, "blocked-be-gap: backend accepts forbidden PENDING -> DELIVERED transition shortcut");
     const orderId = await createPendingOrder(request);
 
     const transition = await adminPatch(request, `/v1/admin/orders/${orderId}`, {

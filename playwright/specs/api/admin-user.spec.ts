@@ -75,7 +75,6 @@ test.describe("Admin User API @api P2", () => {
     // PRIORITY: P2
     // RELATED DOMAINS: none
     // SCENARIO: SC-USER-03 Main flow
-    test.fail(true, "blocked-be-gap: PATCH /v1/admin/users/:id/points and /block return 404");
 
     const points = await adminPatch(request, `/v1/admin/users/${TEST_USER_ID}/points`, {
       points: 1300,

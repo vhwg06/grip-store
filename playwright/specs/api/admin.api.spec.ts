@@ -39,6 +39,13 @@ test.describe("Admin API @api", () => {
   async function createRefundableOrder() {
     const orderId = await createAdminOrder();
 
+    const payResponse = await client.patch(
+      `/v1/admin/orders/${orderId}`,
+      { status: "paid" },
+      { headers: { Authorization: `Bearer ${adminToken}` } },
+    );
+    expect(payResponse.status).toBe(204);
+
     const deliverResponse = await client.patch(
       `/v1/admin/orders/${orderId}`,
       { status: "delivered" },

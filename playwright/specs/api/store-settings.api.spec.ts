@@ -352,7 +352,6 @@ test.describe("Store Settings API Contract @api P1 P2", () => {
     // PRIORITY: P2
     // RELATED DOMAINS: none
     // SCENARIO: SC-SET-05 Main flow
-    test.fail(true, "blocked-be-gap: bannerPresence/aboutPresence missing in config");
     test.skip(!process.env.ADMIN_USER_TOKEN, "ADMIN_USER_TOKEN not set");
 
     const response = await getAdminSettings();

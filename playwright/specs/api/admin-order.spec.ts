@@ -95,7 +95,6 @@ test.describe("Admin Order API @api P1 P2", () => {
     // SCENARIO: SC-ORD-03 Exception flow
     // INVARIANT: PENDING → DELIVERED bị cấm vì vi phạm order lifecycle rules
     // Expected: 400/409/422, không phải 204
-    test.fail(true, "blocked-be-gap: backend accepts PENDING -> DELIVERED transition shortcut");
     const orderId = await createPendingOrder(request);
 
     const invalidTransition = await adminPatch(request, `/v1/admin/orders/${orderId}`, {

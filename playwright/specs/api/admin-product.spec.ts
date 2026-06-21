@@ -250,7 +250,6 @@ test.describe("Admin Product API @api P1 P2", () => {
     // PRIORITY: P2
     // RELATED DOMAINS: none
     // SCENARIO: SC-PROD-05 Main flow
-    test.fail(true, "blocked-be-gap: product-linked cards endpoint /v1/admin/cards unavailable on production API");
     const response = await adminGet(request, "/v1/admin/cards");
     expect(response.ok()).toBeTruthy();
 
