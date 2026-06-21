@@ -223,3 +223,19 @@ Each admin module should maintain its own folder under `/specs/<module>/` and Ph
 - All UI components must display and interact with real data fetched from the backend (server-side state).
 - Do not use client-side mocking (e.g., hardcoded arrays, E2E conditional mock states, etc.).
 - If specific data is required for tests or layout verification (such as products, reviews, categories, etc.), it must be seeded directly in the backend database using SQL migration files, scripts, or official backend APIs (e.g., in `/Users/cynus/Desktop/go-grip`).
+
+---
+
+## 🧪 Testing Best Practices & Anti-Patterns
+
+### 1. Bidirectional State Transition Testing (Kiểm thử trạng thái 2 chiều)
+Mọi test case liên quan đến thay đổi trạng thái (Toggle, Active/Inactive, Bật/Tắt, Enable/Disable) **bắt buộc phải được kiểm thử theo cả 2 chiều**:
+- **Chiều tắt:** Trạng thái ban đầu (`Active/Enabled`) $\rightarrow$ UI Toggle Tắt $\rightarrow$ Lưu $\rightarrow$ Reload/F5 trang $\rightarrow$ Assert đã ẩn/disabled.
+- **Chiều bật:** UI Toggle Bật lại $\rightarrow$ Lưu $\rightarrow$ Reload/F5 trang $\rightarrow$ Assert đã hiển thị/enabled.
+*Tuyệt đối không chỉ kiểm thử 1 chiều (chỉ tắt hoặc chỉ bật), vì có thể bỏ lọt các lỗi parse payload ở backend.*
+
+### 2. Tránh lệch cấu trúc API Bypass trong Test
+Khi thực hiện Mock, Setup, hoặc Cleanup/Rollback dữ liệu trong Playwright tests:
+- Tránh viết tay (hardcode) payload JSON gửi trực tiếp bằng `request.put` hay `request.post` với cấu trúc khác với cách Frontend thực tế gửi qua API Adapter.
+- Ưu tiên tái sử dụng (import) trực tiếp các hàm API Adapter/Client của Frontend hoặc đảm bảo Schema và cấu trúc trường (Nested/Flat) trùng khớp hoàn toàn với Frontend gửi đi để tránh việc test setup tự "vá lỗi" cấu trúc hộ UI.
+

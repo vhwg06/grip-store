@@ -263,6 +263,7 @@ test.describe("Admin Store Settings Spec Coverage @admin P1 P2", () => {
     page,
     homepagePage,
     request,
+    adminPage,
   }) => {
     // GOAL: Admin Maintains Banner And About Presence Through Store Settings: kiểm soát các reference thuộc banner/about trong phạm vi storefront behavior.
     // PRIORITY: P2
@@ -282,10 +283,22 @@ test.describe("Admin Store Settings Spec Coverage @admin P1 P2", () => {
       await expect(page.locator('[data-testid="settings-banner-presence-toggle"]')).toBeVisible();
       await expect(page.locator('[data-testid="settings-about-presence-toggle"]')).toBeVisible();
 
-      // Toggle them
-      await expect(page.locator('[data-testid="settings-banner-presence-toggle"]')).toBeEnabled({ timeout: 1000 });
-      await expect(page.locator('[data-testid="settings-about-presence-toggle"]')).toBeEnabled({ timeout: 1000 });
+      // Ensure they start as checked (enabled)
+      const bannerCheckbox = page.locator('[data-testid="settings-banner-presence-toggle"]');
+      const aboutCheckbox = page.locator('[data-testid="settings-about-presence-toggle"]');
 
+      if (await bannerCheckbox.getAttribute("aria-checked") !== "true") {
+        await bannerCheckbox.click();
+      }
+      if (await aboutCheckbox.getAttribute("aria-checked") !== "true") {
+        await aboutCheckbox.click();
+      }
+      if (await bannerCheckbox.getAttribute("aria-checked") !== "true" || await aboutCheckbox.getAttribute("aria-checked") !== "true") {
+        await page.locator('[data-testid="settings-save-presence"]').click();
+        await expectSuccessToast(page);
+      }
+
+      // 1. TẮT PRESENCE (DISABLE)
       await page.locator('[data-testid="settings-banner-presence-toggle"]').click();
       await page.locator('[data-testid="settings-about-presence-toggle"]').click();
 
@@ -293,10 +306,27 @@ test.describe("Admin Store Settings Spec Coverage @admin P1 P2", () => {
       await page.locator('[data-testid="settings-save-presence"]').click();
       await expectSuccessToast(page);
 
-      // Verify reflection on storefront
+      // Verify reflection on storefront (Should be hidden)
       await homepagePage.goto();
       await expect(page.locator('[data-testid="homepage-banner"]')).toBeHidden();
       await expect(page.locator('[data-testid="homepage-about"]')).toBeHidden();
+
+      // 2. BẬT LẠI PRESENCE (ENABLE - BIDIRECTIONAL TEST)
+      await adminPage.goto();
+      await adminPage.navigateTo("settings");
+
+      await expect(page.locator('[data-testid="settings-banner-presence-toggle"]')).toBeVisible();
+      await page.locator('[data-testid="settings-banner-presence-toggle"]').click();
+      await page.locator('[data-testid="settings-about-presence-toggle"]').click();
+
+      // Save
+      await page.locator('[data-testid="settings-save-presence"]').click();
+      await expectSuccessToast(page);
+
+      // Verify reflection on storefront (Should be visible again)
+      await homepagePage.goto();
+      await expect(page.locator('[data-testid="homepage-banner"]')).toBeVisible();
+      await expect(page.locator('[data-testid="homepage-about"]')).toBeVisible();
     } finally {
       if (originalBannerPresence && originalAboutPresence) {
         await request.put(`${BACKEND_URL}/v1/admin/store-settings/presence`, {
