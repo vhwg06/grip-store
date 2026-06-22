@@ -124,6 +124,30 @@ export default function ProductDetailPageClient({ id }: { id: string }) {
 
         <ProductTabs description={sanitizeHtml(product.description)} usageGuide={sanitizeHtml(product.usageGuide)} reviewCount={product.reviewCount} />
 
+        {product.introArticle && (
+          <section className="mt-12 rounded-2xl border border-neutral-200 bg-neutral-50/60 p-6 md:p-8" data-testid="product-intro-article">
+            <div className="mb-4">
+              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-neutral-500">Intro article</p>
+              <h2 className="mt-2 text-2xl font-bold text-[#211e18]">{product.introArticle.title}</h2>
+            </div>
+
+            {product.introArticle.featuredImage && (
+              <div className="mb-6 overflow-hidden rounded-xl border border-neutral-200 bg-white">
+                <img
+                  src={product.introArticle.featuredImage}
+                  alt={product.introArticle.title}
+                  className="h-auto w-full object-cover"
+                />
+              </div>
+            )}
+
+            <div
+              className="prose prose-neutral max-w-none text-neutral-700"
+              dangerouslySetInnerHTML={{ __html: sanitizeHtml(product.introArticle.content) }}
+            />
+          </section>
+        )}
+
         <ProductReviewsSection productId={product.id} />
       </div>
     </main>

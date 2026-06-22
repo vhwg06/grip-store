@@ -3,6 +3,7 @@
 import { apiFetch } from "@/adapters/api/http-client"
 import type {
   CatalogCategory,
+  CatalogLinkedArticle,
   CatalogProduct,
   CatalogProductDetail,
   CatalogProductsResponse,
@@ -36,6 +37,21 @@ function normalizeProduct(product: Partial<CatalogProduct>): CatalogProduct {
       value: String(spec?.value ?? "").trim(),
     }))
     .filter((spec: { key: string; value: string }) => spec.key.length > 0)
+
+  const introArticle: CatalogLinkedArticle | null = raw.intro_article
+    ? {
+        id: String(raw.intro_article.id ?? ""),
+        title: String(raw.intro_article.title ?? ""),
+        slug: String(raw.intro_article.slug ?? ""),
+        content: String(raw.intro_article.content ?? raw.intro_article.body ?? ""),
+        featuredImage:
+          raw.intro_article.featuredImage ??
+          raw.intro_article.featured_image ??
+          raw.intro_article.image_url ??
+          raw.intro_article.image ??
+          null,
+      }
+    : null
 
   return {
     id: String(product.id || ""),
@@ -71,6 +87,8 @@ function normalizeProduct(product: Partial<CatalogProduct>): CatalogProduct {
     usageGuide: product.usageGuide ?? null,
     bundledGifts: product.bundledGifts ?? null,
     discountPercent: typeof product.discountPercent === 'number' ? product.discountPercent : undefined,
+    introArticleId: raw.intro_article_id ?? raw.introArticleId ?? null,
+    introArticle,
   }
 }
 

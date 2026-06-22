@@ -1,6 +1,6 @@
 "use client"
 
-import { deleteArticle, saveAdminAboutPage, saveArticle, saveSetting } from "@/adapters/api/admin.api"
+import { deleteArticle, saveAdminAboutPage, saveArticle, saveSetting, updateProductIntroArticle } from "@/adapters/api/admin.api"
 import { useAdminArticles, useAdminDashboard } from "@/application/hooks/useAdmin"
 import MediaUploader from "@/components/admin/media-uploader"
 import { Button } from "@/components/ui/button"
@@ -122,6 +122,9 @@ export function AdminArticlesContent() {
 
   const composeMode = searchParams.get("compose")
   const selectedId = searchParams.get("articleId")
+  const returnTo = searchParams.get("returnTo")
+  const returnLabel = searchParams.get("returnLabel") || "Back to Product Editor"
+  const linkProductId = searchParams.get("linkProductId")
   const deferredQuery = useDeferredValue(query)
   const currentAboutArticleId = dashboard?.settingsMap?.about_article_id ?? ""
 
@@ -406,9 +409,19 @@ export function AdminArticlesContent() {
         await syncAboutOwnership(null)
       }
 
+      if (linkProductId && (resolvedId ?? nextState.id ?? null)) {
+        await updateProductIntroArticle(linkProductId, resolvedId ?? nextState.id ?? null)
+      }
+
       setEditorState(persistedState)
       toast.success(nextState.id ? "Article updated" : "Article created")
-      handleRouteState(resolvedId ?? nextState.id ?? null, null)
+      if (returnTo && linkProductId) {
+        startTransition(() => {
+          router.push(returnTo)
+        })
+      } else {
+        handleRouteState(resolvedId ?? nextState.id ?? null, null)
+      }
     } catch (error: any) {
       toast.error(error?.message || "Could not save article")
     } finally {
@@ -471,6 +484,15 @@ export function AdminArticlesContent() {
           </p>
         </div>
         <div className="flex items-center gap-3">
+          {returnTo && (
+            <Button
+              asChild
+              variant="outline"
+              className="h-[42px] rounded-lg border-[#e7e1d7] bg-white px-5 text-sm font-semibold text-[#50483d] hover:bg-[#faf6ee]"
+            >
+              <Link href={returnTo}>{returnLabel}</Link>
+            </Button>
+          )}
           <Button
             asChild
             className="h-[42px] rounded-lg bg-[#99782b] px-5 text-sm font-semibold text-white hover:bg-[#99782b]/90"

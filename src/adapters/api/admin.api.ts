@@ -65,6 +65,11 @@ function normalizeAdminArticle(raw: any): AdminArticle {
   }
 }
 
+function normalizeLinkedAdminArticle(raw: any): AdminArticle | null {
+  if (!raw) return null
+  return normalizeAdminArticle(raw)
+}
+
 function normalizeAdminBanner(raw: any): AdminBanner {
   return {
     id: Number(raw?.id ?? 0),
@@ -285,6 +290,8 @@ export async function getAdminProductForm(id?: string) {
         sold: Number(p.sold_count ?? p.sold ?? 0),
         usageGuide: p.usageGuide ?? p.usage_guide ?? null,
         bundledGifts: p.bundledGifts ?? p.bundled_gifts ?? null,
+        introArticleId: p.intro_article_id ?? p.introArticleId ?? null,
+        introArticle: normalizeLinkedAdminArticle(p.intro_article ?? p.introArticle),
         sortOrder: Number(p.sort_order ?? p.sortOrder ?? 0),
         specs: Array.isArray(p.specs) ? p.specs : [],
       }
@@ -489,7 +496,8 @@ export async function saveProduct(formData: FormData) {
 }
 
 export async function getProductForAdminAction(id: string) {
-  return getAdminProduct(id)
+  const payload = await getAdminProductForm(id)
+  return payload.product ?? null
 }
 
 export async function deleteProduct(id: string) {
@@ -502,6 +510,12 @@ export async function toggleProductStatus(id: string, isActive: boolean) {
 
 export async function reorderProduct(id: string, newOrder: number) {
   return patchJson(`/api/admin/products/${encodeURIComponent(id)}/order`, { sortOrder: newOrder })
+}
+
+export async function updateProductIntroArticle(id: string, introArticleId: string | null) {
+  return patchJson(`/api/admin/products/${encodeURIComponent(id)}`, {
+    introArticleId,
+  })
 }
 
 

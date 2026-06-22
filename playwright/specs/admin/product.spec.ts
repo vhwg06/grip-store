@@ -38,6 +38,22 @@ async function createCategoryViaApi(request: any, suffix: string, position: numb
   return payload.data as { id: string; name: string; position: number };
 }
 
+async function createArticleViaApi(request: any, suffix: string, status: "published" | "draft" = "published") {
+  const token = await getPlaywrightAdminToken(request);
+
+  const response = await request.post(`${BACKEND_URL}/v1/content/articles`, {
+    headers: { Authorization: `Bearer ${token}` },
+    data: {
+      title: `Playwright Linked ${suffix}`,
+      slug: `playwright-linked-${suffix}`,
+      body: `<p>Linked intro article ${suffix}</p>`,
+      status,
+    },
+  });
+  expect(response.ok()).toBeTruthy();
+  return response.json();
+}
+
 test.describe("Admin Product @admin P1", () => {
   test.use({
     storageState: "./playwright/src/fixtures/.auth/admin.json",
@@ -214,6 +230,34 @@ test.describe("Admin Product @admin P1", () => {
     await expect(page).toHaveURL(new RegExp(`/admin/product/edit/(placeholder/)?\\?id=${created.id}|/admin/product/edit/${created.id}`));
     await expect(page.getByRole("heading", { name: "Product Editor" })).toBeVisible();
     await expect(page).not.toHaveURL(/\/admin\/cards/);
+  });
+
+  test("UC-PROD-05 links an intro article from Product Editor and keeps article return path in product context", async ({ page, request }) => {
+    const suffix = `${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+    const created = await createProductViaApi(request, suffix);
+    const article = await createArticleViaApi(request, suffix, "published");
+    const token = await getPlaywrightAdminToken(request);
+
+    await page.goto(`/admin/product/edit/${created.id}`, { timeout: 10000 });
+    await page.waitForLoadState("networkidle", { timeout: 10000 });
+
+    await page.locator("#intro-article-select").selectOption(article.id);
+    await page.getByRole("button", { name: "Save link" }).click();
+
+    await expect
+      .poll(async () => {
+        const verify = await request.get(`${BACKEND_URL}/v1/admin/products/${created.id}/form`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        expect(verify.ok()).toBeTruthy();
+        const payload = await verify.json();
+        return payload.product.intro_article_id;
+      })
+      .toBe(article.id);
+
+    await page.getByRole("link", { name: "Edit linked article" }).click();
+    await expect(page).toHaveURL(new RegExp(`/admin/articles\\?.*articleId=${article.id}`));
+    await expect(page.getByRole("link", { name: "Product Editor" })).toBeVisible();
   });
 
   test("UC-PROD-04 submits category reordering semantics from the admin editor", async ({ page, request }) => {

@@ -26,6 +26,8 @@ export interface CatalogProduct {
   usageGuide?: string | null
   bundledGifts?: string | null
   discountPercent?: number
+  introArticleId?: string | null
+  introArticle?: CatalogLinkedArticle | null
 }
 
 export interface ProductSpecItem {
@@ -35,6 +37,14 @@ export interface ProductSpecItem {
 
 export interface CatalogProductDetail extends CatalogProduct {
   specs?: ProductSpecItem[]
+}
+
+export interface CatalogLinkedArticle {
+  id: string
+  title: string
+  slug: string
+  content: string
+  featuredImage?: string | null
 }
 
 

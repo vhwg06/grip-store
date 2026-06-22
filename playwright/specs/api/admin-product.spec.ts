@@ -40,6 +40,19 @@ async function createProduct(request: any, suffix: string) {
   return payload.data as { id: string; title: string; price: number; category_id: string };
 }
 
+async function createArticle(request: any, suffix: string, status: "published" | "draft" = "published") {
+  const response = await adminPost(request, "/v1/content/articles", {
+    data: {
+      title: `Playwright Article ${suffix}`,
+      slug: `playwright-article-${suffix}`,
+      body: `<p>Editorial body ${suffix}</p>`,
+      status,
+    },
+  });
+  expect(response.ok()).toBeTruthy();
+  return response.json();
+}
+
 async function getProductForm(request: any, id: string) {
   const response = await adminGet(request, `/v1/admin/products/${id}/form`);
   expect(response.ok()).toBeTruthy();
@@ -262,5 +275,44 @@ test.describe("Admin Product API @api P1 P2", () => {
 
     const absentCardsRoute = await adminGet(request, "/v1/admin/cards");
     expect(absentCardsRoute.status()).toBe(404);
+  });
+
+  test("UC-PROD-05 returns linked intro article through product form and public detail", async ({ request }) => {
+    const suffix = `${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+    const created = await createProduct(request, suffix);
+    const article = await createArticle(request, `${suffix}-published`, "published");
+    const draftArticle = await createArticle(request, `${suffix}-draft`, "draft");
+
+    const attachPublished = await adminPatch(request, `/v1/admin/products/${created.id}`, {
+      data: { introArticleId: article.id },
+    });
+    expect(attachPublished.ok()).toBeTruthy();
+
+    const formWithPublished = await getProductForm(request, created.id);
+    expect(formWithPublished.product.intro_article_id).toBe(article.id);
+    expect(formWithPublished.product.intro_article.title).toBe(article.title);
+
+    const publicPublishedResponse = await request.get(`${BACKEND_URL}/v1/catalog/products/${created.id}`);
+    expect(publicPublishedResponse.ok()).toBeTruthy();
+    const publicPublishedPayload = await publicPublishedResponse.json();
+    expect(publicPublishedPayload.data.intro_article.id).toBe(article.id);
+
+    const attachDraft = await adminPatch(request, `/v1/admin/products/${created.id}`, {
+      data: { introArticleId: draftArticle.id },
+    });
+    expect(attachDraft.ok()).toBeTruthy();
+
+    const publicDraftResponse = await request.get(`${BACKEND_URL}/v1/catalog/products/${created.id}`);
+    expect(publicDraftResponse.ok()).toBeTruthy();
+    const publicDraftPayload = await publicDraftResponse.json();
+    expect(publicDraftPayload.data.intro_article ?? null).toBeNull();
+
+    const clearLink = await adminPatch(request, `/v1/admin/products/${created.id}`, {
+      data: { introArticleId: null },
+    });
+    expect(clearLink.ok()).toBeTruthy();
+
+    const clearedForm = await getProductForm(request, created.id);
+    expect(clearedForm.product.intro_article_id ?? null).toBeNull();
   });
 });

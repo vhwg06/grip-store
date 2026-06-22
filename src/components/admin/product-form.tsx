@@ -1,6 +1,7 @@
 'use client'
 
-import { getProductForAdminAction, saveProduct } from "@/adapters/api/admin.api"
+import { getProductForAdminAction, saveProduct, updateProductIntroArticle } from "@/adapters/api/admin.api"
+import { useAdminArticles } from "@/application/hooks/useAdmin"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -29,17 +30,21 @@ export default function ProductForm({ product, categories = [], isCreate = false
     const [formSeed, setFormSeed] = useState(0)
     const [generalSaving, setGeneralSaving] = useState(false)
     const [mediaSaving, setMediaSaving] = useState(false)
+    const [introSaving, setIntroSaving] = useState(false)
 
     const [visibilityLevel, setVisibilityLevel] = useState(String(product?.visibilityLevel ?? -1))
     const [mainImage, setMainImage] = useState(product?.image || "")
     const [galleryImages, setGalleryImages] = useState<string[]>(product?.images || [])
     const [specs, setSpecs] = useState<Array<{ key: string; value: string }>>(product?.specs || [])
+    const [linkedArticleId, setLinkedArticleId] = useState<string>(product?.introArticleId ?? product?.introArticle?.id ?? "")
+    const { data: articles = [] } = useAdminArticles()
 
     // Validation state for the publish checklist panel
     const hasSlug = Boolean(currentProduct?.id)
     const hasPrice = Boolean(currentProduct?.price && Number(currentProduct.price) > 0)
     const hasPrimaryImage = Boolean(mainImage)
     const hasCategory = Boolean(currentProduct?.categoryId)
+    const linkedArticle = articles.find((article) => article.id === linkedArticleId) ?? currentProduct?.introArticle ?? null
 
     const publishReady = hasSlug && hasPrice && hasPrimaryImage && hasCategory
 
@@ -48,6 +53,7 @@ export default function ProductForm({ product, categories = [], isCreate = false
         setMainImage(product?.image || "")
         setGalleryImages(product?.images || [])
         setVisibilityLevel(String(product?.visibilityLevel ?? -1))
+        setLinkedArticleId(product?.introArticleId ?? product?.introArticle?.id ?? "")
         setFormSeed(s => s + 1)
         if (product?.specs) setSpecs(product.specs)
         else setSpecs([])
@@ -65,6 +71,7 @@ export default function ProductForm({ product, categories = [], isCreate = false
                 setMainImage((latest as any)?.image || "")
                 setGalleryImages((latest as any)?.images || [])
                 setVisibilityLevel(String((latest as any)?.visibilityLevel ?? -1))
+                setLinkedArticleId((latest as any)?.introArticleId ?? (latest as any)?.introArticle?.id ?? "")
                 setFormSeed(s => s + 1)
                 if ((latest as any)?.specs) setSpecs((latest as any).specs)
             } catch { /* ignore */ }
@@ -89,6 +96,9 @@ export default function ProductForm({ product, categories = [], isCreate = false
 
             const cleanedSpecs = specs.filter(s => s.key.trim() !== "")
             formData.set("specs", JSON.stringify(cleanedSpecs))
+            if (linkedArticleId) {
+                formData.set("introArticleId", linkedArticleId)
+            }
 
             const res = await saveProduct(formData)
             if (res.success === false) {
@@ -112,6 +122,24 @@ export default function ProductForm({ product, categories = [], isCreate = false
         } finally {
             setGeneralSaving(false)
             submitLock.current = false
+        }
+    }
+
+    async function handleSaveIntroArticle() {
+        if (!currentProduct?.id) return
+        setIntroSaving(true)
+        try {
+            const res = await updateProductIntroArticle(currentProduct.id, linkedArticleId || null)
+            if (res.success === false) {
+                toast.error((res as any).error || t('common.error'))
+            } else {
+                toast.success(linkedArticleId ? "Intro article linked!" : "Intro article cleared!")
+                router.refresh()
+            }
+        } catch (e: any) {
+            toast.error(e?.message || t('common.error'))
+        } finally {
+            setIntroSaving(false)
         }
     }
 
@@ -145,6 +173,14 @@ export default function ProductForm({ product, categories = [], isCreate = false
         setSpecs(prev => { const n = [...prev]; n[i] = { ...n[i], [field]: val }; return n })
     }
     const handleRemoveSpec = (i: number) => setSpecs(prev => prev.filter((_, idx) => idx !== i))
+    const productEditorReturnTo = currentProduct?.id
+        ? buildExportRoutePath("/admin/product/edit", String(currentProduct.id))
+        : "/admin/products"
+    const createLinkedArticleHref = `/admin/articles?compose=new&linkProductId=${encodeURIComponent(String(currentProduct?.id ?? ""))}&returnTo=${encodeURIComponent(productEditorReturnTo)}&returnLabel=${encodeURIComponent("Product Editor")}`
+    const editLinkedArticleHref = linkedArticle?.id
+        ? `/admin/articles?articleId=${encodeURIComponent(String(linkedArticle.id))}&linkProductId=${encodeURIComponent(String(currentProduct?.id ?? ""))}&returnTo=${encodeURIComponent(productEditorReturnTo)}&returnLabel=${encodeURIComponent("Product Editor")}`
+        : null
+
 
     return (
         <div className="w-[1056px]">
@@ -573,6 +609,98 @@ export default function ProductForm({ product, categories = [], isCreate = false
                                     {mediaSaving ? "Saving..." : "Save media"}
                                 </Button>
                             </div>
+                        )}
+                    </div>
+
+                    <div className="bg-white border border-[#e7e1d7] rounded-lg p-5 space-y-4">
+                        <div>
+                            <h3 className="text-sm font-bold text-[#211e18] mb-0.5">Intro article</h3>
+                            <p className="text-[11px] text-[#787774]">
+                                Attach editorial intro content directly from Product Editor and keep the return path inside product context.
+                            </p>
+                        </div>
+
+                        {!currentProduct?.id ? (
+                            <div className="rounded-lg border border-[#ffe58f] bg-[#fffbe6] p-3 text-[11px] text-[#ad6800]">
+                                Create the product first, then link or create an intro article.
+                            </div>
+                        ) : (
+                            <>
+                                <div className="space-y-1.5">
+                                    <Label htmlFor="intro-article-select" className="text-xs font-semibold text-[#211e18]">
+                                        Linked article
+                                    </Label>
+                                    <select
+                                        id="intro-article-select"
+                                        value={linkedArticleId}
+                                        onChange={(e) => setLinkedArticleId(e.target.value)}
+                                        className="h-9 w-full rounded-md border border-[#e7e1d7] bg-transparent px-3 text-sm focus:outline-none focus:ring-1 focus:ring-[#99782b]/50 text-[#211e18]"
+                                    >
+                                        <option value="">No linked article</option>
+                                        {articles.map((article) => (
+                                            <option key={article.id} value={article.id}>
+                                                {article.title} {article.isActive ? "• Published" : "• Draft"}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                <div className="rounded-lg border border-[#f0ebe1] bg-[#fbfaf7] p-3 text-xs text-[#50483d] space-y-2">
+                                    {linkedArticle ? (
+                                        <div className="space-y-1">
+                                            <div className="flex items-center justify-between gap-2">
+                                                <p className="font-semibold text-[#211e18] line-clamp-1">{linkedArticle.title}</p>
+                                                <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full shrink-0 ${linkedArticle.isActive ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-amber-50 text-amber-700 border border-amber-200'}`}>
+                                                    {linkedArticle.isActive ? "Published" : "Draft"}
+                                                </span>
+                                            </div>
+                                            <p className="text-[11px] text-[#787774] font-mono">/{linkedArticle.slug}</p>
+                                        </div>
+                                    ) : (
+                                        <p className="text-[#9a9184] text-center py-1">No intro article linked yet.</p>
+                                    )}
+                                    {/* Show a status if the selection is modified and unsaved */}
+                                    {linkedArticleId !== (currentProduct?.introArticleId ?? currentProduct?.introArticle?.id ?? "") && (
+                                        <p className="text-[10px] text-amber-600 font-semibold pt-1 border-t border-[#f0ebe1]">
+                                            ⚠️ Link changes are pending. Click &ldquo;Save link&rdquo; or &ldquo;Clear link&rdquo; to apply.
+                                        </p>
+                                    )}
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-2">
+                                    <Button
+                                        type="button"
+                                        onClick={handleSaveIntroArticle}
+                                        disabled={introSaving}
+                                        className="h-9 bg-[#99782b] hover:bg-[#99782b]/90 text-white rounded-lg text-xs font-semibold"
+                                    >
+                                        {introSaving ? "Saving..." : linkedArticleId ? "Save link" : "Clear link"}
+                                    </Button>
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        onClick={() => setLinkedArticleId("")}
+                                        className="h-9 border-[#e7e1d7] text-[#50483d] hover:bg-[#f8f5ef] rounded-lg text-xs font-semibold"
+                                    >
+                                        Remove selection
+                                    </Button>
+                                </div>
+
+                                <div className="grid grid-cols-1 gap-2 pt-2 border-t border-[#f0ebe1]">
+                                    <Button asChild variant="outline" className="h-9 border-[#e7e1d7] text-[#50483d] hover:bg-[#f8f5ef] rounded-lg text-xs font-semibold justify-center">
+                                        <Link href={createLinkedArticleHref}>
+                                            Create new linked article
+                                        </Link>
+                                    </Button>
+                                    {editLinkedArticleHref && (
+                                        <Button asChild variant="outline" className="h-9 border-[#e7e1d7] text-[#50483d] hover:bg-[#f8f5ef] rounded-lg text-xs font-semibold justify-center">
+                                            <Link href={editLinkedArticleHref}>
+                                                Edit linked article
+                                            </Link>
+                                        </Button>
+                                    )}
+                                </div>
+                            </>
                         )}
                     </div>
 

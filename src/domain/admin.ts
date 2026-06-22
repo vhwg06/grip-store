@@ -35,6 +35,8 @@ export interface AdminProduct {
   sold: number
   usageGuide: string | null
   bundledGifts: string | null
+  introArticleId?: string | null
+  introArticle?: AdminArticle | null
   isActive?: boolean
   sortOrder?: number
 }
@@ -57,6 +59,7 @@ export interface AdminProductForm {
   stock: number
   usageGuide: string | null
   bundledGifts: string | null
+  introArticleId?: string | null
 }
 
 export interface AdminCategory {
