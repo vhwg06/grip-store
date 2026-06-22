@@ -97,7 +97,7 @@ export function UsersContent({ data, mode = "customer" }: UsersContentProps) {
       signals.push({ text: "Customer has prior refund activity.", badge: "Refunds", tone: "neutral" })
     }
     if ((selectedUser.orderCount || 0) === 0) {
-      signals.push({ text: "No commerce history is attached yet.", badge: "New", tone: "neutral" })
+      signals.push({ text: "Empty commerce history is valid for this customer.", badge: "New", tone: "neutral" })
     }
     if (signals.length === 0) {
       signals.push({ text: "No active account risks are visible from this page.", badge: "Stable", tone: "success" })
@@ -319,7 +319,7 @@ export function UsersContent({ data, mode = "customer" }: UsersContentProps) {
                   <p className="text-xs text-[#71685a] mt-1">
                     {mode === "user"
                       ? "Manage account status and open linked customer context. Rewards mutations are removed from this surface."
-                      : "Jump into history, refunds, reviews, and linked account actions from one customer context."}
+                      : "Jump into commerce history or the linked account without mixing customer and account controls."}
                   </p>
                 </div>
 
@@ -382,38 +382,40 @@ export function UsersContent({ data, mode = "customer" }: UsersContentProps) {
                     Block / unblock
                   </Button>
 
-                  <Button
-                    onClick={() => router.push(`/admin/orders?q=${encodeURIComponent(selectedCustomerQuery || selectedUser.userId)}`)}
-                    className="bg-[#e9dfc8] hover:bg-[#dfd4bd] text-[#2d2617] font-semibold text-xs py-3 h-auto rounded flex flex-col gap-1 items-center justify-center border border-[#d8ccb2]"
-                  >
-                    <History className="h-4 w-4 text-[#99782b]" />
-                    Open history
-                  </Button>
-
-                  <Button
-                    onClick={() => router.push(`/admin/refunds?q=${encodeURIComponent(selectedCustomerQuery || selectedUser.userId)}`)}
-                    className="bg-[#e9dfc8] hover:bg-[#dfd4bd] text-[#2d2617] font-semibold text-xs py-3 h-auto rounded flex flex-col gap-1 items-center justify-center border border-[#d8ccb2]"
-                  >
-                    <ShieldAlert className="h-4 w-4 text-[#99782b]" />
-                    Open refunds
-                  </Button>
-
-                  <Button
-                    onClick={() => router.push(`/admin/reviews?q=${encodeURIComponent(selectedCustomerQuery || selectedUser.userId)}`)}
-                    className="bg-[#e9dfc8] hover:bg-[#dfd4bd] text-[#2d2617] font-semibold text-xs py-3 h-auto rounded flex flex-col gap-1 items-center justify-center border border-[#d8ccb2]"
-                  >
-                    <MessageSquare className="h-4 w-4 text-[#99782b]" />
-                    Open reviews
-                  </Button>
-
                   {mode === "customer" ? (
-                    <Button
-                      onClick={() => router.push(`/admin/users?q=${encodeURIComponent(selectedUser.username || selectedUser.userId)}`)}
-                      className="bg-[#e9dfc8] hover:bg-[#dfd4bd] text-[#2d2617] font-semibold text-xs py-3 h-auto rounded flex flex-col gap-1 items-center justify-center border border-[#d8ccb2] col-span-2"
-                    >
-                      <Mail className="h-4 w-4 text-[#99782b]" />
-                      Open linked account
-                    </Button>
+                    <>
+                      <Button
+                        onClick={() => router.push(`/admin/orders?q=${encodeURIComponent(selectedCustomerQuery || selectedUser.userId)}`)}
+                        className="bg-[#e9dfc8] hover:bg-[#dfd4bd] text-[#2d2617] font-semibold text-xs py-3 h-auto rounded flex flex-col gap-1 items-center justify-center border border-[#d8ccb2]"
+                      >
+                        <History className="h-4 w-4 text-[#99782b]" />
+                        Open history
+                      </Button>
+
+                      <Button
+                        onClick={() => router.push(`/admin/refunds?q=${encodeURIComponent(selectedCustomerQuery || selectedUser.userId)}`)}
+                        className="bg-[#e9dfc8] hover:bg-[#dfd4bd] text-[#2d2617] font-semibold text-xs py-3 h-auto rounded flex flex-col gap-1 items-center justify-center border border-[#d8ccb2]"
+                      >
+                        <ShieldAlert className="h-4 w-4 text-[#99782b]" />
+                        Open refunds
+                      </Button>
+
+                      <Button
+                        onClick={() => router.push(`/admin/reviews?q=${encodeURIComponent(selectedCustomerQuery || selectedUser.userId)}`)}
+                        className="bg-[#e9dfc8] hover:bg-[#dfd4bd] text-[#2d2617] font-semibold text-xs py-3 h-auto rounded flex flex-col gap-1 items-center justify-center border border-[#d8ccb2]"
+                      >
+                        <MessageSquare className="h-4 w-4 text-[#99782b]" />
+                        Open reviews
+                      </Button>
+
+                      <Button
+                        onClick={() => router.push(`/admin/users?q=${encodeURIComponent(selectedUser.username || selectedUser.userId)}`)}
+                        className="bg-[#e9dfc8] hover:bg-[#dfd4bd] text-[#2d2617] font-semibold text-xs py-3 h-auto rounded flex flex-col gap-1 items-center justify-center border border-[#d8ccb2]"
+                      >
+                        <Mail className="h-4 w-4 text-[#99782b]" />
+                        Account
+                      </Button>
+                    </>
                   ) : (
                     <Button
                       data-testid="account-open-customer"

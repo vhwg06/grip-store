@@ -19,7 +19,7 @@
 
 ## SC-USER-02 Change Account State
 
-- Context: admin cần block/unblock hoặc đổi points.
+- Context: admin cần block/unblock account.
 - Main flow:
   1. Admin đọc current account state.
   2. Admin quyết định thay đổi account-level control.

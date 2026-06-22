@@ -73,4 +73,4 @@
 - Given the catalog operator scans the current catalog
 - When the system highlights low-stock, hidden, or missing-media products
 - Then the operator can distinguish which product needs commercial editing and which needs editorial enrichment
-- And the operator can hand off to the content domain when the problem is editorial rather than commercial
+- And the operator still stays inside product editor when the next step is media/editorial cleanup

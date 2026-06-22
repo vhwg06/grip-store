@@ -24,7 +24,7 @@
 - Preconditions:
   - user account tồn tại
 - Success outcome:
-  - admin thấy được identity, last activity, points, blocked state
+  - admin thấy được identity, last activity, blocked state
 - Business invariants:
   - account state phải được diễn giải như system/account concern
   - account view không thay thế cho customer commerce context
@@ -36,13 +36,13 @@
 
 - Goal: thay đổi account state ở phạm vi admin được phép.
 - Primary actor: `Admin / Support`
-- Trigger: admin cần block/unblock hoặc điều chỉnh points.
+- Trigger: admin cần block/unblock hoặc xác nhận account-control posture.
 - Preconditions:
   - account đang ở trạng thái có thể được quản trị
 - Success outcome:
   - account state mới được chấp nhận
 - Business invariants:
-  - points và block state là account-level controls
+  - block state là account-level control
   - account mutation không được bị hiểu là chỉnh sửa commerce history
 - Postconditions:
   - account state thay đổi hoặc bị giữ nguyên nếu không hợp lệ

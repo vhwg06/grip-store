@@ -245,28 +245,22 @@ test.describe("Admin Product API @api P1 P2", () => {
     expect(child?.parent_id).toBe(rootId);
   });
 
-  test("UC-PROD-05 exposes product-linked card inventory in product context", async ({ request }) => {
-    // GOAL: Admin Manages Product-Linked Cards: quản lý card hoặc inventory-like artifact gắn với một product.
+  test("UC-PROD-05 keeps product editorial/media work on the product contract", async ({ request }) => {
+    // GOAL: Admin Keeps Editorial And Media Work Inside Product Editor: quản lý media/editorial state của product mà không rời product editor flow.
     // PRIORITY: P2
     // RELATED DOMAINS: none
     // SCENARIO: SC-PROD-05 Main flow
-    const response = await adminGet(request, "/v1/admin/cards");
-    expect(response.ok()).toBeTruthy();
+    const suffix = `${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+    const created = await createProduct(request, suffix);
 
-    const payload = await response.json();
-    const items = Array.isArray(payload)
-      ? payload
-      : Array.isArray(payload?.cards)
-        ? payload.cards
-        : Array.isArray(payload?.data)
-          ? payload.data
-          : Array.isArray(payload?.items)
-            ? payload.items
-            : [];
+    const formPayload = await getProductForm(request, created.id);
+    expect(formPayload.product.id).toBe(created.id);
+    expect(formPayload.product.title).toBe(created.title);
+    expect(Array.isArray(formPayload.categories)).toBeTruthy();
+    expect(formPayload).not.toHaveProperty("cards");
+    expect(formPayload).not.toHaveProperty("inventory");
 
-    expect(Array.isArray(items)).toBeTruthy();
-    if (items.length > 0) {
-      expect(items[0]).toHaveProperty("product_id");
-    }
+    const absentCardsRoute = await adminGet(request, "/v1/admin/cards");
+    expect(absentCardsRoute.status()).toBe(404);
   });
 });

@@ -7,7 +7,7 @@ Quản lý catalog core theo product-centric taxonomy:
 - list product
 - product detail/editor
 - category integrity
-- product-linked cards/inventory
+- product editorial/media inside the same editor flow
 
 ## Actors
 
@@ -21,7 +21,8 @@ Quản lý catalog core theo product-centric taxonomy:
 - `/admin/product/new`
 - `/admin/product/edit/[id]`
 - `/admin/categories`
-- product-linked cards endpoints/routes inventory
+- row `Edit` và `Quick edit` đều mở product editor
+- media upload/remove/save diễn ra bên trong product editor
 
 ## In Scope
 
@@ -29,7 +30,7 @@ Quản lý catalog core theo product-centric taxonomy:
 - list/search/filter
 - visibility/stock/purchase limit semantics
 - category tree/order
-- product-linked cards and inventory linkage
+- editor-owned media and editorial state
 
 ## Out Of Scope
 

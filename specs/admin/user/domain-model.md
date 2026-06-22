@@ -10,7 +10,6 @@
 
 - `userId`
 - `username`
-- `points`
 - `isBlocked`
 - `lastLoginAt`
 - `createdAt`

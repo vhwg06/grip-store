@@ -11,7 +11,6 @@ export const AdminLocators = {
     usersLink: '[data-testid="admin-nav-users"]',
     settingsLink: '[data-testid="admin-nav-settings"]',
     categoriesLink: '[data-testid="admin-nav-categories"]',
-    cardsLink: '[data-testid="admin-nav-cards"]',
     dataLink: '[data-testid="admin-nav-data"]',
   },
 

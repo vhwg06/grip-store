@@ -189,6 +189,33 @@ test.describe("Admin Product @admin P1", () => {
       .toBe(true);
   });
 
+  test("UC-PROD-05 keeps row Edit and Quick edit inside the product editor flow", async ({ page, request }) => {
+    const suffix = `${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+    const created = await createProductViaApi(request, suffix);
+
+    await page.goto("/admin/products", { timeout: 10000 });
+    await page.waitForLoadState("networkidle", { timeout: 10000 });
+
+    const row = page.locator(`[data-item-id="${created.id}"]`);
+    await expect(row).toBeVisible();
+
+    await row.locator('[data-testid="edit-btn"]').click();
+    await expect(page).toHaveURL(new RegExp(`/admin/product/edit/(placeholder/)?\\?id=${created.id}|/admin/product/edit/${created.id}`));
+    await expect(page.getByRole("heading", { name: "Product Editor" })).toBeVisible();
+    await expect(page).not.toHaveURL(/\/admin\/cards/);
+
+    await page.goto("/admin/products", { timeout: 10000 });
+    await page.waitForLoadState("networkidle", { timeout: 10000 });
+
+    const selectedRow = page.locator(`[data-item-id="${created.id}"]`);
+    await selectedRow.click();
+    await page.getByRole("link", { name: "Quick edit" }).click();
+
+    await expect(page).toHaveURL(new RegExp(`/admin/product/edit/(placeholder/)?\\?id=${created.id}|/admin/product/edit/${created.id}`));
+    await expect(page.getByRole("heading", { name: "Product Editor" })).toBeVisible();
+    await expect(page).not.toHaveURL(/\/admin\/cards/);
+  });
+
   test("UC-PROD-04 submits category reordering semantics from the admin editor", async ({ page, request }) => {
     // GOAL: Admin Maintains Category Structure: giữ category tree đúng để catalog có cấu trúc thương mại rõ ràng.
     // PRIORITY: P1

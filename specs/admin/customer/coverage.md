@@ -3,7 +3,7 @@
 ## Current Coverage
 
 - code inventory: `/admin/users`, `getAdminUsers()`
-- available fields: `userId`, `username`, `points`, `lastLoginAt`, `createdAt`, `orderCount`, `isBlocked`
+- available fields: `userId`, `username`, `lastLoginAt`, `createdAt`, `orderCount`, `isBlocked`
 - customer context also appears in order detail and review moderation docs
 
 ## Gaps

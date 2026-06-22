@@ -3,7 +3,6 @@
 ## Backend Owns
 
 - block/unblock semantics
-- points mutation rules
 - search/pagination semantics
 - user/customer link resolution
 

@@ -53,5 +53,6 @@ test.describe("Admin Content @admin P2", () => {
     await expect(page.getByRole("heading", { name: "Product Management" })).toBeVisible();
     await expect(page.locator('[data-testid="create-btn"]')).toBeVisible();
     await expect(page.getByText(/quick access to full product editing/i)).toBeVisible();
+    await expect(page.locator('[data-testid="edit-btn"]').first()).toBeVisible();
   });
 });

@@ -19,7 +19,7 @@
 #### A. Planning and tracker setup
 
 - [~] `RM-DOC-01` Update admin/content/product/customer specs to remove cards/points ownership and lock the product-list-to-edit flow.
-- [ ] `RM-DOC-02` Update coverage/index docs to remove cards and points from active admin scope.
+- [~] `RM-DOC-02` Update coverage/index docs to remove cards and points from active admin scope.
 - [ ] `RM-DOC-03` Add backend removal references and stale-evidence notes to this SoT tracker.
 
 #### B. Frontend/admin contract removal
@@ -34,13 +34,13 @@
 
 - [~] `RM-TEST-01` Remove cards-specific admin and API specs.
 - [~] `RM-TEST-02` Remove points/check-in/profile-points specs and helpers.
-- [ ] `RM-TEST-03` Rewrite affected admin/content/product/user/refund coverage to the no-cards/no-points contract.
-- [ ] `RM-TEST-04` Add or tighten coverage for `/admin/products` row edit and quick-edit entry into product media/editorial.
+- [~] `RM-TEST-03` Rewrite affected admin/content/product/user/refund coverage to the no-cards/no-points contract.
+- [x] `RM-TEST-04` Add or tighten coverage for `/admin/products` row edit and quick-edit entry into product media/editorial.
 
 #### D. Verification and closeout
 
-- [ ] `RM-VER-01` Run focused frontend/admin verification for the no-cards/no-points contract.
-- [ ] `RM-VER-02` Run focused API verification for the no-cards/no-points contract.
+- [x] `RM-VER-01` Run focused frontend/admin verification for the no-cards/no-points contract.
+- [~] `RM-VER-02` Run focused API verification for the no-cards/no-points contract.
 - [ ] `RM-VER-03` Confirm removed routes/fields are absent and no touched suites carry stale `test.fail`, `test.fixme`, or unexplained skips.
 - [ ] `RM-VER-04` Mark remaining tasks `[x]` only from fresh evidence after reruns.
 
@@ -211,8 +211,9 @@ The test may remain a normal test when implementation is green. Add `test.fail` 
 
 - [x] **EXC-PROD-01** Verify UC-PROD-03 proves `is_active` persists through the backend, not only local UI state.
   - Evidence: after the final backend deploy on 2026-06-22, direct live probes to `PATCH /v1/admin/products/:id/status` now persist both `{"isActive":false}` and `{"isActive":true}` through `/v1/admin/products/:id/form` readback. Focused reruns for `playwright/specs/api/admin-product.spec.ts --grep "UC-PROD-03"` and `playwright/specs/admin/product.spec.ts --grep "UC-PROD-03 submits commercial state changes from the list quick action"` both passed cleanly.
-- [x] **EXC-PROD-02** Add/verify UC-PROD-05 graceful behavior when product-linked cards cannot be loaded.
-  - Evidence: `playwright/specs/admin/product-content.spec.ts` now opens a real `/admin/cards` surface from product editor context, preserves `productId`/name/SKU in the handoff, and proves an intercepted `/v1/admin/cards` `500` renders an explicit backend-error state instead of a fabricated fallback. Focused Chromium rerun on 2026-06-21 passed cleanly (`4 passed`, including setup).
+- [~] **EXC-PROD-02** Replace stale product-linked cards evidence with the editor-only product contract.
+  - Stale evidence: prior `/admin/cards` handoff proof is no longer authoritative after the removal pass.
+  - Current contract: row `Edit` and `Quick edit` must both stay inside `Product Editor`, and API coverage must prove `/v1/admin/products/{id}/form` remains the editorial/media source of truth while `/v1/admin/cards` stays absent.
 - [x] **EXC-REV-01** Add UC-REV-02 rejection coverage proving a hidden review cannot be hidden again.
   - Evidence: `playwright/specs/admin/reviews-moderation.spec.ts` now includes `UC-REV-02 exception: a hidden review cannot be hidden again`, and the focused Chromium rerun on 2026-06-22 passed cleanly (`1 passed`, `0 unexpected`), proving the `Hide` action is disabled once a review is already in `HIDDEN` state.
 - [x] **EXC-CONT-01** Verify UC-CONT-04 public non-leak and UC-CONT-06 commercial-state preservation are enforced by canonical API tests.
@@ -268,8 +269,8 @@ The test may remain a normal test when implementation is green. Add `test.fail` 
 
 - [x] **RUN-BE-ORD** Verify order transition and refund-status contracts.
   - Evidence: focused API rerun on 2026-06-21 for `playwright/specs/api/admin-order.spec.ts` and `playwright/specs/api/orders.api.spec.ts` passed cleanly (`13 passed`, `0 skipped`, `0 unexpected`, `0 flaky`), covering allowed/forbidden order transitions, purchase-history resolution, refund-status relevance, and incomplete-context order detail.
-- [x] **RUN-BE-CUSUSER** Verify customer/account filtering, commerce summary, points, block, and handoff identifiers.
-  - Evidence: focused API rerun on 2026-06-21 for `playwright/specs/api/admin-user.spec.ts` and `playwright/specs/api/admin-customer.spec.ts` passed cleanly (`12 passed`, `0 skipped`, `0 unexpected`, `0 flaky`), covering customer/account filtering, summary fields, points/block mutations, and linked-customer handoff metadata.
+- [~] **RUN-BE-CUSUSER** Verify customer/account filtering, commerce summary, block, and handoff identifiers on the no-points contract.
+  - Current blocker: focused API rerun on 2026-06-22 still fails because `/v1/admin/users` includes a live `points` field in account payloads, so `playwright/specs/api/admin-user.spec.ts` cannot yet close the no-points contract.
 - [x] **RUN-BE-REF** Verify refund detail and payment evidence.
   - Evidence: focused API rerun on 2026-06-22 for `playwright/specs/api/admin-refund.spec.ts` passed cleanly with the API-only config (`8 passed`, `0 skipped`, `0 unexpected`), proving pending queue reads, refund-detail evidence, approve/reject decision flows, historical approved refund review, and duplicate-approve rejection.
 - [x] **RUN-BE-NOTY** Verify readiness, message list, durable outbound artifact, and history outcome fields.
@@ -278,17 +279,17 @@ The test may remain a normal test when implementation is green. Add `test.fail` 
   - Evidence: focused API rerun on 2026-06-22 for `playwright/specs/api/admin-profile.spec.ts` passed cleanly with the API-only config (`scratch/playwright.api-no-webserver.config.ts`) (`4 passed`, `0 skipped`, `0 unexpected`), proving self identity, persisted display identity, backend-owned security posture, and recent-access trust contracts.
 - [x] **RUN-BE-PCOL** Verify sources, validation, persistence, readiness, and warnings contracts.
   - Evidence: focused API rerun on 2026-06-22 for `playwright/specs/api/admin-payment-collection.spec.ts` passed cleanly with the API-only config (`scratch/playwright.api-no-webserver.config.ts`) (`4 passed`, `0 skipped`, `0 unexpected`), proving backend source metadata, persisted payee identity, invalid-save rejection, and readiness/warnings fields.
-- [x] **RUN-BE-SETCONT** Verify store presence, FAQ visibility, cards, and product commercial-state preservation.
-  - Evidence: focused API rerun on 2026-06-21 for `playwright/specs/api/store-settings.api.spec.ts` passed cleanly (`8 passed`, `0 skipped`, `0 unexpected`, `0 flaky`), focused API rerun on 2026-06-22 for `playwright/specs/api/admin-content.spec.ts` passed cleanly (`6 passed`), and focused API rerun on 2026-06-22 for `playwright/specs/api/admin-product.spec.ts` passed cleanly (`8 passed`). Together these verify store presence, FAQ visibility, `/v1/admin/cards` product-linked card inventory, and preservation of product commercial state during editorial updates.
+- [~] **RUN-BE-SETCONT** Verify store presence, FAQ visibility, and product commercial/editorial-state preservation.
+  - Current blocker: focused API rerun on 2026-06-22 still sees `/v1/admin/cards` responding `200`, so the absence assertion in `playwright/specs/api/admin-product.spec.ts` remains red even though the product form readback assertions are in place.
 
 ### Frontend Surfaces
 
-- [x] **RUN-FE-ORDPROD** Verify order detail, persisted product active state, history handoff, and category refresh.
-  - Evidence: focused Chromium rerun on 2026-06-21 for `playwright/specs/admin/orders.spec.ts` passed cleanly (`14 passed`, `0 skipped`, `0 unexpected`) after wiring pending-refund relevance into the order signals panel and normalizing the row-to-detail handoff URL assertion. Focused product follow-up reruns on 2026-06-21 now also passed for `playwright/specs/admin/product-content.spec.ts` (`4 passed`, product-linked cards context plus explicit backend-error handling) and `playwright/specs/admin/product.spec.ts --grep "UC-PROD-04"` (`3 passed`, category refresh/reorder semantics). Final live verification on 2026-06-22 proved the `/v1/admin/products/:id/status` toggle path now persists `is_active` through backend readback, and the focused Chromium rerun for `UC-PROD-03` passed cleanly.
+- [x] **RUN-FE-ORDPROD** Verify order detail, persisted product active state, editor entrypoints, and category refresh.
+  - Evidence: focused Chromium rerun on 2026-06-22 for `playwright/specs/admin/product.spec.ts --grep "UC-PROD-05"` passed cleanly (`1 passed`, `0 unexpected`), proving row `Edit` and `Quick edit` both stay inside `Product Editor` and do not hand off to `/admin/cards`.
 - [x] **RUN-FE-SET** Verify settings success feedback, homepage controls, discovery controls, and registry controls.
   - Evidence: focused Chromium rerun on 2026-06-21 for `playwright/specs/admin/store-settings.spec.ts` passed cleanly (`18 passed`, `0 skipped`, `0 unexpected`). The FE settings surface now proves grouped success feedback, homepage composition controls, discovery/visibility saves, presence controls, and registry/legacy controls without relying on fixed seeded news counts or stale reorder assumptions.
 - [x] **RUN-FE-CUSUSER** Verify separate customer/account roots, state summary, and explicit domain handoffs.
-  - Evidence: focused Chromium rerun on 2026-06-21 for `playwright/specs/admin/user.spec.ts` and `playwright/specs/admin/customer.spec.ts` passed with `17 passed`, `1 explicit data-blocked skip`, `0 unexpected`, proving distinct customer/account roots, account/customer state panels, and cross-domain handoffs in both directions.
+  - Evidence: refreshed focused Chromium rerun on 2026-06-22 for the customer/account removal slice (`UC-CUS-04`, `UC-CUS-05`, `UC-USER-02`, `UC-USER-03 keeps`, `UC-USER-04`, `UC-USER-05`) passed cleanly with `7 passed`, `0 unexpected`, proving the user surface no longer exposes commerce actions, the customer surface exposes the `Account` handoff, and empty-commerce-history copy is explicit.
 - [x] **RUN-FE-REF** Verify pending queue reconciliation and historical refund search.
   - Current evidence: `/admin/refunds` now fetches `status=all`, filters pending/history client-side, and hydrates the selected refund from `/v1/admin/refunds/:id`; targeted Chromium reruns proved pending-queue reconciliation and historical decision reading on the live backend.
 - [x] **RUN-FE-NOTY** Verify server-backed readiness/history and explicit backend error state.

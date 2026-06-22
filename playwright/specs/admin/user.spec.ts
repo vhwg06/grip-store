@@ -60,18 +60,13 @@ test.describe("Admin User @admin P2", () => {
     const user = users.find((item: any) => item.id === userId || item.user_id === userId);
     expect(user).toBeTruthy();
     return {
-      points: Number(user.points ?? 0),
       isBlocked: Boolean(user.is_blocked ?? user.isBlocked),
     };
   }
 
-  async function restoreBuyerState(request: any, state: { points: number; isBlocked: boolean }) {
+  async function restoreBuyerState(request: any, state: { isBlocked: boolean }) {
     const token = await getAdminToken(request);
     const userId = await getBuyerUserId(request);
-    await request.patch(`${BACKEND_URL}/v1/admin/users/${userId}/points`, {
-      headers: { Authorization: `Bearer ${token}` },
-      data: { points: state.points },
-    });
     await request.patch(`${BACKEND_URL}/v1/admin/users/${userId}/block`, {
       headers: { Authorization: `Bearer ${token}` },
       data: { isBlocked: state.isBlocked },
@@ -80,7 +75,7 @@ test.describe("Admin User @admin P2", () => {
 
   async function expectBuyerState(
     request: any,
-    expected: Partial<{ points: number; isBlocked: boolean }>,
+    expected: Partial<{ isBlocked: boolean }>,
   ) {
     await expect
       .poll(async () => {
@@ -89,7 +84,6 @@ test.describe("Admin User @admin P2", () => {
       })
       .toBe(
         JSON.stringify({
-          points: expected.points,
           isBlocked: expected.isBlocked,
         }),
       );
@@ -131,49 +125,22 @@ test.describe("Admin User @admin P2", () => {
     await expect(panel.getByTestId("summary-email")).toHaveText("test_buyer@example.com");
     await expect(panel.getByTestId("summary-last-activity")).not.toHaveText("");
     await expect(panel.getByTestId("summary-blocked-state")).toHaveText(/Blocked|Active/);
-    await expect(panel.getByTestId("summary-points")).toContainText("pts");
     await expect(panel.getByRole("button", { name: "Open history" })).toHaveCount(0);
   });
 
-  test("UC-USER-03 keeps points and block mutations in explicit account-control semantics", async ({ page }) => {
+  test("UC-USER-03 keeps block mutation in explicit account-control semantics", async ({ page }) => {
     // GOAL: Admin Manages Account State: thay đổi account state ở phạm vi admin được phép.
     // PRIORITY: P2
     // RELATED DOMAINS: none
     // SCENARIO: SC-USER-03 Main flow
-    // INVARIANT: points và block mutations là explicit account-control operations, không phải marketing preferences hay UI configuration đơn thuần
+    // INVARIANT: block mutation là explicit account-control operation, không phải commerce support hay UI configuration đơn thuần
     await searchForUser(page, "test_buyer");
     await userRow(page, "test_buyer").click();
 
     const panel = page.getByTestId("account-actions-panel");
     await expect(panel).toBeVisible();
-    await expect(panel.getByTestId("account-adjust-points")).toBeVisible();
     await expect(panel.getByTestId("account-block-toggle")).toBeVisible();
     await expect(panel.getByRole("button", { name: "Open history" })).toHaveCount(0);
-  });
-
-  test("UC-USER-03 submits points adjustment (blocked-be-gap)", async ({ page, request }) => {
-    // GOAL: Admin Manages Account State: thay đổi account state ở phạm vi admin được phép.
-    // PRIORITY: P2
-    // RELATED DOMAINS: none
-    // SCENARIO: SC-USER-03 Main flow
-    // INVARIANT: points mutation là account-control operation, không phải customer loyalty behavior tự do
-    const original = await readBuyerState(request);
-
-    try {
-      await searchForUser(page, "test_buyer");
-      await userRow(page, "test_buyer").click();
-      await page.getByRole("button", { name: "Adjust points" }).click();
-      
-      await page.locator("#new-points").fill(String(original.points + 100));
-      await page.getByRole("button", { name: "Save" }).click();
-
-      await expectBuyerState(request, {
-        points: original.points + 100,
-        isBlocked: original.isBlocked,
-      });
-    } finally {
-      await restoreBuyerState(request, original);
-    }
   });
 
   test("UC-USER-03 submits block mutation (blocked-be-gap)", async ({ page, request }) => {
@@ -191,7 +158,6 @@ test.describe("Admin User @admin P2", () => {
       await page.getByRole("button", { name: "Block / unblock" }).click();
 
       await expectBuyerState(request, {
-        points: original.points,
         isBlocked: !original.isBlocked,
       });
     } finally {
@@ -225,7 +191,6 @@ test.describe("Admin User @admin P2", () => {
 
     const panel = page.getByTestId("account-actions-panel");
     await expect(panel).toBeVisible();
-    await expect(panel.getByTestId("account-adjust-points")).toBeVisible();
     await expect(panel.getByTestId("account-block-toggle")).toBeVisible();
     await expect(panel.getByTestId("account-open-customer")).toBeVisible();
     await expect(panel.getByRole("button", { name: "Open history" })).toHaveCount(0);

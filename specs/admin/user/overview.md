@@ -12,7 +12,7 @@
 ## Surface Inventory
 
 - `/admin/users`
-- admin user mutations như points/block
+- admin user mutations như block/unblock
 - account/profile-oriented references trong code inventory
 
 ## In Scope
@@ -27,7 +27,7 @@
 - admin đang ở `user` domain khi câu hỏi cần trả lời là:
   - account này có bị block không
   - account này có thể được unblock không
-  - points hoặc account-level controls của account này là gì
+  - account-level controls của account này là gì
   - account này có trust/access concern nào không
 - admin phải handoff sang `customer` domain khi concern chính là:
   - lịch sử mua hàng

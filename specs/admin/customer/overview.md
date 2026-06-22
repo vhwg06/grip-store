@@ -33,7 +33,7 @@
   - hành vi hỗ trợ tiếp theo cần dựa trên lịch sử commerce nào
 - admin rời `customer` domain sang `user` domain khi hành động cần thực hiện là:
   - block hoặc unblock account
-  - đổi points hoặc account-level controls
+  - thực hiện account-level controls
   - đọc trust/access posture của account
 - `/admin/users` có thể là shared entry surface, nhưng lookup mang mục đích commerce phải được diễn giải theo `customer` domain, còn account control phải được diễn giải theo `user` domain
 

@@ -35,7 +35,7 @@
 
 ## UC-SET-03 Admin Controls Public Discovery And Visibility Rules
 
-- Status: removed from the active `/admin/settings` scope in the simplification pass. Discovery, wishlist, check-in, no-index, and related legacy flags are no longer administered from this surface.
+- Status: removed from the active `/admin/settings` scope in the simplification pass. Discovery, wishlist, no-index, and related legacy flags are no longer administered from this surface.
 
 - Goal: điều chỉnh cách storefront được discover và cách một số capability xuất hiện công khai.
 - Primary actor: `Admin / Store Operator`
@@ -45,7 +45,7 @@
 - Success outcome:
   - discovery-facing behavior mới của storefront được xác lập
 - Business invariants:
-  - các flags như no-index, wishlist, checkin, refund reclaim cards đều mang behavioral meaning
+  - các flags như no-index và wishlist từng mang behavioral meaning nhưng không còn là active `/admin/settings` contract
   - visibility rules không phải display preference đơn thuần
 - Postconditions:
   - storefront public behavior có thể thay đổi

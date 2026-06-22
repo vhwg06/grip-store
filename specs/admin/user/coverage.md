@@ -3,7 +3,7 @@
 ## Current Coverage
 
 - route: `/admin/users`
-- adapters: `getAdminUsers()`, `saveUserPoints()`, `toggleBlock()`
+- adapters: `getAdminUsers()`, `toggleBlock()`
 - fields currently normalized from admin API already match account-oriented management
 
 ## Gaps

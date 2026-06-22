@@ -12,6 +12,7 @@
 - Business invariants:
   - list phải phản ánh trạng thái thương mại của product
   - quick actions không được mâu thuẫn với current product state
+  - valid entrypoints vào editor là row `Edit` và `Quick edit`
 - Postconditions:
   - admin có thể mở product detail/editor hoặc category flow
 - Related domains: `review`
@@ -68,20 +69,20 @@
   - category tree cập nhật và products tiếp tục gắn được vào category hợp lệ
 - Priority: `P1`
 
-## UC-PROD-05 Admin Manages Product-Linked Cards
+## UC-PROD-05 Admin Keeps Editorial And Media Work Inside Product Editor
 
-- Goal: quản lý card hoặc inventory-like artifact gắn với một product.
+- Goal: quản lý media/editorial state của product mà không rời product editor flow.
 - Primary actor: `Admin / Catalog Operator`
-- Trigger: admin đi vào product-linked card flow từ product context.
+- Trigger: admin cần chỉnh media, descriptive content, hoặc editorial presentation của product.
 - Preconditions:
   - product đã tồn tại
 - Success outcome:
-  - product-linked cards phản ánh đúng context của product đó
+  - media/editorial state được lưu lại trong đúng product context
 - Business invariants:
-  - card flow là secondary behavior phụ thuộc product root
-  - card không được tách khỏi product context trong behavior interpretation
+  - product media/editorial chỉ đi qua `/admin/products`
+  - không có handoff sang `/admin/cards` hay route phụ khác cho flow này
 - Postconditions:
-  - product có linked card context nhất quán hơn
+  - product editor vẫn là source of truth cho media/editorial state
 - Priority: `P2`
 
 ## UC-PROD-06 Admin Reviews Product Health Signals

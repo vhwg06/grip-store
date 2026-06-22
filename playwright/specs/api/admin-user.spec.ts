@@ -34,7 +34,6 @@ async function getBuyerState(request: any) {
   const user = findUser(extractUsers(payload), TEST_USER_ID);
   expect(user).toBeTruthy();
   return {
-    points: Number(user.points ?? 0),
     isBlocked: Boolean(user.is_blocked ?? user.isBlocked),
   };
 }
@@ -76,35 +75,26 @@ test.describe("Admin User API @api P2", () => {
       username: "test_buyer",
       email: "test_buyer@example.com",
       role: expect.any(String),
-      points: expect.any(Number),
     });
     expect(user).toHaveProperty("last_login_at");
     expect(user).toHaveProperty("is_blocked");
+    expect(user).not.toHaveProperty("points");
   });
 
-  test("UC-USER-03 manages account state through points and block controls", async ({ request }) => {
+  test("UC-USER-03 manages account state through block controls", async ({ request }) => {
     // GOAL: Admin Manages Account State: thay đổi account state ở phạm vi admin được phép.
     // PRIORITY: P2
     // RELATED DOMAINS: none
     // SCENARIO: SC-USER-03 Main flow
     const original = await getBuyerState(request);
-    const mutatedPoints = original.points + 100;
     const mutatedBlocked = !original.isBlocked;
 
     try {
-      const points = await adminPatch(request, `/v1/admin/users/${TEST_USER_ID}/points`, {
-        points: mutatedPoints,
-      });
-      expect(points.status()).toBe(200);
-
       const block = await adminPatch(request, `/v1/admin/users/${TEST_USER_ID}/block`, {
         isBlocked: mutatedBlocked,
       });
       expect(block.status()).toBe(200);
     } finally {
-      await adminPatch(request, `/v1/admin/users/${TEST_USER_ID}/points`, {
-        points: original.points,
-      });
       await adminPatch(request, `/v1/admin/users/${TEST_USER_ID}/block`, {
         isBlocked: original.isBlocked,
       });
@@ -149,9 +139,9 @@ test.describe("Admin User API @api P2", () => {
     expect(user).toMatchObject({
       role: expect.any(String),
       status: expect.any(String),
-      points: expect.any(Number),
       is_admin: expect.any(Boolean),
     });
+    expect(user).not.toHaveProperty("points");
     expect(user).not.toHaveProperty("orderCount");
     expect(user).not.toHaveProperty("order_count");
     expect(user).not.toHaveProperty("refundCount");
