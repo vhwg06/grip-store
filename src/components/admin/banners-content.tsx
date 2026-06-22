@@ -1,7 +1,7 @@
 "use client"
 
-import { deleteBanner, saveBanner } from "@/adapters/api/admin.api"
-import { useAdminBanners } from "@/application/hooks/useAdmin"
+import { deleteBanner, saveBanner, savePresenceSettings } from "@/adapters/api/admin.api"
+import { useAdminBanners, useAdminDashboard } from "@/application/hooks/useAdmin"
 import MediaUploader from "@/components/admin/media-uploader"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -55,11 +55,18 @@ function toEditorState(banner?: AdminBanner | null): BannerEditor {
 
 export function AdminBannersContent() {
   const { data: banners = [], mutate, isLoading } = useAdminBanners()
+  const { data: dashboard, mutate: mutateDashboard } = useAdminDashboard()
   const [activePage, setActivePage] = useState<BannerPageKey>("homepage")
   const [selectedId, setSelectedId] = useState<number | null>(null)
   const [editor, setEditor] = useState<BannerEditor>(EMPTY_BANNER)
   const [saving, setSaving] = useState(false)
   const [deleting, setDeleting] = useState(false)
+  const [savingPresence, setSavingPresence] = useState(false)
+  const [bannerPresenceEnabled, setBannerPresenceEnabled] = useState(true)
+
+  useEffect(() => {
+    setBannerPresenceEnabled(dashboard?.bannerPresenceEnabled ?? true)
+  }, [dashboard?.bannerPresenceEnabled])
 
   const filteredBanners = useMemo(() => {
     return banners
@@ -136,6 +143,28 @@ export function AdminBannersContent() {
     }
   }
 
+  const handleSaveBannerPresence = async () => {
+    setSavingPresence(true)
+    try {
+      await savePresenceSettings({
+        bannerPresence: {
+          enabled: bannerPresenceEnabled,
+          present: banners.some((banner) => banner.isActive),
+        },
+        aboutPresence: {
+          enabled: dashboard?.aboutPresenceEnabled ?? true,
+          present: dashboard?.aboutPresencePresent ?? true,
+        },
+      })
+      await Promise.all([mutateDashboard(), mutate()])
+      toast.success("Banner visibility updated")
+    } catch (error: any) {
+      toast.error(error?.message || "Could not update banner visibility")
+    } finally {
+      setSavingPresence(false)
+    }
+  }
+
   if (isLoading) {
     return <div className="h-[680px] rounded-xl bg-[#f3f1ec]" />
   }
@@ -146,7 +175,7 @@ export function AdminBannersContent() {
         <div className="space-y-2">
           <h1 className="text-[32px] font-bold tracking-[-0.03em] text-[#211e18]">Banner Management</h1>
           <p className="max-w-[680px] text-sm text-[#71685a]">
-            Choose the active banner set per page, preview it, and keep fallback behavior explicit.
+            Choose the active banner set per page, preview it, and keep storefront visibility owned here.
           </p>
         </div>
         <Button
@@ -158,6 +187,39 @@ export function AdminBannersContent() {
           Create banner
         </Button>
       </div>
+
+      <section
+        data-testid="banner-presence-controls"
+        className="flex flex-col gap-4 rounded-lg border border-[#e7e1d7] bg-white p-6 md:flex-row md:items-center md:justify-between"
+      >
+        <div className="space-y-1">
+          <h2 className="text-lg font-semibold text-[#211e18]">Storefront banner visibility</h2>
+          <p className="text-sm text-[#71685a]">
+            Homepage and products page banner shells follow this shared public visibility contract.
+          </p>
+        </div>
+        <div className="flex items-center gap-3">
+          <label className="flex items-center gap-2 text-sm font-medium text-[#3a352b]">
+            <input
+              data-testid="banner-presence-toggle"
+              type="checkbox"
+              checked={bannerPresenceEnabled}
+              onChange={(event) => setBannerPresenceEnabled(event.target.checked)}
+              className="h-4 w-4 rounded border-[#e7e1d7] text-[#99782b] focus:ring-[#99782b]"
+            />
+            {bannerPresenceEnabled ? "Enabled" : "Disabled"}
+          </label>
+          <Button
+            type="button"
+            data-testid="banner-presence-save"
+            onClick={handleSaveBannerPresence}
+            disabled={savingPresence}
+            className="h-10 rounded-lg bg-[#99782b] px-5 text-sm font-semibold text-white hover:bg-[#99782b]/90"
+          >
+            {savingPresence ? "Saving..." : "Save visibility"}
+          </Button>
+        </div>
+      </section>
 
       <div className="flex flex-wrap gap-2 rounded-lg border border-[#e7e1d7] bg-white p-2">
         {[

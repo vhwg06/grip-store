@@ -18,7 +18,7 @@ export function HomeContent() {
 
   const blocksStr = settings?.homepageBlocks || (settings as any)?.homepage_blocks || "hero,categories,products,latest-news,colors,usp";
   const blocks = blocksStr.split(",").map((b: string) => b.trim().toLowerCase());
-  const bannerPresence = config?.bannerPresence;
+  const bannerPresence = config?.bannerPages?.homepage ?? config?.bannerPresence;
   const aboutPresence = config?.aboutPresence;
   const showBanner = bannerPresence ? bannerPresence.enabled && bannerPresence.present : true;
   const showAbout = aboutPresence ? aboutPresence.enabled && aboutPresence.present : false;

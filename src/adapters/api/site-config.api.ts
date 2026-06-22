@@ -18,6 +18,30 @@ export async function getSiteConfig(): Promise<SiteConfig> {
   const payload = await apiFetch<any>("/api/site-config");
   const raw = payload?.data !== undefined ? payload.data : payload;
 
+  const homepageBannerPresence = raw.bannerPages?.homepage
+    ? {
+        enabled: Boolean(raw.bannerPages.homepage.enabled),
+        present: Boolean(raw.bannerPages.homepage.present),
+      }
+    : raw.bannerPresence
+      ? {
+          enabled: Boolean(raw.bannerPresence.enabled),
+          present: Boolean(raw.bannerPresence.present),
+        }
+      : undefined;
+
+  const productsBannerPresence = raw.bannerPages?.products
+    ? {
+        enabled: Boolean(raw.bannerPages.products.enabled),
+        present: Boolean(raw.bannerPages.products.present),
+      }
+    : raw.bannerPresence
+      ? {
+          enabled: Boolean(raw.bannerPresence.enabled),
+          present: Boolean(raw.bannerPresence.present),
+        }
+      : undefined;
+
   if (raw?.brand || raw?.contact || raw?.footer || raw?.floatingSupport) {
     const footer = raw.footer || {};
     const contact = raw.contact || {};
@@ -34,12 +58,11 @@ export async function getSiteConfig(): Promise<SiteConfig> {
       contactAddress: contact.stickyBarAddress || "",
       contactEmail: contact.contactEmail || "",
       contactHotline: contact.stickyBarHotline || "",
-      bannerPresence: raw.bannerPresence
-        ? {
-            enabled: Boolean(raw.bannerPresence.enabled),
-            present: Boolean(raw.bannerPresence.present),
-          }
-        : undefined,
+      bannerPages: {
+        homepage: homepageBannerPresence,
+        products: productsBannerPresence,
+      },
+      bannerPresence: homepageBannerPresence,
       aboutPresence: raw.aboutPresence
         ? {
             enabled: Boolean(raw.aboutPresence.enabled),

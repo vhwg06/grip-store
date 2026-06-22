@@ -2,7 +2,6 @@
 
 import { AdminSettingsContent } from "@/components/admin/settings-content"
 import { useAdminDashboard } from "@/application/hooks/useAdmin"
-import { APP_VERSION } from "@/lib/version"
 
 export default function AdminSettingsPage() {
     const { data, isLoading } = useAdminDashboard()
@@ -23,51 +22,25 @@ export default function AdminSettingsPage() {
     const shopLogo = settingsMap['shop_logo'] || null
     const shopFooter = settingsMap['shop_footer'] || null
     const themeColor = settingsMap['theme_color'] || null
-    const lowStockThreshold = Number.parseInt(settingsMap['low_stock_threshold'] || '5', 10) || 5
-    const checkinReward = Number.parseInt(settingsMap['checkin_reward'] || '10', 10) || 10
 
     const contactAddress = settingsMap['contact_address'] || null
     const contactHotline = settingsMap['contact_hotline'] || null
     const contactEmail = settingsMap['contact_email'] || null
     const contactMapsUrl = settingsMap['contact_maps_url'] || null
-    const aboutArticleId = settingsMap['about_article_id'] || null
 
     return (
         <AdminSettingsContent
-            stats={data?.stats ?? {
-                today: { count: 0, revenue: 0 },
-                week: { count: 0, revenue: 0 },
-                month: { count: 0, revenue: 0 },
-                total: { count: 0, revenue: 0 },
-            }}
             shopName={shopName}
             shopDescription={shopDescription}
             shopLogo={shopLogo}
             shopFooter={shopFooter}
             themeColor={themeColor}
-            visitorCount={data?.visitorCount ?? 0}
-            lowStockThreshold={lowStockThreshold}
-            checkinReward={checkinReward}
-            checkinEnabled={settingsMap['checkin_enabled'] !== 'false'}
-            wishlistEnabled={settingsMap['wishlist_enabled'] === 'true'}
-            noIndexEnabled={settingsMap['noindex_enabled'] === 'true'}
-            registryOptIn={settingsMap['registry_opt_in'] === 'true'}
-            registryHideNav={settingsMap['registry_hide_nav'] === 'true'}
-            registryEnabled={Boolean(data?.registryEnabled)}
-            currentVersion={APP_VERSION}
-            floatingButtonEnabled={settingsMap['floating_button_enabled'] === 'true'}
-            floatingButtonUrl={settingsMap['floating_button_url'] || ''}
             socialLinks={settingsMap['social_links'] || ''}
             homepageBlocks={settingsMap['homepage_blocks'] || ''}
             contactAddress={contactAddress}
             contactHotline={contactHotline}
             contactEmail={contactEmail}
             contactMapsUrl={contactMapsUrl}
-            bannerPresenceEnabled={data?.bannerPresenceEnabled ?? (settingsMap['banner_presence_enabled'] === 'true')}
-            aboutPresenceEnabled={data?.aboutPresenceEnabled ?? (settingsMap['about_presence_enabled'] === 'true')}
-            bannerPresencePresent={data?.bannerPresencePresent ?? false}
-            aboutPresencePresent={data?.aboutPresencePresent ?? false}
-            aboutArticleId={aboutArticleId}
         />
     )
 }

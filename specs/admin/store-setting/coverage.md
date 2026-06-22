@@ -5,14 +5,14 @@
 - legacy spec: `005-admin-store-settings`
 - route: `/admin/settings`
 - adapters/contracts: `getAdminDashboard()`, `/api/admin/store-settings`
-- old content/banner/about docs provide cross-domain evidence for storefront linkage
+- active UI scope: brand/contact, homepage composition, footer/social, floating support
 
 ## Gaps
 
-- banner/about linkage trước đây nằm rải ở `004/007`, chưa được diễn đạt từ settings boundary
-- settings package cũ vẫn còn module-first naming
+- old settings docs still mention removed discovery, registry, theme, and About/banner ownership flows
+- implementation must prune stale dashboard mappings that only existed for removed sections
 
 ## Priority
 
 - entity: `P1`
-- banner/about linkage: `P2`
+- cleanup debt: `P2`

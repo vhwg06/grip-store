@@ -35,6 +35,8 @@
 
 ## UC-SET-03 Admin Controls Public Discovery And Visibility Rules
 
+- Status: removed from the active `/admin/settings` scope in the simplification pass. Discovery, wishlist, check-in, no-index, and related legacy flags are no longer administered from this surface.
+
 - Goal: điều chỉnh cách storefront được discover và cách một số capability xuất hiện công khai.
 - Primary actor: `Admin / Store Operator`
 - Trigger: admin cần thay đổi visibility/discovery-related flags.
@@ -67,6 +69,8 @@
 
 ## UC-SET-05 Admin Maintains Banner And About Presence Through Store Settings
 
+- Status: replaced. Banner enablement now belongs to banner management. About ownership now belongs to article flow.
+
 - Goal: kiểm soát các reference thuộc banner/about trong phạm vi storefront behavior.
 - Primary actor: `Admin / Store Operator`
 - Trigger: admin cần thay đổi cách banner/about xuất hiện như một phần của storefront configuration.
@@ -82,6 +86,8 @@
 - Priority: `P2`
 
 ## UC-SET-06 Admin Maintains Registry And Legacy Storefront Commitments
+
+- Status: removed from the active `/admin/settings` scope in the simplification pass. Registry and legacy controls are no longer administered from this surface.
 
 - Goal: giữ các storefront commitments cũ hoặc registry-related commitments ở trạng thái đúng với business policy hiện tại.
 - Primary actor: `Admin / Store Operator`

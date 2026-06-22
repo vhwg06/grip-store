@@ -651,18 +651,6 @@ export async function saveSetting(key: string, value: unknown) {
   return putJson(`/api/admin/settings/${encodeURIComponent(key)}`, { value })
 }
 
-export const saveShopName = (name: string) => saveSetting("shop_name", name)
-export const saveShopDescription = (description: string) => saveSetting("shop_description", description)
-export const saveShopLogo = (logoUrl: string) => saveSetting("shop_logo", logoUrl)
-export const saveShopFooter = (footer: string) => saveSetting("shop_footer", footer)
-export const saveThemeColor = (color: string) => saveSetting("theme_color", color)
-export const saveLowStockThreshold = (value: string) => saveSetting("low_stock_threshold", value)
-export const saveCheckinReward = (value: string) => saveSetting("checkin_reward", value)
-export const saveCheckinEnabled = (enabled: boolean) => saveSetting("checkin_enabled", enabled)
-export const saveWishlistEnabled = (enabled: boolean) => saveSetting("wishlist_enabled", enabled)
-export const saveNoIndex = (enabled: boolean) => saveSetting("noindex_enabled", enabled)
-export const saveRegistryHideNav = (enabled: boolean) => saveSetting("registry_hide_nav", enabled)
-
 export async function saveBrandSettings(brand: { shopName: string; shopDescription: string; shopLogo: string; themeColor: string }) {
   return apiFetch<unknown>("/api/admin/store-settings/brand", {
     method: "PUT",
@@ -695,20 +683,6 @@ export async function saveFloatingSupportSettings(actions: Array<{ key: string; 
   return apiFetch<unknown>("/api/admin/store-settings/floating-support", {
     method: "PUT",
     body: JSON.stringify({ actions }),
-  }).then(normalizeActionResult)
-}
-
-export async function saveVisibilitySettings(visibility: { noIndexEnabled: boolean; wishlistEnabled: boolean; checkinEnabled: boolean; checkinReward: number }) {
-  return apiFetch<unknown>("/api/admin/store-settings/visibility", {
-    method: "PUT",
-    body: JSON.stringify(visibility),
-  }).then(normalizeActionResult)
-}
-
-export async function saveRegistrySettings(registry: { joined: boolean; hideNav: boolean }) {
-  return apiFetch<unknown>("/api/admin/store-settings/registry", {
-    method: "PUT",
-    body: JSON.stringify(registry),
   }).then(normalizeActionResult)
 }
 
@@ -837,12 +811,6 @@ export async function getAdminFAQs() {
   const payload = await apiFetch<any>("/api/admin/faqs")
   const raw = payload?.data || payload
   return Array.isArray(raw) ? raw : raw.faqs ?? []
-}
-
-export async function getAdminAboutPage() {
-  const payload = await apiFetch<any>("/api/public/content/pages/about")
-  const raw = payload?.data || payload
-  return normalizeAdminContentPage(raw)
 }
 
 export async function saveAdminAboutPage(page: AdminContentPage) {

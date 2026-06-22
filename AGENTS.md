@@ -31,6 +31,13 @@ NEXT_PUBLIC_API_URL=https://grip.vn/api
 Spec / Use Cases  →  Playwright Tests  →  Implementation Code
 ```
 
+For admin implementation work, persist this execution rule:
+
+- always document spec, plan, and granular tasks before implementation
+- always execute against the task checklist and update task status live
+- always follow `spec -> test -> implementation -> verification`
+- only close work after the relevant tests are green
+
 1. **Define the use case** — Verify it exists in the spec (`/specs`). If missing, add it.
 2. **Write / update Playwright tests** — Under `/playwright/specs`, derived strictly from the use case.
 3. **Implement code** — Backend contracts/adapters and frontend behavior to make tests pass.
@@ -241,5 +248,4 @@ Khi thực hiện Mock, Setup, hoặc Cleanup/Rollback dữ liệu trong Playwri
 
 ### 3. Persistent State & Serial Execution (Thực thi tuần tự các test làm thay đổi trạng thái persistent/toàn cục)
 Khi chạy các bộ Playwright test làm thay đổi cấu hình hệ thống (Settings, CMS Articles, static pages, v.v.), bắt buộc phải chạy tuần tự bằng cách thêm flag `--workers=1` (hoặc cấu hình tương đương) để tránh việc các test case chạy song song làm ghi đè cấu hình lẫn nhau gây ra trạng thái không đồng nhất (out-of-sync/race conditions) trên môi trường API thật (production/staging).
-
 

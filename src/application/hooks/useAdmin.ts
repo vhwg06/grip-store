@@ -18,7 +18,6 @@ import {
   getAdminUsers,
   getAdminArticles,
   getAdminArticle,
-  getAdminAboutPage,
   getAdminBanners,
   getAdminFAQs,
   getAdminLeads,
@@ -46,7 +45,6 @@ export const useAdminCollect = () => useSWR("admin-collect", getAdminCollect)
 export const useAdminNotificationSettings = () => useSWR("admin-notification-settings", getAdminNotificationSettings)
 export const useAdminArticles = () => useSWR<AdminArticle[]>("admin-articles", getAdminArticles)
 export const useAdminArticle = (id?: string) => useSWR(id ? ["admin-article", id] : null, () => getAdminArticle(id as string))
-export const useAdminAboutPage = () => useSWR("admin-about-page", getAdminAboutPage)
 export const useAdminBanners = () => useSWR("admin-banners", getAdminBanners)
 export const useAdminFAQs = () => useSWR("admin-faqs", getAdminFAQs)
 export const useAdminLeads = () => useSWR("admin-leads", getAdminLeads)

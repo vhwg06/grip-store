@@ -2,6 +2,8 @@
 
 ## UC-CONT-01 Admin Curates Media Library
 
+- Status: route ownership removed. Shared media selection/upload remains as internal content tooling inside banners, articles, product editor, and other contextual flows.
+
 - Goal: giữ một thư viện media có thể tái sử dụng an toàn trên nhiều bề mặt nội dung.
 - Primary actor: `Admin / Content Operator`
 - Trigger: admin cần upload, tìm, chọn, hoặc loại bỏ một asset.
@@ -28,9 +30,9 @@
 - Business invariants:
   - banner là public-facing presence artifact
   - thứ tự banner mang meaning về ưu tiên hiển thị
+  - page-level enable/disable belongs to banner management, not store settings
 - Postconditions:
   - page context có banner behavior mới
-- Related domains: `store-setting`
 - Priority: `P2`
 
 ## UC-CONT-03 Admin Publishes Editorial Articles
@@ -67,21 +69,24 @@
 
 ## UC-CONT-05 Admin Links Article to About Us Page
 
-- Goal: Cấu hình trang About Us bằng cách liên kết tới một bài viết trong Store Settings.
-- Primary actor: `Admin / Store Operator`
-- Trigger: Admin chọn liên kết bài viết trong cấu hình Store Settings và lưu lại.
+- Goal: gán một article làm nguồn sở hữu cho public About page ngay trong article flow.
+- Primary actor: `Admin / Content Operator`
+- Trigger: admin chọn hoặc bỏ chọn cờ "use this article as About" trong article editor.
 - Preconditions:
-  - Danh sách bài viết đã có ít nhất một bài viết đã xuất bản (Published).
+  - article đang được tạo mới hoặc chỉnh sửa
 - Success outcome:
-  - Trang About Us hiển thị chính xác nội dung (tiêu đề, nội dung Markdown, hình ảnh đại diện) của bài viết được liên kết.
+  - public About page phản ánh đúng article hiện đang được chỉ định
 - Business invariants:
-  - Nếu chọn một bài viết hợp lệ -> Đồng bộ hóa nội dung bài viết sang trang About Us.
-  - Nếu không chọn bài viết ("None") -> Xóa nội dung đồng bộ hóa để trang About Us hiển thị theo nội dung mặc định của storefront.
+  - chỉ một article có thể sở hữu About tại một thời điểm
+  - chuyển ownership sang article khác phải tự động thu hồi owner cũ
+  - xóa owner hiện tại phải làm public About mất assignment tương ứng
 - Postconditions:
-  - Thay đổi nội dung trang About Us phản ánh ngay lập tức trên storefront.
+  - storefront About đọc từ article ownership, không đọc từ standalone About admin page
 - Priority: `P2`
 
 ## UC-CONT-06 Admin Maintains Product Editorial Content
+
+- Status: standalone route ownership removed. Product editorial/media is maintained from the product editor context; shared media components remain internal.
 
 - Goal: làm giàu product detail bằng media và rich content mà không đổi commercial state.
 - Primary actor: `Admin / Content Operator`
@@ -114,4 +119,3 @@
 - Postconditions:
   - Đóng modal xem trước để quay lại màn hình làm việc trước đó.
 - Priority: `P2`
-

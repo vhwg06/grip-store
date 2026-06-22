@@ -10,7 +10,6 @@
       { "id": "articles", "label": "Articles", "url": "/admin/articles" },
       { "id": "product-content", "label": "Product Content", "url": "/admin/products" },
       { "id": "about", "label": "About-Us", "url": "/admin/settings" },
-      { "id": "media", "label": "Media Library", "url": "/admin/media" },
       { "id": "products", "label": "Products", "url": "/admin/products" },
       { "id": "orders", "label": "Orders & Refunds", "url": "/admin/orders" },
       { "id": "users", "label": "Users", "url": "/admin/users" },

@@ -12,14 +12,14 @@
 
 | Entity | Priority | Intent |
 |---|---|---|
-| `store-setting` | `P1` | cấu hình storefront, banner/about linkage, visibility, registry |
+| `store-setting` | `P1` | cấu hình storefront đã được giản lược: brand/contact, homepage, footer, support |
 | `product` | `P1` | product list/detail/editor, categories, cards, catalog integrity |
 | `order` | `P1` | order list/detail/manage, customer-linked purchase history |
 | `customer` | `P1` | customer info root, commerce profile, cross-order/review/refund linkage |
 | `refund` | `P2` | refund queue, evidence, decision history, order/payment linkage |
 | `review` | `P2` | moderation queue, featured/public projection controls |
 | `user` | `P2` | website/admin account management, user profile/manage surface |
-| `content` | `P2` | media, banners, articles, FAQs, about content, product-linked editorial content |
+| `content` | `P2` | banners, articles, FAQs, article-owned About, shared media internals, product-linked editorial content |
 | `noty` | `P3` | outbound push notification send/list/history for website display |
 | `payment` | `P3` | admin payment info surface gắn với order/refund |
 | `admin-profile` | `P3` | current admin identity, security posture, recent access trust |

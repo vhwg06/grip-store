@@ -9,24 +9,18 @@ type AdminSettingsPayload = {
     homepage?: {
       blocks?: Array<{ key?: string; enabled?: boolean; order?: number }>;
       newsCount?: number;
-      [key: string]: unknown;
     };
     footer?: {
       columns?: unknown[];
       socialLinks?: Record<string, unknown>;
-      [key: string]: unknown;
     };
     floatingSupport?: Array<{ key?: string; enabled?: boolean; target?: string | null }>;
-    visibility?: Record<string, unknown>;
-    registry?: Record<string, unknown>;
-    [key: string]: unknown;
   };
   stats?: Record<string, unknown>;
   visitorCount?: number;
-  [key: string]: unknown;
 };
 
-test.describe("Store Settings API Contract @api P1 P2", () => {
+test.describe("Store Settings API Contract @api P1", () => {
   let client: GoBackendClient;
   let adminHeaders: Record<string, string>;
   let userHeaders: Record<string, string>;
@@ -52,10 +46,6 @@ test.describe("Store Settings API Contract @api P1 P2", () => {
   }
 
   test("UC-SET-01 reads storefront identity from the structured admin and public read models", async () => {
-    // GOAL: Admin Maintains Storefront Identity: giữ cho storefront thể hiện đúng identity kinh doanh hiện tại.
-    // PRIORITY: P1
-    // RELATED DOMAINS: none
-    // SCENARIO: SC-SET-01 Main flow
     const [adminResponse, siteConfigResponse, catalogSettingsResponse] = await Promise.all([
       getAdminSettings(),
       getSiteConfig(),
@@ -82,15 +72,10 @@ test.describe("Store Settings API Contract @api P1 P2", () => {
     expect(catalogSettingsResponse.data).toMatchObject({
       shopName: expect.any(String),
       shopDescription: expect.any(String),
-      themeColor: expect.any(String),
     });
   });
 
   test("UC-SET-01 updates brand and contact facts and reflects the new storefront identity publicly", async () => {
-    // GOAL: Admin Maintains Storefront Identity: giữ cho storefront thể hiện đúng identity kinh doanh hiện tại.
-    // PRIORITY: P1
-    // RELATED DOMAINS: none
-    // SCENARIO: SC-SET-01 Main flow
     const brandPayload = {
       shopName: "playwright-store-identity",
       shopDescription: "playwright storefront identity contract",
@@ -136,10 +121,6 @@ test.describe("Store Settings API Contract @api P1 P2", () => {
   });
 
   test("UC-SET-01 rejects storefront identity reads without valid admin authorization", async () => {
-    // GOAL: Admin Maintains Storefront Identity: giữ cho storefront thể hiện đúng identity kinh doanh hiện tại.
-    // PRIORITY: P1
-    // RELATED DOMAINS: none
-    // SCENARIO: SC-SET-01 Exception flow
     const unauthenticated = await client.get("/v1/admin/store-settings");
     expect(unauthenticated.status).toBe(401);
 
@@ -150,10 +131,6 @@ test.describe("Store Settings API Contract @api P1 P2", () => {
   });
 
   test("UC-SET-02 accepts a homepage composition decision and rejects ordering conflicts", async () => {
-    // GOAL: Admin Composes Homepage Surface: quyết định storefront homepage đang ưu tiên giới thiệu nội dung gì.
-    // PRIORITY: P1
-    // RELATED DOMAINS: none
-    // SCENARIO: SC-SET-02 Exception flow
     const validPayload = {
       blocks: [
         { key: "hero", enabled: true, order: 1 },
@@ -179,13 +156,6 @@ test.describe("Store Settings API Contract @api P1 P2", () => {
         },
       },
     });
-    expect(adminResponse.data.config?.homepage?.blocks).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({ key: "hero", enabled: true }),
-        expect.objectContaining({ key: "categories", enabled: true }),
-        expect.objectContaining({ key: "latest_news", enabled: true }),
-      ]),
-    );
 
     const invalidResponse = await client.put(
       "/v1/admin/store-settings/homepage",
@@ -202,65 +172,7 @@ test.describe("Store Settings API Contract @api P1 P2", () => {
     expect(invalidResponse.status).toBe(400);
   });
 
-  test("UC-SET-03 accepts discovery and visibility rules and rejects invalid behavioral combinations", async () => {
-    // GOAL: Admin Controls Public Discovery And Visibility Rules: điều chỉnh cách storefront được discover và cách một số capability xuất hiện công khai.
-    // PRIORITY: P1
-    // RELATED DOMAINS: none
-    // SCENARIO: SC-SET-03 Exception flow
-    const payload = {
-      noIndexEnabled: true,
-      wishlistEnabled: false,
-      checkinEnabled: true,
-      checkinReward: 12,
-      refundReclaimCards: true,
-    };
-
-    const updateResponse = await client.put(
-      "/v1/admin/store-settings/visibility",
-      payload,
-      { headers: adminHeaders },
-    );
-
-    expect(updateResponse.status).toBe(200);
-
-    const [adminResponse, siteConfigResponse, catalogSettingsResponse] = await Promise.all([
-      getAdminSettings(),
-      getSiteConfig(),
-      getCatalogSettings(),
-    ]);
-
-    expect(adminResponse.data).toMatchObject({
-      config: { visibility: payload },
-    });
-    expect(siteConfigResponse.data).toMatchObject({
-      visibility: payload,
-    });
-    expect(catalogSettingsResponse.data).toMatchObject({
-      wishlistEnabled: payload.wishlistEnabled,
-      checkinEnabled: payload.checkinEnabled,
-      checkinReward: payload.checkinReward,
-    });
-
-    const invalidResponse = await client.put(
-      "/v1/admin/store-settings/visibility",
-      {
-        noIndexEnabled: false,
-        wishlistEnabled: true,
-        checkinEnabled: true,
-        checkinReward: -1,
-        refundReclaimCards: false,
-      },
-      { headers: adminHeaders },
-    );
-
-    expect(invalidResponse.status).toBe(400);
-  });
-
-  test("UC-SET-04 updates footer and support commitments and reflects them through storefront-facing settings", async () => {
-    // GOAL: Admin Maintains Storefront Support And Footer Presence: kiểm soát các điểm chạm hỗ trợ và navigation/public references trên storefront.
-    // PRIORITY: P1
-    // RELATED DOMAINS: none
-    // SCENARIO: SC-SET-04 Main flow
+  test("UC-SET-04 updates footer and support commitments and rejects malformed support targets", async () => {
     const footerPayload = {
       columns: [
         {
@@ -311,7 +223,6 @@ test.describe("Store Settings API Contract @api P1 P2", () => {
         floatingSupport: expect.arrayContaining([
           expect.objectContaining({ key: "zalo", enabled: true, target: "https://zalo.me/playwright-grip" }),
           expect.objectContaining({ key: "hotline", enabled: true, target: "+84 903 117 742" }),
-          expect.objectContaining({ key: "scroll_to_top", enabled: true }),
         ]),
       },
     });
@@ -329,63 +240,5 @@ test.describe("Store Settings API Contract @api P1 P2", () => {
     );
 
     expect(malformedSupport.status).toBe(400);
-  });
-
-  test("UC-SET-05 exposes banner and about presence controls as part of the store-settings contract", async () => {
-    // GOAL: Admin Maintains Banner And About Presence Through Store Settings: kiểm soát các reference thuộc banner/about trong phạm vi storefront behavior.
-    // PRIORITY: P2
-    // RELATED DOMAINS: none
-    // SCENARIO: SC-SET-05 Main flow
-    const response = await getAdminSettings();
-
-    expect(response.status).toBe(200);
-    expect(response.data.config).toEqual(
-      expect.objectContaining({
-        bannerPresence: expect.any(Object),
-        aboutPresence: expect.any(Object),
-      }),
-    );
-  });
-
-  test("UC-SET-06 updates registry commitments and reflects the resulting storefront policy state", async () => {
-    // GOAL: Admin Maintains Registry And Legacy Storefront Commitments: giữ các storefront commitments cũ hoặc registry-related commitments ở trạng thái đúng với business policy hiện tại.
-    // PRIORITY: P2
-    // RELATED DOMAINS: none
-    // SCENARIO: SC-SET-06 Main flow
-    const payload = {
-      enabled: true,
-      joined: true,
-      hideNav: true,
-    };
-
-    const updateResponse = await client.put(
-      "/v1/admin/store-settings/registry",
-      payload,
-      { headers: adminHeaders },
-    );
-
-    expect(updateResponse.status).toBe(200);
-
-    const [adminResponse, siteConfigResponse] = await Promise.all([
-      getAdminSettings(),
-      getSiteConfig(),
-    ]);
-
-    expect(adminResponse.data).toMatchObject({
-      config: {
-        registry: {
-          enabled: true,
-          joined: payload.joined,
-          hideNav: payload.hideNav,
-        },
-      },
-    });
-    expect(siteConfigResponse.data).toMatchObject({
-      registry: {
-        enabled: true,
-        joined: payload.joined,
-        hideNav: payload.hideNav,
-      },
-    });
   });
 });

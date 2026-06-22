@@ -1,5 +1,5 @@
 import { ProductListingContent } from "@/components/product/product-listing-content";
-import Image from "next/image";
+import { ProductsHeroBanner } from "@/components/product/products-hero-banner";
 
 export const metadata = {
   title: "Sản phẩm | GRIP",
@@ -9,24 +9,7 @@ export const metadata = {
 export default function ProductsPage() {
   return (
     <main className="bg-white min-h-screen">
-      {/* Hero Banner Section */}
-      <section className="relative h-[520px] w-full bg-neutral-900 overflow-hidden">
-        {/* Placeholder image for Hero Banner */}
-        <Image 
-          src="https://images.unsplash.com/photo-1618220179428-22790b46a013?q=80&w=2000&auto=format&fit=crop" 
-          alt="Products Hero Banner" 
-          fill 
-          className="object-cover opacity-60"
-        />
-        <div className="absolute inset-0 flex items-center justify-center p-8 text-center text-white">
-          <div className="max-w-2xl">
-            <h1 className="text-4xl md:text-5xl font-bold uppercase tracking-wider mb-4 font-svn-gilroy">Danh Mục Sản Phẩm</h1>
-            <p className="text-lg md:text-xl font-medium leading-relaxed font-svn-gilroy">
-              Khám phá bộ sưu tập các sản phẩm tay nắm và phụ kiện cao cấp, được thiết kế tỉ mỉ để tôn lên vẻ đẹp cho không gian của bạn.
-            </p>
-          </div>
-        </div>
-      </section>
+      <ProductsHeroBanner />
 
       {/* Why Choose Us Placeholder */}
       <section className="w-full bg-[#2b1809] text-white py-4 px-4 hidden md:block border-y border-[#c0a060]">

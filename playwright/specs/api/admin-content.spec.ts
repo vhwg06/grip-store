@@ -165,20 +165,40 @@ test.describe("Admin Content API @api P2", () => {
     expect(entries.some((entry: any) => entry.id === created.id)).toBe(false);
   });
 
-  test("UC-CONT-05 maintains the official About narrative through the public about page contract", async ({
+  test("UC-CONT-05 assigns About ownership through an article and reflects it through the public about page contract", async ({
     request,
   }) => {
-    // GOAL: Admin Maintains About Narrative: giữ phần About như company narrative chính thức của storefront.
+    // GOAL: Admin Links Article to About Us Page: gán một article làm nguồn sở hữu cho public About page ngay trong article flow.
     // PRIORITY: P2
     // RELATED DOMAINS: none
     // SCENARIO: SC-CONT-05 Main flow
     const ts = Date.now();
-    const body = `playwright about narrative ${ts}`;
+    const title = `playwright about article ${ts}`;
+    const body = `<p>playwright about narrative ${ts}</p>`;
 
-    const saveResponse = await adminFetch(request, "/v1/content/pages/about", {
+    const createArticleResponse = await adminFetch(request, "/v1/content/articles", {
+      method: "POST",
+      multipart: {
+        title,
+        slug: `playwright-about-${ts}`,
+        body,
+        status: "published",
+        tags: "playwright,about",
+      },
+    });
+    expect(createArticleResponse.status()).toBe(201);
+    const createdArticle = extractData(await createArticleResponse.json());
+
+    const assignOwnerResponse = await adminFetch(request, "/v1/admin/settings/about_article_id", {
+      method: "PUT",
+      data: { value: createdArticle.id },
+    });
+    expect(assignOwnerResponse.ok()).toBeTruthy();
+
+    const syncAboutResponse = await adminFetch(request, "/v1/content/pages/about", {
       method: "PATCH",
       data: {
-        title: "About Grip",
+        title,
         slug: "about",
         body,
         gallery: [],
@@ -186,13 +206,14 @@ test.describe("Admin Content API @api P2", () => {
         status: "published",
       },
     });
-    expect(saveResponse.ok()).toBeTruthy();
+    expect(syncAboutResponse.ok()).toBeTruthy();
 
     const publicResponse = await request.get(`${BACKEND_URL}/v1/public/content/pages/about`);
     expect(publicResponse.ok()).toBeTruthy();
     const about = extractData(await publicResponse.json());
     expect(about.body).toBe(body);
     expect(about.slug).toBe("about");
+    expect(about.title).toBe(title);
   });
 
   test("UC-CONT-06 updates product editorial content without clobbering commercial state", async ({ request }) => {

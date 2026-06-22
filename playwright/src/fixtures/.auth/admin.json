@@ -2,7 +2,7 @@
   "cookies": [
     {
       "name": "grip_store_access_token",
-      "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc19hZG1pbiI6dHJ1ZSwidXNlcm5hbWUiOiJ0ZXN0X2FkbWluIiwic3ViIjoiMTExMTExMTEtMTExMS0xMTExLTExMTEtMTExMTExMTExMTExIiwiZXhwIjoxNzgyMTUzNzc5fQ.wTTS5ShjP3lQlSmhMTxD0dWfzSWRHTJy3ILikp7fQMM",
+      "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc19hZG1pbiI6dHJ1ZSwidXNlcm5hbWUiOiJ0ZXN0X2FkbWluIiwic3ViIjoiMTExMTExMTEtMTExMS0xMTExLTExMTEtMTExMTExMTExMTExIiwiZXhwIjoxNzgyMjA3ODY4fQ.gyg1Dd-4k8UH2Tj1K_G3Iv198sVMnsT4Osqsg7wSH4E",
       "domain": "localhost",
       "path": "/",
       "expires": -1,
@@ -12,7 +12,7 @@
     },
     {
       "name": "grip_store_refresh_token",
-      "value": "9a68c144-b525-4c0a-a34e-f3324a9bb8b1",
+      "value": "3eb620ec-6609-4062-9827-9cade7c9ccaf",
       "domain": "localhost",
       "path": "/",
       "expires": -1,
@@ -22,20 +22,10 @@
     },
     {
       "name": "grip_store_access_token_expires_at",
-      "value": "1782070979856",
+      "value": "1782125068776",
       "domain": "localhost",
       "path": "/",
       "expires": -1,
-      "httpOnly": false,
-      "secure": false,
-      "sameSite": "Lax"
-    },
-    {
-      "name": "grip-store-locale",
-      "value": "en",
-      "domain": "localhost",
-      "path": "/",
-      "expires": 1813603381.465987,
       "httpOnly": false,
       "secure": false,
       "sameSite": "Lax"

@@ -16,11 +16,8 @@ import {
   QrCode, 
   Bell, 
   Menu, 
-  Images, 
   Image as BannersIcon,
   FileText,
-  FolderTree,
-  Info,
   User
 } from "lucide-react"
 import { useI18n } from "@/lib/i18n/context"
@@ -145,24 +142,10 @@ function SidebarContent({ closeOnNavigate = false, showTitle = true, username, t
         </div>
       )}
       <nav data-testid={withTestIds ? "admin-nav" : undefined} className="flex flex-col gap-1 w-full">
-        {/* CMS Section */}
-        <div data-testid="admin-sidebar-section-cms" className="text-[11px] font-semibold text-[#9a9184] uppercase tracking-wider px-2 py-1">
-          CMS
-        </div>
-        <div className="flex flex-col gap-1 mb-[20px]">
+        <div className="flex flex-col gap-1">
           <NavLink href="/admin/settings" testId={withTestIds ? "admin-nav-settings" : undefined} icon={<Settings className="mr-2 h-4 w-4 shrink-0" />} label="Store Settings" closeOnNavigate={closeOnNavigate} isActive={isSettingsActive} />
           <NavLink href="/admin/banners" testId={withTestIds ? "admin-nav-banners" : undefined} icon={<BannersIcon className="mr-2 h-4 w-4 shrink-0" />} label="Banners" closeOnNavigate={closeOnNavigate} isActive={pathname === "/admin/banners"} />
           <NavLink href="/admin/articles" testId={withTestIds ? "admin-nav-articles" : undefined} icon={<FileText className="mr-2 h-4 w-4 shrink-0" />} label="Articles" closeOnNavigate={closeOnNavigate} isActive={pathname === "/admin/articles" || pathname.startsWith("/admin/article/")} />
-          <NavLink href="/admin/product-content" testId={withTestIds ? "admin-nav-product-content" : undefined} icon={<FolderTree className="mr-2 h-4 w-4 shrink-0" />} label="Product Content" closeOnNavigate={closeOnNavigate} isActive={pathname === "/admin/product-content"} />
-          <NavLink href="/admin/about" testId={withTestIds ? "admin-nav-about" : undefined} icon={<Info className="mr-2 h-4 w-4 shrink-0" />} label="About-Us" closeOnNavigate={closeOnNavigate} isActive={pathname === "/admin/about"} />
-          <NavLink href="/admin/media" testId={withTestIds ? "admin-nav-media" : undefined} icon={<Images className="mr-2 h-4 w-4 shrink-0" />} label="Media Library" closeOnNavigate={closeOnNavigate} isActive={pathname === "/admin/media"} />
-        </div>
-
-        {/* COMMERCE Section */}
-        <div data-testid="admin-sidebar-section-commerce" className="text-[11px] font-semibold text-[#9a9184] uppercase tracking-wider px-2 py-1">
-          COMMERCE
-        </div>
-        <div className="flex flex-col gap-1">
           <NavLink href="/admin/products" testId={withTestIds ? "admin-nav-products" : undefined} icon={<Package className="mr-2 h-4 w-4 shrink-0" />} label="Products" closeOnNavigate={closeOnNavigate} isActive={isProductsActive} />
           <NavLink href="/admin/orders" testId={withTestIds ? "admin-nav-orders" : undefined} icon={<CreditCard className="mr-2 h-4 w-4 shrink-0" />} label="Orders & Refunds" closeOnNavigate={closeOnNavigate} isActive={pathname === "/admin/orders" || pathname.startsWith("/admin/orders/")} />
           <NavLink href="/admin/users" testId={withTestIds ? "admin-nav-users" : undefined} icon={<Users className="mr-2 h-4 w-4 shrink-0" />} label="Users" closeOnNavigate={closeOnNavigate} isActive={pathname === "/admin/users"} />
@@ -214,7 +197,7 @@ export function AdminSidebar({ username }: { username: string }) {
           <Link data-testid={isMobileView ? "admin-nav-settings" : undefined} href="/admin/settings" className="rounded-md border px-3 py-1.5 text-sm whitespace-nowrap">Store Settings</Link>
           <Link data-testid={isMobileView ? "admin-nav-products" : undefined} href="/admin/products" className="rounded-md border px-3 py-1.5 text-sm whitespace-nowrap">Products</Link>
           <Link data-testid={isMobileView ? "admin-nav-banners" : undefined} href="/admin/banners" className="rounded-md border px-3 py-1.5 text-sm whitespace-nowrap">Banners</Link>
-          <Link data-testid={isMobileView ? "admin-nav-media" : undefined} href="/admin/media" className="rounded-md border px-3 py-1.5 text-sm whitespace-nowrap">Media Library</Link>
+          <Link data-testid={isMobileView ? "admin-nav-articles" : undefined} href="/admin/articles" className="rounded-md border px-3 py-1.5 text-sm whitespace-nowrap">Articles</Link>
           <Link data-testid={isMobileView ? "admin-nav-orders" : undefined} href="/admin/orders" className="rounded-md border px-3 py-1.5 text-sm whitespace-nowrap">Orders & Refunds</Link>
           <Link data-testid={isMobileView ? "admin-nav-users" : undefined} href="/admin/users" className="rounded-md border px-3 py-1.5 text-sm whitespace-nowrap">Users</Link>
         </nav>

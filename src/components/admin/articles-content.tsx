@@ -1,9 +1,10 @@
 "use client"
 
-import { deleteArticle, saveArticle } from "@/adapters/api/admin.api"
-import { useAdminArticles } from "@/application/hooks/useAdmin"
+import { deleteArticle, saveAdminAboutPage, saveArticle, saveSetting } from "@/adapters/api/admin.api"
+import { useAdminArticles, useAdminDashboard } from "@/application/hooks/useAdmin"
 import MediaUploader from "@/components/admin/media-uploader"
 import { Button } from "@/components/ui/button"
+import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import type { AdminArticle } from "@/domain/admin"
@@ -31,6 +32,7 @@ type EditorState = {
   author: string
   tags: string
   isActive: boolean
+  isAboutArticle: boolean
 }
 
 const EMPTY_EDITOR: EditorState = {
@@ -42,6 +44,7 @@ const EMPTY_EDITOR: EditorState = {
   author: "",
   tags: "",
   isActive: false,
+  isAboutArticle: false,
 }
 
 function slugify(input: string) {
@@ -86,6 +89,7 @@ function toEditorState(article?: AdminArticle | null): EditorState {
     author: article.author ?? "",
     tags: Array.isArray(article.tags) ? article.tags.join(", ") : "",
     isActive: Boolean(article.isActive),
+    isAboutArticle: false,
   }
 }
 
@@ -103,6 +107,7 @@ export function AdminArticlesContent() {
   const searchParams = useSearchParams()
 
   const { data: articles = [], mutate, isLoading } = useAdminArticles()
+  const { data: dashboard, mutate: mutateDashboard } = useAdminDashboard()
 
   const [query, setQuery] = useState("")
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("published")
@@ -118,6 +123,7 @@ export function AdminArticlesContent() {
   const composeMode = searchParams.get("compose")
   const selectedId = searchParams.get("articleId")
   const deferredQuery = useDeferredValue(query)
+  const currentAboutArticleId = dashboard?.settingsMap?.about_article_id ?? ""
 
   const selectedArticle = useMemo(
     () => articles.find((article) => article.id === selectedId) ?? null,
@@ -236,9 +242,10 @@ export function AdminArticlesContent() {
 
   useEffect(() => {
     const next = toEditorState(composeMode === "new" ? null : selectedArticle)
+    next.isAboutArticle = Boolean(next.id && next.id === currentAboutArticleId)
     setEditorState(next)
     setSlugTouched(Boolean(next.id) || next.slug.length > 0)
-  }, [composeMode, selectedArticle])
+  }, [composeMode, currentAboutArticleId, selectedArticle])
 
   useEffect(() => {
     if (selectedArticle) {
@@ -317,6 +324,33 @@ export function AdminArticlesContent() {
     await persistArticle({ ...editorState, isActive: false })
   }
 
+  const syncAboutOwnership = async (articleId: string | null, articleState?: EditorState | null) => {
+    await saveSetting("about_article_id", articleId ?? "")
+
+    if (!articleId || !articleState) {
+      await saveAdminAboutPage({
+        title: "Về GRIP",
+        slug: "about",
+        body: "",
+        gallery: [],
+        templateKey: "about-us",
+        status: "published",
+      })
+      await mutateDashboard()
+      return
+    }
+
+    await saveAdminAboutPage({
+      title: articleState.title.trim() || "Về GRIP",
+      slug: "about",
+      body: articleState.content,
+      gallery: articleState.featuredImage ? [articleState.featuredImage] : [],
+      templateKey: "about-us",
+      status: articleState.isActive ? "published" : "draft",
+    })
+    await mutateDashboard()
+  }
+
   const persistArticle = async (nextState: EditorState) => {
     if (!nextState.title.trim()) {
       toast.error("Title is required")
@@ -358,6 +392,7 @@ export function AdminArticlesContent() {
 
       const result = await saveArticle(formData)
       const refreshed = await mutate()
+      const persistedState = { ...nextState, content: finalContent }
 
       const latestArticles = Array.isArray(refreshed) ? refreshed : articles
       const resolvedId =
@@ -365,7 +400,13 @@ export function AdminArticlesContent() {
           ? result.id
           : latestArticles.find((article) => article.slug === nextState.slug)?.id
 
-      setEditorState(nextState)
+      if (nextState.isAboutArticle) {
+        await syncAboutOwnership(resolvedId ?? nextState.id ?? null, persistedState)
+      } else if ((resolvedId ?? nextState.id ?? null) === currentAboutArticleId) {
+        await syncAboutOwnership(null)
+      }
+
+      setEditorState(persistedState)
       toast.success(nextState.id ? "Article updated" : "Article created")
       handleRouteState(resolvedId ?? nextState.id ?? null, null)
     } catch (error: any) {
@@ -387,6 +428,9 @@ export function AdminArticlesContent() {
       await mutate(nextArticles, { revalidate: false })
 
       await deleteArticle(editorState.id)
+      if (editorState.id === currentAboutArticleId) {
+        await syncAboutOwnership(null)
+      }
       await mutate()
       toast.success("Article deleted")
 
@@ -592,6 +636,9 @@ export function AdminArticlesContent() {
                                         await mutate(nextArticles, { revalidate: false })
 
                                         await deleteArticle(article.id)
+                                        if (article.id === currentAboutArticleId) {
+                                          await syncAboutOwnership(null)
+                                        }
                                         await mutate()
                                         toast.success("Article deleted")
 
@@ -862,6 +909,22 @@ export function AdminArticlesContent() {
                     </button>
                   </div>
                 </div>
+
+                <label
+                  data-testid="article-about-owner-control"
+                  className="flex items-start gap-3 rounded-lg border border-[#e7e1d7] bg-[#fbfaf7] px-4 py-3"
+                >
+                  <Checkbox
+                    checked={editorState.isAboutArticle}
+                    onCheckedChange={(checked) => handleFieldChange("isAboutArticle", Boolean(checked))}
+                  />
+                  <div className="space-y-1">
+                    <div className="text-sm font-semibold text-[#211e18]">Use this article as About</div>
+                    <div className="text-xs text-[#71685a]">
+                      Public `/about` mirrors this article when selected. Selecting another article moves ownership automatically.
+                    </div>
+                  </div>
+                </label>
 
                 <div className="flex flex-col gap-3 border-t border-[#eee7db] pt-5 sm:flex-row sm:items-center sm:justify-end">
                   {editorState.id ? (

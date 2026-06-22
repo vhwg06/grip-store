@@ -1,5 +1,104 @@
 # Playwright Admin SoT Closeout Tasks
 
+## Active Workstream - Admin Settings Simplification
+
+- Scope lock:
+  - remove unused settings/menus/features instead of hiding them
+  - move About ownership into article flow
+  - move banner page enablement into banner management
+  - remove `/admin/about`, `/admin/media`, `/admin/product-content`
+  - treat earlier evidence for removed routes/settings as stale until rerun
+
+### Execution Checklist
+
+- `[x]` done
+- `[~]` in progress
+- `[ ]` not started
+- `[-]` removed or not applicable
+
+#### A. Planning and tracker setup
+
+- [x] `DOC-01` Update store-setting specs to match the simplified scope.
+- [x] `DOC-02` Update content specs to reflect About-in-article and banner-owned enablement.
+- [x] `DOC-03` Update coverage/inventory docs to remove `/admin/about`, `/admin/media`, `/admin/product-content`.
+- [x] `DOC-04` Add this simplification workstream into `playwright/admin-sot-closeout-tasks.md`.
+- [x] `DOC-05` Mark old evidence tied to removed settings/routes as stale in the SoT tracker.
+- [x] `DOC-06` Add the workflow rule to `AGENTS.md`.
+
+#### B. Store settings simplification
+
+- [x] `SET-01` Remove Overview version/update UI.
+- [x] `SET-02` Remove theme color UI and related state/save flow.
+- [x] `SET-03` Remove the brand warning notice block.
+- [x] `SET-04` Remove Discovery & visibility section and dead logic behind it.
+- [x] `SET-05` Remove Banner & About Presence section and dead logic behind it.
+- [x] `SET-06` Remove Registry & legacy controls section and dead logic behind it.
+- [x] `SET-07` Rebalance settings layout after section removal.
+- [x] `SET-08` Remove dead props from `admin/settings/page`.
+- [x] `SET-09` Remove dead dashboard mappings and obsolete adapter exports.
+
+#### C. Remove redundant routes and menus
+
+- [x] `NAV-01` Remove `/admin/about` page and component.
+- [x] `NAV-02` Remove `/admin/media` page and component.
+- [x] `NAV-03` Remove `/admin/product-content` page and component.
+- [x] `NAV-04` Remove sidebar links to the deleted routes.
+- [x] `NAV-05` Remove `CMS` and `COMMERCE` section grouping.
+- [x] `NAV-06` Flatten desktop sidebar into one list.
+- [x] `NAV-07` Flatten mobile nav and remove deleted links.
+- [x] `NAV-08` Remove stale nav test IDs/usages.
+
+#### D. About ownership migration
+
+- [x] `ABOUT-01` Add "use this article as About" control in article form.
+- [x] `ABOUT-02` Load current About ownership into article edit state.
+- [x] `ABOUT-03` Persist About assignment through article flow only.
+- [x] `ABOUT-04` Support reassigning About from one article to another.
+- [x] `ABOUT-05` Support clearing About assignment.
+- [x] `ABOUT-06` Clear About assignment when the active About article is deleted.
+- [x] `ABOUT-07` Move public About page data source to article ownership.
+- [-] `ABOUT-08` Remove legacy About page sync/fetch code if no longer used.
+  - Kept the sync path because the live public backend still serves `/v1/public/content/pages/about`; article ownership now drives that projection.
+
+#### E. Banner ownership migration
+
+- [x] `BAN-01` Add page-level banner enable/disable controls inside banner management.
+- [x] `BAN-02` Add admin adapter support for page-level banner enablement.
+- [x] `BAN-03` Add public site-config support for page-level banner enablement.
+- [x] `BAN-04` Update homepage consumer to use homepage banner enablement.
+- [x] `BAN-05` Update products page consumer to use products banner enablement.
+- [~] `BAN-06` Remove old global banner presence mapping if fully replaced.
+  - The live backend still exposes a global `bannerPresence` contract publicly, so the new page-aware client path keeps that global contract as a compatibility fallback.
+
+#### F. Product/media ownership cleanup
+
+- [x] `PROD-01` Confirm product editor already covers required media use cases.
+- [x] `PROD-02` Remove standalone product-content route coverage and ownership references.
+- [x] `PROD-03` Keep contextual media upload/select components as shared internals.
+- [x] `PROD-04` Remove standalone media-management route coverage and ownership references.
+
+#### G. Playwright and API updates
+
+- [x] `TEST-01` Prune store-settings admin spec to match surviving settings sections.
+- [x] `TEST-02` Remove media-library admin spec.
+- [x] `TEST-03` Retire or merge product-content admin spec.
+- [x] `TEST-04` Update content admin spec to remove deleted routes and cover new ownership model.
+- [x] `TEST-05` Add article-owned About admin coverage.
+- [x] `TEST-06` Add banner per-page toggle admin coverage.
+- [x] `TEST-07` Update affected API settings/content specs to match new contracts.
+- [x] `TEST-08` Update any sidebar/menu assertions tied to removed nav items.
+
+#### H. Verification and closeout
+
+- [x] `VER-01` Run focused settings admin tests with `--workers=1`.
+- [x] `VER-02` Run focused articles admin tests with `--workers=1`.
+- [x] `VER-03` Run focused banners admin tests with `--workers=1`.
+- [x] `VER-04` Run affected content/product/admin tests with `--workers=1`.
+- [x] `VER-05` Run affected API specs.
+- [x] `VER-06` Update `playwright/admin-sot-closeout-tasks.md` from fresh evidence only.
+- [x] `VER-07` Confirm touched suites have no stale `test.fail`, `test.fixme`, or unexplained skips.
+- [x] `VER-08` Mark final tasks `[x]` only after tests are green.
+
 ## Status Legend
 
 - `[x]` Verified from the current repository state.
@@ -22,6 +121,7 @@
   - Current evidence: targeted admin payment/refund reports captured at `playwright/.artifacts/payment-refund-baseline.json` and `playwright/.artifacts/payment-refund-current.json`; targeted API payment/refund verification is captured at `playwright/.artifacts/payment-refund-api-current.json`.
   - Remaining gap: no pre-edit API baseline was captured before this turn, so the historical baseline portion is only partially reconstructable.
   - Acceptance: machine-readable report records pass, fail, expected-fail, skip, and flaky counts.
+  - Stale for simplification workstream: old route/settings evidence that mentioned `/admin/about`, `/admin/media`, `/admin/product-content`, theme color, store-level About assignment, or store-level banner presence must not be treated as current after this refactor.
 
 ## Gate 1 - T1 Metadata Completion
 

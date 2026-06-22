@@ -16,7 +16,7 @@
 | `refund` | surface có thật nhưng đang bị gộp trong order | `/admin/refunds`, refund decision endpoints |
 | `review` | moderation đã có spec tốt nhưng chưa là core operational package | `/admin/reviews`, review moderation endpoints |
 | `user` | route/hook/API có thật nhưng chưa có package spec active | `/admin/users`, user account admin actions |
-| `content` | có nhiều surface riêng nhưng chưa có domain package hiện tại | `/admin/media`, `/admin/banners`, `/admin/articles`, `/admin/faqs`, `/admin/about`, `/admin/product-content` |
+| `content` | có nhiều editorial surface liên kết nhưng đã được giản lược về ownership | `/admin/banners`, `/admin/articles`, `/admin/faqs`, shared media internals, public `/about` projection từ article ownership |
 
 ## P3 Extend
 

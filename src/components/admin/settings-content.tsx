@@ -3,7 +3,6 @@
 import { useState } from "react"
 import { useSWRConfig } from "swr"
 import { useI18n } from "@/lib/i18n/context"
-import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -11,25 +10,15 @@ import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { TrendingUp, ShoppingCart, CreditCard, Package, Users, Image as ImageIcon, CheckCircle, ArrowUp } from "lucide-react"
+import { CheckCircle, ArrowUp } from "lucide-react"
 import {
   saveBrandSettings,
   saveContactSettings,
   saveHomepageSettings,
   saveFooterSettings,
   saveFloatingSupportSettings,
-  saveVisibilitySettings,
-  saveRegistrySettings,
-  savePresenceSettings,
-  joinRegistry,
-  leaveRegistry,
-  saveSetting,
-  saveLowStockThreshold,
-  getAdminArticle,
-  saveAdminAboutPage
 } from "@/adapters/api/admin.api"
-import { useAdminAboutPage, useAdminBanners, useAdminMedia, useAdminArticles } from "@/application/hooks/useAdmin"
-import { checkForUpdatesClient, type ClientUpdateCheckResult } from "@/lib/update-check-client"
+import { useAdminMedia } from "@/application/hooks/useAdmin"
 import { toast } from "sonner"
 
 function isValidUrlLike(value: string) {
@@ -41,13 +30,6 @@ function isValidUrlLike(value: string) {
   } catch {
     return false
   }
-}
-
-interface Stats {
-  today: { count: number; revenue: number }
-  week: { count: number; revenue: number }
-  month: { count: number; revenue: number }
-  total: { count: number; revenue: number }
 }
 
 interface FooterLink {
@@ -62,83 +44,31 @@ interface FooterColumn {
 }
 
 interface AdminSettingsContentProps {
-  stats: Stats
   shopName: string | null
   shopDescription: string | null
   shopLogo: string | null
   shopFooter: string | null
   themeColor: string | null
-  visitorCount: number
-  lowStockThreshold: number
-  checkinReward: number
-  checkinEnabled: boolean
-  wishlistEnabled: boolean
-  noIndexEnabled: boolean
-  registryHideNav: boolean
-  registryOptIn: boolean
-  registryEnabled: boolean
-  currentVersion: string
-  floatingButtonEnabled: boolean
-  floatingButtonUrl: string
   socialLinks: string
   homepageBlocks: string
   contactAddress: string | null
   contactHotline: string | null
   contactEmail: string | null
   contactMapsUrl: string | null
-  bannerPresenceEnabled: boolean
-  aboutPresenceEnabled: boolean
-  bannerPresencePresent: boolean
-  aboutPresencePresent: boolean
-  aboutArticleId: string | null
 }
 
-const THEME_COLORS = [
-  { value: 'black', hue: 0, chroma: 0, preview: 'oklch(0.18 0 0)' },
-  { value: 'purple', hue: 270 },
-  { value: 'indigo', hue: 255 },
-  { value: 'blue', hue: 240 },
-  { value: 'cyan', hue: 200 },
-  { value: 'teal', hue: 170 },
-  { value: 'green', hue: 150 },
-  { value: 'lime', hue: 120 },
-  { value: 'amber', hue: 85 },
-  { value: 'orange', hue: 45 },
-  { value: 'red', hue: 25 },
-  { value: 'rose', hue: 345 },
-  { value: 'pink', hue: 330 },
-]
-
 export function AdminSettingsContent({
-  stats,
   shopName,
   shopDescription,
   shopLogo,
   shopFooter,
   themeColor,
-  visitorCount,
-  lowStockThreshold,
-  checkinReward,
-  checkinEnabled,
-  wishlistEnabled,
-  noIndexEnabled,
-  registryHideNav,
-  registryOptIn,
-  registryEnabled,
-  currentVersion,
-  floatingButtonEnabled,
-  floatingButtonUrl,
   socialLinks,
   homepageBlocks,
   contactAddress,
   contactHotline,
   contactEmail,
   contactMapsUrl,
-  bannerPresenceEnabled,
-  aboutPresenceEnabled,
-  bannerPresencePresent,
-  aboutPresencePresent,
-  aboutArticleId,
 }: AdminSettingsContentProps) {
   const { t } = useI18n()
   const { mutate } = useSWRConfig()
@@ -200,7 +130,7 @@ export function AdminSettingsContent({
   const hasInvalidSocialUrl =
     !isValidUrlLike(facebookLink) || !isValidUrlLike(instagramLink) || !isValidUrlLike(tiktokLink)
 
-  // Floating Support & Visibility
+  // Floating support
   const [zaloEnabled, setZaloEnabled] = useState(() => !!socialLinksState.zalo)
   const [zaloTarget, setZaloTarget] = useState(socialLinksState.zalo || 'https://zalo.me/gripvn')
   const [messengerEnabled, setMessengerEnabled] = useState(() => !!socialLinksState.messenger)
@@ -208,47 +138,15 @@ export function AdminSettingsContent({
   const [hotlineCallEnabled, setHotlineCallEnabled] = useState(() => !!socialLinksState.hotlineCall)
   const [hotlineCallTarget, setHotlineCallTarget] = useState(socialLinksState.hotlineCall || '')
   const [scrollToTopEnabled, setScrollToTopEnabled] = useState(() => socialLinksState.scrollToTop === 'true')
-  const [noIndex, setNoIndex] = useState(noIndexEnabled)
   const [savingSupportControls, setSavingSupportControls] = useState(false)
 
-  // Registry & Legacy
-  const [selectedTheme, setSelectedTheme] = useState(themeColor || 'purple')
-  const [savingTheme, setSavingTheme] = useState(false)
-  const [thresholdValue, setThresholdValue] = useState(String(lowStockThreshold || 5))
-  const [savingThreshold, setSavingThreshold] = useState(false)
-  const [rewardValue, setRewardValue] = useState(String(checkinReward || 10))
-  const [savingReward, setSavingReward] = useState(false)
-  const [enabledCheckin, setEnabledCheckin] = useState(checkinEnabled)
-  const [savingEnabled, setSavingEnabled] = useState(false)
-  const [enabledWishlist, setEnabledWishlist] = useState(wishlistEnabled)
-  const [savingWishlist, setSavingWishlist] = useState(false)
-  const [hideRegistryNav, setHideRegistryNav] = useState(registryHideNav)
-  const [savingRegistryNav, setSavingRegistryNav] = useState(false)
-  const [registryJoined, setRegistryJoined] = useState(registryOptIn)
-  const [bannerPresenceOn, setBannerPresenceOn] = useState(bannerPresenceEnabled)
-  const [aboutPresenceOn, setAboutPresenceOn] = useState(aboutPresenceEnabled)
-  const [selectedArticleId, setSelectedArticleId] = useState(aboutArticleId || "")
-  const [savingPresence, setSavingPresence] = useState(false)
-  const [submittingRegistry, setSubmittingRegistry] = useState(false)
-  const [leavingRegistry, setLeavingRegistry] = useState(false)
-  const [checkingUpdate, setCheckingUpdate] = useState(false)
-  const [updateInfo, setUpdateInfo] = useState<ClientUpdateCheckResult | null>(null)
   const [statusMessage, setStatusMessage] = useState<string | null>(null)
 
   // Media Picker Dialog State
   const [isPickerOpen, setIsPickerOpen] = useState(false)
   const { data: mediaData } = useAdminMedia({ page: 1, pageSize: 30 })
-  const { data: banners = [] } = useAdminBanners()
-  const { data: aboutPage } = useAdminAboutPage()
-  const { data: articles = [] } = useAdminArticles()
   const mediaItems = mediaData?.items ?? []
   const [selectedMediaUrl, setSelectedMediaUrl] = useState("")
-  const hasBannerPresence = bannerPresencePresent || banners.some((banner: any) => banner.isActive)
-  const hasAboutPresence = aboutPresencePresent || Boolean(
-    aboutPage?.title?.trim() ||
-      aboutPage?.body?.trim() ||
-      (Array.isArray(aboutPage?.gallery) && aboutPage.gallery.length > 0)
-  )
 
   // --- Save handlers ---
   const handleSaveBrand = async () => {
@@ -258,7 +156,7 @@ export function AdminSettingsContent({
         shopName: shopNameValue,
         shopDescription: shopDescValue,
         shopLogo: shopLogoValue,
-        themeColor: selectedTheme
+        themeColor: themeColor || "amber"
       })
       await Promise.all([mutate("catalog-settings"), mutate("site-config")])
       setStatusMessage("Brand settings saved.")
@@ -287,72 +185,6 @@ export function AdminSettingsContent({
       toast.error(e.message || "Failed to save contact settings")
     } finally {
       setSavingContact(false)
-    }
-  }
-
-  const handleSavePresence = async () => {
-    setSavingPresence(true)
-    try {
-      await savePresenceSettings({
-        bannerPresence: {
-          enabled: bannerPresenceOn,
-          present: hasBannerPresence,
-        },
-        aboutPresence: {
-          enabled: aboutPresenceOn,
-          present: hasAboutPresence,
-        },
-      })
-      await saveSetting("about_article_id", selectedArticleId)
-
-      if (selectedArticleId) {
-        try {
-          const article =
-            articles.find((item: any) => String(item?.id ?? "") === selectedArticleId) ??
-            await getAdminArticle(selectedArticleId)
-          await saveAdminAboutPage({
-            title: article.title,
-            slug: "about",
-            body: article.content,
-            gallery: article.featuredImage ? [article.featuredImage] : [],
-            templateKey: "about-us",
-            status: "published",
-          })
-        } catch (err: any) {
-          console.error("Failed to fetch linked article, falling back to default:", err)
-          toast.error("Failed to fetch linked article: " + (err?.message || String(err)))
-          await saveAdminAboutPage({
-            title: "Về GRIP",
-            slug: "about",
-            body: "",
-            gallery: [],
-            templateKey: "about-us",
-            status: "published",
-          })
-        }
-      } else {
-        await saveAdminAboutPage({
-          title: "Về GRIP",
-          slug: "about",
-          body: "",
-          gallery: [],
-          templateKey: "about-us",
-          status: "published",
-        })
-      }
-
-      await Promise.all([
-        mutate("admin-dashboard"),
-        mutate("site-config"),
-        mutate("catalog-settings"),
-        mutate("about-page"),
-        mutate("admin-about-page")
-      ])
-      toast.success(t('common.success'))
-    } catch (e: any) {
-      toast.error(e.message || "Failed to save presence settings")
-    } finally {
-      setSavingPresence(false)
     }
   }
 
@@ -411,12 +243,6 @@ export function AdminSettingsContent({
         { key: "hotline", enabled: hotlineCallEnabled || Boolean(hotlineCallTarget.trim()), target: hotlineCallTarget || null },
         { key: "scroll_to_top", enabled: scrollToTopEnabled, target: null }
       ])
-      await saveVisibilitySettings({
-        noIndexEnabled: noIndex,
-        wishlistEnabled: enabledWishlist,
-        checkinEnabled: enabledCheckin,
-        checkinReward: Number(rewardValue) || 0,
-      })
 
       const nextSocials = { 
         ...socialLinksState, 
@@ -427,174 +253,13 @@ export function AdminSettingsContent({
       }
       setSocialLinksState(nextSocials)
       await Promise.all([mutate("catalog-settings"), mutate("site-config")])
-      setStatusMessage("Support and visibility settings saved.")
+      setStatusMessage("Support settings saved.")
       toast.success(t('common.success'))
     } catch (e: any) {
       setStatusMessage(null)
-      toast.error(e.message || "Failed to save support & visibility controls")
+      toast.error(e.message || "Failed to save support controls")
     } finally {
       setSavingSupportControls(false)
-    }
-  }
-
-  // Legacy actions
-  const handleSaveTheme = async (color: string) => {
-    setSavingTheme(true)
-    setSelectedTheme(color)
-    try {
-      await saveBrandSettings({
-        shopName: shopNameValue,
-        shopDescription: shopDescValue,
-        shopLogo: shopLogoValue,
-        themeColor: color
-      })
-      toast.success(t('common.success'))
-      window.location.reload()
-    } catch (e: any) {
-      toast.error(e.message)
-    } finally {
-      setSavingTheme(false)
-    }
-  }
-
-  const handleSaveThreshold = async () => {
-    const val = Number(thresholdValue)
-    if (isNaN(val) || val < 0) {
-      toast.error("invalid_input")
-      return
-    }
-    setSavingThreshold(true)
-    try {
-      await saveLowStockThreshold(thresholdValue)
-      toast.success(t('common.success'))
-    } catch (e: any) {
-      toast.error(e.message)
-    } finally {
-      setSavingThreshold(false)
-    }
-  }
-
-  const handleSaveReward = async () => {
-    const reward = Number(rewardValue)
-    if (isNaN(reward) || reward < 0) {
-      toast.error("invalid_input")
-      return
-    }
-    setSavingReward(true)
-    try {
-      await saveVisibilitySettings({
-        noIndexEnabled: noIndex,
-        wishlistEnabled: enabledWishlist,
-        checkinEnabled: enabledCheckin,
-        checkinReward: reward,
-      })
-      toast.success(t('common.success'))
-    } catch (e: any) {
-      toast.error(e.message)
-    } finally {
-      setSavingReward(false)
-    }
-  }
-
-  const handleToggleCheckin = async (checked: boolean) => {
-    setSavingEnabled(true)
-    try {
-      await saveVisibilitySettings({
-        noIndexEnabled: noIndex,
-        wishlistEnabled: enabledWishlist,
-        checkinEnabled: checked,
-        checkinReward: Number(rewardValue) || 0,
-      })
-      setEnabledCheckin(checked)
-      toast.success(t('common.success'))
-    } catch (e: any) {
-      toast.error(e.message)
-    } finally {
-      setSavingEnabled(false)
-    }
-  }
-
-
-  const handleToggleWishlist = async (checked: boolean) => {
-    setSavingWishlist(true)
-    try {
-      await saveVisibilitySettings({
-        noIndexEnabled: noIndex,
-        wishlistEnabled: checked,
-        checkinEnabled: enabledCheckin,
-        checkinReward: Number(rewardValue) || 0,
-      })
-      setEnabledWishlist(checked)
-      toast.success(t('common.success'))
-    } catch (e: any) {
-      toast.error(e.message)
-    } finally {
-      setSavingWishlist(false)
-    }
-  }
-
-  const handleToggleRegistryNav = async (checked: boolean) => {
-    setSavingRegistryNav(true)
-    try {
-      await saveRegistrySettings({
-        joined: registryJoined,
-        hideNav: checked
-      })
-      setHideRegistryNav(checked)
-      toast.success(t('common.success'))
-    } catch (e: any) {
-      toast.error(e.message)
-    } finally {
-      setSavingRegistryNav(false)
-    }
-  }
-
-  const handleRegistrySubmit = async () => {
-    if (submittingRegistry || leavingRegistry) return
-    setSubmittingRegistry(true)
-    try {
-      const result = await joinRegistry(window.location.origin)
-      if (!result.ok) throw new Error(result.error || "submit_failed")
-      toast.success(t('registry.submitSuccess'))
-      setRegistryJoined(true)
-      setHideRegistryNav(false)
-    } catch {
-      toast.error(t('registry.submitFailed'))
-    } finally {
-      setSubmittingRegistry(false)
-    }
-  }
-
-  const handleRegistryLeave = async () => {
-    if (submittingRegistry || leavingRegistry) return
-    setLeavingRegistry(true)
-    try {
-      const result = await leaveRegistry()
-      if (!result.ok) throw new Error(result.error || "leave_failed")
-      toast.success(t('registry.leaveSuccess'))
-      setRegistryJoined(false)
-      setHideRegistryNav(true)
-    } catch {
-      toast.error(t('registry.leaveFailed'))
-    } finally {
-      setLeavingRegistry(false)
-    }
-  }
-
-  const handleCheckUpdate = async () => {
-    setCheckingUpdate(true)
-    try {
-      const result = await checkForUpdatesClient(currentVersion)
-      setUpdateInfo(result)
-      if (result.error) {
-        toast.error(t('update.checkFailed'))
-        return
-      }
-      toast.success(result.hasUpdate ? t('update.available') : t('update.upToDate'))
-    } catch {
-      toast.error(t('update.checkFailed'))
-    } finally {
-      setCheckingUpdate(false)
     }
   }
 
@@ -637,7 +302,6 @@ export function AdminSettingsContent({
 
   return (
     <div className="w-[1056px]">
-      {/* Page Title to satisfy both Store Settings and Cấu hình cửa hàng tests */}
       <div>
         <div className="flex items-center gap-1.5 text-xs text-[#787774] mb-1 font-medium mt-[26px]">
           <span>Admin</span>
@@ -650,7 +314,7 @@ export function AdminSettingsContent({
           Store Settings
         </h1>
         <p className="text-sm text-[#71685a] mt-[12px]">
-          Storefront configuration for brand, contact, homepage layout, footer, support channels, and visibility rules.
+          Storefront configuration for brand, contact, homepage layout, footer, and support channels.
         </p>
         {statusMessage && (
           <div
@@ -662,70 +326,11 @@ export function AdminSettingsContent({
         )}
       </div>
 
-      {/* Status Strip */}
       <div className="w-[1056px] h-[52px] bg-white border border-[#e7e1d7] rounded-lg flex items-center px-6 text-sm text-[#787774] font-medium mt-[36px]">
-        Brand identity: 4 editable fields   |   Homepage: 3 active modules   |   Support: 4 active channels   |   Grouped save boundaries enabled
-      </div>
-
-      {/* 1. Overview Section Card */}
-      <div 
-        data-testid="settings-section-overview"
-        className=""
-      >
-          <Card className="border-border/60 shadow-sm mt-6">
-            <CardHeader className="bg-muted/10 pb-3">
-              <CardTitle className="text-lg font-bold font-svn-gilroy">Overview & System Stats</CardTitle>
-            </CardHeader>
-            <CardContent className="pt-6">
-              <div className="grid gap-4 grid-cols-2 md:grid-cols-5">
-                <Card className="border-border/40">
-                  <CardContent className="pt-4 pb-3 px-3">
-                    <span className="text-xs text-muted-foreground font-medium block">Today Sales</span>
-                    <div className="text-xl font-bold mt-1 text-foreground">{stats.today.count}</div>
-                    <span className="text-[10px] text-muted-foreground">{stats.today.revenue} credits</span>
-                  </CardContent>
-                </Card>
-                <Card className="border-border/40">
-                  <CardContent className="pt-4 pb-3 px-3">
-                    <span className="text-xs text-muted-foreground font-medium block">Weekly Sales</span>
-                    <div className="text-xl font-bold mt-1 text-foreground">{stats.week.count}</div>
-                    <span className="text-[10px] text-muted-foreground">{stats.week.revenue} credits</span>
-                  </CardContent>
-                </Card>
-                <Card className="border-border/40">
-                  <CardContent className="pt-4 pb-3 px-3">
-                    <span className="text-xs text-muted-foreground font-medium block">Monthly Sales</span>
-                    <div className="text-xl font-bold mt-1 text-foreground">{stats.month.count}</div>
-                    <span className="text-[10px] text-muted-foreground">{stats.month.revenue} credits</span>
-                  </CardContent>
-                </Card>
-                <Card className="border-border/40">
-                  <CardContent className="pt-4 pb-3 px-3">
-                    <span className="text-xs text-muted-foreground font-medium block">Total Sales</span>
-                    <div className="text-xl font-bold mt-1 text-foreground">{stats.total.count}</div>
-                    <span className="text-[10px] text-muted-foreground">{stats.total.revenue} credits</span>
-                  </CardContent>
-                </Card>
-                <Card className="border-border/40">
-                  <CardContent className="pt-4 pb-3 px-3">
-                    <span className="text-xs text-muted-foreground font-medium block">Visitor Count</span>
-                    <div className="text-xl font-bold mt-1 text-foreground">{visitorCount}</div>
-                    <span className="text-[10px] text-muted-foreground">Unique visitors</span>
-                  </CardContent>
-                </Card>
-              </div>
-              <div className="text-xs text-muted-foreground mt-4 flex items-center justify-between bg-muted/20 p-2.5 rounded border">
-                <span>App Version: <strong>{currentVersion}</strong></span>
-                <Button size="sm" variant="ghost" onClick={handleCheckUpdate} disabled={checkingUpdate} className="h-7 text-xs">
-                  Check for updates
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+        Brand identity | Homepage composition | Footer & support save groups
       </div>
 
       <div className="flex items-start gap-6 mt-[34px]">
-        {/* Column 1 (Left): Brand Identity */}
         <div data-testid="settings-section-brand" className="w-[564px]">
           <Card className="w-[564px] h-[420px] border-[#e7e1d7] bg-white rounded-lg shadow-sm flex flex-col justify-between">
             <CardHeader className="pb-3 px-6 pt-6">
@@ -776,34 +381,11 @@ export function AdminSettingsContent({
                     )}
                   </div>
                 </div>
-
-                {/* Theme color (width 250px) */}
-                <div className="w-[250px] space-y-1.5">
-                  <Label className="text-xs text-[#71685a] font-medium">Theme color</Label>
-                  <div className="flex flex-wrap gap-1">
-                    {THEME_COLORS.map(({ value, hue, chroma, preview }) => {
-                      const bgColor = preview || `oklch(0.55 0.2 ${hue})`
-                      return (
-                        <button
-                          key={value}
-                          onClick={() => handleSaveTheme(value)}
-                          disabled={savingTheme}
-                          className={`w-5 h-5 rounded-full border border-[#e7e1d7] transition-all ${
-                            selectedTheme === value ? 'ring-1 ring-offset-1 ring-foreground scale-110' : 'hover:scale-105'
-                          }`}
-                          style={{ backgroundColor: bgColor }}
-                          title={value}
-                        />
-                      )
-                    })}
-                  </div>
-                </div>
               </div>
             </CardContent>
-            {/* Validation Note and Save Brand Button inside Card */}
             <div className="flex justify-between items-center px-6 pb-6 mt-auto">
-              <div className="w-[368px] h-10 px-4 py-2 bg-[#fff1f0] border-[#ffccc7] rounded-lg text-xs text-[#a33b2b] font-medium leading-tight flex items-center">
-                Invalid email or negative homepageNewsCount keeps the affected save group blocked.
+              <div className="w-[368px] h-10 px-4 py-2 bg-[#fbfaf7] border border-[#e7e1d7] rounded-lg text-xs text-[#71685a] font-medium leading-tight flex items-center">
+                Logo and identity changes publish through the shared storefront header and footer.
               </div>
               <Button
                 data-testid="settings-save-brand"
@@ -817,7 +399,6 @@ export function AdminSettingsContent({
           </Card>
         </div>
 
-        {/* Column 2 (Right): Homepage Composition */}
         <div data-testid="settings-section-homepage" className="w-[468px]">
           <Card className="w-[468px] min-h-[406px] border-[#e7e1d7] bg-white rounded-lg shadow-sm flex flex-col justify-between">
             <CardHeader className="pb-3 px-6 pt-6">
@@ -876,7 +457,6 @@ export function AdminSettingsContent({
                 <span className="text-[11px] text-[#787774] block">News count: 3 (standard storefront news strip limit)</span>
               </div>
             </CardContent>
-            {/* Save Homepage Button INSIDE Card */}
             <div className="flex justify-end px-6 pb-6 mt-auto">
               <Button
                 data-testid="settings-save-homepage"
@@ -892,11 +472,10 @@ export function AdminSettingsContent({
       </div>
 
       <div className="flex gap-6 mt-[18px]">
-        {/* Card 1: Contact + Discovery */}
         <div data-testid="settings-section-contact" className="w-[336px]">
           <Card className="w-[336px] h-[580px] border-[#e7e1d7] bg-white rounded-lg shadow-sm flex flex-col justify-between">
             <CardHeader className="pb-3 px-6 pt-6">
-              <CardTitle className="text-lg font-bold text-[#211e18]">Contact + discovery</CardTitle>
+              <CardTitle className="text-lg font-bold text-[#211e18]">Contact details</CardTitle>
             </CardHeader>
             <CardContent className="px-6 pb-4 space-y-3 flex-1 overflow-y-auto">
               <div className="space-y-1">
@@ -948,12 +527,11 @@ export function AdminSettingsContent({
                 />
               </div>
 
-              <div className="w-[288px] h-[110px] bg-[#fafaf8] border border-[#e7e1d7] rounded-lg flex flex-col items-center justify-center p-2">
-                <span className="text-lg">📍</span>
-                <span className="text-[11px] text-[#9a9184] text-center mt-1">No map preview available. Please enter a valid embed URL.</span>
-              </div>
-            </CardContent>
-            {/* Save Button inside Card */}
+                <div className="w-[288px] h-[110px] bg-[#fafaf8] border border-[#e7e1d7] rounded-lg flex flex-col items-center justify-center p-2">
+                  <span className="text-lg">📍</span>
+                  <span className="text-[11px] text-[#9a9184] text-center mt-1">No map preview available. Please enter a valid embed URL.</span>
+                </div>
+              </CardContent>
             <div className="flex justify-end px-6 pb-6 mt-auto">
               <Button
                 data-testid="settings-save-contact"
@@ -967,7 +545,6 @@ export function AdminSettingsContent({
           </Card>
         </div>
 
-        {/* Card 2: Footer & Social Links */}
         <div data-testid="settings-section-footer-social" className="w-[336px]">
           <Card className="w-[336px] h-[580px] border-[#e7e1d7] bg-white rounded-lg shadow-sm flex flex-col justify-between">
             <CardHeader className="pb-3 px-6 pt-6">
@@ -1029,7 +606,6 @@ export function AdminSettingsContent({
                 )}
               </div>
             </CardContent>
-            {/* Save Button inside Card */}
             <div className="flex justify-end px-6 pb-6 mt-auto">
               <Button
                 data-testid="settings-save-footer-social"
@@ -1043,7 +619,6 @@ export function AdminSettingsContent({
           </Card>
         </div>
 
-        {/* Card 3: Floating Support Settings */}
         <div data-testid="settings-section-floating-support" className="w-[336px]">
           <Card className="w-[336px] h-[580px] border-[#e7e1d7] bg-white rounded-lg shadow-sm flex flex-col justify-between">
             <CardHeader className="pb-3 px-6 pt-6">
@@ -1107,7 +682,6 @@ export function AdminSettingsContent({
                 />
               </div>
             </CardContent>
-            {/* Save Button inside Card */}
             <div className="flex justify-end px-6 pb-6 mt-auto">
               <Button
                 data-testid="settings-save-support-controls"
@@ -1120,215 +694,6 @@ export function AdminSettingsContent({
             </div>
           </Card>
         </div>
-      </div>
-
-      {/* Discovery & Visibility Controls Card */}
-      <div 
-        data-testid="settings-section-discovery-visibility"
-        className="mt-6"
-      >
-          <Card className="border-border/60 shadow-sm">
-            <CardHeader className="bg-muted/10 pb-3">
-              <CardTitle className="text-lg font-bold font-svn-gilroy">Discovery & visibility</CardTitle>
-            </CardHeader>
-            <CardContent className="pt-6 space-y-4">
-              <div className="flex items-center gap-3">
-                <Checkbox
-                  id="noindex-enabled"
-                  data-testid="visibility-noindex-enabled"
-                  checked={noIndex}
-                  onCheckedChange={(checked) => setNoIndex(!!checked)}
-                />
-                <Label htmlFor="noindex-enabled" className="cursor-pointer font-bold text-sm text-destructive">
-                  Block Search Engines (noindex)
-                </Label>
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Checking this setting will insert a robots meta noindex tag, requesting search engines not to index this site.
-              </p>
-              <div className="flex items-center gap-3 border-t pt-4">
-                <Checkbox
-                  id="wishlist-enabled"
-                  data-testid="visibility-wishlist-enabled"
-                  checked={enabledWishlist}
-                  onCheckedChange={(checked) => setEnabledWishlist(!!checked)}
-                />
-                <Label htmlFor="wishlist-enabled" className="cursor-pointer font-bold text-sm text-foreground">
-                  Wishlist remains publicly available
-                </Label>
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Wishlist visibility is part of the storefront discovery contract and must save together with robots policy.
-              </p>
-            </CardContent>
-          </Card>
-      </div>
-
-      {/* Banner & About Presence Section Card */}
-      <div 
-        data-testid="settings-section-presence"
-        className="mt-6"
-      >
-          <Card className="border-border/60 shadow-sm">
-            <CardHeader className="bg-muted/10 pb-3">
-              <CardTitle className="text-lg font-bold font-svn-gilroy">Banner & About Presence</CardTitle>
-            </CardHeader>
-            <CardContent className="pt-6 space-y-6">
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="rounded-lg border border-[#e7e1d7] bg-[#fbfaf7] p-4">
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <p className="text-sm font-semibold text-[#211e18]">Banner presence</p>
-                      <p className="mt-1 text-xs text-[#71685a]">
-                        Storefront reads current active banner presence from the banner manager.
-                      </p>
-                    </div>
-                    <Checkbox
-                      data-testid="settings-banner-presence-toggle"
-                      checked={bannerPresenceOn}
-                      onCheckedChange={(checked) => setBannerPresenceOn(Boolean(checked))}
-                    />
-                  </div>
-                  <div className="mt-2 text-xs text-[#71685a]">
-                    Source present: {hasBannerPresence ? "Yes" : "No"}
-                  </div>
-                  <Link href="/admin/banners" className="mt-3 inline-flex text-xs font-semibold text-[#99782b] underline-offset-4 hover:underline">
-                    Manage banner presence
-                  </Link>
-                </div>
-                <div className="rounded-lg border border-[#e7e1d7] bg-[#fbfaf7] p-4">
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <p className="text-sm font-semibold text-[#211e18]">About presence</p>
-                      <p className="mt-1 text-xs text-[#71685a]">
-                        Storefront reads current About content presence from the About page source.
-                      </p>
-                    </div>
-                    <Checkbox
-                      data-testid="settings-about-presence-toggle"
-                      checked={aboutPresenceOn}
-                      onCheckedChange={(checked) => setAboutPresenceOn(Boolean(checked))}
-                    />
-                  </div>
-                  <div className="mt-2 text-xs text-[#71685a]">
-                    Source present: {hasAboutPresence ? "Yes" : "No"}
-                  </div>
-                  <Link href="/admin/about" className="mt-3 inline-flex text-xs font-semibold text-[#99782b] underline-offset-4 hover:underline">
-                    Manage about presence
-                  </Link>
-                  <div className="mt-4 border-t border-[#e7e1d7] pt-4">
-                    <label className="text-xs font-semibold uppercase tracking-[0.08em] text-[#71685a] block mb-2">
-                      Liên kết bài viết About Us
-                    </label>
-                    <select
-                      data-testid="settings-about-article-select"
-                      value={selectedArticleId}
-                      onChange={(e) => setSelectedArticleId(e.target.value)}
-                      className="w-full h-10 px-3 rounded-lg border border-[#e7e1d7] bg-white text-sm text-[#3a352b] focus-visible:ring-[#99782b]/30"
-                    >
-                      <option value="">None / Fallback (Không liên kết)</option>
-                      {articles.map((art) => (
-                        <option key={art.id} value={art.id}>
-                          {art.title}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-              </div>
-              <div className="flex justify-end">
-                <Button
-                  variant="outline"
-                  data-testid="settings-save-presence"
-                  onClick={handleSavePresence}
-                  disabled={savingPresence}
-                >
-                  {savingPresence ? "Saving..." : "Save"}
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-      </div>
-
-      {/* Registry & Legacy Controls Card */}
-      <div 
-        data-testid="settings-section-registry-legacy"
-        className="mt-6"
-      >
-          <Card className="border-border/60 shadow-sm">
-            <CardHeader className="bg-muted/10 pb-3">
-              <CardTitle role="heading" aria-level={2} className="text-lg font-bold font-svn-gilroy">
-                Registry & legacy controls
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="pt-6 space-y-6">
-              <div className="grid gap-6 md:grid-cols-2">
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Label>Low Stock Alert Threshold</Label>
-                    <div className="flex gap-2">
-                      <Input
-                        type="number"
-                        value={thresholdValue}
-                        onChange={(e) => setThresholdValue(e.target.value)}
-                      />
-                      <Button variant="outline" onClick={handleSaveThreshold} disabled={savingThreshold}>
-                        Save
-                      </Button>
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label>Daily Check-in Reward (Points)</Label>
-                    <div className="flex gap-2">
-                      <Input
-                        type="number"
-                        value={rewardValue}
-                        onChange={(e) => setRewardValue(e.target.value)}
-                      />
-                      <Button variant="outline" onClick={handleSaveReward} disabled={savingReward}>
-                        Save
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex flex-wrap gap-4 pt-4 border-t items-center justify-between">
-                <div className="flex gap-4 flex-wrap">
-                  <Button
-                    variant={enabledCheckin ? "default" : "outline"}
-                    onClick={() => handleToggleCheckin(!enabledCheckin)}
-                    disabled={savingEnabled}
-                    className={enabledCheckin ? "bg-green-600 hover:bg-green-700 text-white" : ""}
-                  >
-                    Check-in: {enabledCheckin ? "Enabled" : "Disabled"}
-                  </Button>
-
-                  <Button
-                    variant={enabledWishlist ? "default" : "outline"}
-                    onClick={() => handleToggleWishlist(!enabledWishlist)}
-                    disabled={savingWishlist}
-                  >
-                    Wishlist: {enabledWishlist ? "Enabled" : "Disabled"}
-                  </Button>
-                </div>
-
-                {registryEnabled && (
-                  <div className="flex items-center gap-3">
-                    <Button onClick={handleRegistrySubmit} disabled={submittingRegistry || leavingRegistry} size="sm">
-                      {registryJoined ? "Resubmit Origin" : "Join Registry"}
-                    </Button>
-                    {registryJoined && (
-                      <Button variant="destructive" onClick={handleRegistryLeave} disabled={submittingRegistry || leavingRegistry} size="sm">
-                        Leave Registry
-                      </Button>
-                    )}
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
       </div>
 
       {/* --- Media Picker Modal Dialog --- */}

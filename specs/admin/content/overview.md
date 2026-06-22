@@ -4,12 +4,11 @@
 
 `content` là domain quản lý editorial và reusable content assets cho admin:
 
-- media library
 - banners
 - articles
 - FAQs
-- about content
-- product-linked editorial content
+- article-owned About projection
+- product-linked editorial/media internals
 
 ## Actors
 
@@ -19,20 +18,20 @@
 
 ## Core Concepts
 
-- media asset
 - page/banner presence
 - article publication
 - FAQ knowledge
-- about narrative
+- article-owned about narrative
 - product editorial enrichment
 
 ## Boundaries
 
 - `content` sở hữu substance của nội dung
-- `store-setting` chỉ sở hữu storefront configuration và presence rules
+- `content` sở hữu banner enablement per page và article-to-About ownership
+- `store-setting` chỉ sở hữu storefront configuration còn lại sau simplification
 - `product` chỉ sở hữu commercial/catalog state
 
 ## Relationships
 
-- `content` references `store-setting` khi nội dung được trình bày trên storefront
+- `content` no longer depends on standalone `/admin/about`, `/admin/media`, hoặc `/admin/product-content` routes
 - `content` references `product` khi nội dung gắn với product detail hoặc product media context

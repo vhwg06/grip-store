@@ -4,11 +4,9 @@
 
 Quản lý storefront-facing configuration cho admin:
 
-- banner
-- about us linkage
 - brand/contact
 - homepage composition
-- visibility and registry controls
+- footer/social/support touchpoints
 
 ## Actors
 
@@ -20,18 +18,19 @@ Quản lý storefront-facing configuration cho admin:
 
 - `/admin/settings`
 - `/api/admin/store-settings`
-- structured write surfaces for brand/contact/homepage/footer/floating-support/visibility/registry
+- structured write surfaces for brand/contact/homepage/footer/floating-support
 
 ## In Scope
 
 - brand and contact
 - homepage composition
 - footer/social/floating support
-- discovery and visibility
-- registry and legacy controls
-- banner/about cross-domain references when part of storefront configuration
+- storefront-facing support touchpoints owned directly by settings
 
 ## Out Of Scope
 
-- standalone article/FAQ governance
+- banner enablement and banner CRUD
+- About ownership and article governance
+- discovery/visibility controls
+- registry and legacy controls
 - catalog CRUD

@@ -24,6 +24,16 @@ export interface SiteConfig {
   contactAddress?: string;
   contactEmail?: string;
   contactHotline?: string;
+  bannerPages?: {
+    homepage?: {
+      enabled: boolean;
+      present: boolean;
+    };
+    products?: {
+      enabled: boolean;
+      present: boolean;
+    };
+  };
   bannerPresence?: {
     enabled: boolean;
     present: boolean;
@@ -49,4 +59,3 @@ export interface AboutPageData {
   templateKey: string;
   status: string;
 }
-
