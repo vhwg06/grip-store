@@ -32,8 +32,8 @@
 
 #### C. Playwright/API contract updates
 
-- [ ] `RM-TEST-01` Remove cards-specific admin and API specs.
-- [ ] `RM-TEST-02` Remove points/check-in/profile-points specs and helpers.
+- [~] `RM-TEST-01` Remove cards-specific admin and API specs.
+- [~] `RM-TEST-02` Remove points/check-in/profile-points specs and helpers.
 - [ ] `RM-TEST-03` Rewrite affected admin/content/product/user/refund coverage to the no-cards/no-points contract.
 - [ ] `RM-TEST-04` Add or tighten coverage for `/admin/products` row edit and quick-edit entry into product media/editorial.
 

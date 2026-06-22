@@ -6,7 +6,6 @@ export interface UserProfile {
   username: string;
   avatar?: string;
   role: "user" | "admin";
-  points: number;
 }
 
 function mapTokens(data: any) {
@@ -53,4 +52,3 @@ export class AuthApiHelper {
     };
   }
 }
-

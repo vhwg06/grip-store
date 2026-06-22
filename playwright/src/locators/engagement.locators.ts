@@ -28,16 +28,11 @@ export const EngagementLocators = {
     content: '[data-testid="review-content"]',
   },
 
-  // Profile / Check-in
+  // Profile
   profile: {
     username: '[data-testid="profile-username"]',
     email: '[data-testid="profile-email"]',
-    points: '[data-testid="profile-points"]',
     emailInput: '[data-testid="profile-email-input"]',
     saveButton: '[data-testid="profile-save-btn"]',
-    checkinButton: '[data-testid="checkin-btn"]',
-    checkinStreak: '[data-testid="checkin-streak"]',
-    checkinSuccess: '[data-testid="checkin-success"]',
-    pointsHistory: '[data-testid="points-history"]',
   },
 } as const;

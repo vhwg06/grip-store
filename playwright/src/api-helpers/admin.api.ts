@@ -8,13 +8,6 @@ export interface PaginationParams {
   limit?: number;
 }
 
-export interface Card {
-  id: string;
-  code: string;
-  product_id: string;
-  used: boolean;
-}
-
 export interface CreateProductData {
   title: string;
   description: string;
@@ -25,11 +18,6 @@ export interface CreateProductData {
 
 export interface UpdateOrderData {
   status: string;
-}
-
-export interface ImportCardsData {
-  product_id: string;
-  codes: string[];
 }
 
 export interface AdminSettings {
@@ -88,25 +76,6 @@ export class AdminApiHelper {
   async reorderProducts(ids: string[]): Promise<ApiResponse<void>> {
     return this.client.post("/v1/admin/products/reorder", { ids });
   }
-
-  /* ── Cards ────────────────────────────────── */
-
-  async getCards(): Promise<ApiResponse<Card[]>> {
-    return this.client.get("/v1/admin/cards");
-  }
-
-  async importCards(data: ImportCardsData): Promise<ApiResponse<{ imported: number }>> {
-    return this.client.post("/v1/admin/cards/import", data);
-  }
-
-  async deleteCard(id: string): Promise<ApiResponse<void>> {
-    return this.client.delete(`/v1/admin/cards/${id}`);
-  }
-
-  async pullCards(): Promise<ApiResponse<{ pulled: number }>> {
-    return this.client.post("/v1/admin/cards/pull");
-  }
-
   /* ── Orders ───────────────────────────────── */
 
   async getOrders(params?: PaginationParams): Promise<ApiResponse<PaginatedResponse<Order>>> {
