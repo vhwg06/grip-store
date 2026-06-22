@@ -5,7 +5,6 @@ export interface User {
   avatar_url: string | null
   trustLevel: number
   isAdmin: boolean
-  points: number
   desktopNotificationsEnabled: boolean
 }
 

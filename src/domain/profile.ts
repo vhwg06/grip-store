@@ -31,8 +31,6 @@ export interface ProfileUser {
 
 export interface ProfileView {
   user: ProfileUser
-  points: number
-  checkinEnabled: boolean
   orderStats: ProfileOrderStats
   notifications: ProfileNotification[]
   desktopNotificationsEnabled: boolean
@@ -54,19 +52,6 @@ export interface ProfileSessionView {
 export interface ProfileActionResult {
   success: boolean
   error?: string
-}
-
-export interface CheckinStatus {
-  checkedIn: boolean
-  disabled?: boolean
-  consecutiveDays?: number
-  lastCheckinAt?: number | null
-}
-
-export interface CheckinResult extends ProfileActionResult {
-  points?: number
-  checkedIn?: boolean
-  consecutiveDays?: number
 }
 
 export function profileFromUser(user: User): ProfileUser {

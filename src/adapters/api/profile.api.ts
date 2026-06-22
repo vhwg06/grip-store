@@ -2,8 +2,6 @@
 
 import { apiFetch } from "@/adapters/api/http-client"
 import type {
-  CheckinResult,
-  CheckinStatus,
   ProfileActionResult,
   ProfileNotification,
   ProfileOrderStats,
@@ -56,8 +54,6 @@ export async function getProfile(): Promise<ProfileView> {
       lastLoginAt: rawUser?.last_login_at ?? rawUser?.lastLoginAt ?? null,
       trustLevel: Number(rawUser?.trust_level ?? rawUser?.trustLevel ?? 0),
     },
-    points: Number(data?.points ?? rawUser?.points ?? 0),
-    checkinEnabled: data?.checkinEnabled !== false,
     orderStats: {
       total: Number(data?.orderStats?.total ?? EMPTY_STATS.total),
       pending: Number(data?.orderStats?.pending ?? EMPTY_STATS.pending),
@@ -116,33 +112,4 @@ export async function updateProfileEmail(email: string): Promise<ProfileActionRe
 
 export async function updateDesktopNotifications(enabled: boolean): Promise<ProfileActionResult> {
   return updateProfile("test_admin@example.com", "", enabled)
-}
-
-export async function getUserPoints() {
-  const payload = await apiFetch<{ points?: number }>("/api/profile/points")
-  return Number(payload.points ?? 0)
-}
-
-export async function checkIn(): Promise<CheckinResult> {
-  const payload = (await apiFetch<unknown>("/api/profile/checkin", {
-    method: "POST",
-  })) as Record<string, any>
-
-  return {
-    success: payload.success !== false && payload.ok !== false,
-    error: payload.error ? String(payload.error) : undefined,
-    points: Number(payload.points ?? 0),
-    checkedIn: payload.checkedIn ?? true,
-    consecutiveDays: payload.consecutiveDays,
-  }
-}
-
-export async function getCheckinStatus(): Promise<CheckinStatus> {
-  const payload = await apiFetch<Partial<CheckinStatus>>("/api/profile/checkin/status")
-  return {
-    checkedIn: Boolean(payload.checkedIn),
-    disabled: Boolean(payload.disabled),
-    consecutiveDays: payload.consecutiveDays,
-    lastCheckinAt: payload.lastCheckinAt ?? null,
-  }
 }

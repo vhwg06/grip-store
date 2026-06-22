@@ -8,7 +8,6 @@ import type {
   AdminMessagesPayload,
   AdminNotificationsSettings,
   AdminProductsPayload,
-  AdminCard,
   AdminTargetType,
   AnnouncementConfig,
   AdminProduct,
@@ -174,8 +173,6 @@ export async function getAdminDashboard(): Promise<AdminDashboardPayload> {
     "noindex_enabled": String(Boolean(visibility.noIndexEnabled)),
 
     "wishlist_enabled": String(Boolean(visibility.wishlistEnabled)),
-    "checkin_enabled": String(Boolean(visibility.checkinEnabled)),
-    "checkin_reward": String(visibility.checkinReward ?? 1),
 
     "registry_opt_in": String(Boolean(registry.joined)),
     "registry_hide_nav": String(Boolean(registry.hideNav)),
@@ -319,25 +316,6 @@ export async function getAdminCategories(): Promise<AdminCategory[]> {
   }))
 }
 
-export async function getAdminCards(): Promise<AdminCard[]> {
-  const payload = await apiFetch<any>("/api/admin/cards")
-  const raw = payload?.data || payload
-  const list = Array.isArray(raw) ? raw : raw.cards ?? []
-
-  return list.map((item: any) => ({
-    id: Number(item?.id ?? 0),
-    productId: String(item?.product_id ?? item?.productId ?? ""),
-    cardKey: String(item?.card_key ?? item?.cardKey ?? ""),
-    isUsed: Boolean(item?.is_used ?? item?.isUsed),
-    reservedOrderId: item?.reserved_order_id ?? item?.reservedOrderId ?? null,
-    reservedAt: item?.reserved_at ?? item?.reservedAt ?? null,
-    expiresAt: item?.expires_at ?? item?.expiresAt ?? null,
-    usedAt: item?.used_at ?? item?.usedAt ?? null,
-    createdAt: item?.created_at ?? item?.createdAt ?? null,
-  }))
-}
-
-
 export async function getAdminUsers(params: { page?: number; q?: string; pageSize?: number; role?: string }) {
   const payload = await apiFetch<unknown>(`/api/admin/users${qs(params)}`)
   const raw = (payload ?? {}) as Record<string, any>
@@ -349,7 +327,6 @@ export async function getAdminUsers(params: { page?: number; q?: string; pageSiz
   const items = rawItems.map((item: any) => ({
     userId: String(item.userId ?? item.user_id ?? item.id ?? ""),
     username: (item.username ?? item.user_name ?? null) as string | null,
-    points: Number(item.points ?? 0),
     lastLoginAt: (item.lastLoginAt ?? item.last_login_at ?? null) as string | null,
     createdAt: (item.createdAt ?? item.created_at ?? null) as string | null,
     orderCount: Number(item.orderCount ?? item.order_count ?? 0),
@@ -578,10 +555,6 @@ export async function adminRejectRefund(requestId: number, adminNote?: string) {
 
 export async function getPendingRefundRequestCount() {
   return apiFetch<{ success: boolean; count: number }>("/api/admin/refunds/pending-count")
-}
-
-export async function saveUserPoints(userId: string, points: number) {
-  return patchJson(`/api/admin/users/${encodeURIComponent(userId)}/points`, { points })
 }
 
 export async function toggleBlock(userId: string, isBlocked: boolean) {

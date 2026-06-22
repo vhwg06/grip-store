@@ -13,7 +13,6 @@ export interface CheckoutOrderInput {
   address?: string
   notes?: string
   paymentMethod?: 'COD' | 'BANK_TRANSFER'
-  usePoints?: boolean
 }
 
 export interface CheckoutPaymentResult {
@@ -23,8 +22,6 @@ export interface CheckoutPaymentResult {
   orderId?: string
   status?: string
   amount?: string
-  pointsUsed?: number
-  isZeroPrice?: boolean
   error?: string
 }
 

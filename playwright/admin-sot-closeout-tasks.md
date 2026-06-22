@@ -1,5 +1,49 @@
 # Playwright Admin SoT Closeout Tasks
 
+## Active Workstream - Remove Cards And Points From The System
+
+- Scope lock:
+  - remove `cards` as entity, route, API surface, UI flow, and test contract
+  - remove `points` as account field, checkout/refund/admin/profile behavior, and test contract
+  - purge historical card/points business data rather than keeping compatibility reads
+  - product editorial/media must remain reachable only through `/admin/products` -> `Edit` / `Quick edit`
+  - all prior evidence mentioning `/admin/cards`, card-key delivery, points balance, points refund, or points mutation becomes stale until rerun
+
+### Execution Checklist
+
+- `[x]` done
+- `[~]` in progress
+- `[ ]` not started
+- `[-]` removed or not applicable
+
+#### A. Planning and tracker setup
+
+- [~] `RM-DOC-01` Update admin/content/product/customer specs to remove cards/points ownership and lock the product-list-to-edit flow.
+- [ ] `RM-DOC-02` Update coverage/index docs to remove cards and points from active admin scope.
+- [ ] `RM-DOC-03` Add backend removal references and stale-evidence notes to this SoT tracker.
+
+#### B. Frontend/admin contract removal
+
+- [~] `RM-FE-01` Remove `/admin/cards` route, sidebar entry, adapters, hooks, and components.
+- [~] `RM-FE-02` Remove product-editor cards CTA and any cards-specific context handoff.
+- [~] `RM-FE-03` Remove points balance, check-in, and use-points behavior from storefront/profile flows.
+- [~] `RM-FE-04` Remove admin user/customer points mutation UI and refund copy that mentions cards/points restore.
+- [~] `RM-FE-05` Keep product editorial/media entry rooted only in `/admin/products` -> product edit.
+
+#### C. Playwright/API contract updates
+
+- [ ] `RM-TEST-01` Remove cards-specific admin and API specs.
+- [ ] `RM-TEST-02` Remove points/check-in/profile-points specs and helpers.
+- [ ] `RM-TEST-03` Rewrite affected admin/content/product/user/refund coverage to the no-cards/no-points contract.
+- [ ] `RM-TEST-04` Add or tighten coverage for `/admin/products` row edit and quick-edit entry into product media/editorial.
+
+#### D. Verification and closeout
+
+- [ ] `RM-VER-01` Run focused frontend/admin verification for the no-cards/no-points contract.
+- [ ] `RM-VER-02` Run focused API verification for the no-cards/no-points contract.
+- [ ] `RM-VER-03` Confirm removed routes/fields are absent and no touched suites carry stale `test.fail`, `test.fixme`, or unexplained skips.
+- [ ] `RM-VER-04` Mark remaining tasks `[x]` only from fresh evidence after reruns.
+
 ## Active Workstream - Admin Settings Simplification
 
 - Scope lock:

@@ -202,7 +202,7 @@ export function AdminOrderDetailContent({ order }: { order: any }) {
           <CardContent className="pt-4 pb-4">
             <div className="text-xs font-bold uppercase tracking-wider text-red-700">Risk flags</div>
             <div className="text-3xl font-black text-red-900 mt-1 font-svn-gilroy">
-              {Number(order.totalAmount || order.amount) > 500 || order.pointsUsed > 1000 ? "1" : "0"}
+              {Number(order.totalAmount || order.amount) > 500 ? "1" : "0"}
             </div>
           </CardContent>
         </Card>

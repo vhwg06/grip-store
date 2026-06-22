@@ -16,7 +16,6 @@ import {
 import { SignInButton } from "@/components/signin-button";
 import { SignOutButton } from "@/components/signout-button";
 import { HeaderUserMenuItems, HeaderUnreadBadge } from "@/components/header-client-parts";
-import { CheckInButton } from "@/components/checkin-button";
 import { useAuth } from "@/application/hooks/useAuth";
 import { usePublicSettings } from "@/application/hooks/useCatalog";
 
@@ -103,10 +102,6 @@ export function Navbar() {
                         <p className="text-xs leading-none text-muted-foreground">ID: {user.id}</p>
                       </div>
                     </DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    <div className="px-2 py-1">
-                      <CheckInButton enabled={settings?.checkinEnabled !== false} />
-                    </div>
                     <DropdownMenuSeparator />
                     <HeaderUserMenuItems isAdmin={isAdmin} showNav={false} />
                     <DropdownMenuSeparator />

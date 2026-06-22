@@ -1,16 +1,14 @@
 'use client'
 
 import { useState, useEffect, useRef } from "react"
-import { useAuth } from "@/application/hooks/useAuth"
 import { useCheckout } from "@/application/hooks/useCheckout"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
-import { Loader2, Coins } from "lucide-react"
+import { Loader2 } from "lucide-react"
 import { toast } from "sonner"
 import { useI18n } from "@/lib/i18n/context"
-import { buildExportRoutePath } from "@/lib/export-route"
 
 interface BuyButtonProps {
     productId: string
@@ -25,13 +23,10 @@ interface BuyButtonProps {
 export function BuyButton({ productId, price, productName, disabled, quantity = 1, autoOpen = false, emailConfigured = false }: BuyButtonProps) {
     const [loading, setLoading] = useState(false)
     const [open, setOpen] = useState(false)
-    const [points, setPoints] = useState(0)
-    const [usePoints, setUsePoints] = useState(false)
     const [hasAutoOpened, setHasAutoOpened] = useState(false)
     const [email, setEmail] = useState('')
     const isNavigatingRef = useRef(false)
     const { t } = useI18n()
-    const { user, refresh } = useAuth()
     const { createOrder, submitPaymentForm } = useCheckout()
 
     const numericalPrice = Number(price) * quantity
@@ -39,7 +34,6 @@ export function BuyButton({ productId, price, productName, disabled, quantity = 
     const openDialog = async () => {
         if (disabled) return
         setOpen(true)
-        setPoints(user?.points || 0)
     }
 
     // Auto-open dialog when autoOpen is true (after warning confirmation)
@@ -59,21 +53,12 @@ export function BuyButton({ productId, price, productName, disabled, quantity = 
 
         try {
             setLoading(true)
-            const result = await createOrder({ productId, quantity, email, usePoints })
+            const result = await createOrder({ productId, quantity, email })
 
             if (!result?.success) {
                 const message = result?.error ? t(result.error) : t('common.error')
                 toast.error(message)
                 if (!isNavigatingRef.current) setLoading(false)
-                return
-            }
-
-            if (result.isZeroPrice && (result.url || result.orderId)) {
-                // Mark as navigating to prevent further state updates
-                isNavigatingRef.current = true
-                void refresh()
-                toast.success(t('buy.paymentSuccessPoints'))
-                window.location.href = result.url || buildExportRoutePath("/order", result.orderId ?? "")
                 return
             }
 
@@ -99,10 +84,6 @@ export function BuyButton({ productId, price, productName, disabled, quantity = 
             }
         }
     }
-
-    // Calculation for UI
-    const pointsToUse = usePoints ? Math.min(points, Math.ceil(numericalPrice)) : 0
-    const finalPrice = Math.max(0, numericalPrice - pointsToUse)
 
     return (
         <>
@@ -141,29 +122,9 @@ export function BuyButton({ productId, price, productName, disabled, quantity = 
                         </Label>
                     </div>
 
-                        {points > 0 && (
-                            <div className="flex items-center space-x-2 border p-3 rounded-md">
-                                <input
-                                    type="checkbox"
-                                    id="use-points"
-                                    checked={usePoints}
-                                    onChange={(e) => setUsePoints(e.target.checked)}
-                                    className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-                                />
-                                <Label htmlFor="use-points" className="flex-1 flex justify-between cursor-pointer">
-                                    <span className="flex items-center gap-1">
-                                        {t('buy.modal.usePoints')} <Coins className="w-3 h-3 text-yellow-500" />
-                                    </span>
-                                    <span className="text-muted-foreground">
-                                        {t('buy.modal.pointsDetails', { points: pointsToUse, available: points })}
-                                    </span>
-                                </Label>
-                            </div>
-                        )}
-
                         <div className="flex justify-between items-center border-t pt-4 font-bold text-lg">
                             <span>{t('buy.modal.total')}</span>
-                            <span>{finalPrice.toFixed(2)}</span>
+                            <span>{numericalPrice.toFixed(2)}</span>
                         </div>
                     </div>
 
@@ -173,7 +134,7 @@ export function BuyButton({ productId, price, productName, disabled, quantity = 
                         </Button>
                         <Button onClick={handleBuy} disabled={loading} className="bg-primary text-primary-foreground hover:bg-primary/90">
                             {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                            {finalPrice === 0 ? t('buy.modal.payWithPoints') : t('buy.modal.proceedPayment')}
+                            {t('buy.modal.proceedPayment')}
                         </Button>
                     </DialogFooter>
                 </DialogContent>

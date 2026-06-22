@@ -204,18 +204,6 @@ export interface AdminProductsPayload {
   lowStockThreshold: number
 }
 
-export interface AdminCard {
-  id: number
-  productId: string
-  cardKey: string
-  isUsed: boolean
-  reservedOrderId: string | null
-  reservedAt: string | null
-  expiresAt: string | null
-  usedAt: string | null
-  createdAt: string | null
-}
-
 export interface AdminMessagesPayload {
   history: any[]
   inbox: any[]

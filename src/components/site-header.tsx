@@ -14,7 +14,6 @@ import { SignInButton } from "@/components/signin-button"
 import { SignOutButton } from "@/components/signout-button"
 import { HeaderLogo, HeaderNav, HeaderUserMenuItems, HeaderUnreadBadge, LanguageSwitcher } from "@/components/header-client-parts"
 import { ModeToggle } from "@/components/mode-toggle"
-import { CheckInButton } from "@/components/checkin-button"
 import { useAuth } from "@/application/hooks/useAuth"
 import { usePublicSettings } from "@/application/hooks/useCatalog"
 
@@ -53,10 +52,6 @@ export function SiteHeader() {
                                             <p className="text-xs leading-none text-muted-foreground">ID: {user.id}</p>
                                         </div>
                                     </DropdownMenuLabel>
-                                    <DropdownMenuSeparator />
-                                    <div className="px-2 py-1">
-                                        <CheckInButton enabled={settings?.checkinEnabled !== false} />
-                                    </div>
                                     <DropdownMenuSeparator />
                                     <HeaderUserMenuItems isAdmin={isAdmin} showNav={showNavigator} />
                                     <DropdownMenuSeparator />

@@ -26,8 +26,6 @@ function normalizePaymentResult(payload: unknown): CheckoutPaymentResult {
     orderId,
     status,
     amount: value.amount ? String(value.amount) : undefined,
-    pointsUsed: typeof value.pointsUsed === "number" ? value.pointsUsed : undefined,
-    isZeroPrice: Boolean(value.isZeroPrice || status === "delivered" || (!params && orderId)),
     error: value.error ? String(value.error) : undefined,
   }
 }
@@ -45,7 +43,6 @@ export async function createOrder(input: CheckoutOrderInput) {
       address: input.address,
       notes: input.notes,
       paymentMethod: input.paymentMethod,
-      usePoints: Boolean(input.usePoints),
     }),
   })
 

@@ -165,21 +165,6 @@ export default function ProductForm({ product, categories = [], isCreate = false
                     {isCreate ? "Product Create" : "Product Editor"}
                 </h1>
                 <div className="flex items-center gap-3">
-                    {!isCreate && currentProduct?.id && (
-                        <Button
-                            asChild
-                            type="button"
-                            variant="outline"
-                            className="h-10 border-[#d8cfbf] bg-white text-[#50483d] hover:bg-[#f8f5ef] rounded-lg text-sm font-semibold"
-                        >
-                            <Link
-                                data-testid="product-linked-cards-btn"
-                                href={`/admin/cards?productId=${encodeURIComponent(String(currentProduct.id))}&productName=${encodeURIComponent(String(currentProduct.name || ""))}&productSku=${encodeURIComponent(String(currentProduct.sku || ""))}`}
-                            >
-                                Linked cards
-                            </Link>
-                        </Button>
-                    )}
                     <Button
                         type="submit"
                         form="product-general-form"
@@ -197,7 +182,7 @@ export default function ProductForm({ product, categories = [], isCreate = false
             <p className="text-sm text-[#71685a] mt-[12px] mb-[34px]">
                 {isCreate
                     ? "Create a new product with commercial fields, media, and SEO checks in separate save-safe groups."
-                    : "Edit an existing product with loaded state, blocked publish rules, media handoff, and route-safe error handling."}
+                    : "Edit an existing product with loaded state, blocked publish rules, inline media updates, and route-safe error handling."}
             </p>
 
             {/* Stats Cards Row */}

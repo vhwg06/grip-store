@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
-import { Coins, Package, Clock, CheckCircle, ChevronRight, User, LogOut, Bell } from "lucide-react"
+import { Package, Clock, CheckCircle, ChevronRight, User, LogOut, Bell } from "lucide-react"
 import { useAuth } from "@/application/hooks/useAuth"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -14,7 +14,6 @@ import { Label } from "@/components/ui/label"
 import { toast } from "sonner"
 import { useProfile } from "@/application/hooks/useProfile"
 import { useEffect, useRef, useState } from "react"
-import { CheckInButton } from "@/components/checkin-button"
 import { useNotifications } from "@/application/hooks/useNotifications"
 import { cn } from "@/lib/utils"
 
@@ -27,8 +26,6 @@ interface ProfileContentProps {
         email: string | null
         trustLevel?: number
     }
-    points: number
-    checkinEnabled: boolean
     orderStats: {
         total: number
         pending: number
@@ -46,7 +43,7 @@ interface ProfileContentProps {
     desktopNotificationsEnabled: boolean
 }
 
-export function ProfileContent({ user, points, checkinEnabled, orderStats, notifications: initialNotifications, desktopNotificationsEnabled }: ProfileContentProps) {
+export function ProfileContent({ user, orderStats, notifications: initialNotifications, desktopNotificationsEnabled }: ProfileContentProps) {
     const { t } = useI18n()
     const { logout } = useAuth()
     const { updateProfileEmail, updateDesktopNotifications, refresh: refreshProfile } = useProfile()
@@ -59,7 +56,6 @@ export function ProfileContent({ user, points, checkinEnabled, orderStats, notif
     } = useNotifications()
     const [email, setEmail] = useState(user.email || '')
     const [savingEmail, setSavingEmail] = useState(false)
-    const [pointsValue, setPointsValue] = useState(points)
     const [notifications, setNotifications] = useState(initialNotifications)
     const [markingAll, setMarkingAll] = useState(false)
     const [markingId, setMarkingId] = useState<number | null>(null)
@@ -275,30 +271,6 @@ export function ProfileContent({ user, points, checkinEnabled, orderStats, notif
                         >
                             {desktopEnabled ? t('profile.desktopNotifications.enabled') : t('profile.desktopNotifications.disabled')}
                         </Button>
-                    </div>
-                </CardContent>
-            </Card>
-
-            {/* Points Card */}
-            <Card className="mb-6 bg-gradient-to-r from-amber-50 to-yellow-50 dark:from-amber-950/30 dark:to-yellow-950/30 border-amber-200 dark:border-amber-800">
-                <CardContent className="pt-6">
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                            <div className="p-2 bg-amber-100 dark:bg-amber-900/50 rounded-full">
-                                <Coins className="h-6 w-6 text-amber-600" />
-                            </div>
-                            <div>
-                                <p className="text-sm text-muted-foreground">{t('common.credits')}</p>
-                                <p data-testid="profile-points" className="text-2xl font-bold text-amber-600">{pointsValue}</p>
-                            </div>
-                        </div>
-                        <CheckInButton
-                            enabled={checkinEnabled}
-                            showPoints={false}
-                            showCheckedInLabel
-                            className="shrink-0"
-                            onPointsChange={setPointsValue}
-                        />
                     </div>
                 </CardContent>
             </Card>

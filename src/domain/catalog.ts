@@ -56,8 +56,6 @@ export interface CatalogSettings {
   themeColor: string
   noindexEnabled: boolean
   wishlistEnabled: boolean
-  checkinEnabled: boolean
-  checkinReward: number
   lowStockThreshold: number
   homepageBlocks?: string | null
 }

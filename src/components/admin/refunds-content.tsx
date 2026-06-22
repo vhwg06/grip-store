@@ -197,7 +197,6 @@ export function AdminRefundsContent({
   const selectedUserId = selectedRefund?.user_id ?? selectedRefund?.userId ?? ''
   const selectedAmount = selectedRefund?.amount ?? ''
   const selectedStatus = selectedRefund?.status ?? 'pending'
-  const selectedPointsUsed = selectedRefund?.points_used ?? selectedRefund?.pointsUsed ?? 0
   const selectedAdminNote = selectedRefund?.admin_note ?? selectedRefund?.adminNote ?? ''
   const selectedTradeNo = selectedRefund?.trade_no ?? selectedRefund?.tradeNo ?? ''
   const selectedOrderStatus = selectedRefund?.order_status ?? selectedRefund?.orderStatus ?? ''
@@ -219,7 +218,7 @@ export function AdminRefundsContent({
           Refund Requests
         </h1>
         <p className="text-sm text-[#71685a] leading-relaxed max-w-2xl">
-          Review pending refunds, reclaim points, capture notes, and approve or reject with traceable actions.
+          Review pending refunds, capture notes, and approve or reject with traceable actions.
         </p>
       </div>
 
@@ -437,16 +436,6 @@ export function AdminRefundsContent({
                     </p>
                   </div>
 
-                  {selectedPointsUsed > 0 && (
-                    <div className="space-y-1">
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground block">Points Reclaim</span>
-                      <div className="flex items-center justify-between bg-yellow-50 dark:bg-yellow-950/20 text-yellow-800 dark:text-yellow-200 p-2.5 rounded-lg border border-yellow-200 dark:border-yellow-900/50">
-                        <span className="text-[10px] font-bold uppercase tracking-wider">Reclaimed Points</span>
-                        <span className="text-xs font-bold">{selectedPointsUsed} points will be restored</span>
-                      </div>
-                    </div>
-                  )}
-
                   <div className="flex items-center justify-between bg-slate-50 p-2.5 rounded-lg border border-slate-100">
                     <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Status</span>
                     {renderRefundStatus(selectedStatus)}
@@ -474,7 +463,7 @@ export function AdminRefundsContent({
                       <div className="bg-[#fbf9f4] border border-[#e7e1d7] rounded-lg p-3 space-y-2.5 animate-fade-in shadow-sm">
                         <p className="text-xs font-medium text-foreground leading-relaxed">
                           {confirmAction === 'approve'
-                            ? "Are you sure you want to approve this refund request? This will restore card stock and points."
+                            ? "Are you sure you want to approve this refund request?"
                             : "Are you sure you want to reject this refund request?"}
                         </p>
                         <div className="flex gap-2">
