@@ -239,3 +239,7 @@ Khi thực hiện Mock, Setup, hoặc Cleanup/Rollback dữ liệu trong Playwri
 - Tránh viết tay (hardcode) payload JSON gửi trực tiếp bằng `request.put` hay `request.post` với cấu trúc khác với cách Frontend thực tế gửi qua API Adapter.
 - Ưu tiên tái sử dụng (import) trực tiếp các hàm API Adapter/Client của Frontend hoặc đảm bảo Schema và cấu trúc trường (Nested/Flat) trùng khớp hoàn toàn với Frontend gửi đi để tránh việc test setup tự "vá lỗi" cấu trúc hộ UI.
 
+### 3. Persistent State & Serial Execution (Thực thi tuần tự các test làm thay đổi trạng thái persistent/toàn cục)
+Khi chạy các bộ Playwright test làm thay đổi cấu hình hệ thống (Settings, CMS Articles, static pages, v.v.), bắt buộc phải chạy tuần tự bằng cách thêm flag `--workers=1` (hoặc cấu hình tương đương) để tránh việc các test case chạy song song làm ghi đè cấu hình lẫn nhau gây ra trạng thái không đồng nhất (out-of-sync/race conditions) trên môi trường API thật (production/staging).
+
+
