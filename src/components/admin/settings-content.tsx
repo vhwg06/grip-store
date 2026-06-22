@@ -307,7 +307,9 @@ export function AdminSettingsContent({
 
       if (selectedArticleId) {
         try {
-          const article = await getAdminArticle(selectedArticleId)
+          const article =
+            articles.find((item: any) => String(item?.id ?? "") === selectedArticleId) ??
+            await getAdminArticle(selectedArticleId)
           await saveAdminAboutPage({
             title: article.title,
             slug: "about",
@@ -316,8 +318,9 @@ export function AdminSettingsContent({
             templateKey: "about-us",
             status: "published",
           })
-        } catch (err) {
-          console.warn("Failed to fetch linked article, falling back to default:", err)
+        } catch (err: any) {
+          console.error("Failed to fetch linked article, falling back to default:", err)
+          toast.error("Failed to fetch linked article: " + (err?.message || String(err)))
           await saveAdminAboutPage({
             title: "Về GRIP",
             slug: "about",

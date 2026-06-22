@@ -338,7 +338,7 @@ export function AdminArticlesContent() {
       formData.set("excerpt", nextState.excerpt.trim())
       let finalContent = nextState.content
       if (editorMode === "visual" && editor) {
-        const domText = document.querySelector('[data-testid="article-content-editor"] .ProseMirror')?.textContent || ""
+        const domText = document.querySelector('[data-testid="article-content-editor"]')?.textContent || ""
         const editorText = editor.getText()
         if (domText.trim() !== "" && editorText.trim() === "") {
           finalContent = domText
@@ -347,10 +347,14 @@ export function AdminArticlesContent() {
         }
       }
       formData.set("content", finalContent)
+      formData.set("body", finalContent)
       formData.set("featuredImage", nextState.featuredImage)
+      formData.set("image_url", nextState.featuredImage)
       formData.set("author", nextState.author.trim())
+      formData.set("author_id", nextState.author.trim())
       formData.set("tags", nextState.tags)
       formData.set("isActive", String(nextState.isActive))
+      formData.set("status", nextState.isActive ? "published" : "draft")
 
       const result = await saveArticle(formData)
       const refreshed = await mutate()

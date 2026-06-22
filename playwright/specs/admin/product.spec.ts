@@ -169,7 +169,12 @@ test.describe("Admin Product @admin P1", () => {
       })
       .toBe(false);
 
-    await row.locator('[data-testid="toggle-btn"]').click();
+    await page.goto("/admin/products", { timeout: 10000 });
+    await page.waitForLoadState("networkidle", { timeout: 10000 });
+    await page.getByRole("button", { name: "Hidden" }).click();
+    const hiddenRow = page.locator(`[data-item-id="${created.id}"]`);
+    await expect(hiddenRow).toBeVisible();
+    await hiddenRow.locator('[data-testid="toggle-btn"]').click();
     await page.waitForLoadState("networkidle");
 
     await expect

@@ -760,6 +760,29 @@ export async function getAdminArticles(): Promise<AdminArticle[]> {
 }
 
 export async function getAdminArticle(id: string) {
+  const listPayload = await apiFetch<any>("/api/content/articles")
+  const listRaw = listPayload?.data || listPayload
+  const items: any[] = Array.isArray(listRaw)
+    ? listRaw
+    : Array.isArray(listRaw?.articles)
+      ? listRaw.articles
+      : Array.isArray(listRaw?.items)
+        ? listRaw.items
+        : []
+
+  const matched = items.find((item) => String(item?.id ?? "") === String(id))
+  if (matched) {
+    if (matched?.content || matched?.body) {
+      return normalizeAdminArticle(matched)
+    }
+
+    if (matched?.slug) {
+      const bySlugPayload = await apiFetch<any>(`/api/public/content/articles/${encodeURIComponent(String(matched.slug))}`)
+      const bySlugRaw = bySlugPayload?.data || bySlugPayload
+      return normalizeAdminArticle(bySlugRaw)
+    }
+  }
+
   const payload = await apiFetch<any>(`/api/public/content/articles/${encodeURIComponent(id)}`)
   const raw = payload?.data || payload
   return normalizeAdminArticle(raw)

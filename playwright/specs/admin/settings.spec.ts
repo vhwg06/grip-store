@@ -11,10 +11,9 @@ test.describe("Admin Settings @admin", () => {
   });
 
   test("should display settings page", async ({ page }) => {
-    const settingsForm = page.locator(
-      '[data-testid="setting-site-name"], [data-testid="field-site_name"]'
-    );
-    await expect(settingsForm).toBeVisible({ timeout: 5_000 });
+    await expect(page.getByRole("heading", { name: "Store Settings" })).toBeVisible();
+    await expect(page.locator('[data-testid="settings-section-brand"]')).toBeVisible();
+    await expect(page.locator("#shop-name")).toBeVisible();
   });
 
   test("should manage categories", async ({ adminPage, page }) => {
@@ -22,9 +21,7 @@ test.describe("Admin Settings @admin", () => {
     const categoriesNav = page.locator('[data-testid="admin-nav-categories"]');
     if (await categoriesNav.isVisible()) {
       await adminPage.navigateTo("categories");
-
-      const table = page.locator('[data-testid="admin-table"]');
-      await expect(table).toBeVisible();
+      await expect(page.getByRole("heading", { name: "Category Management" })).toBeVisible();
     }
   });
 
@@ -32,12 +29,8 @@ test.describe("Admin Settings @admin", () => {
     const usersNav = page.locator('[data-testid="admin-nav-users"]');
     if (await usersNav.isVisible()) {
       await adminPage.navigateTo("users");
-
-      const table = page.locator('[data-testid="admin-table"]');
-      await expect(table).toBeVisible();
-
-      const rows = await adminPage.getTableRows();
-      expect(rows).toBeGreaterThanOrEqual(0);
+      await expect(page.locator('[data-testid="user-management-title"]')).toBeVisible();
+      await expect(page.locator('[data-testid="account-actions-panel"]')).toBeVisible();
     }
   });
 });

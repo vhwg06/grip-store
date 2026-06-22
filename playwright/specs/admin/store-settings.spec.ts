@@ -341,6 +341,7 @@ test.describe("Admin Store Settings Spec Coverage @admin P1 P2", () => {
   });
 
   test("UC-SET-05 alternate: links a published article to the About Us page and then unlinks it", async ({
+    browser,
     page,
     homepagePage,
     request,
@@ -381,47 +382,61 @@ test.describe("Admin Store Settings Spec Coverage @admin P1 P2", () => {
     await page.waitForLoadState("networkidle");
     await expectSuccessToast(page);
 
+    const publicContext = await browser.newContext();
+    const publicPage = await publicContext.newPage();
+
     try {
       // 2. Link this article to the About page in Settings
       await adminPage.goto();
       await adminPage.navigateTo("settings");
-      await expect(page.locator('[data-testid="settings-about-article-select"]')).toBeVisible();
+      const aboutArticleSelect = page.locator('[data-testid="settings-about-article-select"]');
+      await expect(aboutArticleSelect).toBeVisible();
 
-      await page.locator('[data-testid="settings-about-article-select"]').selectOption({ label: tempTitle });
+      await aboutArticleSelect.selectOption({ label: tempTitle });
+      const linkedArticleId = await aboutArticleSelect.inputValue();
+      expect(linkedArticleId).not.toBe("");
+      await expect(aboutArticleSelect).toHaveValue(linkedArticleId);
       await page.locator('[data-testid="settings-save-presence"]').click();
       await expectSuccessToast(page);
 
       // 3. Verify public storefront About page displays the linked article
-      await page.goto("/about");
-      await page.waitForLoadState("networkidle");
-      
-      const aboutTitle = page.locator('[data-testid="about-title"], h1');
-      await expect(aboutTitle).toContainText(tempTitle);
-      
-      const aboutContent = page.locator('[data-testid="about-content"]');
-      await expect(aboutContent).toContainText(tempContent);
+      await publicPage.goto("/about");
+      await publicPage.waitForLoadState("networkidle");
+
+      const aboutContent = publicPage.locator('[data-testid="about-content"]');
+      await expect(aboutContent).toContainText(tempContent, { timeout: 15_000 });
+
+      const aboutTitle = publicPage.locator('[data-testid="about-title"]');
+      await expect(aboutTitle).toContainText(tempTitle, { timeout: 15_000 });
 
       // 4. Unlink the article (select "None") in Settings
       await adminPage.goto();
       await adminPage.navigateTo("settings");
-      await expect(page.locator('[data-testid="settings-about-article-select"]')).toBeVisible();
+      await expect(aboutArticleSelect).toBeVisible();
 
-      await page.locator('[data-testid="settings-about-article-select"]').selectOption("");
+      await aboutArticleSelect.selectOption("");
+      await expect(aboutArticleSelect).toHaveValue("");
       await page.locator('[data-testid="settings-save-presence"]').click();
       await expectSuccessToast(page);
 
+      const publicFallbackContext = await browser.newContext();
+      const publicFallbackPage = await publicFallbackContext.newPage();
+
       // 5. Verify public storefront falls back to default company narrative
-      await page.goto("/about");
-      await page.waitForLoadState("networkidle");
-      
-      const fallbackTitle = page.locator('[data-testid="about-title"], h1');
-      await expect(fallbackTitle).toContainText(/Về GRIP/i);
+      await publicFallbackPage.goto("/about");
+      await publicFallbackPage.waitForLoadState("networkidle");
+
+      const fallbackTitle = publicFallbackPage.locator('[data-testid="about-title"], h1');
+      await expect(fallbackTitle).toContainText(/Về GRIP/i, { timeout: 15_000 });
       
       // The dynamic article title/body should not be present
-      await expect(page.locator('[data-testid="about-content"]')).toBeHidden();
-      await expect(page.getByText(tempContent)).toBeHidden();
+      await expect(publicFallbackPage.locator('[data-testid="about-content"]')).toBeHidden();
+      await expect(publicFallbackPage.getByText(tempContent)).toBeHidden();
+      await publicFallbackContext.close();
 
     } finally {
+      await publicContext.close();
+
       // Cleanup: Delete the temporary article
       await page.goto("/admin/articles");
       await page.waitForLoadState("networkidle");

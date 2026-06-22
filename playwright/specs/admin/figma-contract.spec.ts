@@ -92,7 +92,7 @@ test.describe("Figma UI Contract Admin Parity @admin", () => {
 
   test("Verify Messages page matches Figma @desktop", async ({ adminPage, page }) => {
     await adminPage.goto();
-    await adminPage.navigateTo("messages");
+    await adminPage.navigateTo("notifications");
     await expect(page).toHaveScreenshot("messages.png", {
       maxDiffPixelRatio: 0.02,
       mask: [
@@ -126,6 +126,9 @@ test.describe("Figma UI Contract Admin Parity @admin", () => {
   test("Verify Reviews page matches Figma @desktop", async ({ adminPage, page }) => {
     await adminPage.goto();
     await adminPage.navigateTo("reviews");
+    await expect(page.getByRole("heading", { name: "Review Moderation" })).toBeVisible();
+    await expect(page.locator('[data-testid="reviews-queue-container"]')).toBeVisible();
+    await expect(page.locator('[data-testid="reviews-context-panel"]')).toBeVisible();
     await expect(page).toHaveScreenshot("reviews.png", {
       maxDiffPixelRatio: 0.02,
       mask: [

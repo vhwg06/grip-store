@@ -139,8 +139,8 @@ The test may remain a normal test when implementation is green. Add `test.fail` 
 
 ### Frontend Surfaces
 
-- [~] **RUN-FE-ORDPROD** Verify order detail, persisted product active state, history handoff, and category refresh.
-  - Current evidence: focused Chromium rerun on 2026-06-21 for `playwright/specs/admin/orders.spec.ts` passed cleanly (`14 passed`, `0 skipped`, `0 unexpected`) after wiring pending-refund relevance into the order signals panel and normalizing the row-to-detail handoff URL assertion. Focused product follow-up reruns on 2026-06-21 now also passed for `playwright/specs/admin/product-content.spec.ts` (`4 passed`, product-linked cards context plus explicit backend-error handling) and `playwright/specs/admin/product.spec.ts --grep "UC-PROD-04"` (`3 passed`, category refresh/reorder semantics). Final live verification on 2026-06-22 proved the `/v1/admin/products/:id/status` toggle path now persists `is_active` through backend readback, and the focused Chromium rerun for `UC-PROD-03` passed cleanly.
+- [x] **RUN-FE-ORDPROD** Verify order detail, persisted product active state, history handoff, and category refresh.
+  - Evidence: focused Chromium rerun on 2026-06-21 for `playwright/specs/admin/orders.spec.ts` passed cleanly (`14 passed`, `0 skipped`, `0 unexpected`) after wiring pending-refund relevance into the order signals panel and normalizing the row-to-detail handoff URL assertion. Focused product follow-up reruns on 2026-06-21 now also passed for `playwright/specs/admin/product-content.spec.ts` (`4 passed`, product-linked cards context plus explicit backend-error handling) and `playwright/specs/admin/product.spec.ts --grep "UC-PROD-04"` (`3 passed`, category refresh/reorder semantics). Final live verification on 2026-06-22 proved the `/v1/admin/products/:id/status` toggle path now persists `is_active` through backend readback, and the focused Chromium rerun for `UC-PROD-03` passed cleanly.
 - [x] **RUN-FE-SET** Verify settings success feedback, homepage controls, discovery controls, and registry controls.
   - Evidence: focused Chromium rerun on 2026-06-21 for `playwright/specs/admin/store-settings.spec.ts` passed cleanly (`18 passed`, `0 skipped`, `0 unexpected`). The FE settings surface now proves grouped success feedback, homepage composition controls, discovery/visibility saves, presence controls, and registry/legacy controls without relying on fixed seeded news counts or stale reorder assumptions.
 - [x] **RUN-FE-CUSUSER** Verify separate customer/account roots, state summary, and explicit domain handoffs.
@@ -172,7 +172,8 @@ The test may remain a normal test when implementation is green. Add `test.fail` 
 
 - [ ] **FINAL-01** Verify every target test has correct intent metadata and scenario traceability.
 - [ ] **FINAL-02** Verify every primary, alternate, exception, state-transition, and domain-invariant branch has an executable assertion.
-- [ ] **FINAL-03** Verify `test.fail` and `test.fixme` count is zero; any remaining skip is explicitly data-owned and excluded from the SoT claim.
+- [x] **FINAL-03** Verify `test.fail` and `test.fixme` count is zero; any remaining skip is explicitly data-owned and excluded from the SoT claim.
+  - Evidence: `rg -n "test\\.(fail|fixme)\\(" playwright/specs` now returns no matches, and the last expected-failure marker in `playwright/specs/admin/product.spec.ts` was removed only after direct live probes plus focused API/Chromium reruns for `UC-PROD-03` passed cleanly.
 - [ ] **FINAL-04** Run the combined admin and API suite with one worker and archive the report.
 - [ ] **FINAL-05** Require two consecutive clean runs for mutation-heavy specs to detect order dependence and stale data coupling.
 - [ ] **FINAL-06** Declare `playwright/specs/` authoritative for executable behavior only after Gates 1-9 are complete; retain rationale docs for business intent and boundary rationale.

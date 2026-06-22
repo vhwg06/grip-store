@@ -42,7 +42,7 @@ export function ArticleForm({ article }: { article?: any }) {
             // Ensure editor content is correctly set in form submission
             let finalContent = content
             if (editor) {
-                const domText = document.querySelector('[data-testid="article-content-editor"] .ProseMirror')?.textContent || ""
+                const domText = document.querySelector('[data-testid="article-content-editor"]')?.textContent || ""
                 const editorText = editor.getText()
                 if (domText.trim() !== "" && editorText.trim() === "") {
                     finalContent = domText
@@ -51,6 +51,16 @@ export function ArticleForm({ article }: { article?: any }) {
                 }
             }
             formData.set("content", finalContent)
+            formData.set("body", finalContent)
+            
+            const isActive = formData.get("isActive") === "true"
+            formData.set("status", isActive ? "published" : "draft")
+
+            const featuredImageVal = formData.get("featuredImage") as string || ""
+            formData.set("image_url", featuredImageVal)
+
+            const authorVal = formData.get("author") as string || ""
+            formData.set("author_id", authorVal.trim())
             await saveArticle(formData)
             toast.success("Đã lưu bài viết")
             router.push('/admin/articles')

@@ -9,10 +9,10 @@ test.describe("Admin Site Config @admin", () => {
     await page.goto("/admin/settings");
     await page.waitForLoadState("networkidle");
 
-    // General config items should be visible
-    await expect(page.locator("h1")).toContainText("Cấu hình cửa hàng");
+    await expect(page.getByRole("heading", { name: "Store Settings" })).toBeVisible();
+    await expect(page.locator('[data-testid="settings-section-brand"]')).toBeVisible();
     await expect(page.locator("#shop-name")).toBeVisible();
-    await expect(page.locator("#shop-desc")).toBeVisible();
-    await expect(page.locator("#shop-logo")).toBeVisible();
+    await expect(page.locator('[data-testid="settings-brand-description"]')).toBeVisible();
+    await expect(page.locator('[data-testid="settings-brand-logo-open-media-picker"]')).toBeVisible();
   });
 });

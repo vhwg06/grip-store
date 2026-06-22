@@ -43,8 +43,11 @@ test.describe("Admin Content @admin P2", () => {
     await page.waitForLoadState("networkidle", { timeout: 10000 });
 
     await expect(page.getByRole("heading", { name: "Article Management" })).toBeVisible();
-    await expect(page.getByTestId("articles-list-container").getByRole("button", { name: "Published" })).toBeVisible();
-    await expect(page.getByTestId("articles-list-container").getByRole("button", { name: "Draft" })).toBeVisible();
+    const articleStatusFilters = page
+      .getByTestId("articles-list-container")
+      .locator("div.flex.flex-wrap.items-center.gap-2");
+    await expect(articleStatusFilters.getByText("Published", { exact: true })).toBeVisible();
+    await expect(articleStatusFilters.getByText("Draft", { exact: true })).toBeVisible();
     await expect(page.getByRole("button", { name: "Save draft" })).toBeVisible();
     await expect(page.getByText(/draft remains hidden until you publish changes/i)).toBeVisible();
   });
