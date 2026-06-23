@@ -1,28 +1,31 @@
-import { redirect } from "next/navigation";
+"use client";
 
-export const metadata = {
-  title: "Thêm Bài viết | Admin GRIP",
-};
+import { useEffect, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 
-export default async function NewArticlePage({
-  searchParams,
-}: {
-  searchParams: Promise<Record<string, string | string[] | undefined>>;
-}) {
-  const resolvedParams = await searchParams;
-  const urlParams = new URLSearchParams();
-  urlParams.set("compose", "new");
+function NewArticleRedirect() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
 
-  Object.entries(resolvedParams).forEach(([key, value]) => {
-    if (value !== undefined) {
-      if (Array.isArray(value)) {
-        value.forEach((v) => urlParams.append(key, v));
-      } else {
-        urlParams.set(key, value);
-      }
-    }
-  });
+  useEffect(() => {
+    const urlParams = new URLSearchParams();
+    urlParams.set("compose", "new");
 
-  redirect(`/admin/articles?${urlParams.toString()}`);
+    searchParams.forEach((value, key) => {
+      urlParams.set(key, value);
+    });
+
+    router.replace(`/admin/articles?${urlParams.toString()}`);
+  }, [router, searchParams]);
+
+  return null;
+}
+
+export default function NewArticlePage() {
+  return (
+    <Suspense fallback={null}>
+      <NewArticleRedirect />
+    </Suspense>
+  );
 }
 
