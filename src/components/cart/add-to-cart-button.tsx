@@ -51,7 +51,7 @@ export function AddToCartButton({ product, className = "", showQuantity = true }
       </button>
 
       {showToast && (
-        <div className="fixed bottom-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 animate-in slide-in-from-bottom-5">
+        <div className="fixed bottom-4 right-4 bg-[#9c702a] text-white px-6 py-3 rounded-lg shadow-lg z-50 animate-in slide-in-from-bottom-5">
           Đã thêm vào giỏ hàng thành công!
         </div>
       )}

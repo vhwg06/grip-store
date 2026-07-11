@@ -24,6 +24,9 @@ function RobotsMeta() {
 }
 
 export function Providers({ children, themeColor, initialLocale = 'en' }: ProvidersProps) {
+    const { settings } = usePublicSettings()
+    const activeColor = themeColor || settings?.themeColor || (settings as any)?.theme_color || null
+
     return (
         <NextThemesProvider
             attribute="class"
@@ -31,7 +34,7 @@ export function Providers({ children, themeColor, initialLocale = 'en' }: Provid
             enableSystem
             disableTransitionOnChange
         >
-            <ThemeColorProvider color={themeColor || null}>
+            <ThemeColorProvider color={activeColor}>
                 <I18nProvider initialLocale={initialLocale}>
                     <AuthProvider>
                         <CartProvider>

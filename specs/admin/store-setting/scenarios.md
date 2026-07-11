@@ -1,20 +1,20 @@
 # Store Setting Scenarios
 
-## SC-SET-01 Change Storefront Identity
+## SC-SET-01 Change Storefront Contact Info
 
-- Context: business cần đổi cách storefront tự giới thiệu với khách hàng.
+- Context: business muốn đổi thông tin liên hệ của cửa hàng.
 - Main flow:
-  1. Admin đọc current storefront identity.
-  2. Admin thay đổi brand/contact facts.
-  3. Hệ thống xác nhận storefront identity mới.
+  1. Admin đọc current storefront contact info.
+  2. Admin thay đổi contact facts.
+  3. Hệ thống xác nhận contact info mới.
 - Alternate flows:
-  - admin chỉ đổi contact mà không đổi brand
+  - None
 - Exception flows:
-  - identity data mới không đủ để trở thành public business fact
+  - contact data mới không hợp lệ
 - End state:
-  - storefront identity mới được chấp nhận hoặc bị giữ nguyên
+  - storefront contact info mới được chấp nhận hoặc bị giữ nguyên
 - Surfaced business rules:
-  - identity update là thay đổi business presentation of the store
+  - contact update là thay đổi business presentation of the store
 
 ## SC-SET-02 Recompose Homepage Priorities
 

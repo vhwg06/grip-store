@@ -290,7 +290,7 @@
                 "title": "Theme Color",
                 "hint": "Choose the primary color for your shop",
                 "black": "Black",
-                "purple": "Purple (Default)",
+                "purple": "Purple",
                 "indigo": "Indigo",
                 "blue": "Blue",
                 "cyan": "Cyan",
@@ -298,7 +298,7 @@
                 "green": "Green",
                 "lime": "Lime",
                 "amber": "Amber",
-                "orange": "Orange",
+                "orange": "Orange (Default)",
                 "red": "Red",
                 "rose": "Rose",
                 "pink": "Pink"

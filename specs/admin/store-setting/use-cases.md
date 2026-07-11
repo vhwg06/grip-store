@@ -1,17 +1,17 @@
 # Store Setting Use Cases
 
-## UC-SET-01 Admin Maintains Storefront Identity
+## UC-SET-01 Admin Maintains Storefront Contact Info
 
-- Goal: giữ cho storefront thể hiện đúng identity kinh doanh hiện tại.
+- Goal: giữ cho storefront thể hiện đúng contact info kinh doanh hiện tại.
 - Primary actor: `Admin / Store Operator`
-- Trigger: admin cần đổi brand identity hoặc public contact info.
+- Trigger: admin cần đổi public contact info.
 - Preconditions:
   - storefront configuration tồn tại
 - Success outcome:
-  - storefront identity phản ánh đúng business identity mới
+  - storefront contact info phản ánh đúng business contact mới
 - Business invariants:
-  - brand và contact là public business facts
-  - identity changes phải được hiểu là thay đổi storefront behavior, không chỉ thay text
+  - contact là public business facts
+  - contact changes phải được hiểu là thay đổi storefront behavior, không chỉ thay text
 - Postconditions:
   - storefront read model mới có hiệu lực
 - Priority: `P1`

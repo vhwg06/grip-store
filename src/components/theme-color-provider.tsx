@@ -35,10 +35,12 @@ interface ThemeColorProviderProps {
 
 export function ThemeColorProvider({ color, children }: ThemeColorProviderProps) {
     useEffect(() => {
-        const hue = THEME_HUES[color || 'purple'] || 270
-        const chroma = THEME_CHROMA[color || 'purple'] ?? 1
-        const primaryL = THEME_PRIMARY_L[color || 'purple'] ?? 0.45
-        const primaryDarkL = THEME_PRIMARY_DARK_L[color || 'purple'] ?? 0.7
+        // If color is not specified or set to the default 'purple', resolve it to the brand 'orange'
+        const resolvedColor = (!color || color === 'purple') ? 'orange' : color
+        const hue = THEME_HUES[resolvedColor] || 45
+        const chroma = THEME_CHROMA[resolvedColor] ?? 1
+        const primaryL = THEME_PRIMARY_L[resolvedColor] ?? 0.45
+        const primaryDarkL = THEME_PRIMARY_DARK_L[resolvedColor] ?? 0.7
         const root = document.documentElement
 
         root.style.setProperty('--theme-hue', String(hue))

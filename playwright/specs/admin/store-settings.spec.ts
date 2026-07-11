@@ -27,7 +27,7 @@ test.describe("Admin Store Settings Spec Coverage @admin P1", () => {
     return payload?.data?.config ?? payload?.config ?? {};
   }
 
-  test("UC-SET-01 submits storefront identity intent through brand and contact groups and reflects the new identity publicly", async ({
+  test("UC-SET-01 submits storefront contact intent and reflects the new contact info publicly", async ({
     page,
     homepagePage,
     request,
@@ -37,13 +37,7 @@ test.describe("Admin Store Settings Spec Coverage @admin P1", () => {
 
     try {
       await expect(page.getByRole("heading", { name: "Store Settings" })).toBeVisible();
-      await expect(page.locator('[data-testid="settings-section-brand"]')).toBeVisible();
       await expect(page.locator('[data-testid="settings-section-contact"]')).toBeVisible();
-
-      await page.locator('[data-testid="settings-brand-shop-name"]').fill("playwright-storefront-identity");
-      await page.locator('[data-testid="settings-brand-description"]').fill("playwright identity reflection");
-      await page.locator('[data-testid="settings-save-brand"]').click();
-      await expectSuccessToast(page);
 
       await page.locator('[data-testid="settings-contact-address"]').fill("12 Nguyen Hue, Ho Chi Minh City");
       await page.locator('[data-testid="settings-contact-hotline"]').fill("+84 903 117 742");
@@ -52,15 +46,10 @@ test.describe("Admin Store Settings Spec Coverage @admin P1", () => {
       await expectSuccessToast(page);
 
       await homepagePage.goto();
-      await expect(page.locator('[data-testid="site-header-logo-text"]')).toContainText("playwright-storefront-identity");
       await expect(page.locator('[data-testid="sticky-bar-address"]')).toContainText("12 Nguyen Hue");
       await expect(page.locator('[data-testid="sticky-bar-hotline"]')).toContainText("+84 903 117 742");
       await expect(page.locator('[data-testid="footer-contact-email"]')).toContainText("playwright-identity@grip.vn");
     } finally {
-      await request.put(`${BACKEND_URL}/v1/admin/store-settings/brand`, {
-        headers: { Authorization: `Bearer ${adminToken}` },
-        data: originalConfig.brand,
-      });
       await request.put(`${BACKEND_URL}/v1/admin/store-settings/contact`, {
         headers: { Authorization: `Bearer ${adminToken}` },
         data: originalConfig.contact,

@@ -12,8 +12,8 @@ test.describe("Admin Settings @admin", () => {
 
   test("should display settings page", async ({ page }) => {
     await expect(page.getByRole("heading", { name: "Store Settings" })).toBeVisible();
-    await expect(page.locator('[data-testid="settings-section-brand"]')).toBeVisible();
-    await expect(page.locator("#shop-name")).toBeVisible();
+    await expect(page.locator('[data-testid="settings-section-contact"]')).toBeVisible();
+    await expect(page.locator('[data-testid="settings-contact-address"]')).toBeVisible();
   });
 
   test("should manage categories", async ({ adminPage, page }) => {

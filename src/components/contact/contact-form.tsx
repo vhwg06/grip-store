@@ -54,7 +54,7 @@ export function ContactForm() {
       <h3 className="text-xl font-bold mb-6">Gửi tin nhắn cho chúng tôi</h3>
       <form data-testid="contact-form" onSubmit={handleSubmit} className="space-y-4">
         {submitted && (
-          <div data-testid="contact-success" className="rounded-md border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-700">
+          <div data-testid="contact-success" className="rounded-md border border-[#9c702a]/20 bg-[#9c702a]/10 px-3 py-2 text-sm text-[#9c702a]">
             Gửi yêu cầu thành công.
           </div>
         )}

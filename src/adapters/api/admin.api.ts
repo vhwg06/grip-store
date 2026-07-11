@@ -154,7 +154,7 @@ export async function getAdminDashboard(): Promise<AdminDashboardPayload> {
     "shop_name": brand.shopName || "",
     "shop_description": brand.shopDescription || "",
     "shop_logo": brand.shopLogo || "",
-    "theme_color": brand.themeColor || "purple",
+    "theme_color": brand.themeColor || "orange",
 
     "contact_address": contact.stickyBarAddress || "",
     "contact_hotline": contact.stickyBarHotline || "",

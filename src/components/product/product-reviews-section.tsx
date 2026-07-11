@@ -96,7 +96,7 @@ export function ProductReviewsSection({ productId = null }: ProductReviewsSectio
       </div>
 
       {toastState === "success" && (
-        <div data-testid="toast" className="inline-flex rounded bg-green-600 px-3 py-1 text-sm text-white">
+        <div data-testid="toast" className="inline-flex rounded bg-[#9c702a] px-3 py-1 text-sm text-white">
           Gửi đánh giá thành công
         </div>
       )}

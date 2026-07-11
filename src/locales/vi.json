@@ -290,7 +290,7 @@
                 "title": "Màu chủ đạo",
                 "hint": "Chọn màu sắc chủ đạo cho cửa hàng của bạn",
                 "black": "Đen",
-                "purple": "Tím (Mặc định)",
+                "purple": "Tím",
                 "indigo": "Xanh Indigo",
                 "blue": "Xanh dương",
                 "cyan": "Xanh Cyan",
@@ -298,7 +298,7 @@
                 "green": "Xanh lá",
                 "lime": "Lục Lime",
                 "amber": "Vàng Hổ Phách",
-                "orange": "Cam",
+                "orange": "Cam (Mặc định)",
                 "red": "Đỏ",
                 "rose": "Hồng Rose",
                 "pink": "Hồng"

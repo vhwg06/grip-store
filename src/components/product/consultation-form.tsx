@@ -28,7 +28,7 @@ export function ConsultationForm({ productTitle }: { productTitle?: string }) {
 
   if (success) {
     return (
-      <div className="bg-green-50 border border-green-200 text-green-800 p-6 rounded-xl text-center">
+      <div className="bg-[#9c702a]/10 border border-[#9c702a]/20 text-[#9c702a] p-6 rounded-xl text-center">
         <h4 className="font-bold text-lg mb-2">Đăng ký thành công!</h4>
         <p>Cảm ơn bạn. Chuyên viên của GRIP sẽ liên hệ sớm nhất.</p>
         <button onClick={() => setSuccess(false)} className="mt-4 text-sm font-medium underline">Gửi yêu cầu khác</button>

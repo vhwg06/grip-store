@@ -71,7 +71,7 @@ export default function SignupPage() {
               </div>
             )}
             {success && (
-              <div className="rounded-lg border border-green-500/20 bg-green-500/10 p-3 text-xs text-green-700">
+              <div className="rounded-lg border border-[#9c702a]/20 bg-[#9c702a]/10 p-3 text-xs text-[#9c702a]">
                 {success}
               </div>
             )}
