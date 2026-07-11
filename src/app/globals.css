@@ -53,10 +53,10 @@
    ====================================== */
 :root {
   --radius: 0.75rem;
-  --theme-hue: 45;
-  --theme-chroma: 1;
-  --theme-primary-l: 0.45;
-  --theme-primary-dark-l: 0.7;
+  --theme-hue: 75;
+  --theme-chroma: 0.6;
+  --theme-primary-l: 0.52;
+  --theme-primary-dark-l: 0.65;
 
   /* Base Colors - Clean & Minimal */
   --background: oklch(0.99 0 0);

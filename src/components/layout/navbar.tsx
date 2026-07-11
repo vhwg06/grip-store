@@ -44,12 +44,6 @@ export function Navbar() {
                 <Image src="/logo.svg" alt="BKT Logo" fill className="object-contain" />
               )}
             </div>
-            <span
-              data-testid="site-header-logo-text"
-              className="hidden max-w-[220px] truncate text-sm font-semibold tracking-tight text-white md:inline"
-            >
-              {shopName}
-            </span>
           </Link>
 
           {/* Links */}
