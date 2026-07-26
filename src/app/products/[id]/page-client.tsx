@@ -1,5 +1,5 @@
 "use client";
-
+import { useState, useEffect } from "react";
 import { Breadcrumbs } from "@/components/layout/breadcrumbs";
 import { ProductGallery } from "@/components/product/product-gallery";
 import { ProductTabs } from "@/components/product/product-tabs";
@@ -10,10 +10,27 @@ import { DedupeTestIds } from "@/components/testing/dedupe-testids";
 import { useProduct } from "@/application/hooks/useProduct";
 import { Card, CardContent } from "@/components/ui/card";
 import { useResolvedRouteParam } from "@/lib/route-param";
+import { Heart, Facebook, Twitter, Pin as Pinterest, Instagram } from "lucide-react";
 
 export default function ProductDetailPageClient({ id }: { id: string }) {
   const resolvedId = useResolvedRouteParam(id, "/products");
   const { product, isLoading } = useProduct(resolvedId);
+
+  const [selectedSize, setSelectedSize] = useState("156mm");
+  const [selectedColor, setSelectedColor] = useState("Trắng");
+  const [quantity, setQuantity] = useState(1);
+
+  useEffect(() => {
+    if (product) {
+      const getSpecValue = (keys: string[], fallback: string) => {
+        if (!product.specs) return fallback;
+        const found = product.specs.find(s => keys.some(k => s.key.toLowerCase().includes(k.toLowerCase())));
+        return found ? found.value : fallback;
+      };
+      setSelectedSize(getSpecValue(["kích thước", "kich thuoc", "size"], "156mm"));
+      setSelectedColor(getSpecValue(["màu", "mau", "color"], "Trắng"));
+    }
+  }, [product]);
 
   if (isLoading) {
     return (
@@ -40,6 +57,20 @@ export default function ProductDetailPageClient({ id }: { id: string }) {
     (html ?? "").replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi, "");
   const images = product.images?.length ? product.images : product.image ? [product.image] : [];
 
+  // Parse specifications or fallback
+  const getSpecValue = (keys: string[], fallback: string) => {
+    if (!product.specs) return fallback;
+    const found = product.specs.find(s => keys.some(k => s.key.toLowerCase().includes(k.toLowerCase())));
+    return found ? found.value : fallback;
+  };
+
+  const formatPrice = (priceStr: string | null | undefined) => {
+    if (!priceStr) return "0đ";
+    const num = parseInt(priceStr.replace(/[^0-9]/g, ""), 10);
+    if (isNaN(num)) return priceStr;
+    return num.toLocaleString("vi-VN") + "đ";
+  };
+
   return (
     <main className="py-8 bg-white min-h-screen">
       <DedupeTestIds
@@ -61,64 +92,181 @@ export default function ProductDetailPageClient({ id }: { id: string }) {
 
           <div className="flex flex-col">
             <div className="mb-6">
-              {product.brand && <p className="text-sm text-neutral-500 font-medium mb-2 uppercase">{product.brand}</p>}
-              <h1 data-testid="product-detail-title" className="text-2xl md:text-3xl font-bold mb-4">
+              {product.sku && (
+                <p className="text-xs font-semibold uppercase tracking-wider text-[#c0a060] mb-2 font-svn-gilroy">
+                  SKU: {product.sku}
+                </p>
+              )}
+              <h1 data-testid="product-detail-title" className="text-2xl md:text-3xl font-bold font-svn-gilroy text-[#2b1809] mb-4">
                 {product.name}
               </h1>
               <div className="flex items-center gap-4 mb-4">
-                <p data-testid="product-detail-price" className="text-3xl font-bold text-primary">
-                  {product.price}
+                <span className="text-base font-medium text-neutral-800">Giá từ:</span>
+                <p data-testid="product-detail-price" className="text-3xl font-bold text-[#9c702a]">
+                  {formatPrice(product.price)}
                 </p>
-                {product.compareAtPrice && <p className="text-lg text-neutral-400 line-through">{product.compareAtPrice}</p>}
+                {product.compareAtPrice && <p className="text-lg text-neutral-400 line-through">{formatPrice(product.compareAtPrice)}</p>}
                 {product.discountPercent && (
                   <span className="bg-red-100 text-red-600 px-2 py-1 rounded text-sm font-bold">-{product.discountPercent}%</span>
                 )}
               </div>
-              {product.sku && <p className="text-sm text-neutral-500">Mã SP: {product.sku}</p>}
+              <hr className="border-neutral-200 my-4" />
             </div>
 
-            {product.description && (
-              <div className="prose prose-sm text-neutral-600 mb-8" dangerouslySetInnerHTML={{ __html: sanitizeHtml(product.description) }} />
-            )}
-
-            {product.bundledGifts && (
-              <div className="bg-orange-50 border border-orange-200 p-4 rounded-xl mb-8 text-orange-800 text-sm">
-                <strong className="block mb-1">Quà tặng kèm:</strong>
-                {product.bundledGifts}
-              </div>
-            )}
-
-            <div className="mb-8 border border-neutral-200 rounded-xl p-4 bg-neutral-50/50">
-              <h3 className="text-base font-bold text-[#2b1809] mb-3 uppercase tracking-wider font-svn-gilroy">Thông số kỹ thuật</h3>
-              <table data-testid="product-specs-table" className="w-full text-sm">
+            {/* Chi tiết sản phẩm */}
+            <div className="mb-6 bg-[#f9f9f9] rounded-lg p-5">
+              <h3 className="text-base font-bold text-[#2b1809] mb-3 font-svn-gilroy">Chi tiết sản phẩm</h3>
+              {product.description ? (
+                <div 
+                  className="prose prose-sm text-neutral-600 mb-4 line-clamp-3 text-sm leading-relaxed" 
+                  dangerouslySetInnerHTML={{ __html: sanitizeHtml(product.description) }} 
+                />
+              ) : (
+                <p className="text-sm text-neutral-500 mb-4">Chất lượng tinh xảo, chất liệu cao cấp mang lại vẻ đẹp và độ bền vượt trội.</p>
+              )}
+              
+              <table data-testid="product-specs-table" className="w-full text-sm border-t border-neutral-200/60 pt-3 mt-3">
                 <tbody>
                   {product.specs && product.specs.length > 0 ? (
                     product.specs.map((spec) => (
                       <tr key={spec.key} className="border-b border-neutral-100 last:border-0">
-                        <td className="py-2.5 font-semibold text-neutral-500 w-1/3">{spec.key}</td>
-                        <td data-testid={`spec-val-${spec.key}`} className="py-2.5 font-medium text-neutral-800 w-2/3">
+                        <td className="py-2 font-semibold text-neutral-500 w-1/3">{spec.key}</td>
+                        <td data-testid={`spec-val-${spec.key}`} className="py-2 font-medium text-neutral-800 w-2/3">
                           {spec.value}
                         </td>
                       </tr>
                     ))
                   ) : (
-                    <tr className="border-b border-neutral-100 last:border-0">
-                      <td className="py-2.5 font-semibold text-neutral-500 w-1/3">Trạng thái</td>
-                      <td className="py-2.5 font-medium text-neutral-800 w-2/3">Chưa có thông số</td>
-                    </tr>
+                    <>
+                      <tr className="border-b border-neutral-100">
+                        <td className="py-2 font-semibold text-neutral-500 w-1/3">Chất liệu</td>
+                        <td className="py-2 font-medium text-neutral-800 w-2/3">{getSpecValue(["chất liệu", "chat lieu"], "Đồng thau nguyên chất")}</td>
+                      </tr>
+                      <tr className="border-b border-neutral-100">
+                        <td className="py-2 font-semibold text-neutral-500 w-1/3">Kích thước</td>
+                        <td className="py-2 font-medium text-neutral-800 w-2/3">{selectedSize}</td>
+                      </tr>
+                      <tr className="border-b border-neutral-100 last:border-0">
+                        <td className="py-2 font-semibold text-neutral-500 w-1/3">Phong cách</td>
+                        <td className="py-2 font-medium text-neutral-800 w-2/3">{getSpecValue(["phong cách", "phong cach", "kiểu dáng", "kieu dang"], "Bắc Âu, sang trọng nhẹ nhàng")}</td>
+                      </tr>
+                    </>
                   )}
                 </tbody>
               </table>
             </div>
 
-            <div className="flex gap-4 mb-8">
-              <AddToCartButton product={product} />
-              <button data-testid="add-wishlist-btn" type="button" className="rounded-full border px-5 py-3 font-semibold">
-                Yêu thích
+            {/* Chọn kích thước */}
+            <div className="mb-4 bg-[#f9f9f9] rounded-lg p-5">
+              <h3 className="text-base font-bold text-[#2b1809] mb-3 font-svn-gilroy">Chọn kích thước</h3>
+              <div className="flex flex-wrap gap-2.5">
+                {["29mm", "58mm", "156mm", "185mm", "281mm", "377mm"].map((size) => (
+                  <button
+                    key={size}
+                    type="button"
+                    onClick={() => setSelectedSize(size)}
+                    className={`px-4 py-2 text-sm font-medium rounded transition-all cursor-pointer ${
+                      selectedSize === size
+                        ? "border-2 border-[#9c702a] bg-[#9c702a]/5 text-[#9c702a] font-bold shadow-sm"
+                        : "border border-neutral-300 bg-white text-neutral-800 hover:border-neutral-400"
+                    }`}
+                  >
+                    {size}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Chọn màu sắc */}
+            <div className="mb-6 bg-[#f9f9f9] rounded-lg p-5">
+              <h3 className="text-base font-bold text-[#2b1809] mb-3 font-svn-gilroy">Chọn màu sắc</h3>
+              <div className="flex flex-wrap gap-2.5">
+                {["Hồng", "Trắng"].map((color) => (
+                  <button
+                    key={color}
+                    type="button"
+                    onClick={() => setSelectedColor(color)}
+                    className={`px-4 py-2 text-sm font-medium rounded transition-all cursor-pointer ${
+                      selectedColor === color
+                        ? "border-2 border-[#9c702a] bg-[#9c702a]/5 text-[#9c702a] font-bold shadow-sm"
+                        : "border border-neutral-300 bg-white text-neutral-800 hover:border-neutral-400"
+                    }`}
+                  >
+                    {color}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* CTA Row */}
+            <div className="flex flex-wrap items-center gap-3 mb-6">
+              {/* Quantity Selector */}
+              <div className="flex items-center border border-neutral-200 bg-white rounded-lg h-[50px] px-2">
+                <button 
+                  type="button"
+                  onClick={() => setQuantity((q) => Math.max(1, q - 1))} 
+                  className="w-8 h-8 flex items-center justify-center text-neutral-500 hover:text-neutral-800 text-lg font-bold"
+                >
+                  -
+                </button>
+                <span className="w-10 text-center font-semibold text-[#2b1809]">{quantity}</span>
+                <button 
+                  type="button"
+                  onClick={() => setQuantity((q) => q + 1)} 
+                  className="w-8 h-8 flex items-center justify-center text-neutral-500 hover:text-neutral-800 text-lg font-bold"
+                >
+                  +
+                </button>
+              </div>
+
+              {/* Add to Cart Button */}
+              <div className="flex-1 min-w-[200px]">
+                <AddToCartButton 
+                  product={product} 
+                  showQuantity={false} 
+                  quantity={quantity}
+                />
+              </div>
+
+              {/* Wishlist Button */}
+              <button 
+                data-testid="add-wishlist-btn"
+                type="button"
+                className="w-[40px] h-[40px] rounded-full bg-[#f5f5f5] hover:bg-[#ebebeb] flex items-center justify-center text-[#99782b] transition-colors"
+              >
+                <Heart className="w-5 h-5" />
               </button>
             </div>
 
+            {/* Bundled Gifts */}
+            {product.bundledGifts && (
+              <div className="bg-orange-50 border border-orange-200 p-4 rounded-xl mb-6 text-orange-800 text-sm">
+                <strong className="block mb-1">Quà tặng kèm:</strong>
+                {product.bundledGifts}
+              </div>
+            )}
+
+            {/* Consultation Form */}
             <ConsultationForm productTitle={product.name} />
+
+            {/* Share Section */}
+            <div className="mt-6 flex items-center gap-3">
+              <span className="text-sm font-medium text-[#1a1a1a] font-svn-gilroy">Chia sẻ:</span>
+              <div className="flex gap-2">
+                <a href="#" className="w-8 h-8 rounded-full bg-[#007dfb] text-white flex items-center justify-center hover:opacity-90 transition-opacity">
+                  <Facebook className="w-4 h-4 fill-current" />
+                </a>
+                <a href="#" className="w-8 h-8 rounded-full bg-[#f5f5f5] text-[#4d4d4d] flex items-center justify-center hover:bg-neutral-200 transition-colors">
+                  <Twitter className="w-4 h-4 fill-current" />
+                </a>
+                <a href="#" className="w-8 h-8 rounded-full bg-[#f5f5f5] text-[#4d4d4d] flex items-center justify-center hover:bg-neutral-200 transition-colors">
+                  <Pinterest className="w-4 h-4 fill-current" />
+                </a>
+                <a href="#" className="w-8 h-8 rounded-full bg-[#f5f5f5] text-[#4d4d4d] flex items-center justify-center hover:bg-neutral-200 transition-colors">
+                  <Instagram className="w-4 h-4" />
+                </a>
+              </div>
+            </div>
           </div>
         </div>
 

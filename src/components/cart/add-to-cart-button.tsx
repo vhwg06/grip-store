@@ -7,12 +7,18 @@ interface AddToCartButtonProps {
   product: CatalogProduct;
   className?: string;
   showQuantity?: boolean;
+  quantity?: number;
 }
 
-export function AddToCartButton({ product, className = "", showQuantity = true }: AddToCartButtonProps) {
+export function AddToCartButton({ product, className = "", showQuantity = true, quantity: propQuantity }: AddToCartButtonProps) {
   const { addItem } = useCart();
-  const [quantity, setQuantity] = useState(1);
+  const [localQuantity, setLocalQuantity] = useState(1);
   const [showToast, setShowToast] = useState(false);
+
+  const quantity = propQuantity !== undefined ? propQuantity : localQuantity;
+  const setQuantity = propQuantity !== undefined 
+    ? (val: number | ((prev: number) => number)) => {} 
+    : setLocalQuantity;
 
   const handleAdd = () => {
     addItem(product, quantity);

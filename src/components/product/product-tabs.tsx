@@ -13,21 +13,21 @@ export function ProductTabs({ description, usageGuide, reviewCount = 0 }: Produc
       <TabsList className="w-full border-b rounded-none bg-transparent h-auto p-0 justify-start gap-8 mb-8">
         <TabsTrigger 
           value="details" 
-          className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-0 py-4 font-bold text-lg"
+          className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#c0a060] data-[state=active]:text-[#c0a060] data-[state=active]:bg-transparent px-0 py-4 font-bold text-lg"
         >
-          Chi tiết sản phẩm
+          Thông tin chi tiết
         </TabsTrigger>
         <TabsTrigger 
           value="guide" 
-          className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-0 py-4 font-bold text-lg"
+          className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#c0a060] data-[state=active]:text-[#c0a060] data-[state=active]:bg-transparent px-0 py-4 font-bold text-lg"
         >
           Hướng dẫn sử dụng
         </TabsTrigger>
         <TabsTrigger 
           value="reviews" 
-          className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-0 py-4 font-bold text-lg"
+          className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#c0a060] data-[state=active]:text-[#c0a060] data-[state=active]:bg-transparent px-0 py-4 font-bold text-lg"
         >
-          Đánh giá <span className="ml-2 bg-neutral-100 text-neutral-600 px-2 py-0.5 rounded-full text-xs">{reviewCount}</span>
+          Đánh giá của khách hàng <span className="ml-2 bg-neutral-100 text-neutral-600 px-2 py-0.5 rounded-full text-xs">{reviewCount}</span>
         </TabsTrigger>
       </TabsList>
       
