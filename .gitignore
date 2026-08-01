@@ -84,4 +84,5 @@ firebase.json
 playwright-report/
 playwright/reports/
 test-results/
+/generated/playwright-bdd/
 package.json

@@ -5,12 +5,12 @@ import path from "path";
 dotenv.config({ path: path.resolve(__dirname, "../.env.local") });
 dotenv.config({ path: path.resolve(__dirname, "../playwright/.env.test") });
 
-const GO_BACKEND_URL = process.env.GO_BACKEND_URL ?? "http://127.0.0.1:8080";
+const GO_BACKEND_URL = "https://grip.vn/api";
 
 export default defineConfig({
-  testDir: path.resolve(__dirname, "../playwright/specs"),
+  testDir: path.resolve(__dirname, "../test/tests"),
   outputDir: path.resolve(__dirname, "../playwright/test-results"),
-  globalSetup: path.resolve(__dirname, "../playwright/src/fixtures/global-setup.ts"),
+  globalSetup: path.resolve(__dirname, "../test/support/runtime/fixtures/global-setup.ts"),
   fullyParallel: false,
   workers: 1,
   reporter: "line",
@@ -23,7 +23,7 @@ export default defineConfig({
   projects: [
     {
       name: "api",
-      testMatch: /specs\/api\/.+\.spec\.ts/,
+      testMatch: /test\/tests\/api\/.+\.spec\.ts/,
       use: {
         baseURL: GO_BACKEND_URL,
       },

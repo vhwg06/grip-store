@@ -9,8 +9,8 @@ dotenv.config({ path: path.resolve(__dirname, "playwright/.env.test") });
 const GO_GRIP_ROOT =
   process.env.GO_GRIP_ROOT ?? path.resolve(__dirname, "../go-grip");
 
-const BASE_URL = process.env.PLAYWRIGHT_BASE_URL ?? "http://localhost:3000";
-const GO_BACKEND_URL = process.env.GO_BACKEND_URL ?? "http://127.0.0.1:8080";
+const BASE_URL = "https://grip.vn";
+const GO_BACKEND_URL = "https://grip.vn/api";
 const CI_EXTERNAL_BACKEND = process.env.CI_EXTERNAL_BACKEND === "true";
 const IS_LOCAL_BACKEND = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(
   GO_BACKEND_URL,
@@ -45,8 +45,8 @@ if (!SKIP_SETUP) {
       if (!exp) return false;
       return Number(exp.value) > Date.now() + 300_000;
     };
-    const adminPath = path.resolve(__dirname, "./playwright/src/fixtures/.auth/admin.json");
-    const userPath = path.resolve(__dirname, "./playwright/src/fixtures/.auth/user.json");
+    const adminPath = path.resolve(__dirname, "./test/support/runtime/fixtures/.auth/admin.json");
+    const userPath = path.resolve(__dirname, "./test/support/runtime/fixtures/.auth/user.json");
     if (checkFresh(adminPath) && checkFresh(userPath)) {
       SKIP_SETUP = true;
       console.log("[playwright-config] Auth states are fresh. Setup project will be skipped.");
@@ -62,9 +62,9 @@ const browserProjects = [
     use: {
       ...devices["Desktop Chrome"],
       viewport: { width: 1600, height: 1200 },
-      storageState: "./playwright/src/fixtures/.auth/user.json",
+      storageState: "./test/support/runtime/fixtures/.auth/user.json",
     },
-    testIgnore: /specs\/api\/.+\.spec\.ts/,
+      testIgnore: /test\/tests\/api\/.+\.spec\.ts/,
     dependencies: SKIP_SETUP ? [] : ["setup"],
   },
   ...(IS_CI_OR_ALL_BROWSERS && FIREFOX_AVAILABLE
@@ -73,9 +73,9 @@ const browserProjects = [
           name: "firefox",
           use: {
             ...devices["Desktop Firefox"],
-            storageState: "./playwright/src/fixtures/.auth/user.json",
+            storageState: "./test/support/runtime/fixtures/.auth/user.json",
           },
-          testIgnore: /specs\/api\/.+\.spec\.ts/,
+          testIgnore: /test\/tests\/api\/.+\.spec\.ts/,
           dependencies: SKIP_SETUP ? [] : ["setup"],
         },
       ]
@@ -86,9 +86,9 @@ const browserProjects = [
           name: "webkit",
           use: {
             ...devices["Desktop Safari"],
-            storageState: "./playwright/src/fixtures/.auth/user.json",
+            storageState: "./test/support/runtime/fixtures/.auth/user.json",
           },
-          testIgnore: /specs\/api\/.+\.spec\.ts/,
+          testIgnore: /test\/tests\/api\/.+\.spec\.ts/,
           dependencies: SKIP_SETUP ? [] : ["setup"],
         },
       ]
@@ -99,9 +99,9 @@ const browserProjects = [
           name: "mobile-chrome",
           use: {
             ...devices["Pixel 5"],
-            storageState: "./playwright/src/fixtures/.auth/user.json",
+            storageState: "./test/support/runtime/fixtures/.auth/user.json",
           },
-          testIgnore: /specs\/api\/.+\.spec\.ts/,
+          testIgnore: /test\/tests\/api\/.+\.spec\.ts/,
           dependencies: SKIP_SETUP ? [] : ["setup"],
         },
       ]
@@ -125,9 +125,9 @@ const NAVIGATION_TIMEOUT = process.env.PLAYWRIGHT_NAVIGATION_TIMEOUT
   : 8000;
 
 export default defineConfig({
-  testDir: "./playwright/specs",
+  testDir: "./test/tests",
   outputDir: "./playwright/test-results",
-  globalSetup: "./playwright/src/fixtures/global-setup.ts",
+  globalSetup: "./test/support/runtime/fixtures/global-setup.ts",
 
   /* Maximum time one test can run */
   timeout: TEST_TIMEOUT,
@@ -178,7 +178,7 @@ export default defineConfig({
     /* Global setup — authenticates test users, saves storageState */
     {
       name: "setup",
-      testDir: "./playwright/src/fixtures",
+      testDir: "./test/support/runtime/fixtures",
       testMatch: /auth\.setup\.ts/,
       timeout: 5000,
     },
@@ -189,7 +189,7 @@ export default defineConfig({
       use: {
         baseURL: GO_BACKEND_URL,
       },
-      testMatch: /specs\/api\/.+\.spec\.ts/,
+      testMatch: /test\/tests\/api\/.+\.spec\.ts/,
     },
 
     /* E2E browser tests */
@@ -198,14 +198,7 @@ export default defineConfig({
 
   /* Run local dev server before starting the tests */
   webServer: USE_EXTERNAL_BACKEND
-    ? [
-        {
-          command: process.env.PLAYWRIGHT_PROD === "true" ? "npx -y serve out -l 3000" : "npm run dev",
-          url: BASE_URL,
-          reuseExistingServer: !process.env.CI,
-          timeout: 120_000,
-        },
-      ]
+    ? undefined
     : [
         {
           command: `cd ${JSON.stringify(

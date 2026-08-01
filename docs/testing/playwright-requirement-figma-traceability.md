@@ -26,13 +26,13 @@ The following nodes were verified and exported with `save_screenshots`:
 
 | Requirement Source | Playwright Coverage | Figma Node Trace | Notes |
 | --- | --- | --- | --- |
-| US1: API contract coverage (`FR-001`, `FR-006`, `FR-012`) | `playwright/specs/api/*.spec.ts` | N/A (API-only) | Contract truth is API response + auth/error behavior. |
-| US2: Product browsing and search (`FR-002`) | `playwright/specs/browse/homepage.spec.ts`, `product-list.spec.ts`, `product-detail.spec.ts`, `search.spec.ts`, `browse/figma-contract.spec.ts` | `27:1404`, `58:861`, `62:2672` | Section/CTA assertions mapped to home/list/detail screens. |
-| US3: Cart and checkout (`FR-002`) | `playwright/specs/checkout/cart.spec.ts`, `order-flow.spec.ts`, `checkout/figma-contract.spec.ts` | `114:3466`, `117:4153`, `62:2672` | Flow trace includes detail -> cart -> checkout CTA continuity. |
-| US4: Authentication flow (`FR-002`) | `playwright/specs/auth/login.spec.ts`, `signup.spec.ts`, `auth-extended.spec.ts` | `27:1404` (entry/navigation context) | Auth behavior is business contract; no dedicated auth screen node identified in current Design page. |
-| US5: Admin panel (`FR-002`) | `playwright/specs/admin/products.spec.ts`, `orders.spec.ts`, `settings.spec.ts`, `admin/figma-contract.spec.ts` | `58:861`, `62:2672` (table/content patterns) | No explicit admin board in provided design page; using shared management/list patterns. |
-| US6: Content pages (`FR-002`) | `playwright/specs/content/articles.spec.ts`, `about.spec.ts`, `contact.spec.ts` | `87:2148`, `47:1048` | Articles/contact directly mapped to named nodes. |
-| US7: Engagement features (`FR-002`) | `playwright/specs/engagement/wishlist.spec.ts`, `reviews.spec.ts`, `checkin.spec.ts` | `62:2672`, `58:861` | Review/wishlist tied to product detail/list contexts. |
+| US1: API contract coverage (`FR-001`, `FR-006`, `FR-012`) | `test/tests/api/*.spec.ts` | N/A (API-only) | Contract truth is API response + auth/error behavior. |
+| US2: Product browsing and search (`FR-002`) | `test/tests/browse/homepage.spec.ts`, `product-list.spec.ts`, `product-detail.spec.ts`, `search.spec.ts`, `browse/figma-contract.spec.ts` | `27:1404`, `58:861`, `62:2672` | Section/CTA assertions mapped to home/list/detail screens. |
+| US3: Cart and checkout (`FR-002`) | `test/tests/checkout/cart.spec.ts`, `order-flow.spec.ts`, `checkout/figma-contract.spec.ts` | `114:3466`, `117:4153`, `62:2672` | Flow trace includes detail -> cart -> checkout CTA continuity. |
+| US4: Authentication flow (`FR-002`) | `test/tests/auth/login.spec.ts`, `signup.spec.ts`, `auth-extended.spec.ts` | `27:1404` (entry/navigation context) | Auth behavior is business contract; no dedicated auth screen node identified in current Design page. |
+| US5: Admin panel (`FR-002`) | `test/tests/admin/products.spec.ts`, `orders.spec.ts`, `settings.spec.ts`, `admin/figma-contract.spec.ts` | `58:861`, `62:2672` (table/content patterns) | No explicit admin board in provided design page; using shared management/list patterns. |
+| US6: Content pages (`FR-002`) | `test/tests/content/articles.spec.ts`, `about.spec.ts`, `contact.spec.ts` | `87:2148`, `47:1048` | Articles/contact directly mapped to named nodes. |
+| US7: Engagement features (`FR-002`) | `test/tests/engagement/wishlist.spec.ts`, `reviews.spec.ts`, `checkin.spec.ts` | `62:2672`, `58:861` | Review/wishlist tied to product detail/list contexts. |
 | Visual regression (`FR-014`) | Existing screenshot assertions in critical flows | `27:1404`, `62:2672`, `114:3466`, `117:4153` | Baseline behavior validated by Playwright visual checks. |
 
 ## Current Validation Status
