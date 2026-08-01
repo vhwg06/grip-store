@@ -1,0 +1,24 @@
+module: admin.content
+
+behavior:
+  feature: modules/admin/content/behavior.feature
+  steps: modules/admin/content/behavior.steps.ts
+
+scenarios:
+  SC-CONT-MEDIA-001: {}
+  SC-CONT-MEDIA-002: {}
+  SC-CONT-MEDIA-003: {}
+  SC-CONT-BANNER-001: {}
+  SC-CONT-EDITOR-001: {}
+  SC-CONT-EDITOR-002: {}
+  SC-CONT-ARTICLE-001: {}
+  SC-CONT-FAQ-001: {}
+  SC-CONT-ABOUT-LINK-001: {}
+  SC-CONT-ABOUT-LINK-002: {}
+  SC-CONT-PRODUCT-EDITORIAL-001: {}
+  SC-CONT-ARTICLE-PREVIEW-001: {}
+  SC-CONT-UI-001: {}
+  SC-CONT-UI-002: {}
+  SC-CONT-UI-003: {}
+  SC-CONT-UI-004: {}
+  SC-CONT-UI-005: {}

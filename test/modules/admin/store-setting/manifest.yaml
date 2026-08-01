@@ -1,0 +1,12 @@
+module: admin.store-setting
+
+behavior:
+  feature: modules/admin/store-setting/behavior.feature
+  steps: modules/admin/store-setting/behavior.steps.ts
+
+scenarios:
+  SC-SET-CONTACT-001: {}
+  SC-SET-HOMEPAGE-001: {}
+  SC-SET-DISCOVERY-001: {}
+  SC-SET-REGISTRY-001: {}
+

@@ -1,0 +1,22 @@
+module: product-flow
+
+behavior:
+  feature: modules/product-flow/behavior.feature
+  steps: modules/product-flow/behavior.steps.ts
+
+contract:
+  type: markdown
+  path: contracts/catalog-base.md
+  refs:
+    - catalog-public-product-list
+    - catalog-public-product-detail
+    - catalog-admin-product-management
+    - catalog-cart-boundary
+
+scenarios:
+  SC-PF-CART-COMPOSITION-001:
+    contract_refs:
+      - catalog-cart-boundary
+  SC-PF-CART-COMPOSITION-002:
+    contract_refs:
+      - catalog-cart-boundary

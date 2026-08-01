@@ -1,0 +1,12 @@
+module: admin.payment-collection
+
+behavior:
+  feature: modules/admin/payment-collection/behavior.feature
+  steps: modules/admin/payment-collection/behavior.steps.ts
+
+scenarios:
+  SC-PCOL-SOURCES-001: {}
+  SC-PCOL-PAYEE-001: {}
+  SC-PCOL-SETUP-001: {}
+  SC-PCOL-READINESS-001: {}
+

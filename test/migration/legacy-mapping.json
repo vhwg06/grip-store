@@ -1,0 +1,5117 @@
+{
+  "schemaVersion": 1,
+  "purpose": "Committed semantic mapping from legacy tests to vertical-slice Cucumber scenarios.",
+  "entries": [
+    {
+      "source_path": "test/tests/admin/admin-profile.spec.ts",
+      "source_line": 35,
+      "test_title": "UC-APRO-01 renders the current admin identity instead of fallback account scaffolding",
+      "old_id": "UC-APRO-01",
+      "owner": "admin.admin-profile",
+      "target_scenarios": [
+        "SC-APRO-UI-001"
+      ],
+      "disposition": "migrated",
+      "preserved_assertions": [
+        {
+          "kind": "browser_contract",
+          "expected": "legacy UI selectors, persistence/reload, and API-backed state assertions preserved"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/admin/admin-profile.spec.ts",
+      "source_line": 58,
+      "test_title": "UC-APRO-02 persists self display identity and reflects the saved value after reload",
+      "old_id": "UC-APRO-02",
+      "owner": "admin.admin-profile",
+      "target_scenarios": [
+        "SC-APRO-UI-002"
+      ],
+      "disposition": "migrated",
+      "preserved_assertions": [
+        {
+          "kind": "browser_contract",
+          "expected": "legacy UI selectors, persistence/reload, and API-backed state assertions preserved"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/admin/admin-profile.spec.ts",
+      "source_line": 81,
+      "test_title": "UC-APRO-03 pulls backend-owned security posture instead of rendering a hardcoded green audit",
+      "old_id": "UC-APRO-03",
+      "owner": "admin.admin-profile",
+      "target_scenarios": [
+        "SC-APRO-UI-003"
+      ],
+      "disposition": "migrated",
+      "preserved_assertions": [
+        {
+          "kind": "browser_contract",
+          "expected": "legacy UI selectors, persistence/reload, and API-backed state assertions preserved"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/admin/admin-profile.spec.ts",
+      "source_line": 101,
+      "test_title": "UC-APRO-04 pulls recent-access trust state from the backend instead of static session rows",
+      "old_id": "UC-APRO-04",
+      "owner": "admin.admin-profile",
+      "target_scenarios": [
+        "SC-APRO-UI-004"
+      ],
+      "disposition": "migrated",
+      "preserved_assertions": [
+        {
+          "kind": "browser_contract",
+          "expected": "legacy UI selectors, persistence/reload, and API-backed state assertions preserved"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/admin/admin-specs.spec.ts",
+      "source_line": 22,
+      "test_title": "should allow adding, editing and deleting specs on product creation",
+      "old_id": null,
+      "owner": "admin.admin-specs",
+      "target_scenarios": [],
+      "disposition": "pending",
+      "preserved_assertions": []
+    },
+    {
+      "source_path": "test/tests/admin/articles.spec.ts",
+      "source_line": 15,
+      "test_title": "should support complete CRUD flow for articles and About ownership",
+      "old_id": null,
+      "owner": "admin.articles",
+      "target_scenarios": [],
+      "disposition": "pending",
+      "preserved_assertions": []
+    },
+    {
+      "source_path": "test/tests/admin/articles.spec.ts",
+      "source_line": 97,
+      "test_title": "should support previewing articles in storefront simulated modal",
+      "old_id": null,
+      "owner": "admin.articles",
+      "target_scenarios": [],
+      "disposition": "pending",
+      "preserved_assertions": []
+    },
+    {
+      "source_path": "test/tests/admin/articles.spec.ts",
+      "source_line": 110,
+      "test_title": "should support toggling editor modes",
+      "old_id": null,
+      "owner": "admin.articles",
+      "target_scenarios": [],
+      "disposition": "pending",
+      "preserved_assertions": []
+    },
+    {
+      "source_path": "test/tests/admin/banners.spec.ts",
+      "source_line": 20,
+      "test_title": "should allow adding, updating storefront visibility, and deleting a banner",
+      "old_id": null,
+      "owner": "admin.banners",
+      "target_scenarios": [],
+      "disposition": "pending",
+      "preserved_assertions": []
+    },
+    {
+      "source_path": "test/tests/admin/content.spec.ts",
+      "source_line": 8,
+      "test_title": "UC-CONT-01 keeps media selection available as shared internal tooling",
+      "old_id": "UC-CONT-01",
+      "owner": "admin.content",
+      "target_scenarios": [],
+      "disposition": "pending",
+      "preserved_assertions": []
+    },
+    {
+      "source_path": "test/tests/admin/content.spec.ts",
+      "source_line": 18,
+      "test_title": "UC-CONT-02 renders banner ownership and storefront visibility inside banner management",
+      "old_id": "UC-CONT-02",
+      "owner": "admin.content",
+      "target_scenarios": [
+        "SC-CONT-UI-002"
+      ],
+      "disposition": "migrated",
+      "preserved_assertions": [
+        {
+          "kind": "browser_contract",
+          "expected": "legacy UI selectors, persistence/reload, and API-backed state assertions preserved"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/admin/content.spec.ts",
+      "source_line": 29,
+      "test_title": "UC-CONT-03 and UC-CONT-05 keep article publishing and About ownership in one flow",
+      "old_id": "UC-CONT-03",
+      "owner": "admin.content",
+      "target_scenarios": [
+        "SC-CONT-UI-003"
+      ],
+      "disposition": "migrated",
+      "preserved_assertions": [
+        {
+          "kind": "browser_contract",
+          "expected": "legacy UI selectors, persistence/reload, and API-backed state assertions preserved"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/admin/content.spec.ts",
+      "source_line": 39,
+      "test_title": "UC-CONT-04 renders FAQ ordering and public-visibility rules",
+      "old_id": "UC-CONT-04",
+      "owner": "admin.content",
+      "target_scenarios": [
+        "SC-CONT-UI-004"
+      ],
+      "disposition": "migrated",
+      "preserved_assertions": [
+        {
+          "kind": "browser_contract",
+          "expected": "legacy UI selectors, persistence/reload, and API-backed state assertions preserved"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/admin/content.spec.ts",
+      "source_line": 49,
+      "test_title": "UC-CONT-06 keeps product editorial/media work inside product editor context",
+      "old_id": "UC-CONT-06",
+      "owner": "admin.content",
+      "target_scenarios": [
+        "SC-CONT-UI-005"
+      ],
+      "disposition": "migrated",
+      "preserved_assertions": [
+        {
+          "kind": "browser_contract",
+          "expected": "legacy UI selectors, persistence/reload, and API-backed state assertions preserved"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/admin/customer.spec.ts",
+      "source_line": 68,
+      "test_title": "UC-CUS-01 finds a customer record from customer-centric search",
+      "old_id": "UC-CUS-01",
+      "owner": "admin.customer",
+      "target_scenarios": ["SC-CUS-SEARCH-002"],
+      "disposition": "migrated",
+      "preserved_assertions": [{"kind": "browser_contract", "expected": "customer-centric search returns buyer and excludes admin"}]
+    },
+    {
+      "source_path": "test/tests/admin/customer.spec.ts",
+      "source_line": 85,
+      "test_title": "UC-CUS-02 renders customer summary and commerce indicators",
+      "old_id": "UC-CUS-02",
+      "owner": "admin.customer",
+      "target_scenarios": ["SC-CUS-SUMMARY-002"],
+      "disposition": "migrated",
+      "preserved_assertions": [{"kind": "browser_contract", "expected": "identity, order, refund, review, and customer-id indicators"}]
+    },
+    {
+      "source_path": "test/tests/admin/customer.spec.ts",
+      "source_line": 102,
+      "test_title": "UC-CUS-03 traverses commerce links from the customer root",
+      "old_id": "UC-CUS-03",
+      "owner": "admin.customer",
+      "target_scenarios": ["SC-CUS-SUMMARY-003"],
+      "disposition": "migrated",
+      "preserved_assertions": [{"kind": "browser_contract", "expected": "customer root exposes history, refund, and review actions"}]
+    },
+    {
+      "source_path": "test/tests/admin/customer.spec.ts",
+      "source_line": 115,
+      "test_title": "UC-CUS-04 distinguishes customer root from user-domain controls",
+      "old_id": "UC-CUS-04",
+      "owner": "admin.customer",
+      "target_scenarios": ["SC-CUS-ACCOUNT-LINK-002"],
+      "disposition": "migrated",
+      "preserved_assertions": [{"kind": "boundary", "expected": "account handoff enters user root and removes commerce actions"}]
+    },
+    {
+      "source_path": "test/tests/admin/customer.spec.ts",
+      "source_line": 140,
+      "test_title": "UC-CUS-05 treats empty commerce history as a valid customer state",
+      "old_id": "UC-CUS-05",
+      "owner": "admin.customer",
+      "target_scenarios": ["SC-CUS-COMMERCE-HISTORY-002"],
+      "disposition": "migrated",
+      "preserved_assertions": [{"kind": "state", "expected": "new customer remains visible with empty commerce history and zero orders"}]
+    },
+    {
+      "source_path": "test/tests/admin/customer.spec.ts",
+      "source_line": 157,
+      "test_title": "UC-CUS-01 renders empty search state gracefully",
+      "old_id": "UC-CUS-01",
+      "owner": "admin.customer",
+      "target_scenarios": ["SC-CUS-SEARCH-003"],
+      "disposition": "migrated",
+      "preserved_assertions": [{"kind": "browser_contract", "expected": "empty search state and no error boundary"}]
+    },
+    {
+      "source_path": "test/tests/admin/customer.spec.ts",
+      "source_line": 173,
+      "test_title": "UC-CUS-01 exception: admin accounts must not appear in customer search results",
+      "old_id": "UC-CUS-01",
+      "owner": "admin.customer",
+      "target_scenarios": ["SC-CUS-SEARCH-004"],
+      "disposition": "migrated",
+      "preserved_assertions": [{"kind": "security", "expected": "admin account excluded from customer result set"}]
+    },
+    {
+      "source_path": "test/tests/admin/customer.spec.ts",
+      "source_line": 188,
+      "test_title": "UC-CUS-02 alternate: customer with orders but no refunds shows correct commerce indicator set",
+      "old_id": "UC-CUS-02",
+      "owner": "admin.customer",
+      "target_scenarios": ["SC-CUS-SUMMARY-002"],
+      "disposition": "merged",
+      "preserved_assertions": [{"kind": "browser_contract", "expected": "customer summary renders commerce counters from backend state"}]
+    },
+    {
+      "source_path": "test/tests/admin/faqs.spec.ts",
+      "source_line": 15,
+      "test_title": "should support complete CRUD flow for FAQs",
+      "old_id": null,
+      "owner": "admin.faqs",
+      "target_scenarios": [],
+      "disposition": "pending",
+      "preserved_assertions": []
+    },
+    {
+      "source_path": "test/tests/admin/figma-contract.spec.ts",
+      "source_line": 16,
+      "test_title": "Verify Store Settings page matches Figma @desktop",
+      "old_id": null,
+      "owner": "admin.figma-contract",
+      "target_scenarios": [],
+      "disposition": "pending",
+      "preserved_assertions": []
+    },
+    {
+      "source_path": "test/tests/admin/figma-contract.spec.ts",
+      "source_line": 28,
+      "test_title": "Verify Products list page matches Figma @desktop",
+      "old_id": null,
+      "owner": "admin.figma-contract",
+      "target_scenarios": [],
+      "disposition": "pending",
+      "preserved_assertions": []
+    },
+    {
+      "source_path": "test/tests/admin/figma-contract.spec.ts",
+      "source_line": 39,
+      "test_title": "Verify Product Create page matches Figma @desktop",
+      "old_id": null,
+      "owner": "admin.figma-contract",
+      "target_scenarios": [],
+      "disposition": "pending",
+      "preserved_assertions": []
+    },
+    {
+      "source_path": "test/tests/admin/figma-contract.spec.ts",
+      "source_line": 47,
+      "test_title": "Verify Banners page matches Figma @desktop",
+      "old_id": null,
+      "owner": "admin.figma-contract",
+      "target_scenarios": [],
+      "disposition": "pending",
+      "preserved_assertions": []
+    },
+    {
+      "source_path": "test/tests/admin/figma-contract.spec.ts",
+      "source_line": 58,
+      "test_title": "Verify Media Library page matches Figma @desktop",
+      "old_id": null,
+      "owner": "admin.figma-contract",
+      "target_scenarios": [],
+      "disposition": "pending",
+      "preserved_assertions": []
+    },
+    {
+      "source_path": "test/tests/admin/figma-contract.spec.ts",
+      "source_line": 69,
+      "test_title": "Verify Orders page matches Figma @desktop",
+      "old_id": null,
+      "owner": "admin.figma-contract",
+      "target_scenarios": [],
+      "disposition": "pending",
+      "preserved_assertions": []
+    },
+    {
+      "source_path": "test/tests/admin/figma-contract.spec.ts",
+      "source_line": 80,
+      "test_title": "Verify Refunds page matches Figma @desktop",
+      "old_id": null,
+      "owner": "admin.figma-contract",
+      "target_scenarios": [],
+      "disposition": "pending",
+      "preserved_assertions": []
+    },
+    {
+      "source_path": "test/tests/admin/figma-contract.spec.ts",
+      "source_line": 93,
+      "test_title": "Verify Messages page matches Figma @desktop",
+      "old_id": null,
+      "owner": "admin.figma-contract",
+      "target_scenarios": [],
+      "disposition": "pending",
+      "preserved_assertions": []
+    },
+    {
+      "source_path": "test/tests/admin/figma-contract.spec.ts",
+      "source_line": 104,
+      "test_title": "Verify Categories page matches Figma @desktop",
+      "old_id": null,
+      "owner": "admin.figma-contract",
+      "target_scenarios": [],
+      "disposition": "pending",
+      "preserved_assertions": []
+    },
+    {
+      "source_path": "test/tests/admin/figma-contract.spec.ts",
+      "source_line": 115,
+      "test_title": "Verify Users page matches Figma @desktop",
+      "old_id": null,
+      "owner": "admin.figma-contract",
+      "target_scenarios": [],
+      "disposition": "pending",
+      "preserved_assertions": []
+    },
+    {
+      "source_path": "test/tests/admin/figma-contract.spec.ts",
+      "source_line": 126,
+      "test_title": "Verify Reviews page matches Figma @desktop",
+      "old_id": null,
+      "owner": "admin.figma-contract",
+      "target_scenarios": [],
+      "disposition": "pending",
+      "preserved_assertions": []
+    },
+    {
+      "source_path": "test/tests/admin/figma-contract.spec.ts",
+      "source_line": 144,
+      "test_title": "Verify Collect page matches Figma @desktop",
+      "old_id": null,
+      "owner": "admin.figma-contract",
+      "target_scenarios": [],
+      "disposition": "pending",
+      "preserved_assertions": []
+    },
+    {
+      "source_path": "test/tests/admin/figma-contract.spec.ts",
+      "source_line": 155,
+      "test_title": "Verify Profile page matches Figma @desktop",
+      "old_id": null,
+      "owner": "admin.figma-contract",
+      "target_scenarios": [],
+      "disposition": "pending",
+      "preserved_assertions": []
+    },
+    {
+      "source_path": "test/tests/admin/figma-contract.spec.ts",
+      "source_line": 166,
+      "test_title": "Verify FAQs page matches Figma @desktop",
+      "old_id": null,
+      "owner": "admin.figma-contract",
+      "target_scenarios": [],
+      "disposition": "pending",
+      "preserved_assertions": []
+    },
+    {
+      "source_path": "test/tests/admin/figma-contract.spec.ts",
+      "source_line": 177,
+      "test_title": "Verify Articles page matches Figma @desktop",
+      "old_id": null,
+      "owner": "admin.figma-contract",
+      "target_scenarios": [],
+      "disposition": "pending",
+      "preserved_assertions": []
+    },
+    {
+      "source_path": "test/tests/admin/noty.spec.ts",
+      "source_line": 30,
+      "test_title": "UC-NOTY-01 renders outbound readiness controls for notification channels",
+      "old_id": "UC-NOTY-01",
+      "owner": "admin.noty",
+      "target_scenarios": [],
+      "disposition": "pending",
+      "preserved_assertions": []
+    },
+    {
+      "source_path": "test/tests/admin/noty.spec.ts",
+      "source_line": 47,
+      "test_title": "UC-NOTY-02 sends a website push from the compose flow and reflects it in the outbound table",
+      "old_id": "UC-NOTY-02",
+      "owner": "admin.noty",
+      "target_scenarios": [],
+      "disposition": "pending",
+      "preserved_assertions": []
+    },
+    {
+      "source_path": "test/tests/admin/noty.spec.ts",
+      "source_line": 69,
+      "test_title": "UC-NOTY-03 reads outbound notification list from backend state instead of only local scaffolding",
+      "old_id": "UC-NOTY-03",
+      "owner": "admin.noty",
+      "target_scenarios": [],
+      "disposition": "pending",
+      "preserved_assertions": []
+    },
+    {
+      "source_path": "test/tests/admin/noty.spec.ts",
+      "source_line": 92,
+      "test_title": "UC-NOTY-04 exposes send history with outcome trace separate from campaign composition",
+      "old_id": "UC-NOTY-04",
+      "owner": "admin.noty",
+      "target_scenarios": [],
+      "disposition": "pending",
+      "preserved_assertions": []
+    },
+    {
+      "source_path": "test/tests/admin/noty.spec.ts",
+      "source_line": 117,
+      "test_title": "UC-NOTY-03 alternate: renders empty search state gracefully",
+      "old_id": "UC-NOTY-03",
+      "owner": "admin.noty",
+      "target_scenarios": [],
+      "disposition": "pending",
+      "preserved_assertions": []
+    },
+    {
+      "source_path": "test/tests/admin/noty.spec.ts",
+      "source_line": 127,
+      "test_title": "EXC-NOTY-01 shows an explicit readiness error instead of fabricated defaults when notification settings fail",
+      "old_id": "EXC-NOTY-01",
+      "owner": "admin.noty",
+      "target_scenarios": [],
+      "disposition": "pending",
+      "preserved_assertions": []
+    },
+    {
+      "source_path": "test/tests/admin/noty.spec.ts",
+      "source_line": 147,
+      "test_title": "UC-NOTY-01 alternate: updates channel readiness settings before sending a push notification",
+      "old_id": "UC-NOTY-01",
+      "owner": "admin.noty",
+      "target_scenarios": [],
+      "disposition": "pending",
+      "preserved_assertions": []
+    },
+    {
+      "source_path": "test/tests/admin/orders.spec.ts",
+      "source_line": 68,
+      "test_title": "UC-ORD-01 renders queue state and preserves row-to-detail handoff",
+      "old_id": "UC-ORD-01",
+      "owner": "admin.orders",
+      "target_scenarios": ["SC-ORD-QUEUE-006"],
+      "disposition": "migrated",
+      "preserved_assertions": [{"kind": "browser_contract", "expected": "pending queue row, disabled invalid action, and row-to-detail route"}]
+    },
+    {
+      "source_path": "test/tests/admin/orders.spec.ts",
+      "source_line": 93,
+      "test_title": "UC-ORD-02 renders order detail context before action",
+      "old_id": "UC-ORD-02",
+      "owner": "admin.orders",
+      "target_scenarios": ["SC-ORD-DETAIL-004"],
+      "disposition": "migrated",
+      "preserved_assertions": [{"kind": "browser_contract", "expected": "order identity, customer, payment, timeline, and terminal context"}]
+    },
+    {
+      "source_path": "test/tests/admin/orders.spec.ts",
+      "source_line": 108,
+      "test_title": "UC-ORD-03 submits a valid pending-to-paid transition from the admin queue",
+      "old_id": "UC-ORD-03",
+      "owner": "admin.orders",
+      "target_scenarios": ["SC-ORD-TRANSITION-004"],
+      "disposition": "migrated",
+      "preserved_assertions": [{"kind": "state", "expected": "browser paid action followed by fresh PAID read and paidAt"}]
+    },
+    {
+      "source_path": "test/tests/admin/orders.spec.ts",
+      "source_line": 140,
+      "test_title": "UC-ORD-05 renders refund relevance for an order that has a pending refund request",
+      "old_id": "UC-ORD-05",
+      "owner": "admin.orders",
+      "target_scenarios": ["SC-ORD-REFUND-CONTEXT-001"],
+      "disposition": "merged",
+      "preserved_assertions": [{"kind": "browser_contract", "expected": "refund requested signal remains visible without order deciding outcome"}]
+    },
+    {
+      "source_path": "test/tests/admin/orders.spec.ts",
+      "source_line": 163,
+      "test_title": "UC-ORD-06 keeps incomplete-context order detail readable with safe fallbacks",
+      "old_id": "UC-ORD-06",
+      "owner": "admin.orders",
+      "target_scenarios": ["SC-ORD-DETAIL-005"],
+      "disposition": "migrated",
+      "preserved_assertions": [{"kind": "browser_contract", "expected": "safe fallback text and disabled invalid action remain visible"}]
+    },
+    {
+      "source_path": "test/tests/admin/orders.spec.ts",
+      "source_line": 177,
+      "test_title": "UC-ORD-01 alternate: renders empty state gracefully",
+      "old_id": "UC-ORD-01",
+      "owner": "admin.orders",
+      "target_scenarios": ["SC-ORD-QUEUE-007"],
+      "disposition": "migrated",
+      "preserved_assertions": [{"kind": "browser_contract", "expected": "No orders found and no error boundary"}]
+    },
+    {
+      "source_path": "test/tests/admin/orders.spec.ts",
+      "source_line": 193,
+      "test_title": "UC-ORD-04 opens customer-linked purchase history from customer context",
+      "old_id": "UC-ORD-04",
+      "owner": "admin.orders",
+      "target_scenarios": ["SC-ORD-HISTORY-003"],
+      "disposition": "migrated",
+      "preserved_assertions": [{"kind": "browser_contract", "expected": "customer history route uses resolved customer identity and shows matching order"}]
+    },
+    {
+      "source_path": "test/tests/admin/orders.spec.ts",
+      "source_line": 233,
+      "test_title": "UC-ORD-01 exception: returns 404 for nonexistent order ID",
+      "old_id": "UC-ORD-01",
+      "owner": "admin.orders",
+      "target_scenarios": ["SC-ORD-DETAIL-006"],
+      "disposition": "migrated",
+      "preserved_assertions": [{"kind": "browser_contract", "expected": "missing order renders explicit not-found state"}]
+    },
+    {
+      "source_path": "test/tests/admin/orders.spec.ts",
+      "source_line": 243,
+      "test_title": "UC-ORD-04 alternate: empty purchase history is a valid resolved state",
+      "old_id": "UC-ORD-04",
+      "owner": "admin.orders",
+      "target_scenarios": ["SC-ORD-HISTORY-004"],
+      "disposition": "migrated",
+      "preserved_assertions": [{"kind": "browser_contract", "expected": "new customer history renders No orders found without crash"}]
+    },
+    {
+      "source_path": "test/tests/admin/orders.spec.ts",
+      "source_line": 273,
+      "test_title": "UC-ORD-03 alternate: delivered order has no further allowed actions",
+      "old_id": "UC-ORD-03",
+      "owner": "admin.orders",
+      "target_scenarios": ["SC-ORD-TRANSITION-005"],
+      "disposition": "migrated",
+      "preserved_assertions": [{"kind": "browser_contract", "expected": "Mark paid and Mark delivered are disabled for terminal order"}]
+    },
+    {
+      "source_path": "test/tests/admin/orders.spec.ts",
+      "source_line": 286,
+      "test_title": "UC-ORD-01 alternate: narrows order queue by filter and sees only matching rows",
+      "old_id": "UC-ORD-01",
+      "owner": "admin.orders",
+      "target_scenarios": ["SC-ORD-QUEUE-008"],
+      "disposition": "migrated",
+      "preserved_assertions": [{"kind": "browser_contract", "expected": "matching row visible and unrelated row absent"}]
+    },
+    {
+      "source_path": "test/tests/admin/orders.spec.ts",
+      "source_line": 305,
+      "test_title": "UC-ORD-04 alternate: customer purchase history shows multiple orders in high-level pattern",
+      "old_id": "UC-ORD-04",
+      "owner": "admin.orders",
+      "target_scenarios": ["SC-ORD-HISTORY-003"],
+      "disposition": "merged",
+      "preserved_assertions": [{"kind": "browser_contract", "expected": "customer history projection remains navigable and contains created order"}]
+    },
+    {
+      "source_path": "test/tests/admin/payment-collection.spec.ts",
+      "source_line": 29,
+      "test_title": "UC-PCOL-01 reads collection sources from backend state instead of a static source catalog",
+      "old_id": "UC-PCOL-01",
+      "owner": "admin.payment-collection",
+      "target_scenarios": [],
+      "disposition": "pending",
+      "preserved_assertions": []
+    },
+    {
+      "source_path": "test/tests/admin/payment-collection.spec.ts",
+      "source_line": 65,
+      "test_title": "UC-PCOL-02 persists payee identity from the admin collection surface",
+      "old_id": "UC-PCOL-02",
+      "owner": "admin.payment-collection",
+      "target_scenarios": [],
+      "disposition": "pending",
+      "preserved_assertions": []
+    },
+    {
+      "source_path": "test/tests/admin/payment-collection.spec.ts",
+      "source_line": 87,
+      "test_title": "UC-PCOL-03 blocks invalid QR or transfer setup from being saved live",
+      "old_id": "UC-PCOL-03",
+      "owner": "admin.payment-collection",
+      "target_scenarios": [],
+      "disposition": "pending",
+      "preserved_assertions": []
+    },
+    {
+      "source_path": "test/tests/admin/payment-collection.spec.ts",
+      "source_line": 115,
+      "test_title": "UC-PCOL-04 renders collection readiness from backend signals instead of hardcoded active badges",
+      "old_id": "UC-PCOL-04",
+      "owner": "admin.payment-collection",
+      "target_scenarios": [],
+      "disposition": "pending",
+      "preserved_assertions": []
+    },
+    {
+      "source_path": "test/tests/admin/payment.spec.ts",
+      "source_line": 8,
+      "test_title": "UC-PAY-01 reads payment info in order context",
+      "old_id": "UC-PAY-01",
+      "owner": "admin.payment",
+      "target_scenarios": [],
+      "disposition": "pending",
+      "preserved_assertions": []
+    },
+    {
+      "source_path": "test/tests/admin/payment.spec.ts",
+      "source_line": 22,
+      "test_title": "UC-PAY-02 reads payment context for refund decision",
+      "old_id": "UC-PAY-02",
+      "owner": "admin.payment",
+      "target_scenarios": [],
+      "disposition": "pending",
+      "preserved_assertions": []
+    },
+    {
+      "source_path": "test/tests/admin/payment.spec.ts",
+      "source_line": 35,
+      "test_title": "UC-PAY-03 distinguishes payment information from payment execution",
+      "old_id": "UC-PAY-03",
+      "owner": "admin.payment",
+      "target_scenarios": [],
+      "disposition": "pending",
+      "preserved_assertions": []
+    },
+    {
+      "source_path": "test/tests/admin/product.spec.ts",
+      "source_line": 67,
+      "test_title": "UC-PROD-01 renders catalog triage and can open product context",
+      "old_id": "UC-PROD-01",
+      "owner": "admin.product",
+      "target_scenarios": [
+        "SC-ADMIN-PRODUCT-LIST-001"
+      ],
+      "disposition": "migrated",
+      "preserved_assertions": [
+        {
+          "kind": "browser_contract",
+          "expected": "legacy UI selectors, persistence/reload, and API-backed state assertions preserved"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/admin/product.spec.ts",
+      "source_line": 86,
+      "test_title": "UC-PROD-06 renders health-signal review surfaces",
+      "old_id": "UC-PROD-06",
+      "owner": "admin.product",
+      "target_scenarios": [
+        "SC-ADMIN-PRODUCT-LIST-002"
+      ],
+      "disposition": "migrated",
+      "preserved_assertions": [
+        {
+          "kind": "browser_contract",
+          "expected": "legacy UI selectors, persistence/reload, and API-backed state assertions preserved"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/admin/product.spec.ts",
+      "source_line": 128,
+      "test_title": "UC-PROD-02 creates a product draft from the admin create flow",
+      "old_id": "UC-PROD-02",
+      "owner": "admin.product",
+      "target_scenarios": [
+        "SC-ADMIN-PRODUCT-CREATE-001"
+      ],
+      "disposition": "migrated",
+      "preserved_assertions": [
+        {
+          "kind": "browser_contract",
+          "expected": "legacy UI selectors, persistence/reload, and API-backed state assertions preserved"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/admin/product.spec.ts",
+      "source_line": 160,
+      "test_title": "UC-PROD-03 submits commercial state changes from the list quick action",
+      "old_id": "UC-PROD-03",
+      "owner": "admin.product",
+      "target_scenarios": [
+        "SC-ADMIN-PRODUCT-LIST-001"
+      ],
+      "disposition": "migrated",
+      "preserved_assertions": [
+        {
+          "kind": "browser_contract",
+          "expected": "legacy UI selectors, persistence/reload, and API-backed state assertions preserved"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/admin/product.spec.ts",
+      "source_line": 208,
+      "test_title": "UC-PROD-05 keeps row Edit and Quick edit inside the product editor flow",
+      "old_id": "UC-PROD-05",
+      "owner": "admin.product",
+      "target_scenarios": [
+        "SC-ADMIN-PRODUCT-LIST-001"
+      ],
+      "disposition": "migrated",
+      "preserved_assertions": [
+        {
+          "kind": "browser_contract",
+          "expected": "legacy UI selectors, persistence/reload, and API-backed state assertions preserved"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/admin/product.spec.ts",
+      "source_line": 235,
+      "test_title": "UC-PROD-05 links an intro article from Product Editor and keeps article return path in product context",
+      "old_id": "UC-PROD-05",
+      "owner": "admin.product",
+      "target_scenarios": [
+        "SC-ADMIN-PRODUCT-EDITORIAL-001"
+      ],
+      "disposition": "migrated",
+      "preserved_assertions": [
+        {
+          "kind": "browser_contract",
+          "expected": "legacy UI selectors, persistence/reload, and API-backed state assertions preserved"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/admin/product.spec.ts",
+      "source_line": 263,
+      "test_title": "UC-PROD-04 submits category reordering semantics from the admin editor",
+      "old_id": "UC-PROD-04",
+      "owner": "admin.product",
+      "target_scenarios": [
+        "SC-ADMIN-PRODUCT-CATEGORY-001"
+      ],
+      "disposition": "migrated",
+      "preserved_assertions": [
+        {
+          "kind": "browser_contract",
+          "expected": "legacy UI selectors, persistence/reload, and API-backed state assertions preserved"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/admin/products.spec.ts",
+      "source_line": 13,
+      "test_title": "should display admin product list",
+      "old_id": null,
+      "owner": "admin.products",
+      "target_scenarios": [],
+      "disposition": "pending",
+      "preserved_assertions": []
+    },
+    {
+      "source_path": "test/tests/admin/products.spec.ts",
+      "source_line": 22,
+      "test_title": "should create a new product",
+      "old_id": null,
+      "owner": "admin.products",
+      "target_scenarios": [],
+      "disposition": "pending",
+      "preserved_assertions": []
+    },
+    {
+      "source_path": "test/tests/admin/products.spec.ts",
+      "source_line": 41,
+      "test_title": "should upload image via media uploader when creating product",
+      "old_id": null,
+      "owner": "admin.products",
+      "target_scenarios": [],
+      "disposition": "pending",
+      "preserved_assertions": []
+    },
+    {
+      "source_path": "test/tests/admin/products.spec.ts",
+      "source_line": 76,
+      "test_title": "should toggle product visibility",
+      "old_id": null,
+      "owner": "admin.products",
+      "target_scenarios": [],
+      "disposition": "pending",
+      "preserved_assertions": []
+    },
+    {
+      "source_path": "test/tests/admin/products.spec.ts",
+      "source_line": 91,
+      "test_title": "should delete a product",
+      "old_id": null,
+      "owner": "admin.products",
+      "target_scenarios": [],
+      "disposition": "pending",
+      "preserved_assertions": []
+    },
+    {
+      "source_path": "test/tests/admin/products.spec.ts",
+      "source_line": 113,
+      "test_title": "should handle empty search state gracefully",
+      "old_id": null,
+      "owner": "admin.products",
+      "target_scenarios": [],
+      "disposition": "pending",
+      "preserved_assertions": []
+    },
+    {
+      "source_path": "test/tests/admin/refund.spec.ts",
+      "source_line": 77,
+      "test_title": "UC-REF-01 reviews the refund queue and opens evidence",
+      "old_id": "UC-REF-01",
+      "owner": "admin.refund",
+      "target_scenarios": ["SC-REF-QUEUE-002"],
+      "disposition": "migrated",
+      "preserved_assertions": [{"kind": "browser_contract", "expected": "pending-only queue, decision panel, evidence panel, and open request"}]
+    },
+    {
+      "source_path": "test/tests/admin/refund.spec.ts",
+      "source_line": 98,
+      "test_title": "UC-REF-02 reads refund evidence before deciding",
+      "old_id": "UC-REF-02",
+      "owner": "admin.refund",
+      "target_scenarios": ["SC-REF-DECISION-003"],
+      "disposition": "merged",
+      "preserved_assertions": [{"kind": "browser_contract", "expected": "decision is made after order, customer, payment, trade-ref, and reason evidence"}]
+    },
+    {
+      "source_path": "test/tests/admin/refund.spec.ts",
+      "source_line": 117,
+      "test_title": "UC-REF-03 approves a refund from the admin decision surface",
+      "old_id": "UC-REF-03",
+      "owner": "admin.refund",
+      "target_scenarios": ["SC-REF-DECISION-003"],
+      "disposition": "migrated",
+      "preserved_assertions": [{"kind": "state", "expected": "approve removes refund from pending queue and prevents duplicate pending state"}]
+    },
+    {
+      "source_path": "test/tests/admin/refund.spec.ts",
+      "source_line": 148,
+      "test_title": "UC-REF-04 rejects a refund from the admin decision surface",
+      "old_id": "UC-REF-04",
+      "owner": "admin.refund",
+      "target_scenarios": ["SC-REF-DECISION-004"],
+      "disposition": "migrated",
+      "preserved_assertions": [{"kind": "state", "expected": "reject removes pending decision and preserves explicit decision outcome"}]
+    },
+    {
+      "source_path": "test/tests/admin/refund.spec.ts",
+      "source_line": 179,
+      "test_title": "UC-REF-05 reviews a refund that is already decided",
+      "old_id": "UC-REF-05",
+      "owner": "admin.refund",
+      "target_scenarios": ["SC-REF-HISTORY-002"],
+      "disposition": "migrated",
+      "preserved_assertions": [{"kind": "browser_contract", "expected": "history exposes approved outcome and historical evidence note"}]
+    },
+    {
+      "source_path": "test/tests/admin/refund.spec.ts",
+      "source_line": 208,
+      "test_title": "UC-REF-01 alternate: renders empty state gracefully",
+      "old_id": "UC-REF-01",
+      "owner": "admin.refund",
+      "target_scenarios": ["SC-REF-QUEUE-003"],
+      "disposition": "migrated",
+      "preserved_assertions": [{"kind": "browser_contract", "expected": "empty refund queue text and no error boundary"}]
+    },
+    {
+      "source_path": "test/tests/admin/refund.spec.ts",
+      "source_line": 218,
+      "test_title": "UC-REF-01 exception: approved refund does not appear in pending queue",
+      "old_id": "UC-REF-01",
+      "owner": "admin.refund",
+      "target_scenarios": ["SC-REF-QUEUE-004"],
+      "disposition": "migrated",
+      "preserved_assertions": [{"kind": "state", "expected": "approved refund is absent from pending queue"}]
+    },
+    {
+      "source_path": "test/tests/admin/refund.spec.ts",
+      "source_line": 242,
+      "test_title": "UC-REF-04 exception: cannot reject an already-decided refund",
+      "old_id": "UC-REF-04",
+      "owner": "admin.refund",
+      "target_scenarios": ["SC-REF-DECISION-006"],
+      "disposition": "migrated",
+      "preserved_assertions": [{"kind": "state", "expected": "decided refund history does not expose reject action"}]
+    },
+    {
+      "source_path": "test/tests/admin/refund.spec.ts",
+      "source_line": 269,
+      "test_title": "UC-REF-03 alternate: admin adds decision note before approving refund",
+      "old_id": "UC-REF-03",
+      "owner": "admin.refund",
+      "target_scenarios": ["SC-REF-DECISION-005"],
+      "disposition": "migrated",
+      "preserved_assertions": [{"kind": "state", "expected": "decision note persists in historical evidence after approval"}]
+    },
+    {
+      "source_path": "test/tests/admin/reviews-moderation.spec.ts",
+      "source_line": 80,
+      "test_title": "UC-REV-01 reviews the moderation queue",
+      "old_id": "UC-REV-01",
+      "owner": "admin.reviews-moderation",
+      "target_scenarios": ["SC-REV-QUEUE-002"],
+      "disposition": "migrated",
+      "preserved_assertions": [{"kind": "browser_contract", "expected": "moderation stats, queue, action, and context surfaces"}]
+    },
+    {
+      "source_path": "test/tests/admin/reviews-moderation.spec.ts",
+      "source_line": 105,
+      "test_title": "UC-REV-02 moderates a single review",
+      "old_id": "UC-REV-02",
+      "owner": "admin.reviews-moderation",
+      "target_scenarios": ["SC-REV-DECISION-005"],
+      "disposition": "migrated",
+      "preserved_assertions": [{"kind": "state", "expected": "hide changes approved review to hidden and disables hide"}]
+    },
+    {
+      "source_path": "test/tests/admin/reviews-moderation.spec.ts",
+      "source_line": 135,
+      "test_title": "UC-REV-03 bulk publishes selected pending reviews",
+      "old_id": "UC-REV-03",
+      "owner": "admin.reviews-moderation",
+      "target_scenarios": ["SC-REV-BULK-002"],
+      "disposition": "migrated",
+      "preserved_assertions": [{"kind": "state", "expected": "two selected pending reviews become approved"}]
+    },
+    {
+      "source_path": "test/tests/admin/reviews-moderation.spec.ts",
+      "source_line": 164,
+      "test_title": "UC-REV-04 reads moderation context for a selected review",
+      "old_id": "UC-REV-04",
+      "owner": "admin.reviews-moderation",
+      "target_scenarios": ["SC-REV-QUEUE-004"],
+      "disposition": "migrated",
+      "preserved_assertions": [{"kind": "browser_contract", "expected": "product, customer, order, attachment, and comment context"}]
+    },
+    {
+      "source_path": "test/tests/admin/reviews-moderation.spec.ts",
+      "source_line": 193,
+      "test_title": "UC-REV-05 removes a review from the moderation surface",
+      "old_id": "UC-REV-05",
+      "owner": "admin.reviews-moderation",
+      "target_scenarios": ["SC-REV-DELETE-002"],
+      "disposition": "migrated",
+      "preserved_assertions": [{"kind": "state", "expected": "delete removes review artifact from moderation queue"}]
+    },
+    {
+      "source_path": "test/tests/admin/reviews-moderation.spec.ts",
+      "source_line": 222,
+      "test_title": "UC-REV-01 alternate: renders empty state gracefully",
+      "old_id": "UC-REV-01",
+      "owner": "admin.reviews-moderation",
+      "target_scenarios": ["SC-REV-QUEUE-003"],
+      "disposition": "migrated",
+      "preserved_assertions": [{"kind": "browser_contract", "expected": "empty moderation result and no error boundary"}]
+    },
+    {
+      "source_path": "test/tests/admin/reviews-moderation.spec.ts",
+      "source_line": 233,
+      "test_title": "UC-REV-02 alternate: approves a single pending review from the moderation surface",
+      "old_id": "UC-REV-02",
+      "owner": "admin.reviews-moderation",
+      "target_scenarios": ["SC-REV-DECISION-004"],
+      "disposition": "migrated",
+      "preserved_assertions": [{"kind": "state", "expected": "pending review becomes approved and approve disables"}]
+    },
+    {
+      "source_path": "test/tests/admin/reviews-moderation.spec.ts",
+      "source_line": 262,
+      "test_title": "UC-REV-02 alternate: features an approved review to elevate its prominence",
+      "old_id": "UC-REV-02",
+      "owner": "admin.reviews-moderation",
+      "target_scenarios": ["SC-REV-DECISION-006"],
+      "disposition": "migrated",
+      "preserved_assertions": [{"kind": "state", "expected": "approved review becomes featured and feature disables"}]
+    },
+    {
+      "source_path": "test/tests/admin/reviews-moderation.spec.ts",
+      "source_line": 290,
+      "test_title": "UC-REV-03 alternate: bulk publish with partial valid selection only applies to eligible reviews",
+      "old_id": "UC-REV-03",
+      "owner": "admin.reviews-moderation",
+      "target_scenarios": ["SC-REV-BULK-003"],
+      "disposition": "migrated",
+      "preserved_assertions": [{"kind": "state", "expected": "eligible pending review approves while hidden review remains hidden"}]
+    },
+    {
+      "source_path": "test/tests/admin/reviews-moderation.spec.ts",
+      "source_line": 324,
+      "test_title": "UC-REV-02 exception: a hidden review cannot be hidden again",
+      "old_id": "UC-REV-02",
+      "owner": "admin.reviews-moderation",
+      "target_scenarios": ["SC-REV-DECISION-007"],
+      "disposition": "migrated",
+      "preserved_assertions": [{"kind": "state", "expected": "hidden review hide action disabled"}]
+    },
+    {
+      "source_path": "test/tests/admin/settings.spec.ts",
+      "source_line": 13,
+      "test_title": "should display settings page",
+      "old_id": null,
+      "owner": "admin.settings",
+      "target_scenarios": [],
+      "disposition": "pending",
+      "preserved_assertions": []
+    },
+    {
+      "source_path": "test/tests/admin/settings.spec.ts",
+      "source_line": 19,
+      "test_title": "should manage categories",
+      "old_id": null,
+      "owner": "admin.settings",
+      "target_scenarios": [],
+      "disposition": "pending",
+      "preserved_assertions": []
+    },
+    {
+      "source_path": "test/tests/admin/settings.spec.ts",
+      "source_line": 28,
+      "test_title": "should view users list",
+      "old_id": null,
+      "owner": "admin.settings",
+      "target_scenarios": [],
+      "disposition": "pending",
+      "preserved_assertions": []
+    },
+    {
+      "source_path": "test/tests/admin/site-config.spec.ts",
+      "source_line": 8,
+      "test_title": "should load settings page and show general config fields",
+      "old_id": null,
+      "owner": "admin.site-config",
+      "target_scenarios": [],
+      "disposition": "pending",
+      "preserved_assertions": []
+    },
+    {
+      "source_path": "test/tests/admin/store-settings.spec.ts",
+      "source_line": 30,
+      "test_title": "UC-SET-01 submits storefront contact intent and reflects the new contact info publicly",
+      "old_id": "UC-SET-01",
+      "owner": "admin.store-settings",
+      "target_scenarios": [],
+      "disposition": "pending",
+      "preserved_assertions": []
+    },
+    {
+      "source_path": "test/tests/admin/store-settings.spec.ts",
+      "source_line": 60,
+      "test_title": "UC-SET-02 submits homepage composition decisions and reflects the new homepage priority",
+      "old_id": "UC-SET-02",
+      "owner": "admin.store-settings",
+      "target_scenarios": [],
+      "disposition": "pending",
+      "preserved_assertions": []
+    },
+    {
+      "source_path": "test/tests/admin/store-settings.spec.ts",
+      "source_line": 92,
+      "test_title": "UC-SET-02 negative path: rejects negative news count",
+      "old_id": "UC-SET-02",
+      "owner": "admin.store-settings",
+      "target_scenarios": [],
+      "disposition": "pending",
+      "preserved_assertions": []
+    },
+    {
+      "source_path": "test/tests/admin/store-settings.spec.ts",
+      "source_line": 98,
+      "test_title": "UC-SET-04 submits footer and support touchpoint intent and reflects public support commitments",
+      "old_id": "UC-SET-04",
+      "owner": "admin.store-settings",
+      "target_scenarios": [],
+      "disposition": "pending",
+      "preserved_assertions": []
+    },
+    {
+      "source_path": "test/tests/admin/store-settings.spec.ts",
+      "source_line": 137,
+      "test_title": "UC-SET-04 negative path: validation blocks invalid support email format",
+      "old_id": "UC-SET-04",
+      "owner": "admin.store-settings",
+      "target_scenarios": [],
+      "disposition": "pending",
+      "preserved_assertions": []
+    },
+    {
+      "source_path": "test/tests/admin/user.spec.ts",
+      "source_line": 92,
+      "test_title": "UC-USER-01 presents an account-centric management root",
+      "old_id": "UC-USER-01",
+      "owner": "admin.user",
+      "target_scenarios": ["SC-USER-SEARCH-002"],
+      "disposition": "migrated",
+      "preserved_assertions": [{"kind": "browser_contract", "expected": "account root search and no commerce history action"}]
+    },
+    {
+      "source_path": "test/tests/admin/user.spec.ts",
+      "source_line": 115,
+      "test_title": "UC-USER-02 reads account state without switching into customer-domain actions",
+      "old_id": "UC-USER-02",
+      "owner": "admin.user",
+      "target_scenarios": ["SC-USER-SEARCH-002"],
+      "disposition": "merged",
+      "preserved_assertions": [{"kind": "browser_contract", "expected": "account email, activity, blocked state, and no history control"}]
+    },
+    {
+      "source_path": "test/tests/admin/user.spec.ts",
+      "source_line": 131,
+      "test_title": "UC-USER-03 keeps block mutation in explicit account-control semantics",
+      "old_id": "UC-USER-03",
+      "owner": "admin.user",
+      "target_scenarios": ["SC-USER-STATE-002"],
+      "disposition": "merged",
+      "preserved_assertions": [{"kind": "browser_contract", "expected": "explicit block control and no commerce actions"}]
+    },
+    {
+      "source_path": "test/tests/admin/user.spec.ts",
+      "source_line": 146,
+      "test_title": "UC-USER-03 submits block mutation (blocked-be-gap)",
+      "old_id": "UC-USER-03",
+      "owner": "admin.user",
+      "target_scenarios": ["SC-USER-STATE-002"],
+      "disposition": "merged",
+      "preserved_assertions": [{"kind": "state", "expected": "block toggle is observed after fresh read and restored to original state"}]
+    },
+    {
+      "source_path": "test/tests/admin/user.spec.ts",
+      "source_line": 168,
+      "test_title": "UC-USER-04 exposes a domain handoff from account context into customer context",
+      "old_id": "UC-USER-04",
+      "owner": "admin.user",
+      "target_scenarios": ["SC-USER-CUSTOMER-HANDOFF-002"],
+      "disposition": "migrated",
+      "preserved_assertions": [{"kind": "boundary", "expected": "account-to-customer handoff enters customer management"}]
+    },
+    {
+      "source_path": "test/tests/admin/user.spec.ts",
+      "source_line": 182,
+      "test_title": "UC-USER-05 keeps commerce support separate from account-control actions",
+      "old_id": "UC-USER-05",
+      "owner": "admin.user",
+      "target_scenarios": ["SC-USER-SCOPE-002"],
+      "disposition": "migrated",
+      "preserved_assertions": [{"kind": "boundary", "expected": "account panel contains only block and customer handoff controls"}]
+    },
+    {
+      "source_path": "test/tests/admin/user.spec.ts",
+      "source_line": 201,
+      "test_title": "UC-USER-01 alternate: admin refines search multiple times before reaching the correct account",
+      "old_id": "UC-USER-01",
+      "owner": "admin.user",
+      "target_scenarios": ["SC-USER-SEARCH-003"],
+      "disposition": "migrated",
+      "preserved_assertions": [{"kind": "browser_contract", "expected": "empty account search can be refined to buyer result"}]
+    },
+    {
+      "source_path": "test/tests/api/integration/admin-content.spec.ts",
+      "source_line": 22,
+      "test_title": "UC-CONT-01 curates a shared media library through list and upload-contract endpoints",
+      "old_id": "UC-CONT-01",
+      "owner": "admin-content",
+      "target_scenarios": [
+        "SC-CONT-MEDIA-001"
+      ],
+      "disposition": "merged",
+      "preserved_assertions": [
+        {
+          "kind": "status_or_shape",
+          "expected": "legacy media/content assertions preserved by target scenario"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/api/integration/admin-content.spec.ts",
+      "source_line": 48,
+      "test_title": "UC-CONT-02 maintains banner presence per page and reflects active ordering publicly",
+      "old_id": "UC-CONT-02",
+      "owner": "admin-content",
+      "target_scenarios": [
+        "SC-CONT-BANNER-001"
+      ],
+      "disposition": "merged",
+      "preserved_assertions": [
+        {
+          "kind": "status_or_shape",
+          "expected": "legacy media/content assertions preserved by target scenario"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/api/integration/admin-content.spec.ts",
+      "source_line": 91,
+      "test_title": "UC-CONT-03 publishes editorial articles with a real draft-vs-published boundary",
+      "old_id": "UC-CONT-03",
+      "owner": "admin-content",
+      "target_scenarios": [
+        "SC-CONT-ARTICLE-001"
+      ],
+      "disposition": "merged",
+      "preserved_assertions": [
+        {
+          "kind": "status_or_shape",
+          "expected": "legacy media/content assertions preserved by target scenario"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/api/integration/admin-content.spec.ts",
+      "source_line": 138,
+      "test_title": "UC-CONT-04 keeps inactive FAQ entries out of the public knowledge surface",
+      "old_id": "UC-CONT-04",
+      "owner": "admin-content",
+      "target_scenarios": [
+        "SC-CONT-FAQ-001"
+      ],
+      "disposition": "merged",
+      "preserved_assertions": [
+        {
+          "kind": "status_or_shape",
+          "expected": "legacy media/content assertions preserved by target scenario"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/api/integration/admin-content.spec.ts",
+      "source_line": 168,
+      "test_title": "UC-CONT-05 assigns About ownership through an article and reflects it through the public about page contract",
+      "old_id": "UC-CONT-05",
+      "owner": "admin-content",
+      "target_scenarios": [
+        "SC-CONT-ABOUT-LINK-001"
+      ],
+      "disposition": "merged",
+      "preserved_assertions": [
+        {
+          "kind": "status_or_shape",
+          "expected": "legacy media/content assertions preserved by target scenario"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/api/integration/admin-content.spec.ts",
+      "source_line": 219,
+      "test_title": "UC-CONT-06 updates product editorial content without clobbering commercial state",
+      "old_id": "UC-CONT-06",
+      "owner": "admin-content",
+      "target_scenarios": [
+        "SC-CONT-PRODUCT-EDITORIAL-001"
+      ],
+      "disposition": "merged",
+      "preserved_assertions": [
+        {
+          "kind": "status_or_shape",
+          "expected": "legacy media/content assertions preserved by target scenario"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/api/integration/admin-customer.spec.ts",
+      "source_line": 40,
+      "test_title": "UC-CUS-01 rejects unauthenticated customer-root reads",
+      "old_id": "UC-CUS-01",
+      "owner": "admin-customer",
+      "target_scenarios": [],
+      "disposition": "pending",
+      "preserved_assertions": []
+    },
+    {
+      "source_path": "test/tests/api/integration/admin-customer.spec.ts",
+      "source_line": 49,
+      "test_title": "UC-CUS-01 rejects non-admin customer-root reads",
+      "old_id": "UC-CUS-01",
+      "owner": "admin-customer",
+      "target_scenarios": [],
+      "disposition": "pending",
+      "preserved_assertions": []
+    },
+    {
+      "source_path": "test/tests/api/integration/admin-customer.spec.ts",
+      "source_line": 61,
+      "test_title": "UC-CUS-01 finds a customer record by commerce identity query",
+      "old_id": "UC-CUS-01",
+      "owner": "admin-customer",
+      "target_scenarios": [
+        "SC-CUS-SEARCH-001"
+      ],
+      "disposition": "merged",
+      "preserved_assertions": [
+        {
+          "kind": "domain_contract",
+          "expected": "legacy status, state transition, and boundary assertions are preserved by the target scenario"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/api/integration/admin-customer.spec.ts",
+      "source_line": 76,
+      "test_title": "UC-CUS-02 returns a customer summary with commerce indicators",
+      "old_id": "UC-CUS-02",
+      "owner": "admin-customer",
+      "target_scenarios": [
+        "SC-CUS-SUMMARY-001"
+      ],
+      "disposition": "merged",
+      "preserved_assertions": [
+        {
+          "kind": "domain_contract",
+          "expected": "legacy status, state transition, and boundary assertions are preserved by the target scenario"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/api/integration/admin-customer.spec.ts",
+      "source_line": 97,
+      "test_title": "UC-CUS-03 exposes linked commerce context from the customer root",
+      "old_id": "UC-CUS-03",
+      "owner": "admin-customer",
+      "target_scenarios": [
+        "SC-CUS-ACCOUNT-LINK-001"
+      ],
+      "disposition": "merged",
+      "preserved_assertions": [
+        {
+          "kind": "domain_contract",
+          "expected": "legacy status, state transition, and boundary assertions are preserved by the target scenario"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/api/integration/admin-customer.spec.ts",
+      "source_line": 114,
+      "test_title": "UC-CUS-04 keeps customer identity distinct from user-account identity",
+      "old_id": "UC-CUS-04",
+      "owner": "admin-customer",
+      "target_scenarios": [
+        "SC-CUS-ACCOUNT-HANDOFF-001"
+      ],
+      "disposition": "merged",
+      "preserved_assertions": [
+        {
+          "kind": "domain_contract",
+          "expected": "legacy status, state transition, and boundary assertions are preserved by the target scenario"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/api/integration/admin-customer.spec.ts",
+      "source_line": 127,
+      "test_title": "UC-CUS-05 returns a valid customer root even with empty commerce history",
+      "old_id": "UC-CUS-05",
+      "owner": "admin-customer",
+      "target_scenarios": [
+        "SC-CUS-COMMERCE-HISTORY-001"
+      ],
+      "disposition": "merged",
+      "preserved_assertions": [
+        {
+          "kind": "domain_contract",
+          "expected": "legacy status, state transition, and boundary assertions are preserved by the target scenario"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/api/integration/admin-noty.spec.ts",
+      "source_line": 21,
+      "test_title": "UC-NOTY-01 reads outbound readiness from a notification-settings contract",
+      "old_id": "UC-NOTY-01",
+      "owner": "admin-noty",
+      "target_scenarios": [
+        "SC-NOTY-SEND-001"
+      ],
+      "disposition": "merged",
+      "preserved_assertions": [
+        {
+          "kind": "domain_contract",
+          "expected": "legacy status, state transition, and boundary assertions are preserved by the target scenario"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/api/integration/admin-noty.spec.ts",
+      "source_line": 37,
+      "test_title": "UC-NOTY-02 accepts a website push send and leaves a traceable outbound artifact",
+      "old_id": "UC-NOTY-02",
+      "owner": "admin-noty",
+      "target_scenarios": [
+        "SC-NOTY-SEND-001"
+      ],
+      "disposition": "merged",
+      "preserved_assertions": [
+        {
+          "kind": "domain_contract",
+          "expected": "legacy status, state transition, and boundary assertions are preserved by the target scenario"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/api/integration/admin-noty.spec.ts",
+      "source_line": 64,
+      "test_title": "UC-NOTY-03 lists outbound notification artifacts for admin review",
+      "old_id": "UC-NOTY-03",
+      "owner": "admin-noty",
+      "target_scenarios": [
+        "SC-NOTY-HISTORY-001"
+      ],
+      "disposition": "merged",
+      "preserved_assertions": [
+        {
+          "kind": "domain_contract",
+          "expected": "legacy status, state transition, and boundary assertions are preserved by the target scenario"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/api/integration/admin-noty.spec.ts",
+      "source_line": 77,
+      "test_title": "UC-NOTY-04 exposes operational send history with outcome trace fields",
+      "old_id": "UC-NOTY-04",
+      "owner": "admin-noty",
+      "target_scenarios": [
+        "SC-NOTY-HISTORY-001"
+      ],
+      "disposition": "merged",
+      "preserved_assertions": [
+        {
+          "kind": "domain_contract",
+          "expected": "legacy status, state transition, and boundary assertions are preserved by the target scenario"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/api/integration/admin-order.spec.ts",
+      "source_line": 70,
+      "test_title": "UC-ORD-01 rejects unauthenticated admin order reads",
+      "old_id": "UC-ORD-01",
+      "owner": "admin-order",
+      "target_scenarios": [
+        "SC-ORD-QUEUE-004"
+      ],
+      "disposition": "merged",
+      "preserved_assertions": [
+        {
+          "kind": "domain_contract",
+          "expected": "legacy status, state transition, and boundary assertions are preserved by the target scenario"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/api/integration/admin-order.spec.ts",
+      "source_line": 79,
+      "test_title": "UC-ORD-01 rejects non-admin order reads",
+      "old_id": "UC-ORD-01",
+      "owner": "admin-order",
+      "target_scenarios": [
+        "SC-ORD-QUEUE-005"
+      ],
+      "disposition": "merged",
+      "preserved_assertions": [
+        {
+          "kind": "domain_contract",
+          "expected": "legacy status, state transition, and boundary assertions are preserved by the target scenario"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/api/integration/admin-order.spec.ts",
+      "source_line": 91,
+      "test_title": "UC-ORD-03 rejects invalid transition PENDING to DELIVERED",
+      "old_id": "UC-ORD-03",
+      "owner": "admin-order",
+      "target_scenarios": [
+        "SC-ORD-TRANSITION-002"
+      ],
+      "disposition": "merged",
+      "preserved_assertions": [
+        {
+          "kind": "domain_contract",
+          "expected": "legacy status, state transition, and boundary assertions are preserved by the target scenario"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/api/integration/admin-order.spec.ts",
+      "source_line": 106,
+      "test_title": "UC-ORD-04 resolves customer-linked purchase history from the customer commerce identifier",
+      "old_id": "UC-ORD-04",
+      "owner": "admin-order",
+      "target_scenarios": [
+        "SC-ORD-HISTORY-001"
+      ],
+      "disposition": "merged",
+      "preserved_assertions": [
+        {
+          "kind": "domain_contract",
+          "expected": "legacy status, state transition, and boundary assertions are preserved by the target scenario"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/api/integration/admin-order.spec.ts",
+      "source_line": 137,
+      "test_title": "UC-ORD-05 exposes refund relevance in order context",
+      "old_id": "UC-ORD-05",
+      "owner": "admin-order",
+      "target_scenarios": [
+        "SC-ORD-REFUND-CONTEXT-001"
+      ],
+      "disposition": "merged",
+      "preserved_assertions": [
+        {
+          "kind": "domain_contract",
+          "expected": "legacy status, state transition, and boundary assertions are preserved by the target scenario"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/api/integration/admin-order.spec.ts",
+      "source_line": 154,
+      "test_title": "UC-ORD-06 keeps order detail readable when optional context is incomplete",
+      "old_id": "UC-ORD-06",
+      "owner": "admin-order",
+      "target_scenarios": [
+        "SC-ORD-DETAIL-003"
+      ],
+      "disposition": "merged",
+      "preserved_assertions": [
+        {
+          "kind": "domain_contract",
+          "expected": "legacy status, state transition, and boundary assertions are preserved by the target scenario"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/api/integration/admin-order.spec.ts",
+      "source_line": 184,
+      "test_title": "UC-ORD-03 preserves ordered timeline entries after a valid transition",
+      "old_id": "UC-ORD-03",
+      "owner": "admin-order",
+      "target_scenarios": [
+        "SC-ORD-TRANSITION-001"
+      ],
+      "disposition": "merged",
+      "preserved_assertions": [
+        {
+          "kind": "domain_contract",
+          "expected": "legacy status, state transition, and boundary assertions are preserved by the target scenario"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/api/integration/admin-order.spec.ts",
+      "source_line": 211,
+      "test_title": "UC-ORD-01 exception: returns 404 for nonexistent order ID",
+      "old_id": "UC-ORD-01",
+      "owner": "admin-order",
+      "target_scenarios": [
+        "SC-ORD-DETAIL-002"
+      ],
+      "disposition": "merged",
+      "preserved_assertions": [
+        {
+          "kind": "domain_contract",
+          "expected": "legacy status, state transition, and boundary assertions are preserved by the target scenario"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/api/integration/admin-order.spec.ts",
+      "source_line": 221,
+      "test_title": "UC-ORD-04 alternate: empty purchase history is a valid resolved state",
+      "old_id": "UC-ORD-04",
+      "owner": "admin-order",
+      "target_scenarios": [
+        "SC-ORD-HISTORY-002"
+      ],
+      "disposition": "merged",
+      "preserved_assertions": [
+        {
+          "kind": "domain_contract",
+          "expected": "legacy status, state transition, and boundary assertions are preserved by the target scenario"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/api/integration/admin-payment-collection.spec.ts",
+      "source_line": 22,
+      "test_title": "UC-PCOL-01 reads collection sources with explicit source-state metadata",
+      "old_id": "UC-PCOL-01",
+      "owner": "admin-payment-collection",
+      "target_scenarios": [
+        "SC-PCOL-SOURCES-001"
+      ],
+      "disposition": "merged",
+      "preserved_assertions": [
+        {
+          "kind": "domain_contract",
+          "expected": "legacy status, state transition, and boundary assertions are preserved by the target scenario"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/api/integration/admin-payment-collection.spec.ts",
+      "source_line": 42,
+      "test_title": "UC-PCOL-02 updates payee identity for the live collection source",
+      "old_id": "UC-PCOL-02",
+      "owner": "admin-payment-collection",
+      "target_scenarios": [
+        "SC-PCOL-PAYEE-001"
+      ],
+      "disposition": "merged",
+      "preserved_assertions": [
+        {
+          "kind": "domain_contract",
+          "expected": "legacy status, state transition, and boundary assertions are preserved by the target scenario"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/api/integration/admin-payment-collection.spec.ts",
+      "source_line": 70,
+      "test_title": "UC-PCOL-03 rejects invalid QR or transfer setup instead of saving it live",
+      "old_id": "UC-PCOL-03",
+      "owner": "admin-payment-collection",
+      "target_scenarios": [
+        "SC-PCOL-SETUP-001"
+      ],
+      "disposition": "merged",
+      "preserved_assertions": [
+        {
+          "kind": "domain_contract",
+          "expected": "legacy status, state transition, and boundary assertions are preserved by the target scenario"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/api/integration/admin-payment-collection.spec.ts",
+      "source_line": 83,
+      "test_title": "UC-PCOL-04 exposes readiness warnings for the current collection setup",
+      "old_id": "UC-PCOL-04",
+      "owner": "admin-payment-collection",
+      "target_scenarios": [
+        "SC-PCOL-READINESS-001"
+      ],
+      "disposition": "merged",
+      "preserved_assertions": [
+        {
+          "kind": "domain_contract",
+          "expected": "legacy status, state transition, and boundary assertions are preserved by the target scenario"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/api/integration/admin-payment.spec.ts",
+      "source_line": 12,
+      "test_title": "UC-PAY-01 reads payment info in order context even when payment detail is partial",
+      "old_id": "UC-PAY-01",
+      "owner": "admin-payment",
+      "target_scenarios": [
+        "SC-PAY-ORDER-CONTEXT-001"
+      ],
+      "disposition": "merged",
+      "preserved_assertions": [
+        {
+          "kind": "domain_contract",
+          "expected": "legacy status, state transition, and boundary assertions are preserved by the target scenario"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/api/integration/admin-payment.spec.ts",
+      "source_line": 44,
+      "test_title": "UC-PAY-02 reads payment context needed to interpret a refund request",
+      "old_id": "UC-PAY-02",
+      "owner": "admin-payment",
+      "target_scenarios": [
+        "SC-PAY-REFUND-CONTEXT-001"
+      ],
+      "disposition": "merged",
+      "preserved_assertions": [
+        {
+          "kind": "domain_contract",
+          "expected": "legacy status, state transition, and boundary assertions are preserved by the target scenario"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/api/integration/admin-payment.spec.ts",
+      "source_line": 67,
+      "test_title": "UC-PAY-03 keeps payment context informational instead of exposing execution controls",
+      "old_id": "UC-PAY-03",
+      "owner": "admin-payment",
+      "target_scenarios": [
+        "SC-PAY-REFUND-CONTEXT-001"
+      ],
+      "disposition": "merged",
+      "preserved_assertions": [
+        {
+          "kind": "domain_contract",
+          "expected": "legacy status, state transition, and boundary assertions are preserved by the target scenario"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/api/integration/admin-product.spec.ts",
+      "source_line": 63,
+      "test_title": "UC-PROD-01 rejects unauthenticated product-admin reads",
+      "old_id": "UC-PROD-01",
+      "owner": "admin-product",
+      "target_scenarios": [
+        "SC-CAT-PRODUCT-READ-001"
+      ],
+      "disposition": "migrated",
+      "preserved_assertions": [
+        {
+          "kind": "status_code",
+          "expected": "401"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/api/integration/admin-product.spec.ts",
+      "source_line": 72,
+      "test_title": "UC-PROD-01 rejects non-admin product-admin reads",
+      "old_id": "UC-PROD-01",
+      "owner": "admin-product",
+      "target_scenarios": [
+        "SC-CAT-PRODUCT-READ-002"
+      ],
+      "disposition": "migrated",
+      "preserved_assertions": [
+        {
+          "kind": "status_code",
+          "expected": "403"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/api/integration/admin-product.spec.ts",
+      "source_line": 84,
+      "test_title": "UC-PROD-01 reviews catalog state for triage",
+      "old_id": "UC-PROD-01",
+      "owner": "admin-product",
+      "target_scenarios": [
+        "SC-CAT-PRODUCT-READ-003"
+      ],
+      "disposition": "migrated",
+      "preserved_assertions": [
+        {
+          "kind": "fields",
+          "expected": "id,title,category_id,stock_count,is_active,sort_order"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/api/integration/admin-product.spec.ts",
+      "source_line": 118,
+      "test_title": "UC-PROD-06 exposes distinct health signals for operator review",
+      "old_id": "UC-PROD-06",
+      "owner": "admin-product",
+      "target_scenarios": [
+        "SC-CAT-PRODUCT-READ-004"
+      ],
+      "disposition": "migrated",
+      "preserved_assertions": [
+        {
+          "kind": "fields",
+          "expected": "media,visibility,stock signals"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/api/integration/admin-product.spec.ts",
+      "source_line": 162,
+      "test_title": "UC-PROD-02 creates a sellable catalog entity",
+      "old_id": "UC-PROD-02",
+      "owner": "admin-product",
+      "target_scenarios": [
+        "SC-CAT-PRODUCT-COMMAND-001"
+      ],
+      "disposition": "migrated",
+      "preserved_assertions": [
+        {
+          "kind": "persistence",
+          "expected": "created product and form categories"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/api/integration/admin-product.spec.ts",
+      "source_line": 182,
+      "test_title": "UC-PROD-03 updates product commercial state",
+      "old_id": "UC-PROD-03",
+      "owner": "admin-product",
+      "target_scenarios": [
+        "SC-CAT-PRODUCT-COMMAND-002"
+      ],
+      "disposition": "migrated",
+      "preserved_assertions": [
+        {
+          "kind": "persistence",
+          "expected": "title,price,purchase_limit,visibility_level,category_id,description"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/api/integration/admin-product.spec.ts",
+      "source_line": 211,
+      "test_title": "UC-PROD-04 maintains category structure with hierarchy and position semantics",
+      "old_id": "UC-PROD-04",
+      "owner": "admin-product",
+      "target_scenarios": [
+        "SC-CAT-PRODUCT-COMMAND-003"
+      ],
+      "disposition": "migrated",
+      "preserved_assertions": [
+        {
+          "kind": "hierarchy",
+          "expected": "child.parent_id=root.id"
+        },
+        {
+          "kind": "position",
+          "expected": "root.position=9"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/api/integration/admin-product.spec.ts",
+      "source_line": 261,
+      "test_title": "UC-PROD-05 keeps product editorial/media work on the product contract",
+      "old_id": "UC-PROD-05",
+      "owner": "admin-product",
+      "target_scenarios": [
+        "SC-CAT-PRODUCT-COMMAND-004"
+      ],
+      "disposition": "migrated",
+      "preserved_assertions": [
+        {
+          "kind": "boundary",
+          "expected": "form excludes cards and inventory"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/api/integration/admin-product.spec.ts",
+      "source_line": 280,
+      "test_title": "UC-PROD-05 returns linked intro article through product form and public detail",
+      "old_id": "UC-PROD-05",
+      "owner": "admin-product",
+      "target_scenarios": [
+        "SC-CAT-PRODUCT-COMMAND-005"
+      ],
+      "disposition": "migrated",
+      "preserved_assertions": [
+        {
+          "kind": "projection",
+          "expected": "published intro article appears in admin form and public detail"
+        },
+        {
+          "kind": "visibility",
+          "expected": "draft intro article is hidden publicly"
+        },
+        {
+          "kind": "clear",
+          "expected": "clearing link removes intro_article_id"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/api/integration/admin-profile.spec.ts",
+      "source_line": 20,
+      "test_title": "UC-APRO-01 reads current admin identity from the self-profile contract",
+      "old_id": "UC-APRO-01",
+      "owner": "admin-profile",
+      "target_scenarios": [
+        "SC-APRO-IDENTITY-001"
+      ],
+      "disposition": "migrated",
+      "preserved_assertions": [
+        {
+          "kind": "api_contract",
+          "expected": "legacy identity/security/status assertions preserved"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/api/integration/admin-profile.spec.ts",
+      "source_line": 39,
+      "test_title": "UC-APRO-02 updates the current admin display identity without changing permissions",
+      "old_id": "UC-APRO-02",
+      "owner": "admin-profile",
+      "target_scenarios": [
+        "SC-APRO-IDENTITY-002"
+      ],
+      "disposition": "migrated",
+      "preserved_assertions": [
+        {
+          "kind": "api_contract",
+          "expected": "legacy identity/security/status assertions preserved"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/api/integration/admin-profile.spec.ts",
+      "source_line": 71,
+      "test_title": "UC-APRO-03 exposes backend-owned security posture for the current admin",
+      "old_id": "UC-APRO-03",
+      "owner": "admin-profile",
+      "target_scenarios": [
+        "SC-APRO-SECURITY-001"
+      ],
+      "disposition": "migrated",
+      "preserved_assertions": [
+        {
+          "kind": "api_contract",
+          "expected": "legacy identity/security/status assertions preserved"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/api/integration/admin-profile.spec.ts",
+      "source_line": 88,
+      "test_title": "UC-APRO-04 exposes recent-access trust signals for the current admin",
+      "old_id": "UC-APRO-04",
+      "owner": "admin-profile",
+      "target_scenarios": [
+        "SC-APRO-SECURITY-002"
+      ],
+      "disposition": "migrated",
+      "preserved_assertions": [
+        {
+          "kind": "api_contract",
+          "expected": "legacy identity/security/status assertions preserved"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/api/integration/admin-refund.spec.ts",
+      "source_line": 62,
+      "test_title": "UC-REF-01 rejects unauthenticated refund queue reads",
+      "old_id": "UC-REF-01",
+      "owner": "admin-refund",
+      "target_scenarios": [],
+      "disposition": "pending",
+      "preserved_assertions": []
+    },
+    {
+      "source_path": "test/tests/api/integration/admin-refund.spec.ts",
+      "source_line": 71,
+      "test_title": "UC-REF-01 rejects non-admin refund queue reads",
+      "old_id": "UC-REF-01",
+      "owner": "admin-refund",
+      "target_scenarios": [],
+      "disposition": "pending",
+      "preserved_assertions": []
+    },
+    {
+      "source_path": "test/tests/api/integration/admin-refund.spec.ts",
+      "source_line": 83,
+      "test_title": "UC-REF-01 reviews the pending refund queue",
+      "old_id": "UC-REF-01",
+      "owner": "admin-refund",
+      "target_scenarios": [
+        "SC-REF-QUEUE-001"
+      ],
+      "disposition": "merged",
+      "preserved_assertions": [
+        {
+          "kind": "domain_contract",
+          "expected": "legacy status, state transition, and boundary assertions are preserved by the target scenario"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/api/integration/admin-refund.spec.ts",
+      "source_line": 98,
+      "test_title": "UC-REF-02 reads refund evidence before deciding",
+      "old_id": "UC-REF-02",
+      "owner": "admin-refund",
+      "target_scenarios": [
+        "SC-REF-QUEUE-001"
+      ],
+      "disposition": "merged",
+      "preserved_assertions": [
+        {
+          "kind": "domain_contract",
+          "expected": "legacy status, state transition, and boundary assertions are preserved by the target scenario"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/api/integration/admin-refund.spec.ts",
+      "source_line": 113,
+      "test_title": "UC-REF-03 approves a refund and updates linked order context",
+      "old_id": "UC-REF-03",
+      "owner": "admin-refund",
+      "target_scenarios": [
+        "SC-REF-DECISION-001"
+      ],
+      "disposition": "merged",
+      "preserved_assertions": [
+        {
+          "kind": "domain_contract",
+          "expected": "legacy status, state transition, and boundary assertions are preserved by the target scenario"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/api/integration/admin-refund.spec.ts",
+      "source_line": 140,
+      "test_title": "UC-REF-04 rejects a refund and records decision context",
+      "old_id": "UC-REF-04",
+      "owner": "admin-refund",
+      "target_scenarios": [
+        "SC-REF-DECISION-002"
+      ],
+      "disposition": "merged",
+      "preserved_assertions": [
+        {
+          "kind": "domain_contract",
+          "expected": "legacy status, state transition, and boundary assertions are preserved by the target scenario"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/api/integration/admin-refund.spec.ts",
+      "source_line": 167,
+      "test_title": "UC-REF-05 reviews an already-decided refund as historical evidence",
+      "old_id": "UC-REF-05",
+      "owner": "admin-refund",
+      "target_scenarios": [
+        "SC-REF-HISTORY-001"
+      ],
+      "disposition": "merged",
+      "preserved_assertions": [
+        {
+          "kind": "domain_contract",
+          "expected": "legacy status, state transition, and boundary assertions are preserved by the target scenario"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/api/integration/admin-refund.spec.ts",
+      "source_line": 185,
+      "test_title": "UC-REF-03 duplicate approve is idempotent",
+      "old_id": "UC-REF-03",
+      "owner": "admin-refund",
+      "target_scenarios": [
+        "SC-REF-DECISION-001"
+      ],
+      "disposition": "merged",
+      "preserved_assertions": [
+        {
+          "kind": "domain_contract",
+          "expected": "legacy status, state transition, and boundary assertions are preserved by the target scenario"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/api/integration/admin-review.spec.ts",
+      "source_line": 5,
+      "test_title": "UC-REV-01 rejects unauthenticated review moderation reads",
+      "old_id": "UC-REV-01",
+      "owner": "admin-review",
+      "target_scenarios": ["SC-REV-QUEUE-005"],
+      "disposition": "migrated",
+      "preserved_assertions": [{"kind": "status_code", "expected": "401"}]
+    },
+    {
+      "source_path": "test/tests/api/integration/admin-review.spec.ts",
+      "source_line": 14,
+      "test_title": "UC-REV-01 rejects non-admin review moderation reads",
+      "old_id": "UC-REV-01",
+      "owner": "admin-review",
+      "target_scenarios": ["SC-REV-QUEUE-006"],
+      "disposition": "migrated",
+      "preserved_assertions": [{"kind": "status_code", "expected": "403"}]
+    },
+    {
+      "source_path": "test/tests/api/integration/admin-review.spec.ts",
+      "source_line": 26,
+      "test_title": "UC-REV-04 reads moderation context from the review queue payload",
+      "old_id": "UC-REV-04",
+      "owner": "admin-review",
+      "target_scenarios": ["SC-REV-QUEUE-007"],
+      "disposition": "migrated",
+      "preserved_assertions": [{"kind": "api_contract", "expected": "review queue payload retains context references"}]
+    },
+    {
+      "source_path": "test/tests/api/integration/admin-user.spec.ts",
+      "source_line": 42,
+      "test_title": "UC-USER-01 finds an account from account-centric search",
+      "old_id": "UC-USER-01",
+      "owner": "admin-user",
+      "target_scenarios": [
+        "SC-USER-SEARCH-001"
+      ],
+      "disposition": "merged",
+      "preserved_assertions": [
+        {
+          "kind": "domain_contract",
+          "expected": "legacy status, state transition, and boundary assertions are preserved by the target scenario"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/api/integration/admin-user.spec.ts",
+      "source_line": 61,
+      "test_title": "UC-USER-02 reads account state with explicit account fields",
+      "old_id": "UC-USER-02",
+      "owner": "admin-user",
+      "target_scenarios": [
+        "SC-USER-STATE-001"
+      ],
+      "disposition": "merged",
+      "preserved_assertions": [
+        {
+          "kind": "domain_contract",
+          "expected": "legacy status, state transition, and boundary assertions are preserved by the target scenario"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/api/integration/admin-user.spec.ts",
+      "source_line": 84,
+      "test_title": "UC-USER-03 manages account state through block controls",
+      "old_id": "UC-USER-03",
+      "owner": "admin-user",
+      "target_scenarios": [
+        "SC-USER-STATE-001"
+      ],
+      "disposition": "merged",
+      "preserved_assertions": [
+        {
+          "kind": "domain_contract",
+          "expected": "legacy status, state transition, and boundary assertions are preserved by the target scenario"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/api/integration/admin-user.spec.ts",
+      "source_line": 104,
+      "test_title": "UC-USER-04 traverses from user to customer context via linked customer metadata",
+      "old_id": "UC-USER-04",
+      "owner": "admin-user",
+      "target_scenarios": [
+        "SC-USER-CUSTOMER-HANDOFF-001"
+      ],
+      "disposition": "merged",
+      "preserved_assertions": [
+        {
+          "kind": "domain_contract",
+          "expected": "legacy status, state transition, and boundary assertions are preserved by the target scenario"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/api/integration/admin-user.spec.ts",
+      "source_line": 127,
+      "test_title": "UC-USER-05 keeps account control distinct from commerce support in the API contract",
+      "old_id": "UC-USER-05",
+      "owner": "admin-user",
+      "target_scenarios": [
+        "SC-USER-SCOPE-001"
+      ],
+      "disposition": "merged",
+      "preserved_assertions": [
+        {
+          "kind": "domain_contract",
+          "expected": "legacy status, state transition, and boundary assertions are preserved by the target scenario"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/api/integration/admin.api.spec.ts",
+      "source_line": 72,
+      "test_title": "lists products with admin token",
+      "old_id": null,
+      "owner": "admin",
+      "target_scenarios": [],
+      "disposition": "pending",
+      "preserved_assertions": []
+    },
+    {
+      "source_path": "test/tests/api/integration/admin.api.spec.ts",
+      "source_line": 85,
+      "test_title": "returns 403 without admin role",
+      "old_id": null,
+      "owner": "admin",
+      "target_scenarios": [],
+      "disposition": "pending",
+      "preserved_assertions": []
+    },
+    {
+      "source_path": "test/tests/api/integration/admin.api.spec.ts",
+      "source_line": 95,
+      "test_title": "returns 401 without auth",
+      "old_id": null,
+      "owner": "admin",
+      "target_scenarios": [],
+      "disposition": "pending",
+      "preserved_assertions": []
+    },
+    {
+      "source_path": "test/tests/api/integration/admin.api.spec.ts",
+      "source_line": 102,
+      "test_title": "creates, updates, and deletes a product roundtrip",
+      "old_id": null,
+      "owner": "admin",
+      "target_scenarios": [],
+      "disposition": "pending",
+      "preserved_assertions": []
+    },
+    {
+      "source_path": "test/tests/api/integration/admin.api.spec.ts",
+      "source_line": 154,
+      "test_title": "lists categories with admin token",
+      "old_id": null,
+      "owner": "admin",
+      "target_scenarios": [],
+      "disposition": "pending",
+      "preserved_assertions": []
+    },
+    {
+      "source_path": "test/tests/api/integration/admin.api.spec.ts",
+      "source_line": 166,
+      "test_title": "creates, updates, and deletes a category roundtrip",
+      "old_id": null,
+      "owner": "admin",
+      "target_scenarios": [],
+      "disposition": "pending",
+      "preserved_assertions": []
+    },
+    {
+      "source_path": "test/tests/api/integration/admin.api.spec.ts",
+      "source_line": 207,
+      "test_title": "lists orders with admin token",
+      "old_id": null,
+      "owner": "admin",
+      "target_scenarios": [],
+      "disposition": "pending",
+      "preserved_assertions": []
+    },
+    {
+      "source_path": "test/tests/api/integration/admin.api.spec.ts",
+      "source_line": 220,
+      "test_title": "returns seeded admin order detail",
+      "old_id": null,
+      "owner": "admin",
+      "target_scenarios": [],
+      "disposition": "pending",
+      "preserved_assertions": []
+    },
+    {
+      "source_path": "test/tests/api/integration/admin.api.spec.ts",
+      "source_line": 236,
+      "test_title": "updates order status and deletes an admin-created order",
+      "old_id": null,
+      "owner": "admin",
+      "target_scenarios": [],
+      "disposition": "pending",
+      "preserved_assertions": []
+    },
+    {
+      "source_path": "test/tests/api/integration/admin.api.spec.ts",
+      "source_line": 256,
+      "test_title": "rejects malformed order update payload",
+      "old_id": null,
+      "owner": "admin",
+      "target_scenarios": [],
+      "disposition": "pending",
+      "preserved_assertions": []
+    },
+    {
+      "source_path": "test/tests/api/integration/admin.api.spec.ts",
+      "source_line": 268,
+      "test_title": "lists pending refunds",
+      "old_id": null,
+      "owner": "admin",
+      "target_scenarios": [],
+      "disposition": "pending",
+      "preserved_assertions": []
+    },
+    {
+      "source_path": "test/tests/api/integration/admin.api.spec.ts",
+      "source_line": 279,
+      "test_title": "approves and rejects fresh refund requests",
+      "old_id": null,
+      "owner": "admin",
+      "target_scenarios": [],
+      "disposition": "pending",
+      "preserved_assertions": []
+    },
+    {
+      "source_path": "test/tests/api/integration/admin.api.spec.ts",
+      "source_line": 309,
+      "test_title": "rejects invalid refund id shape",
+      "old_id": null,
+      "owner": "admin",
+      "target_scenarios": [],
+      "disposition": "pending",
+      "preserved_assertions": []
+    },
+    {
+      "source_path": "test/tests/api/integration/admin.api.spec.ts",
+      "source_line": 321,
+      "test_title": "returns 403 without admin role",
+      "old_id": null,
+      "owner": "admin",
+      "target_scenarios": [],
+      "disposition": "pending",
+      "preserved_assertions": []
+    },
+    {
+      "source_path": "test/tests/api/integration/auth.api.spec.ts",
+      "source_line": 38,
+      "test_title": "should return user profile with valid token",
+      "old_id": null,
+      "owner": "auth",
+      "target_scenarios": [
+        "SC-AUTH-API-004"
+      ],
+      "disposition": "migrated",
+      "preserved_assertions": [
+        {
+          "kind": "status_or_shape",
+          "expected": "legacy API status and response assertions preserved"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/api/integration/auth.api.spec.ts",
+      "source_line": 54,
+      "test_title": "should return 401 without token",
+      "old_id": null,
+      "owner": "auth",
+      "target_scenarios": [
+        "SC-AUTH-API-005"
+      ],
+      "disposition": "migrated",
+      "preserved_assertions": [
+        {
+          "kind": "status_or_shape",
+          "expected": "legacy API status and response assertions preserved"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/api/integration/auth.api.spec.ts",
+      "source_line": 62,
+      "test_title": "should refresh token successfully",
+      "old_id": null,
+      "owner": "auth",
+      "target_scenarios": [
+        "SC-AUTH-API-006"
+      ],
+      "disposition": "migrated",
+      "preserved_assertions": [
+        {
+          "kind": "status_or_shape",
+          "expected": "legacy API status and response assertions preserved"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/api/integration/auth.api.spec.ts",
+      "source_line": 77,
+      "test_title": "should return 401 with invalid refresh token",
+      "old_id": null,
+      "owner": "auth",
+      "target_scenarios": [
+        "SC-AUTH-API-007"
+      ],
+      "disposition": "migrated",
+      "preserved_assertions": [
+        {
+          "kind": "status_or_shape",
+          "expected": "legacy API status and response assertions preserved"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/api/integration/auth.api.spec.ts",
+      "source_line": 85,
+      "test_title": "should logout successfully with valid token",
+      "old_id": null,
+      "owner": "auth",
+      "target_scenarios": [
+        "SC-AUTH-API-008"
+      ],
+      "disposition": "migrated",
+      "preserved_assertions": [
+        {
+          "kind": "status_or_shape",
+          "expected": "legacy API status and response assertions preserved"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/api/integration/auth.api.spec.ts",
+      "source_line": 98,
+      "test_title": "should return 401 without token",
+      "old_id": null,
+      "owner": "auth",
+      "target_scenarios": [
+        "SC-AUTH-API-009"
+      ],
+      "disposition": "migrated",
+      "preserved_assertions": [
+        {
+          "kind": "status_or_shape",
+          "expected": "legacy API status and response assertions preserved"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/api/integration/auth.api.spec.ts",
+      "source_line": 106,
+      "test_title": "should login with valid credentials",
+      "old_id": null,
+      "owner": "auth",
+      "target_scenarios": [
+        "SC-AUTH-API-001"
+      ],
+      "disposition": "migrated",
+      "preserved_assertions": [
+        {
+          "kind": "status_or_shape",
+          "expected": "legacy API status and response assertions preserved"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/api/integration/auth.api.spec.ts",
+      "source_line": 114,
+      "test_title": "should return 401 with invalid credentials",
+      "old_id": null,
+      "owner": "auth",
+      "target_scenarios": [
+        "SC-AUTH-API-002"
+      ],
+      "disposition": "migrated",
+      "preserved_assertions": [
+        {
+          "kind": "status_or_shape",
+          "expected": "legacy API status and response assertions preserved"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/api/integration/auth.api.spec.ts",
+      "source_line": 123,
+      "test_title": "should return 400 with missing email",
+      "old_id": null,
+      "owner": "auth",
+      "target_scenarios": [
+        "SC-AUTH-API-003"
+      ],
+      "disposition": "migrated",
+      "preserved_assertions": [
+        {
+          "kind": "status_or_shape",
+          "expected": "legacy API status and response assertions preserved"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/api/integration/catalog.api.spec.ts",
+      "source_line": 15,
+      "test_title": "should return paginated product list",
+      "old_id": null,
+      "owner": "catalog",
+      "target_scenarios": [
+        "SC-CAT-PUBLIC-LIST-001"
+      ],
+      "disposition": "migrated",
+      "preserved_assertions": [
+        {
+          "kind": "status_code",
+          "expected": "200"
+        },
+        {
+          "kind": "shape",
+          "expected": "items,total,page,limit"
+        },
+        {
+          "kind": "visibility",
+          "expected": "inactive products absent"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/api/integration/catalog.api.spec.ts",
+      "source_line": 26,
+      "test_title": "should respect pagination params",
+      "old_id": null,
+      "owner": "catalog",
+      "target_scenarios": [
+        "SC-CAT-PUBLIC-LIST-002"
+      ],
+      "disposition": "migrated",
+      "preserved_assertions": [
+        {
+          "kind": "pagination",
+          "expected": "items.length <= 5"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/api/integration/catalog.api.spec.ts",
+      "source_line": 33,
+      "test_title": "should filter by category",
+      "old_id": null,
+      "owner": "catalog",
+      "target_scenarios": [
+        "SC-CAT-PUBLIC-LIST-003"
+      ],
+      "disposition": "migrated",
+      "preserved_assertions": [
+        {
+          "kind": "filter",
+          "expected": "returned items are category-scoped"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/api/integration/catalog.api.spec.ts",
+      "source_line": 45,
+      "test_title": "should sort products",
+      "old_id": null,
+      "owner": "catalog",
+      "target_scenarios": [
+        "SC-CAT-PUBLIC-LIST-004"
+      ],
+      "disposition": "migrated",
+      "preserved_assertions": [
+        {
+          "kind": "ordering",
+          "expected": "price ascending"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/api/integration/catalog.api.spec.ts",
+      "source_line": 57,
+      "test_title": "should return product detail",
+      "old_id": null,
+      "owner": "catalog",
+      "target_scenarios": [
+        "SC-CAT-PUBLIC-DETAIL-001"
+      ],
+      "disposition": "migrated",
+      "preserved_assertions": [
+        {
+          "kind": "status_code",
+          "expected": "200"
+        },
+        {
+          "kind": "fields",
+          "expected": "id,title,price,description,images"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/api/integration/catalog.api.spec.ts",
+      "source_line": 78,
+      "test_title": "should return 404 for non-existent product",
+      "old_id": null,
+      "owner": "catalog",
+      "target_scenarios": [
+        "SC-CAT-PUBLIC-DETAIL-003"
+      ],
+      "disposition": "migrated",
+      "preserved_assertions": [
+        {
+          "kind": "status_code",
+          "expected": "404"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/api/integration/catalog.api.spec.ts",
+      "source_line": 86,
+      "test_title": "should return buy meta for product",
+      "old_id": null,
+      "owner": "catalog",
+      "target_scenarios": [
+        "SC-CAT-PUBLIC-BUY-META-001"
+      ],
+      "disposition": "migrated",
+      "preserved_assertions": [
+        {
+          "kind": "fields",
+          "expected": "product_id,available,stock"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/api/integration/catalog.api.spec.ts",
+      "source_line": 107,
+      "test_title": "should return search results",
+      "old_id": null,
+      "owner": "catalog",
+      "target_scenarios": [
+        "SC-CAT-PUBLIC-SEARCH-001"
+      ],
+      "disposition": "migrated",
+      "preserved_assertions": [
+        {
+          "kind": "status_code",
+          "expected": "200"
+        },
+        {
+          "kind": "matching",
+          "expected": "search results contain keyword"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/api/integration/catalog.api.spec.ts",
+      "source_line": 115,
+      "test_title": "should return empty array for non-matching query",
+      "old_id": null,
+      "owner": "catalog",
+      "target_scenarios": [
+        "SC-CAT-PUBLIC-SEARCH-002"
+      ],
+      "disposition": "migrated",
+      "preserved_assertions": [
+        {
+          "kind": "status_code",
+          "expected": "200"
+        },
+        {
+          "kind": "empty_result",
+          "expected": "empty array"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/api/integration/catalog.api.spec.ts",
+      "source_line": 124,
+      "test_title": "should return category list",
+      "old_id": null,
+      "owner": "catalog",
+      "target_scenarios": [
+        "SC-CAT-PUBLIC-CONTEXT-001"
+      ],
+      "disposition": "migrated",
+      "preserved_assertions": [
+        {
+          "kind": "fields",
+          "expected": "id,name,slug"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/api/integration/catalog.api.spec.ts",
+      "source_line": 138,
+      "test_title": "should return site settings",
+      "old_id": null,
+      "owner": "catalog",
+      "target_scenarios": [
+        "SC-CAT-PUBLIC-CONTEXT-002"
+      ],
+      "disposition": "migrated",
+      "preserved_assertions": [
+        {
+          "kind": "fields",
+          "expected": "site_name,currency"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/api/integration/catalog.api.spec.ts",
+      "source_line": 148,
+      "test_title": "should return announcement or null",
+      "old_id": null,
+      "owner": "catalog",
+      "target_scenarios": [
+        "SC-CAT-PUBLIC-CONTEXT-003"
+      ],
+      "disposition": "migrated",
+      "preserved_assertions": [
+        {
+          "kind": "nullable_projection",
+          "expected": "null or id/content/active"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/api/integration/checkout.api.spec.ts",
+      "source_line": 19,
+      "test_title": "should create order with valid data",
+      "old_id": null,
+      "owner": "checkout",
+      "target_scenarios": [
+        "SC-CHECKOUT-API-001"
+      ],
+      "disposition": "migrated",
+      "preserved_assertions": [
+        {
+          "kind": "status_or_shape",
+          "expected": "legacy API status and response assertions preserved"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/api/integration/checkout.api.spec.ts",
+      "source_line": 67,
+      "test_title": "should return 401 without auth",
+      "old_id": null,
+      "owner": "checkout",
+      "target_scenarios": [
+        "SC-CHECKOUT-API-002"
+      ],
+      "disposition": "migrated",
+      "preserved_assertions": [
+        {
+          "kind": "status_or_shape",
+          "expected": "legacy API status and response assertions preserved"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/api/integration/checkout.api.spec.ts",
+      "source_line": 75,
+      "test_title": "should return 400 with invalid data",
+      "old_id": null,
+      "owner": "checkout",
+      "target_scenarios": [
+        "SC-CHECKOUT-API-003"
+      ],
+      "disposition": "migrated",
+      "preserved_assertions": [
+        {
+          "kind": "status_or_shape",
+          "expected": "legacy API status and response assertions preserved"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/api/integration/checkout.api.spec.ts",
+      "source_line": 89,
+      "test_title": "should return 401 without auth",
+      "old_id": null,
+      "owner": "checkout",
+      "target_scenarios": [
+        "SC-CHECKOUT-API-004"
+      ],
+      "disposition": "migrated",
+      "preserved_assertions": [
+        {
+          "kind": "status_or_shape",
+          "expected": "legacy API status and response assertions preserved"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/api/integration/checkout.api.spec.ts",
+      "source_line": 99,
+      "test_title": "should return 401 without auth",
+      "old_id": null,
+      "owner": "checkout",
+      "target_scenarios": [
+        "SC-CHECKOUT-API-005"
+      ],
+      "disposition": "migrated",
+      "preserved_assertions": [
+        {
+          "kind": "status_or_shape",
+          "expected": "legacy API status and response assertions preserved"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/api/integration/checkout.api.spec.ts",
+      "source_line": 109,
+      "test_title": "should return 401 without auth",
+      "old_id": null,
+      "owner": "checkout",
+      "target_scenarios": [
+        "SC-CHECKOUT-API-006"
+      ],
+      "disposition": "migrated",
+      "preserved_assertions": [
+        {
+          "kind": "status_or_shape",
+          "expected": "legacy API status and response assertions preserved"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/api/integration/checkout.api.spec.ts",
+      "source_line": 119,
+      "test_title": "should return 401 without auth",
+      "old_id": null,
+      "owner": "checkout",
+      "target_scenarios": [
+        "SC-CHECKOUT-API-007"
+      ],
+      "disposition": "migrated",
+      "preserved_assertions": [
+        {
+          "kind": "status_or_shape",
+          "expected": "legacy API status and response assertions preserved"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/api/integration/checkout.api.spec.ts",
+      "source_line": 129,
+      "test_title": "should return 401 without auth",
+      "old_id": null,
+      "owner": "checkout",
+      "target_scenarios": [
+        "SC-CHECKOUT-API-008"
+      ],
+      "disposition": "migrated",
+      "preserved_assertions": [
+        {
+          "kind": "status_or_shape",
+          "expected": "legacy API status and response assertions preserved"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/api/integration/content.api.spec.ts",
+      "source_line": 13,
+      "test_title": "should require auth for admin article CRUD operations",
+      "old_id": null,
+      "owner": "content",
+      "target_scenarios": [],
+      "disposition": "pending",
+      "preserved_assertions": []
+    },
+    {
+      "source_path": "test/tests/api/integration/content.api.spec.ts",
+      "source_line": 18,
+      "test_title": "should allow admin to CRUD articles with custom priority, tags, topics, image",
+      "old_id": null,
+      "owner": "content",
+      "target_scenarios": [],
+      "disposition": "pending",
+      "preserved_assertions": []
+    },
+    {
+      "source_path": "test/tests/api/integration/content.api.spec.ts",
+      "source_line": 104,
+      "test_title": "should list public articles sorted by priority and support filtering by tag and topic",
+      "old_id": null,
+      "owner": "content",
+      "target_scenarios": [],
+      "disposition": "pending",
+      "preserved_assertions": []
+    },
+    {
+      "source_path": "test/tests/api/integration/content.api.spec.ts",
+      "source_line": 189,
+      "test_title": "should allow admin to manage banners and reflect only active slides publicly in sort order",
+      "old_id": null,
+      "owner": "content",
+      "target_scenarios": [],
+      "disposition": "pending",
+      "preserved_assertions": []
+    },
+    {
+      "source_path": "test/tests/api/integration/content.api.spec.ts",
+      "source_line": 269,
+      "test_title": "should allow admin to CRUD FAQs and expose only active ordered entries publicly",
+      "old_id": null,
+      "owner": "content",
+      "target_scenarios": [],
+      "disposition": "pending",
+      "preserved_assertions": []
+    },
+    {
+      "source_path": "test/tests/api/integration/content.api.spec.ts",
+      "source_line": 342,
+      "test_title": "should persist about page content and gallery for public reflection",
+      "old_id": null,
+      "owner": "content",
+      "target_scenarios": [],
+      "disposition": "pending",
+      "preserved_assertions": []
+    },
+    {
+      "source_path": "test/tests/api/integration/media.api.spec.ts",
+      "source_line": 13,
+      "test_title": "should require auth for media listing",
+      "old_id": null,
+      "owner": "media",
+      "target_scenarios": [
+        "SC-CONT-MEDIA-002"
+      ],
+      "disposition": "merged",
+      "preserved_assertions": [
+        {
+          "kind": "status_or_shape",
+          "expected": "legacy media/content assertions preserved by target scenario"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/api/integration/media.api.spec.ts",
+      "source_line": 18,
+      "test_title": "should reject non-admin media listing",
+      "old_id": null,
+      "owner": "media",
+      "target_scenarios": [
+        "SC-CONT-MEDIA-003"
+      ],
+      "disposition": "merged",
+      "preserved_assertions": [
+        {
+          "kind": "status_or_shape",
+          "expected": "legacy media/content assertions preserved by target scenario"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/api/integration/media.api.spec.ts",
+      "source_line": 28,
+      "test_title": "should list media assets for admin token",
+      "old_id": null,
+      "owner": "media",
+      "target_scenarios": [
+        "SC-CONT-MEDIA-001"
+      ],
+      "disposition": "merged",
+      "preserved_assertions": [
+        {
+          "kind": "status_or_shape",
+          "expected": "legacy media/content assertions preserved by target scenario"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/api/integration/media.api.spec.ts",
+      "source_line": 41,
+      "test_title": "should return a presigned upload contract for admin token",
+      "old_id": null,
+      "owner": "media",
+      "target_scenarios": [
+        "SC-CONT-MEDIA-001"
+      ],
+      "disposition": "merged",
+      "preserved_assertions": [
+        {
+          "kind": "status_or_shape",
+          "expected": "legacy media/content assertions preserved by target scenario"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/api/integration/notifications.api.spec.ts",
+      "source_line": 29,
+      "test_title": "lists notifications for authenticated buyer",
+      "old_id": null,
+      "owner": "notifications",
+      "target_scenarios": [
+        "SC-ENGAGEMENT-NOTIFICATIONS-001"
+      ],
+      "disposition": "migrated",
+      "preserved_assertions": [
+        {
+          "kind": "api_contract",
+          "expected": "legacy status, response shape, and auth boundary preserved"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/api/integration/notifications.api.spec.ts",
+      "source_line": 49,
+      "test_title": "rejects inbox read without auth",
+      "old_id": null,
+      "owner": "notifications",
+      "target_scenarios": [
+        "SC-ENGAGEMENT-NOTIFICATIONS-002"
+      ],
+      "disposition": "migrated",
+      "preserved_assertions": [
+        {
+          "kind": "api_contract",
+          "expected": "legacy status, response shape, and auth boundary preserved"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/api/integration/notifications.api.spec.ts",
+      "source_line": 54,
+      "test_title": "returns unread count for authenticated buyer",
+      "old_id": null,
+      "owner": "notifications",
+      "target_scenarios": [
+        "SC-ENGAGEMENT-NOTIFICATIONS-003"
+      ],
+      "disposition": "migrated",
+      "preserved_assertions": [
+        {
+          "kind": "api_contract",
+          "expected": "legacy status, response shape, and auth boundary preserved"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/api/integration/notifications.api.spec.ts",
+      "source_line": 66,
+      "test_title": "rejects unread count without auth",
+      "old_id": null,
+      "owner": "notifications",
+      "target_scenarios": [
+        "SC-ENGAGEMENT-NOTIFICATIONS-004"
+      ],
+      "disposition": "migrated",
+      "preserved_assertions": [
+        {
+          "kind": "api_contract",
+          "expected": "legacy status, response shape, and auth boundary preserved"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/api/integration/notifications.api.spec.ts",
+      "source_line": 71,
+      "test_title": "marks one notification as read for authenticated buyer",
+      "old_id": null,
+      "owner": "notifications",
+      "target_scenarios": [],
+      "disposition": "pending",
+      "preserved_assertions": []
+    },
+    {
+      "source_path": "test/tests/api/integration/notifications.api.spec.ts",
+      "source_line": 93,
+      "test_title": "rejects invalid notification id shape",
+      "old_id": null,
+      "owner": "notifications",
+      "target_scenarios": [
+        "SC-ENGAGEMENT-NOTIFICATIONS-005"
+      ],
+      "disposition": "migrated",
+      "preserved_assertions": [
+        {
+          "kind": "api_contract",
+          "expected": "legacy status, response shape, and auth boundary preserved"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/api/integration/notifications.api.spec.ts",
+      "source_line": 105,
+      "test_title": "rejects mark-read without auth",
+      "old_id": null,
+      "owner": "notifications",
+      "target_scenarios": [
+        "SC-ENGAGEMENT-NOTIFICATIONS-006"
+      ],
+      "disposition": "migrated",
+      "preserved_assertions": [
+        {
+          "kind": "api_contract",
+          "expected": "legacy status, response shape, and auth boundary preserved"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/api/integration/notifications.api.spec.ts",
+      "source_line": 110,
+      "test_title": "marks all notifications as read for authenticated buyer",
+      "old_id": null,
+      "owner": "notifications",
+      "target_scenarios": [
+        "SC-ENGAGEMENT-NOTIFICATIONS-007"
+      ],
+      "disposition": "migrated",
+      "preserved_assertions": [
+        {
+          "kind": "api_contract",
+          "expected": "legacy status, response shape, and auth boundary preserved"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/api/integration/notifications.api.spec.ts",
+      "source_line": 122,
+      "test_title": "rejects mark-all-read without auth",
+      "old_id": null,
+      "owner": "notifications",
+      "target_scenarios": [
+        "SC-ENGAGEMENT-NOTIFICATIONS-008"
+      ],
+      "disposition": "migrated",
+      "preserved_assertions": [
+        {
+          "kind": "api_contract",
+          "expected": "legacy status, response shape, and auth boundary preserved"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/api/integration/notifications.api.spec.ts",
+      "source_line": 127,
+      "test_title": "clears notification inbox for authenticated buyer",
+      "old_id": null,
+      "owner": "notifications",
+      "target_scenarios": [
+        "SC-ENGAGEMENT-NOTIFICATIONS-009"
+      ],
+      "disposition": "migrated",
+      "preserved_assertions": [
+        {
+          "kind": "api_contract",
+          "expected": "legacy status, response shape, and auth boundary preserved"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/api/integration/notifications.api.spec.ts",
+      "source_line": 137,
+      "test_title": "rejects inbox clear without auth",
+      "old_id": null,
+      "owner": "notifications",
+      "target_scenarios": [
+        "SC-ENGAGEMENT-NOTIFICATIONS-010"
+      ],
+      "disposition": "migrated",
+      "preserved_assertions": [
+        {
+          "kind": "api_contract",
+          "expected": "legacy status, response shape, and auth boundary preserved"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/api/integration/notifications.api.spec.ts",
+      "source_line": 144,
+      "test_title": "queues raw notification test send for admin",
+      "old_id": null,
+      "owner": "notifications",
+      "target_scenarios": [
+        "SC-ENGAGEMENT-NOTIFICATIONS-011"
+      ],
+      "disposition": "migrated",
+      "preserved_assertions": [
+        {
+          "kind": "api_contract",
+          "expected": "legacy status, response shape, and auth boundary preserved"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/api/integration/notifications.api.spec.ts",
+      "source_line": 165,
+      "test_title": "rejects raw notification test send without auth",
+      "old_id": null,
+      "owner": "notifications",
+      "target_scenarios": [
+        "SC-ENGAGEMENT-NOTIFICATIONS-012"
+      ],
+      "disposition": "migrated",
+      "preserved_assertions": [
+        {
+          "kind": "api_contract",
+          "expected": "legacy status, response shape, and auth boundary preserved"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/api/integration/notifications.api.spec.ts",
+      "source_line": 174,
+      "test_title": "rejects raw notification test send for non-admin caller",
+      "old_id": null,
+      "owner": "notifications",
+      "target_scenarios": [
+        "SC-ENGAGEMENT-NOTIFICATIONS-013"
+      ],
+      "disposition": "migrated",
+      "preserved_assertions": [
+        {
+          "kind": "api_contract",
+          "expected": "legacy status, response shape, and auth boundary preserved"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/api/integration/orders.api.spec.ts",
+      "source_line": 49,
+      "test_title": "UC-ORD-01 reviews the order queue as a server-owned projection",
+      "old_id": "UC-ORD-01",
+      "owner": "orders",
+      "target_scenarios": [],
+      "disposition": "pending",
+      "preserved_assertions": []
+    },
+    {
+      "source_path": "test/tests/api/integration/orders.api.spec.ts",
+      "source_line": 75,
+      "test_title": "UC-ORD-02 returns order detail context before any action is taken",
+      "old_id": "UC-ORD-02",
+      "owner": "orders",
+      "target_scenarios": [],
+      "disposition": "pending",
+      "preserved_assertions": []
+    },
+    {
+      "source_path": "test/tests/api/integration/orders.api.spec.ts",
+      "source_line": 104,
+      "test_title": "UC-ORD-03 performs an allowed pending-to-paid transition",
+      "old_id": "UC-ORD-03",
+      "owner": "orders",
+      "target_scenarios": [],
+      "disposition": "pending",
+      "preserved_assertions": []
+    },
+    {
+      "source_path": "test/tests/api/integration/orders.api.spec.ts",
+      "source_line": 125,
+      "test_title": "UC-ORD-03 rejects a pending-to-delivered shortcut",
+      "old_id": "UC-ORD-03",
+      "owner": "orders",
+      "target_scenarios": [],
+      "disposition": "pending",
+      "preserved_assertions": []
+    },
+    {
+      "source_path": "test/tests/api/integration/profile.api.spec.ts",
+      "source_line": 13,
+      "test_title": "should return user profile with auth",
+      "old_id": null,
+      "owner": "profile",
+      "target_scenarios": [
+        "SC-AUTH-PROFILE-001"
+      ],
+      "disposition": "migrated",
+      "preserved_assertions": [
+        {
+          "kind": "api_contract",
+          "expected": "legacy identity/security/status assertions preserved"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/api/integration/profile.api.spec.ts",
+      "source_line": 28,
+      "test_title": "should return 401 without auth",
+      "old_id": null,
+      "owner": "profile",
+      "target_scenarios": [
+        "SC-AUTH-PROFILE-002"
+      ],
+      "disposition": "migrated",
+      "preserved_assertions": [
+        {
+          "kind": "api_contract",
+          "expected": "legacy identity/security/status assertions preserved"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/api/integration/profile.api.spec.ts",
+      "source_line": 36,
+      "test_title": "should return 401 without auth",
+      "old_id": null,
+      "owner": "profile",
+      "target_scenarios": [
+        "SC-AUTH-PROFILE-003"
+      ],
+      "disposition": "migrated",
+      "preserved_assertions": [
+        {
+          "kind": "api_contract",
+          "expected": "legacy identity/security/status assertions preserved"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/api/integration/profile.api.spec.ts",
+      "source_line": 46,
+      "test_title": "should return 401 without auth",
+      "old_id": null,
+      "owner": "profile",
+      "target_scenarios": [
+        "SC-AUTH-PROFILE-004"
+      ],
+      "disposition": "migrated",
+      "preserved_assertions": [
+        {
+          "kind": "api_contract",
+          "expected": "legacy identity/security/status assertions preserved"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/api/integration/profile.api.spec.ts",
+      "source_line": 56,
+      "test_title": "should return legacy profile read model with auth",
+      "old_id": null,
+      "owner": "profile",
+      "target_scenarios": [
+        "SC-AUTH-PROFILE-005"
+      ],
+      "disposition": "migrated",
+      "preserved_assertions": [
+        {
+          "kind": "api_contract",
+          "expected": "legacy identity/security/status assertions preserved"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/api/integration/profile.api.spec.ts",
+      "source_line": 68,
+      "test_title": "should return 401 without auth",
+      "old_id": null,
+      "owner": "profile",
+      "target_scenarios": [
+        "SC-AUTH-PROFILE-006"
+      ],
+      "disposition": "migrated",
+      "preserved_assertions": [
+        {
+          "kind": "api_contract",
+          "expected": "legacy identity/security/status assertions preserved"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/api/integration/profile.api.spec.ts",
+      "source_line": 76,
+      "test_title": "should keep /v1/profile/checkin absent even with auth",
+      "old_id": null,
+      "owner": "profile",
+      "target_scenarios": [
+        "SC-AUTH-PROFILE-007"
+      ],
+      "disposition": "migrated",
+      "preserved_assertions": [
+        {
+          "kind": "api_contract",
+          "expected": "legacy identity/security/status assertions preserved"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/api/integration/profile.api.spec.ts",
+      "source_line": 84,
+      "test_title": "should keep check-in status read models absent",
+      "old_id": null,
+      "owner": "profile",
+      "target_scenarios": [
+        "SC-AUTH-PROFILE-008"
+      ],
+      "disposition": "migrated",
+      "preserved_assertions": [
+        {
+          "kind": "api_contract",
+          "expected": "legacy identity/security/status assertions preserved"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/api/integration/reviews-moderation.api.spec.ts",
+      "source_line": 81,
+      "test_title": "UC-REV-01 reviews the moderation queue",
+      "old_id": "UC-REV-01",
+      "owner": "reviews-moderation",
+      "target_scenarios": ["SC-REV-QUEUE-001"],
+      "disposition": "merged",
+      "preserved_assertions": [{"kind": "api_contract", "expected": "queue state, statuses, and moderation context"}]
+    },
+    {
+      "source_path": "test/tests/api/integration/reviews-moderation.api.spec.ts",
+      "source_line": 93,
+      "test_title": "UC-REV-02 moderates a single review",
+      "old_id": "UC-REV-02",
+      "owner": "reviews-moderation",
+      "target_scenarios": ["SC-REV-DECISION-001", "SC-REV-DECISION-002"],
+      "disposition": "merged",
+      "preserved_assertions": [{"kind": "api_contract", "expected": "approve and hide remain distinct moderation operations"}]
+    },
+    {
+      "source_path": "test/tests/api/integration/reviews-moderation.api.spec.ts",
+      "source_line": 119,
+      "test_title": "UC-REV-03 bulk publishes selected reviews",
+      "old_id": "UC-REV-03",
+      "owner": "reviews-moderation",
+      "target_scenarios": ["SC-REV-BULK-001"],
+      "disposition": "merged",
+      "preserved_assertions": [{"kind": "api_contract", "expected": "bulk eligibility is applied per selected review"}]
+    },
+    {
+      "source_path": "test/tests/api/integration/reviews-moderation.api.spec.ts",
+      "source_line": 147,
+      "test_title": "UC-REV-05 removes a review from the moderation surface",
+      "old_id": "UC-REV-05",
+      "owner": "reviews-moderation",
+      "target_scenarios": ["SC-REV-DELETE-001"],
+      "disposition": "merged",
+      "preserved_assertions": [{"kind": "api_contract", "expected": "delete removes review artifact distinct from hide"}]
+    },
+    {
+      "source_path": "test/tests/api/integration/reviews.api.spec.ts",
+      "source_line": 19,
+      "test_title": "should return reviews list (public)",
+      "old_id": null,
+      "owner": "reviews",
+      "target_scenarios": [
+        "SC-ENGAGEMENT-API-001"
+      ],
+      "disposition": "migrated",
+      "preserved_assertions": [
+        {
+          "kind": "api_contract",
+          "expected": "legacy status, response shape, and auth boundary preserved"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/api/integration/reviews.api.spec.ts",
+      "source_line": 39,
+      "test_title": "should return 401 without auth",
+      "old_id": null,
+      "owner": "reviews",
+      "target_scenarios": [
+        "SC-ENGAGEMENT-API-002"
+      ],
+      "disposition": "migrated",
+      "preserved_assertions": [
+        {
+          "kind": "api_contract",
+          "expected": "legacy status, response shape, and auth boundary preserved"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/api/integration/reviews.api.spec.ts",
+      "source_line": 49,
+      "test_title": "should create review with auth",
+      "old_id": null,
+      "owner": "reviews",
+      "target_scenarios": [
+        "SC-ENGAGEMENT-API-003"
+      ],
+      "disposition": "migrated",
+      "preserved_assertions": [
+        {
+          "kind": "api_contract",
+          "expected": "legacy status, response shape, and auth boundary preserved"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/api/integration/reviews.api.spec.ts",
+      "source_line": 76,
+      "test_title": "should return 403 without admin role",
+      "old_id": null,
+      "owner": "reviews",
+      "target_scenarios": [
+        "SC-ENGAGEMENT-API-005"
+      ],
+      "disposition": "migrated",
+      "preserved_assertions": [
+        {
+          "kind": "api_contract",
+          "expected": "legacy status, response shape, and auth boundary preserved"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/api/integration/reviews.api.spec.ts",
+      "source_line": 87,
+      "test_title": "should return 401 without auth",
+      "old_id": null,
+      "owner": "reviews",
+      "target_scenarios": [
+        "SC-ENGAGEMENT-API-004"
+      ],
+      "disposition": "migrated",
+      "preserved_assertions": [
+        {
+          "kind": "api_contract",
+          "expected": "legacy status, response shape, and auth boundary preserved"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/api/integration/store-settings.api.spec.ts",
+      "source_line": 48,
+      "test_title": "UC-SET-01 reads storefront identity from the structured admin and public read models",
+      "old_id": "UC-SET-01",
+      "owner": "store-settings",
+      "target_scenarios": [],
+      "disposition": "pending",
+      "preserved_assertions": []
+    },
+    {
+      "source_path": "test/tests/api/integration/store-settings.api.spec.ts",
+      "source_line": 78,
+      "test_title": "UC-SET-01 updates brand and contact facts and reflects the new storefront identity publicly",
+      "old_id": "UC-SET-01",
+      "owner": "store-settings",
+      "target_scenarios": [],
+      "disposition": "pending",
+      "preserved_assertions": []
+    },
+    {
+      "source_path": "test/tests/api/integration/store-settings.api.spec.ts",
+      "source_line": 123,
+      "test_title": "UC-SET-01 rejects storefront identity reads without valid admin authorization",
+      "old_id": "UC-SET-01",
+      "owner": "store-settings",
+      "target_scenarios": [],
+      "disposition": "pending",
+      "preserved_assertions": []
+    },
+    {
+      "source_path": "test/tests/api/integration/store-settings.api.spec.ts",
+      "source_line": 133,
+      "test_title": "UC-SET-02 accepts a homepage composition decision and rejects ordering conflicts",
+      "old_id": "UC-SET-02",
+      "owner": "store-settings",
+      "target_scenarios": [],
+      "disposition": "pending",
+      "preserved_assertions": []
+    },
+    {
+      "source_path": "test/tests/api/integration/store-settings.api.spec.ts",
+      "source_line": 175,
+      "test_title": "UC-SET-04 updates footer and support commitments and rejects malformed support targets",
+      "old_id": "UC-SET-04",
+      "owner": "store-settings",
+      "target_scenarios": [],
+      "disposition": "pending",
+      "preserved_assertions": []
+    },
+    {
+      "source_path": "test/tests/api/integration/wishlist.api.spec.ts",
+      "source_line": 16,
+      "test_title": "should return wishlist publicly",
+      "old_id": null,
+      "owner": "wishlist",
+      "target_scenarios": [
+        "SC-ENGAGEMENT-API-006"
+      ],
+      "disposition": "migrated",
+      "preserved_assertions": [
+        {
+          "kind": "api_contract",
+          "expected": "legacy status, response shape, and auth boundary preserved"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/api/integration/wishlist.api.spec.ts",
+      "source_line": 23,
+      "test_title": "should return wishlist with auth too",
+      "old_id": null,
+      "owner": "wishlist",
+      "target_scenarios": [
+        "SC-ENGAGEMENT-API-007"
+      ],
+      "disposition": "migrated",
+      "preserved_assertions": [
+        {
+          "kind": "api_contract",
+          "expected": "legacy status, response shape, and auth boundary preserved"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/api/integration/wishlist.api.spec.ts",
+      "source_line": 36,
+      "test_title": "should return 401 without auth",
+      "old_id": null,
+      "owner": "wishlist",
+      "target_scenarios": [
+        "SC-ENGAGEMENT-API-008"
+      ],
+      "disposition": "migrated",
+      "preserved_assertions": [
+        {
+          "kind": "api_contract",
+          "expected": "legacy status, response shape, and auth boundary preserved"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/api/integration/wishlist.api.spec.ts",
+      "source_line": 44,
+      "test_title": "should return 404 for invalid product",
+      "old_id": null,
+      "owner": "wishlist",
+      "target_scenarios": [
+        "SC-ENGAGEMENT-API-009"
+      ],
+      "disposition": "migrated",
+      "preserved_assertions": [
+        {
+          "kind": "api_contract",
+          "expected": "legacy status, response shape, and auth boundary preserved"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/api/integration/wishlist.api.spec.ts",
+      "source_line": 58,
+      "test_title": "should return 401 without auth",
+      "old_id": null,
+      "owner": "wishlist",
+      "target_scenarios": [
+        "SC-ENGAGEMENT-API-010"
+      ],
+      "disposition": "migrated",
+      "preserved_assertions": [
+        {
+          "kind": "api_contract",
+          "expected": "legacy status, response shape, and auth boundary preserved"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/api/integration/wishlist.api.spec.ts",
+      "source_line": 66,
+      "test_title": "should return 401 without auth",
+      "old_id": null,
+      "owner": "wishlist",
+      "target_scenarios": [
+        "SC-ENGAGEMENT-API-011"
+      ],
+      "disposition": "migrated",
+      "preserved_assertions": [
+        {
+          "kind": "api_contract",
+          "expected": "legacy status, response shape, and auth boundary preserved"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/auth/auth-extended.spec.ts",
+      "source_line": 5,
+      "test_title": "should initiate OAuth redirect",
+      "old_id": null,
+      "owner": "auth",
+      "target_scenarios": [
+        "SC-AUTH-OAUTH-001"
+      ],
+      "disposition": "merged",
+      "preserved_assertions": [
+        {
+          "kind": "ui_contract",
+          "expected": "legacy browser assertion preserved by target behavior"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/auth/auth-extended.spec.ts",
+      "source_line": 20,
+      "test_title": "should persist session on page refresh",
+      "old_id": null,
+      "owner": "auth",
+      "target_scenarios": [
+        "SC-AUTH-SESSION-001"
+      ],
+      "disposition": "merged",
+      "preserved_assertions": [
+        {
+          "kind": "ui_contract",
+          "expected": "legacy browser assertion preserved by target behavior"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/auth/auth-extended.spec.ts",
+      "source_line": 39,
+      "test_title": "should logout and invalidate session",
+      "old_id": null,
+      "owner": "auth",
+      "target_scenarios": [
+        "SC-AUTH-SESSION-002"
+      ],
+      "disposition": "merged",
+      "preserved_assertions": [
+        {
+          "kind": "ui_contract",
+          "expected": "legacy browser assertion preserved by target behavior"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/auth/login.spec.ts",
+      "source_line": 8,
+      "test_title": "should log in with valid credentials",
+      "old_id": null,
+      "owner": "auth",
+      "target_scenarios": [
+        "SC-AUTH-LOGIN-001"
+      ],
+      "disposition": "merged",
+      "preserved_assertions": [
+        {
+          "kind": "ui_contract",
+          "expected": "legacy browser assertion preserved by target behavior"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/auth/login.spec.ts",
+      "source_line": 22,
+      "test_title": "should show error with invalid credentials",
+      "old_id": null,
+      "owner": "auth",
+      "target_scenarios": [
+        "SC-AUTH-LOGIN-002"
+      ],
+      "disposition": "merged",
+      "preserved_assertions": [
+        {
+          "kind": "ui_contract",
+          "expected": "legacy browser assertion preserved by target behavior"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/auth/login.spec.ts",
+      "source_line": 29,
+      "test_title": "should show validation error for empty fields",
+      "old_id": null,
+      "owner": "auth",
+      "target_scenarios": [
+        "SC-AUTH-LOGIN-003"
+      ],
+      "disposition": "merged",
+      "preserved_assertions": [
+        {
+          "kind": "ui_contract",
+          "expected": "legacy browser assertion preserved by target behavior"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/auth/signup.spec.ts",
+      "source_line": 9,
+      "test_title": "should show registration form",
+      "old_id": null,
+      "owner": "auth",
+      "target_scenarios": [
+        "SC-AUTH-SIGNUP-001"
+      ],
+      "disposition": "merged",
+      "preserved_assertions": [
+        {
+          "kind": "ui_contract",
+          "expected": "legacy browser assertion preserved by target behavior"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/auth/signup.spec.ts",
+      "source_line": 27,
+      "test_title": "should show validation error for empty fields",
+      "old_id": null,
+      "owner": "auth",
+      "target_scenarios": [
+        "SC-AUTH-SIGNUP-002"
+      ],
+      "disposition": "merged",
+      "preserved_assertions": [
+        {
+          "kind": "ui_contract",
+          "expected": "legacy browser assertion preserved by target behavior"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/auth/signup.spec.ts",
+      "source_line": 37,
+      "test_title": "should show error for duplicate email",
+      "old_id": null,
+      "owner": "auth",
+      "target_scenarios": [
+        "SC-AUTH-SIGNUP-003"
+      ],
+      "disposition": "merged",
+      "preserved_assertions": [
+        {
+          "kind": "ui_contract",
+          "expected": "legacy browser assertion preserved by target behavior"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/auth/signup.spec.ts",
+      "source_line": 52,
+      "test_title": "should register with unique email",
+      "old_id": null,
+      "owner": "auth",
+      "target_scenarios": [
+        "SC-AUTH-SIGNUP-004"
+      ],
+      "disposition": "merged",
+      "preserved_assertions": [
+        {
+          "kind": "ui_contract",
+          "expected": "legacy browser assertion preserved by target behavior"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/auth/signup.spec.ts",
+      "source_line": 65,
+      "test_title": "test at line 65",
+      "old_id": null,
+      "owner": "auth",
+      "target_scenarios": [],
+      "disposition": "pending",
+      "preserved_assertions": []
+    },
+    {
+      "source_path": "test/tests/browse/figma-contract.spec.ts",
+      "source_line": 11,
+      "test_title": "homepage should expose hero/category/featured blocks",
+      "old_id": null,
+      "owner": "browse",
+      "target_scenarios": [],
+      "disposition": "pending",
+      "preserved_assertions": []
+    },
+    {
+      "source_path": "test/tests/browse/figma-contract.spec.ts",
+      "source_line": 19,
+      "test_title": "category CTA should navigate from homepage to listing",
+      "old_id": null,
+      "owner": "browse",
+      "target_scenarios": [],
+      "disposition": "pending",
+      "preserved_assertions": []
+    },
+    {
+      "source_path": "test/tests/browse/figma-contract.spec.ts",
+      "source_line": 25,
+      "test_title": "listing and detail should satisfy required sections",
+      "old_id": null,
+      "owner": "browse",
+      "target_scenarios": [],
+      "disposition": "pending",
+      "preserved_assertions": []
+    },
+    {
+      "source_path": "test/tests/browse/homepage-refactor.spec.ts",
+      "source_line": 8,
+      "test_title": "should display banner and category icons",
+      "old_id": null,
+      "owner": "browse",
+      "target_scenarios": [],
+      "disposition": "pending",
+      "preserved_assertions": []
+    },
+    {
+      "source_path": "test/tests/browse/homepage-refactor.spec.ts",
+      "source_line": 19,
+      "test_title": "should navigate to products page when category icon is clicked",
+      "old_id": null,
+      "owner": "browse",
+      "target_scenarios": [],
+      "disposition": "pending",
+      "preserved_assertions": []
+    },
+    {
+      "source_path": "test/tests/browse/homepage-refactor.spec.ts",
+      "source_line": 27,
+      "test_title": "should navigate to detail page when Discover button on product card is clicked",
+      "old_id": null,
+      "owner": "browse",
+      "target_scenarios": [],
+      "disposition": "pending",
+      "preserved_assertions": []
+    },
+    {
+      "source_path": "test/tests/browse/homepage.spec.ts",
+      "source_line": 13,
+      "test_title": "should display hero section with title",
+      "old_id": null,
+      "owner": "browse",
+      "target_scenarios": [
+        "SC-BROWSE-HOME-001"
+      ],
+      "disposition": "merged",
+      "preserved_assertions": [
+        {
+          "kind": "ui_contract",
+          "expected": "legacy browser assertion preserved by target behavior"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/browse/homepage.spec.ts",
+      "source_line": 19,
+      "test_title": "should display category icons",
+      "old_id": null,
+      "owner": "browse",
+      "target_scenarios": [
+        "SC-BROWSE-HOME-001"
+      ],
+      "disposition": "merged",
+      "preserved_assertions": [
+        {
+          "kind": "ui_contract",
+          "expected": "legacy browser assertion preserved by target behavior"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/browse/homepage.spec.ts",
+      "source_line": 25,
+      "test_title": "should display featured product blocks",
+      "old_id": null,
+      "owner": "browse",
+      "target_scenarios": [
+        "SC-BROWSE-HOME-001"
+      ],
+      "disposition": "merged",
+      "preserved_assertions": [
+        {
+          "kind": "ui_contract",
+          "expected": "legacy browser assertion preserved by target behavior"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/browse/homepage.spec.ts",
+      "source_line": 30,
+      "test_title": "should display announcement banner when active",
+      "old_id": null,
+      "owner": "browse",
+      "target_scenarios": [
+        "SC-BROWSE-HOME-002"
+      ],
+      "disposition": "merged",
+      "preserved_assertions": [
+        {
+          "kind": "ui_contract",
+          "expected": "legacy browser assertion preserved by target behavior"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/browse/homepage.spec.ts",
+      "source_line": 40,
+      "test_title": "should navigate to product list from category icon",
+      "old_id": null,
+      "owner": "browse",
+      "target_scenarios": [
+        "SC-BROWSE-HOME-003"
+      ],
+      "disposition": "merged",
+      "preserved_assertions": [
+        {
+          "kind": "ui_contract",
+          "expected": "legacy browser assertion preserved by target behavior"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/browse/homepage.spec.ts",
+      "source_line": 71,
+      "test_title": "hero banner renders correct R2 image URL from backend",
+      "old_id": null,
+      "owner": "browse",
+      "target_scenarios": [],
+      "disposition": "pending",
+      "preserved_assertions": []
+    },
+    {
+      "source_path": "test/tests/browse/product-detail-refactor.spec.ts",
+      "source_line": 17,
+      "test_title": "should render product specs table",
+      "old_id": null,
+      "owner": "browse",
+      "target_scenarios": [],
+      "disposition": "pending",
+      "preserved_assertions": []
+    },
+    {
+      "source_path": "test/tests/browse/product-detail-refactor.spec.ts",
+      "source_line": 44,
+      "test_title": "should allow adding to cart from detail page",
+      "old_id": null,
+      "owner": "browse",
+      "target_scenarios": [],
+      "disposition": "pending",
+      "preserved_assertions": []
+    },
+    {
+      "source_path": "test/tests/browse/product-detail.spec.ts",
+      "source_line": 17,
+      "test_title": "should render product information",
+      "old_id": null,
+      "owner": "browse",
+      "target_scenarios": [
+        "SC-BROWSE-DETAIL-001"
+      ],
+      "disposition": "merged",
+      "preserved_assertions": [
+        {
+          "kind": "ui_contract",
+          "expected": "legacy browser assertion preserved by target behavior"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/browse/product-detail.spec.ts",
+      "source_line": 40,
+      "test_title": "should display image gallery",
+      "old_id": null,
+      "owner": "browse",
+      "target_scenarios": [
+        "SC-BROWSE-DETAIL-002"
+      ],
+      "disposition": "merged",
+      "preserved_assertions": [
+        {
+          "kind": "ui_contract",
+          "expected": "legacy browser assertion preserved by target behavior"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/browse/product-detail.spec.ts",
+      "source_line": 64,
+      "test_title": "should switch product tabs",
+      "old_id": null,
+      "owner": "browse",
+      "target_scenarios": [
+        "SC-BROWSE-DETAIL-003"
+      ],
+      "disposition": "merged",
+      "preserved_assertions": [
+        {
+          "kind": "ui_contract",
+          "expected": "legacy browser assertion preserved by target behavior"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/browse/product-detail.spec.ts",
+      "source_line": 89,
+      "test_title": "should have clickable add-to-cart button",
+      "old_id": null,
+      "owner": "browse",
+      "target_scenarios": [
+        "SC-BROWSE-DETAIL-004"
+      ],
+      "disposition": "merged",
+      "preserved_assertions": [
+        {
+          "kind": "ui_contract",
+          "expected": "legacy browser assertion preserved by target behavior"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/browse/product-list-refactor.spec.ts",
+      "source_line": 9,
+      "test_title": "should display product listing with cards",
+      "old_id": null,
+      "owner": "browse",
+      "target_scenarios": [],
+      "disposition": "pending",
+      "preserved_assertions": []
+    },
+    {
+      "source_path": "test/tests/browse/product-list-refactor.spec.ts",
+      "source_line": 17,
+      "test_title": "should allow adding a product directly to cart from list card",
+      "old_id": null,
+      "owner": "browse",
+      "target_scenarios": [],
+      "disposition": "pending",
+      "preserved_assertions": []
+    },
+    {
+      "source_path": "test/tests/browse/product-list-refactor.spec.ts",
+      "source_line": 36,
+      "test_title": "should search products by keyword",
+      "old_id": null,
+      "owner": "browse",
+      "target_scenarios": [],
+      "disposition": "pending",
+      "preserved_assertions": []
+    },
+    {
+      "source_path": "test/tests/browse/product-list-refactor.spec.ts",
+      "source_line": 51,
+      "test_title": "should navigate to detail page when product card title or image is clicked",
+      "old_id": null,
+      "owner": "browse",
+      "target_scenarios": [],
+      "disposition": "pending",
+      "preserved_assertions": []
+    },
+    {
+      "source_path": "test/tests/browse/product-list.spec.ts",
+      "source_line": 8,
+      "test_title": "should render product cards",
+      "old_id": null,
+      "owner": "browse",
+      "target_scenarios": [
+        "SC-BROWSE-CATALOG-001"
+      ],
+      "disposition": "merged",
+      "preserved_assertions": [
+        {
+          "kind": "ui_contract",
+          "expected": "legacy browser assertion preserved by target behavior"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/browse/product-list.spec.ts",
+      "source_line": 19,
+      "test_title": "should filter by category",
+      "old_id": null,
+      "owner": "browse",
+      "target_scenarios": [
+        "SC-BROWSE-CATALOG-002"
+      ],
+      "disposition": "merged",
+      "preserved_assertions": [
+        {
+          "kind": "ui_contract",
+          "expected": "legacy browser assertion preserved by target behavior"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/browse/product-list.spec.ts",
+      "source_line": 45,
+      "test_title": "should sort by price",
+      "old_id": null,
+      "owner": "browse",
+      "target_scenarios": [
+        "SC-BROWSE-CATALOG-003"
+      ],
+      "disposition": "merged",
+      "preserved_assertions": [
+        {
+          "kind": "ui_contract",
+          "expected": "legacy browser assertion preserved by target behavior"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/browse/product-list.spec.ts",
+      "source_line": 68,
+      "test_title": "should navigate pagination",
+      "old_id": null,
+      "owner": "browse",
+      "target_scenarios": [
+        "SC-BROWSE-CATALOG-004"
+      ],
+      "disposition": "merged",
+      "preserved_assertions": [
+        {
+          "kind": "ui_contract",
+          "expected": "legacy browser assertion preserved by target behavior"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/browse/search.spec.ts",
+      "source_line": 8,
+      "test_title": "should return search results for valid query",
+      "old_id": null,
+      "owner": "browse",
+      "target_scenarios": [],
+      "disposition": "pending",
+      "preserved_assertions": []
+    },
+    {
+      "source_path": "test/tests/browse/search.spec.ts",
+      "source_line": 29,
+      "test_title": "should show empty state for no matches",
+      "old_id": null,
+      "owner": "browse",
+      "target_scenarios": [],
+      "disposition": "pending",
+      "preserved_assertions": []
+    },
+    {
+      "source_path": "test/tests/browse/search.spec.ts",
+      "source_line": 56,
+      "test_title": "should display result count matching results",
+      "old_id": null,
+      "owner": "browse",
+      "target_scenarios": [],
+      "disposition": "pending",
+      "preserved_assertions": []
+    },
+    {
+      "source_path": "test/tests/checkout/cart.spec.ts",
+      "source_line": 27,
+      "test_title": "should add product to cart and view cart",
+      "old_id": null,
+      "owner": "checkout",
+      "target_scenarios": [
+        "SC-CHECKOUT-CART-001"
+      ],
+      "disposition": "merged",
+      "preserved_assertions": [
+        {
+          "kind": "ui_contract",
+          "expected": "legacy browser assertion preserved by target behavior"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/checkout/cart.spec.ts",
+      "source_line": 40,
+      "test_title": "should display cart total",
+      "old_id": null,
+      "owner": "checkout",
+      "target_scenarios": [
+        "SC-CHECKOUT-CART-002"
+      ],
+      "disposition": "merged",
+      "preserved_assertions": [
+        {
+          "kind": "ui_contract",
+          "expected": "legacy browser assertion preserved by target behavior"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/checkout/cart.spec.ts",
+      "source_line": 48,
+      "test_title": "should update item quantity",
+      "old_id": null,
+      "owner": "checkout",
+      "target_scenarios": [
+        "SC-CHECKOUT-CART-003"
+      ],
+      "disposition": "merged",
+      "preserved_assertions": [
+        {
+          "kind": "ui_contract",
+          "expected": "legacy browser assertion preserved by target behavior"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/checkout/cart.spec.ts",
+      "source_line": 62,
+      "test_title": "should remove item from cart",
+      "old_id": null,
+      "owner": "checkout",
+      "target_scenarios": [
+        "SC-CHECKOUT-CART-004"
+      ],
+      "disposition": "merged",
+      "preserved_assertions": [
+        {
+          "kind": "ui_contract",
+          "expected": "legacy browser assertion preserved by target behavior"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/checkout/cart.spec.ts",
+      "source_line": 76,
+      "test_title": "should show empty state when cart is empty",
+      "old_id": null,
+      "owner": "checkout",
+      "target_scenarios": [
+        "SC-CHECKOUT-CART-005"
+      ],
+      "disposition": "merged",
+      "preserved_assertions": [
+        {
+          "kind": "ui_contract",
+          "expected": "legacy browser assertion preserved by target behavior"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/checkout/figma-contract.spec.ts",
+      "source_line": 24,
+      "test_title": "cart route should expose cart total + checkout CTA",
+      "old_id": null,
+      "owner": "checkout",
+      "target_scenarios": [],
+      "disposition": "pending",
+      "preserved_assertions": []
+    },
+    {
+      "source_path": "test/tests/checkout/figma-contract.spec.ts",
+      "source_line": 30,
+      "test_title": "detail to cart to checkout should preserve core CTA flow",
+      "old_id": null,
+      "owner": "checkout",
+      "target_scenarios": [],
+      "disposition": "pending",
+      "preserved_assertions": []
+    },
+    {
+      "source_path": "test/tests/checkout/order-flow.spec.ts",
+      "source_line": 18,
+      "test_title": "should complete purchase flow from product to confirmation",
+      "old_id": null,
+      "owner": "checkout",
+      "target_scenarios": [
+        "SC-CHECKOUT-ORDER-003"
+      ],
+      "disposition": "merged",
+      "preserved_assertions": [
+        {
+          "kind": "ui_contract",
+          "expected": "legacy browser assertion preserved by target behavior"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/checkout/order-flow.spec.ts",
+      "source_line": 80,
+      "test_title": "should show order in orders list after purchase",
+      "old_id": null,
+      "owner": "checkout",
+      "target_scenarios": [
+        "SC-CHECKOUT-ORDER-004"
+      ],
+      "disposition": "merged",
+      "preserved_assertions": [
+        {
+          "kind": "ui_contract",
+          "expected": "legacy browser assertion preserved by target behavior"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/content/about.spec.ts",
+      "source_line": 21,
+      "test_title": "should render about page",
+      "old_id": null,
+      "owner": "content",
+      "target_scenarios": [],
+      "disposition": "pending",
+      "preserved_assertions": []
+    },
+    {
+      "source_path": "test/tests/content/about.spec.ts",
+      "source_line": 32,
+      "test_title": "should load and display dynamic About narrative and gallery correctly",
+      "old_id": null,
+      "owner": "content",
+      "target_scenarios": [],
+      "disposition": "pending",
+      "preserved_assertions": []
+    },
+    {
+      "source_path": "test/tests/content/articles.spec.ts",
+      "source_line": 4,
+      "test_title": "should render article list",
+      "old_id": null,
+      "owner": "content",
+      "target_scenarios": [],
+      "disposition": "pending",
+      "preserved_assertions": []
+    },
+    {
+      "source_path": "test/tests/content/articles.spec.ts",
+      "source_line": 15,
+      "test_title": "should navigate to article detail",
+      "old_id": null,
+      "owner": "content",
+      "target_scenarios": [
+        "SC-CONTENT-ARTICLE-002"
+      ],
+      "disposition": "merged",
+      "preserved_assertions": [
+        {
+          "kind": "ui_contract",
+          "expected": "legacy browser assertion preserved by target behavior"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/content/articles.spec.ts",
+      "source_line": 32,
+      "test_title": "should display article content",
+      "old_id": null,
+      "owner": "content",
+      "target_scenarios": [],
+      "disposition": "pending",
+      "preserved_assertions": []
+    },
+    {
+      "source_path": "test/tests/content/articles.spec.ts",
+      "source_line": 49,
+      "test_title": "should handle pagination",
+      "old_id": null,
+      "owner": "content",
+      "target_scenarios": [],
+      "disposition": "pending",
+      "preserved_assertions": []
+    },
+    {
+      "source_path": "test/tests/content/contact.spec.ts",
+      "source_line": 10,
+      "test_title": "should render contact form",
+      "old_id": null,
+      "owner": "content",
+      "target_scenarios": [],
+      "disposition": "pending",
+      "preserved_assertions": []
+    },
+    {
+      "source_path": "test/tests/content/contact.spec.ts",
+      "source_line": 17,
+      "test_title": "should display map embed",
+      "old_id": null,
+      "owner": "content",
+      "target_scenarios": [],
+      "disposition": "pending",
+      "preserved_assertions": []
+    },
+    {
+      "source_path": "test/tests/content/contact.spec.ts",
+      "source_line": 24,
+      "test_title": "should display company contact info",
+      "old_id": null,
+      "owner": "content",
+      "target_scenarios": [
+        "SC-CONTENT-CONTACT-003"
+      ],
+      "disposition": "merged",
+      "preserved_assertions": [
+        {
+          "kind": "ui_contract",
+          "expected": "legacy browser assertion preserved by target behavior"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/content/contact.spec.ts",
+      "source_line": 33,
+      "test_title": "should submit contact form",
+      "old_id": null,
+      "owner": "content",
+      "target_scenarios": [
+        "SC-CONTENT-CONTACT-004"
+      ],
+      "disposition": "merged",
+      "preserved_assertions": [
+        {
+          "kind": "ui_contract",
+          "expected": "legacy browser assertion preserved by target behavior"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/engagement/reviews.spec.ts",
+      "source_line": 17,
+      "test_title": "should display reviews on product page",
+      "old_id": null,
+      "owner": "engagement",
+      "target_scenarios": [],
+      "disposition": "pending",
+      "preserved_assertions": []
+    },
+    {
+      "source_path": "test/tests/engagement/reviews.spec.ts",
+      "source_line": 38,
+      "test_title": "should submit review with rating",
+      "old_id": null,
+      "owner": "engagement",
+      "target_scenarios": [],
+      "disposition": "pending",
+      "preserved_assertions": []
+    },
+    {
+      "source_path": "test/tests/engagement/reviews.spec.ts",
+      "source_line": 84,
+      "test_title": "should show review on product page after submission",
+      "old_id": null,
+      "owner": "engagement",
+      "target_scenarios": [],
+      "disposition": "pending",
+      "preserved_assertions": []
+    },
+    {
+      "source_path": "test/tests/engagement/wishlist.spec.ts",
+      "source_line": 17,
+      "test_title": "should add product to wishlist",
+      "old_id": null,
+      "owner": "engagement",
+      "target_scenarios": [
+        "SC-ENGAGEMENT-WISHLIST-001"
+      ],
+      "disposition": "merged",
+      "preserved_assertions": [
+        {
+          "kind": "ui_contract",
+          "expected": "legacy browser assertion preserved by target behavior"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/engagement/wishlist.spec.ts",
+      "source_line": 46,
+      "test_title": "should view wishlist page",
+      "old_id": null,
+      "owner": "engagement",
+      "target_scenarios": [],
+      "disposition": "pending",
+      "preserved_assertions": []
+    },
+    {
+      "source_path": "test/tests/engagement/wishlist.spec.ts",
+      "source_line": 54,
+      "test_title": "should remove item from wishlist",
+      "old_id": null,
+      "owner": "engagement",
+      "target_scenarios": [
+        "SC-ENGAGEMENT-WISHLIST-003"
+      ],
+      "disposition": "merged",
+      "preserved_assertions": [
+        {
+          "kind": "ui_contract",
+          "expected": "legacy browser assertion preserved by target behavior"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/engagement/wishlist.spec.ts",
+      "source_line": 73,
+      "test_title": "should vote on wishlist item",
+      "old_id": null,
+      "owner": "engagement",
+      "target_scenarios": [
+        "SC-ENGAGEMENT-WISHLIST-004"
+      ],
+      "disposition": "merged",
+      "preserved_assertions": [
+        {
+          "kind": "ui_contract",
+          "expected": "legacy browser assertion preserved by target behavior"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/product-flow/admin-ui.spec.ts",
+      "source_line": 26,
+      "test_title": "PF-ADMIN-UI-001 create product with specs and verify storefront detail",
+      "old_id": "PF-ADMIN-UI-001",
+      "owner": "product-flow",
+      "target_scenarios": [
+        "SC-ADMIN-PRODUCT-CREATE-001"
+      ],
+      "disposition": "migrated",
+      "preserved_assertions": [
+        {
+          "kind": "ui_fields",
+          "expected": "two saved specs visible in storefront"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/product-flow/admin-ui.spec.ts",
+      "source_line": 61,
+      "test_title": "PF-ADMIN-UI-002 upload image during create shows preview contract",
+      "old_id": "PF-ADMIN-UI-002",
+      "owner": "product-flow",
+      "target_scenarios": [
+        "SC-ADMIN-PRODUCT-CREATE-002"
+      ],
+      "disposition": "migrated",
+      "preserved_assertions": [
+        {
+          "kind": "ui_media",
+          "expected": "preview card and image"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/product-flow/admin-ui.spec.ts",
+      "source_line": 85,
+      "test_title": "PF-ADMIN-UI-003 admin product list exposes and executes toggle/delete actions",
+      "old_id": "PF-ADMIN-UI-003",
+      "owner": "product-flow",
+      "target_scenarios": [
+        "SC-ADMIN-PRODUCT-LIST-001"
+      ],
+      "disposition": "migrated",
+      "preserved_assertions": [
+        {
+          "kind": "ui_actions",
+          "expected": "toggle/edit/delete"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/product-flow/api.spec.ts",
+      "source_line": 15,
+      "test_title": "PF-API-001 product list returns paginated active products",
+      "old_id": "PF-API-001",
+      "owner": "product-flow",
+      "target_scenarios": [
+        "SC-CAT-PUBLIC-LIST-001"
+      ],
+      "disposition": "merged",
+      "preserved_assertions": [
+        {
+          "kind": "status_code",
+          "expected": "200"
+        },
+        {
+          "kind": "shape",
+          "expected": "items,total,page,limit"
+        },
+        {
+          "kind": "visibility",
+          "expected": "inactive products absent"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/product-flow/api.spec.ts",
+      "source_line": 22,
+      "test_title": "PF-API-002 product list supports category filter",
+      "old_id": "PF-API-002",
+      "owner": "product-flow",
+      "target_scenarios": [
+        "SC-CAT-PUBLIC-LIST-003"
+      ],
+      "disposition": "merged",
+      "preserved_assertions": [
+        {
+          "kind": "filter",
+          "expected": "returned items are category-scoped"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/product-flow/api.spec.ts",
+      "source_line": 28,
+      "test_title": "PF-API-003 product search returns matching products",
+      "old_id": "PF-API-003",
+      "owner": "product-flow",
+      "target_scenarios": [
+        "SC-CAT-PUBLIC-SEARCH-001"
+      ],
+      "disposition": "merged",
+      "preserved_assertions": [
+        {
+          "kind": "status_code",
+          "expected": "200"
+        },
+        {
+          "kind": "matching",
+          "expected": "search results contain keyword"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/product-flow/api.spec.ts",
+      "source_line": 34,
+      "test_title": "PF-API-004 product detail returns specs",
+      "old_id": "PF-API-004",
+      "owner": "product-flow",
+      "target_scenarios": [
+        "SC-CAT-PUBLIC-DETAIL-002"
+      ],
+      "disposition": "merged",
+      "preserved_assertions": [
+        {
+          "kind": "fields",
+          "expected": "specs includes at least one item"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/product-flow/api.spec.ts",
+      "source_line": 43,
+      "test_title": "PF-API-005 inactive product detail returns not found",
+      "old_id": "PF-API-005",
+      "owner": "product-flow",
+      "target_scenarios": [
+        "SC-CAT-PUBLIC-DETAIL-004"
+      ],
+      "disposition": "merged",
+      "preserved_assertions": [
+        {
+          "kind": "status_code",
+          "expected": "not found for inactive/unavailable product"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/product-flow/api.spec.ts",
+      "source_line": 49,
+      "test_title": "PF-API-006 admin create product persists details",
+      "old_id": "PF-API-006",
+      "owner": "product-flow",
+      "target_scenarios": [
+        "SC-CAT-PRODUCT-DETAILS-001"
+      ],
+      "disposition": "merged",
+      "preserved_assertions": [
+        {
+          "kind": "persistence",
+          "expected": "public specs Material/Finish"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/product-flow/api.spec.ts",
+      "source_line": 77,
+      "test_title": "PF-API-007 admin update product replaces details transactionally",
+      "old_id": "PF-API-007",
+      "owner": "product-flow",
+      "target_scenarios": [
+        "SC-CAT-PRODUCT-DETAILS-002"
+      ],
+      "disposition": "merged",
+      "preserved_assertions": [
+        {
+          "kind": "transactional_replace",
+          "expected": "KeyB present, KeyA absent"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/product-flow/api.spec.ts",
+      "source_line": 120,
+      "test_title": "PF-API-008 admin delete product cascades details",
+      "old_id": "PF-API-008",
+      "owner": "product-flow",
+      "target_scenarios": [
+        "SC-CAT-PRODUCT-DETAILS-003"
+      ],
+      "disposition": "merged",
+      "preserved_assertions": [
+        {
+          "kind": "status_code",
+          "expected": "public detail 404"
+        },
+        {
+          "kind": "cascade",
+          "expected": "details not publicly visible"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/product-flow/catalog.spec.ts",
+      "source_line": 8,
+      "test_title": "PF-CATALOG-001 catalog lists active products",
+      "old_id": "PF-CATALOG-001",
+      "owner": "product-flow",
+      "target_scenarios": [
+        "SC-BROWSE-CATALOG-001"
+      ],
+      "disposition": "merged",
+      "preserved_assertions": [
+        {
+          "kind": "behavior",
+          "expected": "legacy assertions preserved by target scenario"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/product-flow/catalog.spec.ts",
+      "source_line": 13,
+      "test_title": "PF-CATALOG-002 category filter returns matching products",
+      "old_id": "PF-CATALOG-002",
+      "owner": "product-flow",
+      "target_scenarios": [
+        "SC-BROWSE-CATALOG-002"
+      ],
+      "disposition": "merged",
+      "preserved_assertions": [
+        {
+          "kind": "behavior",
+          "expected": "legacy assertions preserved by target scenario"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/product-flow/catalog.spec.ts",
+      "source_line": 18,
+      "test_title": "PF-CATALOG-003 search returns matching products",
+      "old_id": "PF-CATALOG-003",
+      "owner": "product-flow",
+      "target_scenarios": [
+        "SC-BROWSE-CATALOG-005"
+      ],
+      "disposition": "merged",
+      "preserved_assertions": [
+        {
+          "kind": "behavior",
+          "expected": "legacy assertions preserved by target scenario"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/product-flow/catalog.spec.ts",
+      "source_line": 24,
+      "test_title": "PF-CATALOG-004 sort updates product ordering",
+      "old_id": "PF-CATALOG-004",
+      "owner": "product-flow",
+      "target_scenarios": [
+        "SC-BROWSE-CATALOG-003"
+      ],
+      "disposition": "merged",
+      "preserved_assertions": [
+        {
+          "kind": "behavior",
+          "expected": "legacy assertions preserved by target scenario"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/product-flow/catalog.spec.ts",
+      "source_line": 30,
+      "test_title": "PF-CATALOG-005 empty result shows no-results state",
+      "old_id": "PF-CATALOG-005",
+      "owner": "product-flow",
+      "target_scenarios": [
+        "SC-BROWSE-CATALOG-006"
+      ],
+      "disposition": "merged",
+      "preserved_assertions": [
+        {
+          "kind": "behavior",
+          "expected": "legacy assertions preserved by target scenario"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/product-flow/catalog.spec.ts",
+      "source_line": 35,
+      "test_title": "PF-CATALOG-006 product card click navigates to detail",
+      "old_id": "PF-CATALOG-006",
+      "owner": "product-flow",
+      "target_scenarios": [
+        "SC-BROWSE-CATALOG-008"
+      ],
+      "disposition": "merged",
+      "preserved_assertions": [
+        {
+          "kind": "behavior",
+          "expected": "legacy assertions preserved by target scenario"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/product-flow/detail.spec.ts",
+      "source_line": 31,
+      "test_title": "PF-DETAIL-001 detail renders product core info",
+      "old_id": "PF-DETAIL-001",
+      "owner": "product-flow",
+      "target_scenarios": [
+        "SC-BROWSE-DETAIL-001"
+      ],
+      "disposition": "merged",
+      "preserved_assertions": [
+        {
+          "kind": "behavior",
+          "expected": "legacy assertions preserved by target scenario"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/product-flow/detail.spec.ts",
+      "source_line": 39,
+      "test_title": "PF-DETAIL-002 detail renders specs from backend details",
+      "old_id": "PF-DETAIL-002",
+      "owner": "product-flow",
+      "target_scenarios": [
+        "SC-BROWSE-DETAIL-005"
+      ],
+      "disposition": "merged",
+      "preserved_assertions": [
+        {
+          "kind": "behavior",
+          "expected": "legacy assertions preserved by target scenario"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/product-flow/detail.spec.ts",
+      "source_line": 55,
+      "test_title": "PF-DETAIL-003 add-to-cart from detail increments cart count",
+      "old_id": "PF-DETAIL-003",
+      "owner": "product-flow",
+      "target_scenarios": [
+        "SC-PF-CART-COMPOSITION-001"
+      ],
+      "disposition": "migrated",
+      "preserved_assertions": [
+        {
+          "kind": "state",
+          "expected": "cart count increments by one"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/product-flow/detail.spec.ts",
+      "source_line": 64,
+      "test_title": "PF-DETAIL-004 quantity add-to-cart stores correct quantity",
+      "old_id": "PF-DETAIL-004",
+      "owner": "product-flow",
+      "target_scenarios": [
+        "SC-PF-CART-COMPOSITION-002"
+      ],
+      "disposition": "migrated",
+      "preserved_assertions": [
+        {
+          "kind": "state",
+          "expected": "cart item quantity is 2"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/product-flow/detail.spec.ts",
+      "source_line": 75,
+      "test_title": "PF-DETAIL-005 inactive product cannot be opened or added",
+      "old_id": "PF-DETAIL-005",
+      "owner": "product-flow",
+      "target_scenarios": [
+        "SC-BROWSE-DETAIL-007"
+      ],
+      "disposition": "merged",
+      "preserved_assertions": [
+        {
+          "kind": "status",
+          "expected": "unavailable detail and no add-to-cart"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/product-flow/home.spec.ts",
+      "source_line": 8,
+      "test_title": "PF-HOME-001 homepage renders guest discovery content",
+      "old_id": "PF-HOME-001",
+      "owner": "product-flow",
+      "target_scenarios": [
+        "SC-BROWSE-HOME-001"
+      ],
+      "disposition": "merged",
+      "preserved_assertions": [
+        {
+          "kind": "behavior",
+          "expected": "legacy assertions preserved by target scenario"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/product-flow/home.spec.ts",
+      "source_line": 14,
+      "test_title": "PF-HOME-002 category click navigates to catalog",
+      "old_id": "PF-HOME-002",
+      "owner": "product-flow",
+      "target_scenarios": [
+        "SC-BROWSE-HOME-003"
+      ],
+      "disposition": "merged",
+      "preserved_assertions": [
+        {
+          "kind": "behavior",
+          "expected": "legacy assertions preserved by target scenario"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/product-flow/home.spec.ts",
+      "source_line": 19,
+      "test_title": "PF-HOME-003 featured product CTA navigates to detail",
+      "old_id": "PF-HOME-003",
+      "owner": "product-flow",
+      "target_scenarios": [
+        "SC-BROWSE-HOME-004"
+      ],
+      "disposition": "merged",
+      "preserved_assertions": [
+        {
+          "kind": "behavior",
+          "expected": "legacy assertions preserved by target scenario"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/product-flow/home.spec.ts",
+      "source_line": 24,
+      "test_title": "PF-HOME-004 homepage CTA does not mutate cart",
+      "old_id": "PF-HOME-004",
+      "owner": "product-flow",
+      "target_scenarios": [
+        "SC-BROWSE-HOME-005"
+      ],
+      "disposition": "merged",
+      "preserved_assertions": [
+        {
+          "kind": "no_mutation",
+          "expected": "cart remains empty"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/product-flow/home.spec.ts",
+      "source_line": 34,
+      "test_title": "PF-HOME-005 homepage cards do not show follow action",
+      "old_id": "PF-HOME-005",
+      "owner": "product-flow",
+      "target_scenarios": [
+        "SC-BROWSE-HOME-006"
+      ],
+      "disposition": "merged",
+      "preserved_assertions": [
+        {
+          "kind": "absence",
+          "expected": "no follow action"
+        }
+      ]
+    },
+    {
+      "source_path": "test/tests/product-flow/home.spec.ts",
+      "source_line": 38,
+      "test_title": "PF-HOME-006 homepage cards do not show add-to-cart action",
+      "old_id": "PF-HOME-006",
+      "owner": "product-flow",
+      "target_scenarios": [
+        "SC-BROWSE-HOME-007"
+      ],
+      "disposition": "merged",
+      "preserved_assertions": [
+        {
+          "kind": "absence",
+          "expected": "no add-to-cart action"
+        }
+      ]
+    }
+  ]
+}

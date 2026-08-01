@@ -1,0 +1,10 @@
+module: admin.payment
+
+behavior:
+  feature: modules/admin/payment/behavior.feature
+  steps: modules/admin/payment/behavior.steps.ts
+
+scenarios:
+  SC-PAY-ORDER-CONTEXT-001: {}
+  SC-PAY-REFUND-CONTEXT-001: {}
+

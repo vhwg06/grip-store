@@ -1,0 +1,24 @@
+module: checkout
+
+behavior:
+  feature: modules/checkout/behavior.feature
+  steps: modules/checkout/behavior.steps.ts
+
+scenarios:
+  SC-CHECKOUT-CART-001: {}
+  SC-CHECKOUT-CART-002: {}
+  SC-CHECKOUT-CART-003: {}
+  SC-CHECKOUT-CART-004: {}
+  SC-CHECKOUT-CART-005: {}
+  SC-CHECKOUT-ORDER-001: {}
+  SC-CHECKOUT-ORDER-002: {}
+  SC-CHECKOUT-ORDER-003: {}
+  SC-CHECKOUT-ORDER-004: {}
+  SC-CHECKOUT-API-001: {}
+  SC-CHECKOUT-API-002: {}
+  SC-CHECKOUT-API-003: {}
+  SC-CHECKOUT-API-004: {}
+  SC-CHECKOUT-API-005: {}
+  SC-CHECKOUT-API-006: {}
+  SC-CHECKOUT-API-007: {}
+  SC-CHECKOUT-API-008: {}

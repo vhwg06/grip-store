@@ -1,0 +1,19 @@
+module: admin.refund
+
+behavior:
+  feature: modules/admin/refund/behavior.feature
+  steps: modules/admin/refund/behavior.steps.ts
+
+scenarios:
+  SC-REF-QUEUE-001: {}
+  SC-REF-DECISION-001: {}
+  SC-REF-DECISION-002: {}
+  SC-REF-HISTORY-001: {}
+  SC-REF-QUEUE-002: {}
+  SC-REF-QUEUE-003: {}
+  SC-REF-QUEUE-004: {}
+  SC-REF-DECISION-003: {}
+  SC-REF-DECISION-004: {}
+  SC-REF-DECISION-005: {}
+  SC-REF-DECISION-006: {}
+  SC-REF-HISTORY-002: {}

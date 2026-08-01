@@ -1,0 +1,1150 @@
+{
+  "schemaVersion": 1,
+  "generatedBy": "tools/build-migration-audit.ts",
+  "sourceEntries": 367,
+  "featureScenarioIds": 260,
+  "mappedSourceEntries": 163,
+  "pendingSourceEntries": 204,
+  "invalidTargets": [],
+  "orphanScenarios": [
+    "SC-AUTH-LOGIN-001",
+    "SC-AUTH-LOGIN-002",
+    "SC-AUTH-LOGIN-003",
+    "SC-AUTH-OAUTH-001",
+    "SC-AUTH-SESSION-001",
+    "SC-AUTH-SESSION-002",
+    "SC-AUTH-SIGNUP-001",
+    "SC-AUTH-SIGNUP-002",
+    "SC-AUTH-SIGNUP-003",
+    "SC-AUTH-SIGNUP-004",
+    "SC-BROWSE-CATALOG-004",
+    "SC-BROWSE-CATALOG-007",
+    "SC-BROWSE-DETAIL-002",
+    "SC-BROWSE-DETAIL-003",
+    "SC-BROWSE-DETAIL-004",
+    "SC-BROWSE-DETAIL-006",
+    "SC-BROWSE-HOME-002",
+    "SC-CAT-MODEL-001",
+    "SC-CAT-MODEL-002",
+    "SC-CAT-MODEL-003",
+    "SC-CAT-MODEL-004",
+    "SC-CAT-MODEL-005",
+    "SC-CAT-MODEL-006",
+    "SC-CAT-MODEL-007",
+    "SC-CAT-MODEL-008",
+    "SC-CAT-MODEL-009",
+    "SC-CAT-MODEL-010",
+    "SC-CAT-MODEL-011",
+    "SC-CAT-MODEL-012",
+    "SC-CAT-MODEL-013",
+    "SC-CAT-MODEL-014",
+    "SC-CAT-MODEL-015",
+    "SC-CAT-MODEL-016",
+    "SC-CAT-MODEL-017",
+    "SC-CAT-MODEL-018",
+    "SC-CAT-MODEL-019",
+    "SC-CAT-MODEL-020",
+    "SC-CAT-MODEL-021",
+    "SC-CAT-VARIANT-001",
+    "SC-CAT-VARIANT-002",
+    "SC-CAT-VARIANT-003",
+    "SC-CAT-VARIANT-004",
+    "SC-CAT-VARIANT-005",
+    "SC-CAT-VARIANT-006",
+    "SC-CAT-VARIANT-007",
+    "SC-CAT-VARIANT-008",
+    "SC-CAT-VARIANT-009",
+    "SC-CAT-VARIANT-010",
+    "SC-CAT-VARIANT-011",
+    "SC-CAT-VARIANT-COMBINATION-012",
+    "SC-CAT-VARIANT-COMMERCIAL-008",
+    "SC-CAT-VARIANT-DIMENSIONS-013",
+    "SC-CAT-VARIANT-LIFECYCLE-014",
+    "SC-CAT-VARIANT-PACK-001",
+    "SC-CAT-VARIANT-PACK-002",
+    "SC-CAT-VARIANT-PRICE-001",
+    "SC-CAT-VARIANT-PRICE-002",
+    "SC-CAT-VARIANT-PRICE-003",
+    "SC-CAT-VARIANT-PRICE-004",
+    "SC-CAT-VARIANT-PRICE-005",
+    "SC-CAT-VARIANT-PRICE-006",
+    "SC-CAT-VARIANT-PRICE-007",
+    "SC-CAT-VARIANT-SKU-001",
+    "SC-CAT-VARIANT-SKU-002",
+    "SC-CAT-VARIANT-SKU-003",
+    "SC-CAT-VARIANT-TECHNICAL-015",
+    "SC-CHECKOUT-CART-001",
+    "SC-CHECKOUT-CART-002",
+    "SC-CHECKOUT-CART-003",
+    "SC-CHECKOUT-CART-004",
+    "SC-CHECKOUT-CART-005",
+    "SC-CHECKOUT-ORDER-001",
+    "SC-CHECKOUT-ORDER-002",
+    "SC-CHECKOUT-ORDER-003",
+    "SC-CHECKOUT-ORDER-004",
+    "SC-CONT-ABOUT-LINK-002",
+    "SC-CONT-ARTICLE-PREVIEW-001",
+    "SC-CONT-EDITOR-001",
+    "SC-CONT-EDITOR-002",
+    "SC-CONT-UI-001",
+    "SC-CONTENT-ABOUT-001",
+    "SC-CONTENT-ABOUT-002",
+    "SC-CONTENT-ARTICLE-001",
+    "SC-CONTENT-ARTICLE-002",
+    "SC-CONTENT-ARTICLE-003",
+    "SC-CONTENT-ARTICLE-004",
+    "SC-CONTENT-CONTACT-001",
+    "SC-CONTENT-CONTACT-002",
+    "SC-CONTENT-CONTACT-003",
+    "SC-CONTENT-CONTACT-004",
+    "SC-ENGAGEMENT-REVIEW-001",
+    "SC-ENGAGEMENT-REVIEW-002",
+    "SC-ENGAGEMENT-REVIEW-003",
+    "SC-ENGAGEMENT-WISHLIST-001",
+    "SC-ENGAGEMENT-WISHLIST-002",
+    "SC-ENGAGEMENT-WISHLIST-003",
+    "SC-ENGAGEMENT-WISHLIST-004",
+    "SC-ORD-DETAIL-001",
+    "SC-ORD-QUEUE-001",
+    "SC-ORD-QUEUE-002",
+    "SC-ORD-QUEUE-003",
+    "SC-ORD-TRANSITION-003",
+    "SC-REV-BULK-001",
+    "SC-REV-DECISION-001",
+    "SC-REV-DECISION-002",
+    "SC-REV-DECISION-003",
+    "SC-REV-DELETE-001",
+    "SC-REV-QUEUE-001",
+    "SC-SET-CONTACT-001",
+    "SC-SET-DISCOVERY-001",
+    "SC-SET-HOMEPAGE-001",
+    "SC-SET-REGISTRY-001"
+  ],
+  "dispositions": {
+    "merged": 69,
+    "migrated": 94,
+    "pending": 204
+  },
+  "pendingSources": [
+    {
+      "source_path": "test/tests/admin/admin-specs.spec.ts",
+      "source_line": 22,
+      "test_title": "should allow adding, editing and deleting specs on product creation"
+    },
+    {
+      "source_path": "test/tests/admin/articles.spec.ts",
+      "source_line": 15,
+      "test_title": "should support complete CRUD flow for articles and About ownership"
+    },
+    {
+      "source_path": "test/tests/admin/articles.spec.ts",
+      "source_line": 97,
+      "test_title": "should support previewing articles in storefront simulated modal"
+    },
+    {
+      "source_path": "test/tests/admin/articles.spec.ts",
+      "source_line": 110,
+      "test_title": "should support toggling editor modes"
+    },
+    {
+      "source_path": "test/tests/admin/banners.spec.ts",
+      "source_line": 20,
+      "test_title": "should allow adding, updating storefront visibility, and deleting a banner"
+    },
+    {
+      "source_path": "test/tests/admin/content.spec.ts",
+      "source_line": 8,
+      "test_title": "UC-CONT-01 keeps media selection available as shared internal tooling"
+    },
+    {
+      "source_path": "test/tests/admin/customer.spec.ts",
+      "source_line": 68,
+      "test_title": "UC-CUS-01 finds a customer record from customer-centric search"
+    },
+    {
+      "source_path": "test/tests/admin/customer.spec.ts",
+      "source_line": 85,
+      "test_title": "UC-CUS-02 renders customer summary and commerce indicators"
+    },
+    {
+      "source_path": "test/tests/admin/customer.spec.ts",
+      "source_line": 102,
+      "test_title": "UC-CUS-03 traverses commerce links from the customer root"
+    },
+    {
+      "source_path": "test/tests/admin/customer.spec.ts",
+      "source_line": 115,
+      "test_title": "UC-CUS-04 distinguishes customer root from user-domain controls"
+    },
+    {
+      "source_path": "test/tests/admin/customer.spec.ts",
+      "source_line": 140,
+      "test_title": "UC-CUS-05 treats empty commerce history as a valid customer state"
+    },
+    {
+      "source_path": "test/tests/admin/customer.spec.ts",
+      "source_line": 157,
+      "test_title": "UC-CUS-01 renders empty search state gracefully"
+    },
+    {
+      "source_path": "test/tests/admin/customer.spec.ts",
+      "source_line": 173,
+      "test_title": "UC-CUS-01 exception: admin accounts must not appear in customer search results"
+    },
+    {
+      "source_path": "test/tests/admin/customer.spec.ts",
+      "source_line": 188,
+      "test_title": "UC-CUS-02 alternate: customer with orders but no refunds shows correct commerce indicator set"
+    },
+    {
+      "source_path": "test/tests/admin/faqs.spec.ts",
+      "source_line": 15,
+      "test_title": "should support complete CRUD flow for FAQs"
+    },
+    {
+      "source_path": "test/tests/admin/figma-contract.spec.ts",
+      "source_line": 16,
+      "test_title": "Verify Store Settings page matches Figma @desktop"
+    },
+    {
+      "source_path": "test/tests/admin/figma-contract.spec.ts",
+      "source_line": 28,
+      "test_title": "Verify Products list page matches Figma @desktop"
+    },
+    {
+      "source_path": "test/tests/admin/figma-contract.spec.ts",
+      "source_line": 39,
+      "test_title": "Verify Product Create page matches Figma @desktop"
+    },
+    {
+      "source_path": "test/tests/admin/figma-contract.spec.ts",
+      "source_line": 47,
+      "test_title": "Verify Banners page matches Figma @desktop"
+    },
+    {
+      "source_path": "test/tests/admin/figma-contract.spec.ts",
+      "source_line": 58,
+      "test_title": "Verify Media Library page matches Figma @desktop"
+    },
+    {
+      "source_path": "test/tests/admin/figma-contract.spec.ts",
+      "source_line": 69,
+      "test_title": "Verify Orders page matches Figma @desktop"
+    },
+    {
+      "source_path": "test/tests/admin/figma-contract.spec.ts",
+      "source_line": 80,
+      "test_title": "Verify Refunds page matches Figma @desktop"
+    },
+    {
+      "source_path": "test/tests/admin/figma-contract.spec.ts",
+      "source_line": 93,
+      "test_title": "Verify Messages page matches Figma @desktop"
+    },
+    {
+      "source_path": "test/tests/admin/figma-contract.spec.ts",
+      "source_line": 104,
+      "test_title": "Verify Categories page matches Figma @desktop"
+    },
+    {
+      "source_path": "test/tests/admin/figma-contract.spec.ts",
+      "source_line": 115,
+      "test_title": "Verify Users page matches Figma @desktop"
+    },
+    {
+      "source_path": "test/tests/admin/figma-contract.spec.ts",
+      "source_line": 126,
+      "test_title": "Verify Reviews page matches Figma @desktop"
+    },
+    {
+      "source_path": "test/tests/admin/figma-contract.spec.ts",
+      "source_line": 144,
+      "test_title": "Verify Collect page matches Figma @desktop"
+    },
+    {
+      "source_path": "test/tests/admin/figma-contract.spec.ts",
+      "source_line": 155,
+      "test_title": "Verify Profile page matches Figma @desktop"
+    },
+    {
+      "source_path": "test/tests/admin/figma-contract.spec.ts",
+      "source_line": 166,
+      "test_title": "Verify FAQs page matches Figma @desktop"
+    },
+    {
+      "source_path": "test/tests/admin/figma-contract.spec.ts",
+      "source_line": 177,
+      "test_title": "Verify Articles page matches Figma @desktop"
+    },
+    {
+      "source_path": "test/tests/admin/noty.spec.ts",
+      "source_line": 30,
+      "test_title": "UC-NOTY-01 renders outbound readiness controls for notification channels"
+    },
+    {
+      "source_path": "test/tests/admin/noty.spec.ts",
+      "source_line": 47,
+      "test_title": "UC-NOTY-02 sends a website push from the compose flow and reflects it in the outbound table"
+    },
+    {
+      "source_path": "test/tests/admin/noty.spec.ts",
+      "source_line": 69,
+      "test_title": "UC-NOTY-03 reads outbound notification list from backend state instead of only local scaffolding"
+    },
+    {
+      "source_path": "test/tests/admin/noty.spec.ts",
+      "source_line": 92,
+      "test_title": "UC-NOTY-04 exposes send history with outcome trace separate from campaign composition"
+    },
+    {
+      "source_path": "test/tests/admin/noty.spec.ts",
+      "source_line": 117,
+      "test_title": "UC-NOTY-03 alternate: renders empty search state gracefully"
+    },
+    {
+      "source_path": "test/tests/admin/noty.spec.ts",
+      "source_line": 127,
+      "test_title": "EXC-NOTY-01 shows an explicit readiness error instead of fabricated defaults when notification settings fail"
+    },
+    {
+      "source_path": "test/tests/admin/noty.spec.ts",
+      "source_line": 147,
+      "test_title": "UC-NOTY-01 alternate: updates channel readiness settings before sending a push notification"
+    },
+    {
+      "source_path": "test/tests/admin/orders.spec.ts",
+      "source_line": 68,
+      "test_title": "UC-ORD-01 renders queue state and preserves row-to-detail handoff"
+    },
+    {
+      "source_path": "test/tests/admin/orders.spec.ts",
+      "source_line": 93,
+      "test_title": "UC-ORD-02 renders order detail context before action"
+    },
+    {
+      "source_path": "test/tests/admin/orders.spec.ts",
+      "source_line": 108,
+      "test_title": "UC-ORD-03 submits a valid pending-to-paid transition from the admin queue"
+    },
+    {
+      "source_path": "test/tests/admin/orders.spec.ts",
+      "source_line": 140,
+      "test_title": "UC-ORD-05 renders refund relevance for an order that has a pending refund request"
+    },
+    {
+      "source_path": "test/tests/admin/orders.spec.ts",
+      "source_line": 163,
+      "test_title": "UC-ORD-06 keeps incomplete-context order detail readable with safe fallbacks"
+    },
+    {
+      "source_path": "test/tests/admin/orders.spec.ts",
+      "source_line": 177,
+      "test_title": "UC-ORD-01 alternate: renders empty state gracefully"
+    },
+    {
+      "source_path": "test/tests/admin/orders.spec.ts",
+      "source_line": 193,
+      "test_title": "UC-ORD-04 opens customer-linked purchase history from customer context"
+    },
+    {
+      "source_path": "test/tests/admin/orders.spec.ts",
+      "source_line": 233,
+      "test_title": "UC-ORD-01 exception: returns 404 for nonexistent order ID"
+    },
+    {
+      "source_path": "test/tests/admin/orders.spec.ts",
+      "source_line": 243,
+      "test_title": "UC-ORD-04 alternate: empty purchase history is a valid resolved state"
+    },
+    {
+      "source_path": "test/tests/admin/orders.spec.ts",
+      "source_line": 273,
+      "test_title": "UC-ORD-03 alternate: delivered order has no further allowed actions"
+    },
+    {
+      "source_path": "test/tests/admin/orders.spec.ts",
+      "source_line": 286,
+      "test_title": "UC-ORD-01 alternate: narrows order queue by filter and sees only matching rows"
+    },
+    {
+      "source_path": "test/tests/admin/orders.spec.ts",
+      "source_line": 305,
+      "test_title": "UC-ORD-04 alternate: customer purchase history shows multiple orders in high-level pattern"
+    },
+    {
+      "source_path": "test/tests/admin/payment-collection.spec.ts",
+      "source_line": 29,
+      "test_title": "UC-PCOL-01 reads collection sources from backend state instead of a static source catalog"
+    },
+    {
+      "source_path": "test/tests/admin/payment-collection.spec.ts",
+      "source_line": 65,
+      "test_title": "UC-PCOL-02 persists payee identity from the admin collection surface"
+    },
+    {
+      "source_path": "test/tests/admin/payment-collection.spec.ts",
+      "source_line": 87,
+      "test_title": "UC-PCOL-03 blocks invalid QR or transfer setup from being saved live"
+    },
+    {
+      "source_path": "test/tests/admin/payment-collection.spec.ts",
+      "source_line": 115,
+      "test_title": "UC-PCOL-04 renders collection readiness from backend signals instead of hardcoded active badges"
+    },
+    {
+      "source_path": "test/tests/admin/payment.spec.ts",
+      "source_line": 8,
+      "test_title": "UC-PAY-01 reads payment info in order context"
+    },
+    {
+      "source_path": "test/tests/admin/payment.spec.ts",
+      "source_line": 22,
+      "test_title": "UC-PAY-02 reads payment context for refund decision"
+    },
+    {
+      "source_path": "test/tests/admin/payment.spec.ts",
+      "source_line": 35,
+      "test_title": "UC-PAY-03 distinguishes payment information from payment execution"
+    },
+    {
+      "source_path": "test/tests/admin/products.spec.ts",
+      "source_line": 13,
+      "test_title": "should display admin product list"
+    },
+    {
+      "source_path": "test/tests/admin/products.spec.ts",
+      "source_line": 22,
+      "test_title": "should create a new product"
+    },
+    {
+      "source_path": "test/tests/admin/products.spec.ts",
+      "source_line": 41,
+      "test_title": "should upload image via media uploader when creating product"
+    },
+    {
+      "source_path": "test/tests/admin/products.spec.ts",
+      "source_line": 76,
+      "test_title": "should toggle product visibility"
+    },
+    {
+      "source_path": "test/tests/admin/products.spec.ts",
+      "source_line": 91,
+      "test_title": "should delete a product"
+    },
+    {
+      "source_path": "test/tests/admin/products.spec.ts",
+      "source_line": 113,
+      "test_title": "should handle empty search state gracefully"
+    },
+    {
+      "source_path": "test/tests/admin/refund.spec.ts",
+      "source_line": 77,
+      "test_title": "UC-REF-01 reviews the refund queue and opens evidence"
+    },
+    {
+      "source_path": "test/tests/admin/refund.spec.ts",
+      "source_line": 98,
+      "test_title": "UC-REF-02 reads refund evidence before deciding"
+    },
+    {
+      "source_path": "test/tests/admin/refund.spec.ts",
+      "source_line": 117,
+      "test_title": "UC-REF-03 approves a refund from the admin decision surface"
+    },
+    {
+      "source_path": "test/tests/admin/refund.spec.ts",
+      "source_line": 148,
+      "test_title": "UC-REF-04 rejects a refund from the admin decision surface"
+    },
+    {
+      "source_path": "test/tests/admin/refund.spec.ts",
+      "source_line": 179,
+      "test_title": "UC-REF-05 reviews a refund that is already decided"
+    },
+    {
+      "source_path": "test/tests/admin/refund.spec.ts",
+      "source_line": 208,
+      "test_title": "UC-REF-01 alternate: renders empty state gracefully"
+    },
+    {
+      "source_path": "test/tests/admin/refund.spec.ts",
+      "source_line": 218,
+      "test_title": "UC-REF-01 exception: approved refund does not appear in pending queue"
+    },
+    {
+      "source_path": "test/tests/admin/refund.spec.ts",
+      "source_line": 242,
+      "test_title": "UC-REF-04 exception: cannot reject an already-decided refund"
+    },
+    {
+      "source_path": "test/tests/admin/refund.spec.ts",
+      "source_line": 269,
+      "test_title": "UC-REF-03 alternate: admin adds decision note before approving refund"
+    },
+    {
+      "source_path": "test/tests/admin/reviews-moderation.spec.ts",
+      "source_line": 80,
+      "test_title": "UC-REV-01 reviews the moderation queue"
+    },
+    {
+      "source_path": "test/tests/admin/reviews-moderation.spec.ts",
+      "source_line": 105,
+      "test_title": "UC-REV-02 moderates a single review"
+    },
+    {
+      "source_path": "test/tests/admin/reviews-moderation.spec.ts",
+      "source_line": 135,
+      "test_title": "UC-REV-03 bulk publishes selected pending reviews"
+    },
+    {
+      "source_path": "test/tests/admin/reviews-moderation.spec.ts",
+      "source_line": 164,
+      "test_title": "UC-REV-04 reads moderation context for a selected review"
+    },
+    {
+      "source_path": "test/tests/admin/reviews-moderation.spec.ts",
+      "source_line": 193,
+      "test_title": "UC-REV-05 removes a review from the moderation surface"
+    },
+    {
+      "source_path": "test/tests/admin/reviews-moderation.spec.ts",
+      "source_line": 222,
+      "test_title": "UC-REV-01 alternate: renders empty state gracefully"
+    },
+    {
+      "source_path": "test/tests/admin/reviews-moderation.spec.ts",
+      "source_line": 233,
+      "test_title": "UC-REV-02 alternate: approves a single pending review from the moderation surface"
+    },
+    {
+      "source_path": "test/tests/admin/reviews-moderation.spec.ts",
+      "source_line": 262,
+      "test_title": "UC-REV-02 alternate: features an approved review to elevate its prominence"
+    },
+    {
+      "source_path": "test/tests/admin/reviews-moderation.spec.ts",
+      "source_line": 290,
+      "test_title": "UC-REV-03 alternate: bulk publish with partial valid selection only applies to eligible reviews"
+    },
+    {
+      "source_path": "test/tests/admin/reviews-moderation.spec.ts",
+      "source_line": 324,
+      "test_title": "UC-REV-02 exception: a hidden review cannot be hidden again"
+    },
+    {
+      "source_path": "test/tests/admin/settings.spec.ts",
+      "source_line": 13,
+      "test_title": "should display settings page"
+    },
+    {
+      "source_path": "test/tests/admin/settings.spec.ts",
+      "source_line": 19,
+      "test_title": "should manage categories"
+    },
+    {
+      "source_path": "test/tests/admin/settings.spec.ts",
+      "source_line": 28,
+      "test_title": "should view users list"
+    },
+    {
+      "source_path": "test/tests/admin/site-config.spec.ts",
+      "source_line": 8,
+      "test_title": "should load settings page and show general config fields"
+    },
+    {
+      "source_path": "test/tests/admin/store-settings.spec.ts",
+      "source_line": 30,
+      "test_title": "UC-SET-01 submits storefront contact intent and reflects the new contact info publicly"
+    },
+    {
+      "source_path": "test/tests/admin/store-settings.spec.ts",
+      "source_line": 60,
+      "test_title": "UC-SET-02 submits homepage composition decisions and reflects the new homepage priority"
+    },
+    {
+      "source_path": "test/tests/admin/store-settings.spec.ts",
+      "source_line": 92,
+      "test_title": "UC-SET-02 negative path: rejects negative news count"
+    },
+    {
+      "source_path": "test/tests/admin/store-settings.spec.ts",
+      "source_line": 98,
+      "test_title": "UC-SET-04 submits footer and support touchpoint intent and reflects public support commitments"
+    },
+    {
+      "source_path": "test/tests/admin/store-settings.spec.ts",
+      "source_line": 137,
+      "test_title": "UC-SET-04 negative path: validation blocks invalid support email format"
+    },
+    {
+      "source_path": "test/tests/admin/user.spec.ts",
+      "source_line": 92,
+      "test_title": "UC-USER-01 presents an account-centric management root"
+    },
+    {
+      "source_path": "test/tests/admin/user.spec.ts",
+      "source_line": 115,
+      "test_title": "UC-USER-02 reads account state without switching into customer-domain actions"
+    },
+    {
+      "source_path": "test/tests/admin/user.spec.ts",
+      "source_line": 131,
+      "test_title": "UC-USER-03 keeps block mutation in explicit account-control semantics"
+    },
+    {
+      "source_path": "test/tests/admin/user.spec.ts",
+      "source_line": 146,
+      "test_title": "UC-USER-03 submits block mutation (blocked-be-gap)"
+    },
+    {
+      "source_path": "test/tests/admin/user.spec.ts",
+      "source_line": 168,
+      "test_title": "UC-USER-04 exposes a domain handoff from account context into customer context"
+    },
+    {
+      "source_path": "test/tests/admin/user.spec.ts",
+      "source_line": 182,
+      "test_title": "UC-USER-05 keeps commerce support separate from account-control actions"
+    },
+    {
+      "source_path": "test/tests/admin/user.spec.ts",
+      "source_line": 201,
+      "test_title": "UC-USER-01 alternate: admin refines search multiple times before reaching the correct account"
+    },
+    {
+      "source_path": "test/tests/api/integration/admin-customer.spec.ts",
+      "source_line": 40,
+      "test_title": "UC-CUS-01 rejects unauthenticated customer-root reads"
+    },
+    {
+      "source_path": "test/tests/api/integration/admin-customer.spec.ts",
+      "source_line": 49,
+      "test_title": "UC-CUS-01 rejects non-admin customer-root reads"
+    },
+    {
+      "source_path": "test/tests/api/integration/admin-refund.spec.ts",
+      "source_line": 62,
+      "test_title": "UC-REF-01 rejects unauthenticated refund queue reads"
+    },
+    {
+      "source_path": "test/tests/api/integration/admin-refund.spec.ts",
+      "source_line": 71,
+      "test_title": "UC-REF-01 rejects non-admin refund queue reads"
+    },
+    {
+      "source_path": "test/tests/api/integration/admin-review.spec.ts",
+      "source_line": 5,
+      "test_title": "UC-REV-01 rejects unauthenticated review moderation reads"
+    },
+    {
+      "source_path": "test/tests/api/integration/admin-review.spec.ts",
+      "source_line": 14,
+      "test_title": "UC-REV-01 rejects non-admin review moderation reads"
+    },
+    {
+      "source_path": "test/tests/api/integration/admin-review.spec.ts",
+      "source_line": 26,
+      "test_title": "UC-REV-04 reads moderation context from the review queue payload"
+    },
+    {
+      "source_path": "test/tests/api/integration/admin.api.spec.ts",
+      "source_line": 72,
+      "test_title": "lists products with admin token"
+    },
+    {
+      "source_path": "test/tests/api/integration/admin.api.spec.ts",
+      "source_line": 85,
+      "test_title": "returns 403 without admin role"
+    },
+    {
+      "source_path": "test/tests/api/integration/admin.api.spec.ts",
+      "source_line": 95,
+      "test_title": "returns 401 without auth"
+    },
+    {
+      "source_path": "test/tests/api/integration/admin.api.spec.ts",
+      "source_line": 102,
+      "test_title": "creates, updates, and deletes a product roundtrip"
+    },
+    {
+      "source_path": "test/tests/api/integration/admin.api.spec.ts",
+      "source_line": 154,
+      "test_title": "lists categories with admin token"
+    },
+    {
+      "source_path": "test/tests/api/integration/admin.api.spec.ts",
+      "source_line": 166,
+      "test_title": "creates, updates, and deletes a category roundtrip"
+    },
+    {
+      "source_path": "test/tests/api/integration/admin.api.spec.ts",
+      "source_line": 207,
+      "test_title": "lists orders with admin token"
+    },
+    {
+      "source_path": "test/tests/api/integration/admin.api.spec.ts",
+      "source_line": 220,
+      "test_title": "returns seeded admin order detail"
+    },
+    {
+      "source_path": "test/tests/api/integration/admin.api.spec.ts",
+      "source_line": 236,
+      "test_title": "updates order status and deletes an admin-created order"
+    },
+    {
+      "source_path": "test/tests/api/integration/admin.api.spec.ts",
+      "source_line": 256,
+      "test_title": "rejects malformed order update payload"
+    },
+    {
+      "source_path": "test/tests/api/integration/admin.api.spec.ts",
+      "source_line": 268,
+      "test_title": "lists pending refunds"
+    },
+    {
+      "source_path": "test/tests/api/integration/admin.api.spec.ts",
+      "source_line": 279,
+      "test_title": "approves and rejects fresh refund requests"
+    },
+    {
+      "source_path": "test/tests/api/integration/admin.api.spec.ts",
+      "source_line": 309,
+      "test_title": "rejects invalid refund id shape"
+    },
+    {
+      "source_path": "test/tests/api/integration/admin.api.spec.ts",
+      "source_line": 321,
+      "test_title": "returns 403 without admin role"
+    },
+    {
+      "source_path": "test/tests/api/integration/content.api.spec.ts",
+      "source_line": 13,
+      "test_title": "should require auth for admin article CRUD operations"
+    },
+    {
+      "source_path": "test/tests/api/integration/content.api.spec.ts",
+      "source_line": 18,
+      "test_title": "should allow admin to CRUD articles with custom priority, tags, topics, image"
+    },
+    {
+      "source_path": "test/tests/api/integration/content.api.spec.ts",
+      "source_line": 104,
+      "test_title": "should list public articles sorted by priority and support filtering by tag and topic"
+    },
+    {
+      "source_path": "test/tests/api/integration/content.api.spec.ts",
+      "source_line": 189,
+      "test_title": "should allow admin to manage banners and reflect only active slides publicly in sort order"
+    },
+    {
+      "source_path": "test/tests/api/integration/content.api.spec.ts",
+      "source_line": 269,
+      "test_title": "should allow admin to CRUD FAQs and expose only active ordered entries publicly"
+    },
+    {
+      "source_path": "test/tests/api/integration/content.api.spec.ts",
+      "source_line": 342,
+      "test_title": "should persist about page content and gallery for public reflection"
+    },
+    {
+      "source_path": "test/tests/api/integration/notifications.api.spec.ts",
+      "source_line": 71,
+      "test_title": "marks one notification as read for authenticated buyer"
+    },
+    {
+      "source_path": "test/tests/api/integration/orders.api.spec.ts",
+      "source_line": 49,
+      "test_title": "UC-ORD-01 reviews the order queue as a server-owned projection"
+    },
+    {
+      "source_path": "test/tests/api/integration/orders.api.spec.ts",
+      "source_line": 75,
+      "test_title": "UC-ORD-02 returns order detail context before any action is taken"
+    },
+    {
+      "source_path": "test/tests/api/integration/orders.api.spec.ts",
+      "source_line": 104,
+      "test_title": "UC-ORD-03 performs an allowed pending-to-paid transition"
+    },
+    {
+      "source_path": "test/tests/api/integration/orders.api.spec.ts",
+      "source_line": 125,
+      "test_title": "UC-ORD-03 rejects a pending-to-delivered shortcut"
+    },
+    {
+      "source_path": "test/tests/api/integration/reviews-moderation.api.spec.ts",
+      "source_line": 81,
+      "test_title": "UC-REV-01 reviews the moderation queue"
+    },
+    {
+      "source_path": "test/tests/api/integration/reviews-moderation.api.spec.ts",
+      "source_line": 93,
+      "test_title": "UC-REV-02 moderates a single review"
+    },
+    {
+      "source_path": "test/tests/api/integration/reviews-moderation.api.spec.ts",
+      "source_line": 119,
+      "test_title": "UC-REV-03 bulk publishes selected reviews"
+    },
+    {
+      "source_path": "test/tests/api/integration/reviews-moderation.api.spec.ts",
+      "source_line": 147,
+      "test_title": "UC-REV-05 removes a review from the moderation surface"
+    },
+    {
+      "source_path": "test/tests/api/integration/store-settings.api.spec.ts",
+      "source_line": 48,
+      "test_title": "UC-SET-01 reads storefront identity from the structured admin and public read models"
+    },
+    {
+      "source_path": "test/tests/api/integration/store-settings.api.spec.ts",
+      "source_line": 78,
+      "test_title": "UC-SET-01 updates brand and contact facts and reflects the new storefront identity publicly"
+    },
+    {
+      "source_path": "test/tests/api/integration/store-settings.api.spec.ts",
+      "source_line": 123,
+      "test_title": "UC-SET-01 rejects storefront identity reads without valid admin authorization"
+    },
+    {
+      "source_path": "test/tests/api/integration/store-settings.api.spec.ts",
+      "source_line": 133,
+      "test_title": "UC-SET-02 accepts a homepage composition decision and rejects ordering conflicts"
+    },
+    {
+      "source_path": "test/tests/api/integration/store-settings.api.spec.ts",
+      "source_line": 175,
+      "test_title": "UC-SET-04 updates footer and support commitments and rejects malformed support targets"
+    },
+    {
+      "source_path": "test/tests/auth/auth-extended.spec.ts",
+      "source_line": 5,
+      "test_title": "should initiate OAuth redirect"
+    },
+    {
+      "source_path": "test/tests/auth/auth-extended.spec.ts",
+      "source_line": 20,
+      "test_title": "should persist session on page refresh"
+    },
+    {
+      "source_path": "test/tests/auth/auth-extended.spec.ts",
+      "source_line": 39,
+      "test_title": "should logout and invalidate session"
+    },
+    {
+      "source_path": "test/tests/auth/login.spec.ts",
+      "source_line": 8,
+      "test_title": "should log in with valid credentials"
+    },
+    {
+      "source_path": "test/tests/auth/login.spec.ts",
+      "source_line": 22,
+      "test_title": "should show error with invalid credentials"
+    },
+    {
+      "source_path": "test/tests/auth/login.spec.ts",
+      "source_line": 29,
+      "test_title": "should show validation error for empty fields"
+    },
+    {
+      "source_path": "test/tests/auth/signup.spec.ts",
+      "source_line": 9,
+      "test_title": "should show registration form"
+    },
+    {
+      "source_path": "test/tests/auth/signup.spec.ts",
+      "source_line": 27,
+      "test_title": "should show validation error for empty fields"
+    },
+    {
+      "source_path": "test/tests/auth/signup.spec.ts",
+      "source_line": 37,
+      "test_title": "should show error for duplicate email"
+    },
+    {
+      "source_path": "test/tests/auth/signup.spec.ts",
+      "source_line": 52,
+      "test_title": "should register with unique email"
+    },
+    {
+      "source_path": "test/tests/auth/signup.spec.ts",
+      "source_line": 65,
+      "test_title": "test at line 65"
+    },
+    {
+      "source_path": "test/tests/browse/figma-contract.spec.ts",
+      "source_line": 11,
+      "test_title": "homepage should expose hero/category/featured blocks"
+    },
+    {
+      "source_path": "test/tests/browse/figma-contract.spec.ts",
+      "source_line": 19,
+      "test_title": "category CTA should navigate from homepage to listing"
+    },
+    {
+      "source_path": "test/tests/browse/figma-contract.spec.ts",
+      "source_line": 25,
+      "test_title": "listing and detail should satisfy required sections"
+    },
+    {
+      "source_path": "test/tests/browse/homepage-refactor.spec.ts",
+      "source_line": 8,
+      "test_title": "should display banner and category icons"
+    },
+    {
+      "source_path": "test/tests/browse/homepage-refactor.spec.ts",
+      "source_line": 19,
+      "test_title": "should navigate to products page when category icon is clicked"
+    },
+    {
+      "source_path": "test/tests/browse/homepage-refactor.spec.ts",
+      "source_line": 27,
+      "test_title": "should navigate to detail page when Discover button on product card is clicked"
+    },
+    {
+      "source_path": "test/tests/browse/homepage.spec.ts",
+      "source_line": 13,
+      "test_title": "should display hero section with title"
+    },
+    {
+      "source_path": "test/tests/browse/homepage.spec.ts",
+      "source_line": 19,
+      "test_title": "should display category icons"
+    },
+    {
+      "source_path": "test/tests/browse/homepage.spec.ts",
+      "source_line": 25,
+      "test_title": "should display featured product blocks"
+    },
+    {
+      "source_path": "test/tests/browse/homepage.spec.ts",
+      "source_line": 30,
+      "test_title": "should display announcement banner when active"
+    },
+    {
+      "source_path": "test/tests/browse/homepage.spec.ts",
+      "source_line": 40,
+      "test_title": "should navigate to product list from category icon"
+    },
+    {
+      "source_path": "test/tests/browse/homepage.spec.ts",
+      "source_line": 71,
+      "test_title": "hero banner renders correct R2 image URL from backend"
+    },
+    {
+      "source_path": "test/tests/browse/product-detail-refactor.spec.ts",
+      "source_line": 17,
+      "test_title": "should render product specs table"
+    },
+    {
+      "source_path": "test/tests/browse/product-detail-refactor.spec.ts",
+      "source_line": 44,
+      "test_title": "should allow adding to cart from detail page"
+    },
+    {
+      "source_path": "test/tests/browse/product-detail.spec.ts",
+      "source_line": 17,
+      "test_title": "should render product information"
+    },
+    {
+      "source_path": "test/tests/browse/product-detail.spec.ts",
+      "source_line": 40,
+      "test_title": "should display image gallery"
+    },
+    {
+      "source_path": "test/tests/browse/product-detail.spec.ts",
+      "source_line": 64,
+      "test_title": "should switch product tabs"
+    },
+    {
+      "source_path": "test/tests/browse/product-detail.spec.ts",
+      "source_line": 89,
+      "test_title": "should have clickable add-to-cart button"
+    },
+    {
+      "source_path": "test/tests/browse/product-list-refactor.spec.ts",
+      "source_line": 9,
+      "test_title": "should display product listing with cards"
+    },
+    {
+      "source_path": "test/tests/browse/product-list-refactor.spec.ts",
+      "source_line": 17,
+      "test_title": "should allow adding a product directly to cart from list card"
+    },
+    {
+      "source_path": "test/tests/browse/product-list-refactor.spec.ts",
+      "source_line": 36,
+      "test_title": "should search products by keyword"
+    },
+    {
+      "source_path": "test/tests/browse/product-list-refactor.spec.ts",
+      "source_line": 51,
+      "test_title": "should navigate to detail page when product card title or image is clicked"
+    },
+    {
+      "source_path": "test/tests/browse/product-list.spec.ts",
+      "source_line": 8,
+      "test_title": "should render product cards"
+    },
+    {
+      "source_path": "test/tests/browse/product-list.spec.ts",
+      "source_line": 19,
+      "test_title": "should filter by category"
+    },
+    {
+      "source_path": "test/tests/browse/product-list.spec.ts",
+      "source_line": 45,
+      "test_title": "should sort by price"
+    },
+    {
+      "source_path": "test/tests/browse/product-list.spec.ts",
+      "source_line": 68,
+      "test_title": "should navigate pagination"
+    },
+    {
+      "source_path": "test/tests/browse/search.spec.ts",
+      "source_line": 8,
+      "test_title": "should return search results for valid query"
+    },
+    {
+      "source_path": "test/tests/browse/search.spec.ts",
+      "source_line": 29,
+      "test_title": "should show empty state for no matches"
+    },
+    {
+      "source_path": "test/tests/browse/search.spec.ts",
+      "source_line": 56,
+      "test_title": "should display result count matching results"
+    },
+    {
+      "source_path": "test/tests/checkout/cart.spec.ts",
+      "source_line": 27,
+      "test_title": "should add product to cart and view cart"
+    },
+    {
+      "source_path": "test/tests/checkout/cart.spec.ts",
+      "source_line": 40,
+      "test_title": "should display cart total"
+    },
+    {
+      "source_path": "test/tests/checkout/cart.spec.ts",
+      "source_line": 48,
+      "test_title": "should update item quantity"
+    },
+    {
+      "source_path": "test/tests/checkout/cart.spec.ts",
+      "source_line": 62,
+      "test_title": "should remove item from cart"
+    },
+    {
+      "source_path": "test/tests/checkout/cart.spec.ts",
+      "source_line": 76,
+      "test_title": "should show empty state when cart is empty"
+    },
+    {
+      "source_path": "test/tests/checkout/figma-contract.spec.ts",
+      "source_line": 24,
+      "test_title": "cart route should expose cart total + checkout CTA"
+    },
+    {
+      "source_path": "test/tests/checkout/figma-contract.spec.ts",
+      "source_line": 30,
+      "test_title": "detail to cart to checkout should preserve core CTA flow"
+    },
+    {
+      "source_path": "test/tests/checkout/order-flow.spec.ts",
+      "source_line": 18,
+      "test_title": "should complete purchase flow from product to confirmation"
+    },
+    {
+      "source_path": "test/tests/checkout/order-flow.spec.ts",
+      "source_line": 80,
+      "test_title": "should show order in orders list after purchase"
+    },
+    {
+      "source_path": "test/tests/content/about.spec.ts",
+      "source_line": 21,
+      "test_title": "should render about page"
+    },
+    {
+      "source_path": "test/tests/content/about.spec.ts",
+      "source_line": 32,
+      "test_title": "should load and display dynamic About narrative and gallery correctly"
+    },
+    {
+      "source_path": "test/tests/content/articles.spec.ts",
+      "source_line": 4,
+      "test_title": "should render article list"
+    },
+    {
+      "source_path": "test/tests/content/articles.spec.ts",
+      "source_line": 15,
+      "test_title": "should navigate to article detail"
+    },
+    {
+      "source_path": "test/tests/content/articles.spec.ts",
+      "source_line": 32,
+      "test_title": "should display article content"
+    },
+    {
+      "source_path": "test/tests/content/articles.spec.ts",
+      "source_line": 49,
+      "test_title": "should handle pagination"
+    },
+    {
+      "source_path": "test/tests/content/contact.spec.ts",
+      "source_line": 10,
+      "test_title": "should render contact form"
+    },
+    {
+      "source_path": "test/tests/content/contact.spec.ts",
+      "source_line": 17,
+      "test_title": "should display map embed"
+    },
+    {
+      "source_path": "test/tests/content/contact.spec.ts",
+      "source_line": 24,
+      "test_title": "should display company contact info"
+    },
+    {
+      "source_path": "test/tests/content/contact.spec.ts",
+      "source_line": 33,
+      "test_title": "should submit contact form"
+    },
+    {
+      "source_path": "test/tests/engagement/reviews.spec.ts",
+      "source_line": 17,
+      "test_title": "should display reviews on product page"
+    },
+    {
+      "source_path": "test/tests/engagement/reviews.spec.ts",
+      "source_line": 38,
+      "test_title": "should submit review with rating"
+    },
+    {
+      "source_path": "test/tests/engagement/reviews.spec.ts",
+      "source_line": 84,
+      "test_title": "should show review on product page after submission"
+    },
+    {
+      "source_path": "test/tests/engagement/wishlist.spec.ts",
+      "source_line": 17,
+      "test_title": "should add product to wishlist"
+    },
+    {
+      "source_path": "test/tests/engagement/wishlist.spec.ts",
+      "source_line": 46,
+      "test_title": "should view wishlist page"
+    },
+    {
+      "source_path": "test/tests/engagement/wishlist.spec.ts",
+      "source_line": 54,
+      "test_title": "should remove item from wishlist"
+    },
+    {
+      "source_path": "test/tests/engagement/wishlist.spec.ts",
+      "source_line": 73,
+      "test_title": "should vote on wishlist item"
+    }
+  ]
+}

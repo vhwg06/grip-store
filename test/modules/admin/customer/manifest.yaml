@@ -1,0 +1,19 @@
+module: admin.customer
+
+behavior:
+  feature: modules/admin/customer/behavior.feature
+  steps: modules/admin/customer/behavior.steps.ts
+
+scenarios:
+  SC-CUS-SEARCH-001: {}
+  SC-CUS-SUMMARY-001: {}
+  SC-CUS-ACCOUNT-LINK-001: {}
+  SC-CUS-COMMERCE-HISTORY-001: {}
+  SC-CUS-ACCOUNT-HANDOFF-001: {}
+  SC-CUS-SEARCH-002: {}
+  SC-CUS-SEARCH-003: {}
+  SC-CUS-SEARCH-004: {}
+  SC-CUS-SUMMARY-002: {}
+  SC-CUS-SUMMARY-003: {}
+  SC-CUS-ACCOUNT-LINK-002: {}
+  SC-CUS-COMMERCE-HISTORY-002: {}

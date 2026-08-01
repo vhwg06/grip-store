@@ -1,3 +1,13 @@
 {
-    "git.ignoreLimitWarning": true
+  "git.ignoreLimitWarning": true,
+  "cucumberautocomplete.steps": [
+    "test/modules/**/*.steps.ts",
+    "test/modules/**/*.step.ts"
+  ],
+  "cucumberautocomplete.syncfeatures": "test/modules/**/*.feature",
+  "cucumberautocomplete.strictGherkinCompletion": true,
+  "cucumberautocomplete.strictGherkinValidation": true,
+  "editor.quickSuggestions": {
+    "strings": true
+  }
 }

@@ -1,0 +1,77 @@
+module: catalog.product-model
+
+behavior:
+  feature: modules/catalog/product-model/behavior.feature
+  steps: modules/catalog/product-model/behavior.steps.ts
+
+contract:
+  type: markdown
+  path: contracts/catalog-base.md
+  refs:
+    - catalog-product-model-lifecycle
+
+scenarios:
+  SC-CAT-MODEL-001:
+    contract_refs:
+      - catalog-product-model-lifecycle
+  SC-CAT-MODEL-002:
+    contract_refs:
+      - catalog-product-model-lifecycle
+  SC-CAT-MODEL-003:
+    contract_refs:
+      - catalog-product-model-lifecycle
+  SC-CAT-MODEL-004:
+    contract_refs:
+      - catalog-product-model-lifecycle
+  SC-CAT-MODEL-012:
+    contract_refs:
+      - catalog-product-model-lifecycle
+  SC-CAT-MODEL-013:
+    contract_refs:
+      - catalog-product-model-lifecycle
+  SC-CAT-MODEL-005:
+    contract_refs:
+      - catalog-product-model-lifecycle
+  SC-CAT-MODEL-006:
+    contract_refs:
+      - catalog-product-model-lifecycle
+  SC-CAT-MODEL-007:
+    contract_refs:
+      - catalog-product-model-lifecycle
+  SC-CAT-MODEL-008:
+    contract_refs:
+      - catalog-product-model-lifecycle
+  SC-CAT-MODEL-009:
+    contract_refs:
+      - catalog-product-model-lifecycle
+  SC-CAT-MODEL-010:
+    contract_refs:
+      - catalog-product-model-lifecycle
+  SC-CAT-MODEL-011:
+    contract_refs:
+      - catalog-product-model-lifecycle
+  SC-CAT-MODEL-014:
+    contract_refs:
+      - catalog-product-model-lifecycle
+  SC-CAT-MODEL-015:
+    contract_refs:
+      - catalog-product-model-lifecycle
+  SC-CAT-MODEL-016:
+    contract_refs:
+      - catalog-product-model-lifecycle
+  SC-CAT-MODEL-017:
+    contract_refs:
+      - catalog-product-model-lifecycle
+  SC-CAT-MODEL-018:
+    contract_refs:
+      - catalog-product-model-lifecycle
+  SC-CAT-MODEL-019:
+    contract_refs:
+      - catalog-product-model-lifecycle
+  SC-CAT-MODEL-020:
+    contract_refs:
+      - catalog-product-model-lifecycle
+  SC-CAT-MODEL-021:
+    contract_refs:
+      - catalog-product-model-lifecycle
+

@@ -1,0 +1,15 @@
+module: admin.admin-profile
+
+behavior:
+  feature: modules/admin/admin-profile/behavior.feature
+  steps: modules/admin/admin-profile/behavior.steps.ts
+
+scenarios:
+  SC-APRO-IDENTITY-001: {}
+  SC-APRO-IDENTITY-002: {}
+  SC-APRO-SECURITY-001: {}
+  SC-APRO-SECURITY-002: {}
+  SC-APRO-UI-001: {}
+  SC-APRO-UI-002: {}
+  SC-APRO-UI-003: {}
+  SC-APRO-UI-004: {}

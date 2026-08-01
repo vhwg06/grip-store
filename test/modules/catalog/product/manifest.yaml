@@ -1,0 +1,25 @@
+module: catalog.product
+
+behavior:
+  feature: modules/catalog/product/behavior.feature
+  steps: modules/catalog/product/behavior.steps.ts
+
+contract:
+  type: markdown
+  path: contracts/catalog-base.md
+  refs:
+    - catalog-admin-product-management
+
+scenarios:
+  SC-CAT-PRODUCT-READ-001:
+  SC-CAT-PRODUCT-READ-002:
+  SC-CAT-PRODUCT-READ-003:
+  SC-CAT-PRODUCT-READ-004:
+  SC-CAT-PRODUCT-COMMAND-001:
+  SC-CAT-PRODUCT-COMMAND-002:
+  SC-CAT-PRODUCT-COMMAND-003:
+  SC-CAT-PRODUCT-COMMAND-004:
+  SC-CAT-PRODUCT-COMMAND-005:
+  SC-CAT-PRODUCT-DETAILS-001:
+  SC-CAT-PRODUCT-DETAILS-002:
+  SC-CAT-PRODUCT-DETAILS-003:

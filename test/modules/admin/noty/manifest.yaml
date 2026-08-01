@@ -1,0 +1,10 @@
+module: admin.noty
+
+behavior:
+  feature: modules/admin/noty/behavior.feature
+  steps: modules/admin/noty/behavior.steps.ts
+
+scenarios:
+  SC-NOTY-SEND-001: {}
+  SC-NOTY-HISTORY-001: {}
+

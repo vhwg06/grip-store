@@ -1,0 +1,29 @@
+module: browse
+
+behavior:
+  feature: modules/browse/behavior.feature
+  steps: modules/browse/behavior.steps.ts
+
+scenarios:
+  SC-BROWSE-HOME-001: {}
+  SC-BROWSE-HOME-002: {}
+  SC-BROWSE-HOME-003: {}
+  SC-BROWSE-HOME-004: {}
+  SC-BROWSE-HOME-005: {}
+  SC-BROWSE-HOME-006: {}
+  SC-BROWSE-HOME-007: {}
+  SC-BROWSE-CATALOG-001: {}
+  SC-BROWSE-CATALOG-002: {}
+  SC-BROWSE-CATALOG-003: {}
+  SC-BROWSE-CATALOG-004: {}
+  SC-BROWSE-CATALOG-005: {}
+  SC-BROWSE-CATALOG-006: {}
+  SC-BROWSE-CATALOG-007: {}
+  SC-BROWSE-CATALOG-008: {}
+  SC-BROWSE-DETAIL-001: {}
+  SC-BROWSE-DETAIL-002: {}
+  SC-BROWSE-DETAIL-003: {}
+  SC-BROWSE-DETAIL-004: {}
+  SC-BROWSE-DETAIL-005: {}
+  SC-BROWSE-DETAIL-006: {}
+  SC-BROWSE-DETAIL-007: {}

@@ -1,0 +1,31 @@
+module: admin.order
+
+behavior:
+  feature: modules/admin/order/behavior.feature
+  steps: modules/admin/order/behavior.steps.ts
+
+scenarios:
+  SC-ORD-QUEUE-001: {}
+  SC-ORD-QUEUE-002: {}
+  SC-ORD-QUEUE-003: {}
+  SC-ORD-QUEUE-004: {}
+  SC-ORD-QUEUE-005: {}
+  SC-ORD-DETAIL-001: {}
+  SC-ORD-DETAIL-002: {}
+  SC-ORD-DETAIL-003: {}
+  SC-ORD-TRANSITION-001: {}
+  SC-ORD-TRANSITION-002: {}
+  SC-ORD-TRANSITION-003: {}
+  SC-ORD-HISTORY-001: {}
+  SC-ORD-HISTORY-002: {}
+  SC-ORD-REFUND-CONTEXT-001: {}
+  SC-ORD-QUEUE-006: {}
+  SC-ORD-QUEUE-007: {}
+  SC-ORD-QUEUE-008: {}
+  SC-ORD-DETAIL-004: {}
+  SC-ORD-DETAIL-005: {}
+  SC-ORD-DETAIL-006: {}
+  SC-ORD-TRANSITION-004: {}
+  SC-ORD-TRANSITION-005: {}
+  SC-ORD-HISTORY-003: {}
+  SC-ORD-HISTORY-004: {}

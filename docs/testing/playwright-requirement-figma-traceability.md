@@ -4,9 +4,10 @@ Last updated: 2026-05-25
 
 ## Scope
 
-- Business source of truth: Playwright specs.
+- Business source of truth: `test/modules/**/behavior.feature` Gherkin.
+- Executable binding source: the colocated `test/modules/**/behavior.steps.ts` files.
 - Design trace source: Figma file `GRIP-Website Design` (page `Design`, id `1:3`).
-- Spec source: `specs/003-playwright-auto-test/spec.md`.
+- Scenario navigation source: each module's `manifest.yaml` and stable scenario ID.
 
 ## Figma Evidence (verified via figma-mcp-go)
 
@@ -26,35 +27,29 @@ The following nodes were verified and exported with `save_screenshots`:
 
 | Requirement Source | Playwright Coverage | Figma Node Trace | Notes |
 | --- | --- | --- | --- |
-| US1: API contract coverage (`FR-001`, `FR-006`, `FR-012`) | `test/tests/api/*.spec.ts` | N/A (API-only) | Contract truth is API response + auth/error behavior. |
-| US2: Product browsing and search (`FR-002`) | `test/tests/browse/homepage.spec.ts`, `product-list.spec.ts`, `product-detail.spec.ts`, `search.spec.ts`, `browse/figma-contract.spec.ts` | `27:1404`, `58:861`, `62:2672` | Section/CTA assertions mapped to home/list/detail screens. |
-| US3: Cart and checkout (`FR-002`) | `test/tests/checkout/cart.spec.ts`, `order-flow.spec.ts`, `checkout/figma-contract.spec.ts` | `114:3466`, `117:4153`, `62:2672` | Flow trace includes detail -> cart -> checkout CTA continuity. |
-| US4: Authentication flow (`FR-002`) | `test/tests/auth/login.spec.ts`, `signup.spec.ts`, `auth-extended.spec.ts` | `27:1404` (entry/navigation context) | Auth behavior is business contract; no dedicated auth screen node identified in current Design page. |
-| US5: Admin panel (`FR-002`) | `test/tests/admin/products.spec.ts`, `orders.spec.ts`, `settings.spec.ts`, `admin/figma-contract.spec.ts` | `58:861`, `62:2672` (table/content patterns) | No explicit admin board in provided design page; using shared management/list patterns. |
-| US6: Content pages (`FR-002`) | `test/tests/content/articles.spec.ts`, `about.spec.ts`, `contact.spec.ts` | `87:2148`, `47:1048` | Articles/contact directly mapped to named nodes. |
-| US7: Engagement features (`FR-002`) | `test/tests/engagement/wishlist.spec.ts`, `reviews.spec.ts`, `checkin.spec.ts` | `62:2672`, `58:861` | Review/wishlist tied to product detail/list contexts. |
+| US1: API contract coverage (`FR-001`, `FR-006`, `FR-012`) | `test/modules/**/behavior.feature` scenarios tagged `@api` and their colocated steps | N/A (API-only) | Contract truth is API response + auth/error behavior. |
+| US2: Product browsing and search (`FR-002`) | `test/modules/browse/behavior.feature`, `test/modules/product-flow/behavior.feature` | `27:1404`, `58:861`, `62:2672` | Section/CTA behavior is bound by the matching module steps. |
+| US3: Cart and checkout (`FR-002`) | `test/modules/checkout/behavior.feature` and `behavior.steps.ts` | `114:3466`, `117:4153`, `62:2672` | Detail -> cart -> checkout continuity is one Cucumber flow. |
+| US4: Authentication flow (`FR-002`) | `test/modules/auth/behavior.feature` and `behavior.steps.ts` | `27:1404` (entry/navigation context) | Auth behavior is business contract; no dedicated auth screen node identified in current Design page. |
+| US5: Admin panel (`FR-002`) | `test/modules/admin/**/behavior.feature` and colocated steps | `58:861`, `62:2672` (table/content patterns) | No explicit admin board in provided design page; using shared management/list patterns. |
+| US6: Content pages (`FR-002`) | `test/modules/content/behavior.feature` and `behavior.steps.ts` | `87:2148`, `47:1048` | Articles/contact behavior is bound from the module feature. |
+| US7: Engagement features (`FR-002`) | `test/modules/engagement/behavior.feature` and `behavior.steps.ts` | `62:2672`, `58:861` | Review/wishlist behavior is tied to product detail/list contexts. |
 | Visual regression (`FR-014`) | Existing screenshot assertions in critical flows | `27:1404`, `62:2672`, `114:3466`, `117:4153` | Baseline behavior validated by Playwright visual checks. |
 
 ## Current Validation Status
 
-- Latest run (`2026-05-25`): `239 passed`, `0 skipped` at runtime (`npx playwright test --reporter=line`, ~1.4m).
-- `api + chromium + mobile-chrome`: green.
-- Full matrix remains environment-limited:
-  - Firefox and WebKit browser binaries are missing.
-  - Browser install is blocked in this sandbox by DNS/network restriction (`ENOTFOUND cdn.playwright.dev`) and cache permission limits outside workspace.
-- Source contains conditional `test.skip(...)` guards for missing token/data preconditions in API specs, but they were not triggered in the validated environment because required auth/token setup was present.
-- Final stabilization in this run:
-  - Removed loading-state `product-card` test-id collisions that previously produced invalid detail navigation (`/products/loading-*`).
-  - Hardened product-list page object card discovery/wait path to sample terminal UI state before extraction.
+- Structural validation: 20 modules and 182 scenario IDs pass `npm run validate`.
+- Cucumber dry-run: the full accepted suite resolves 182 scenarios and 701 steps; the selected `@CAT-MODEL-003` route resolves one scenario.
+- Runtime API/browser execution has not been run in this migration pass, so runtime status remains unverified.
 
 ## Rules for New Tests
 
-For every new Playwright spec:
+For every new behavior scenario:
 
-1. Add requirement reference (US/FR from `specs/003-playwright-auto-test/spec.md`).
-2. Add Figma node id reference (or explicitly mark `N/A` for API tests).
-3. Ensure runtime has no skipped tests in supported environment.
-4. Prefer fixing product code/back-end behavior before altering assertions.
+1. Add exactly one stable ID tag to the Scenario and declare it in the module manifest.
+2. Keep the Gherkin scenario in the capability's `behavior.feature`.
+3. Bind every step from that module's `behavior.steps.ts` to a real API/browser action.
+4. Select one scenario with its tag or run the complete accepted feature suite with `test:acceptance`.
 
 ## Business Gaps to Refine
 

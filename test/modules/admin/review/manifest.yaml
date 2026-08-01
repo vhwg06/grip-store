@@ -1,0 +1,26 @@
+module: admin.review
+
+behavior:
+  feature: modules/admin/review/behavior.feature
+  steps: modules/admin/review/behavior.steps.ts
+
+scenarios:
+  SC-REV-QUEUE-001: {}
+  SC-REV-DECISION-001: {}
+  SC-REV-DECISION-002: {}
+  SC-REV-DECISION-003: {}
+  SC-REV-BULK-001: {}
+  SC-REV-DELETE-001: {}
+  SC-REV-QUEUE-002: {}
+  SC-REV-QUEUE-003: {}
+  SC-REV-QUEUE-004: {}
+  SC-REV-QUEUE-005: {}
+  SC-REV-QUEUE-006: {}
+  SC-REV-QUEUE-007: {}
+  SC-REV-DECISION-004: {}
+  SC-REV-DECISION-005: {}
+  SC-REV-DECISION-006: {}
+  SC-REV-DECISION-007: {}
+  SC-REV-BULK-002: {}
+  SC-REV-BULK-003: {}
+  SC-REV-DELETE-002: {}

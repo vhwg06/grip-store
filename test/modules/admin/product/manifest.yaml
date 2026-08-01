@@ -1,0 +1,19 @@
+module: admin.product
+
+behavior:
+  feature: modules/admin/product/behavior.feature
+  steps: modules/admin/product/behavior.steps.ts
+
+contract:
+  type: markdown
+  path: contracts/catalog-base.md
+  refs:
+    - catalog-admin-product-management
+
+scenarios:
+  SC-ADMIN-PRODUCT-CREATE-001:
+  SC-ADMIN-PRODUCT-CREATE-002:
+  SC-ADMIN-PRODUCT-LIST-001:
+  SC-ADMIN-PRODUCT-LIST-002:
+  SC-ADMIN-PRODUCT-EDITORIAL-001:
+  SC-ADMIN-PRODUCT-CATEGORY-001:

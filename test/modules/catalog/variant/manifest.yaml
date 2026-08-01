@@ -1,0 +1,98 @@
+module: catalog.variant
+
+behavior:
+  feature: modules/catalog/variant/behavior.feature
+  steps: modules/catalog/variant/behavior.steps.ts
+
+contract:
+  type: markdown
+  path: contracts/catalog-base.md
+  refs:
+    - catalog-variant-management
+
+scenarios:
+  SC-CAT-VARIANT-001:
+    contract_refs:
+      - catalog-variant-management
+  SC-CAT-VARIANT-002:
+    contract_refs:
+      - catalog-variant-management
+  SC-CAT-VARIANT-003:
+    contract_refs:
+      - catalog-variant-management
+  SC-CAT-VARIANT-004:
+    contract_refs:
+      - catalog-variant-management
+  SC-CAT-VARIANT-011:
+    contract_refs:
+      - catalog-variant-management
+  SC-CAT-VARIANT-005:
+    contract_refs:
+      - catalog-variant-management
+  SC-CAT-VARIANT-006:
+    contract_refs:
+      - catalog-variant-management
+  SC-CAT-VARIANT-007:
+    contract_refs:
+      - catalog-variant-management
+  SC-CAT-VARIANT-008:
+    contract_refs:
+      - catalog-variant-management
+  SC-CAT-VARIANT-009:
+    contract_refs:
+      - catalog-variant-management
+  SC-CAT-VARIANT-010:
+    contract_refs:
+      - catalog-variant-management
+  SC-CAT-VARIANT-SKU-001:
+    contract_refs:
+      - catalog-variant-management
+  SC-CAT-VARIANT-SKU-002:
+    contract_refs:
+      - catalog-variant-management
+  SC-CAT-VARIANT-SKU-003:
+    contract_refs:
+      - catalog-variant-management
+  SC-CAT-VARIANT-PRICE-001:
+    contract_refs:
+      - catalog-variant-management
+  SC-CAT-VARIANT-PRICE-002:
+    contract_refs:
+      - catalog-variant-management
+  SC-CAT-VARIANT-PRICE-003:
+    contract_refs:
+      - catalog-variant-management
+  SC-CAT-VARIANT-PRICE-004:
+    contract_refs:
+      - catalog-variant-management
+  SC-CAT-VARIANT-PRICE-005:
+    contract_refs:
+      - catalog-variant-management
+  SC-CAT-VARIANT-PRICE-006:
+    contract_refs:
+      - catalog-variant-management
+  SC-CAT-VARIANT-PACK-001:
+    contract_refs:
+      - catalog-variant-management
+  SC-CAT-VARIANT-PACK-002:
+    contract_refs:
+      - catalog-variant-management
+  SC-CAT-VARIANT-COMBINATION-012:
+    contract_refs:
+      - catalog-variant-management
+  SC-CAT-VARIANT-DIMENSIONS-013:
+    contract_refs:
+      - catalog-variant-management
+  SC-CAT-VARIANT-LIFECYCLE-014:
+    contract_refs:
+      - catalog-variant-management
+  SC-CAT-VARIANT-TECHNICAL-015:
+    contract_refs:
+      - catalog-variant-management
+  SC-CAT-VARIANT-PRICE-007:
+    contract_refs:
+      - catalog-variant-management
+  SC-CAT-VARIANT-COMMERCIAL-008:
+    contract_refs:
+      - catalog-variant-management
+

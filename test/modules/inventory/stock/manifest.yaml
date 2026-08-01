@@ -1,0 +1,10 @@
+module: inventory.stock
+
+behavior:
+  feature: modules/inventory/stock/behavior.feature
+  steps: modules/inventory/stock/behavior.steps.ts
+
+status: deferred
+
+scenarios:
+

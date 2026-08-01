@@ -1,0 +1,34 @@
+module: auth
+
+behavior:
+  feature: modules/auth/behavior.feature
+  steps: modules/auth/behavior.steps.ts
+
+scenarios:
+  SC-AUTH-LOGIN-001: {}
+  SC-AUTH-LOGIN-002: {}
+  SC-AUTH-LOGIN-003: {}
+  SC-AUTH-OAUTH-001: {}
+  SC-AUTH-SESSION-001: {}
+  SC-AUTH-SESSION-002: {}
+  SC-AUTH-SIGNUP-001: {}
+  SC-AUTH-SIGNUP-002: {}
+  SC-AUTH-SIGNUP-003: {}
+  SC-AUTH-SIGNUP-004: {}
+  SC-AUTH-API-001: {}
+  SC-AUTH-API-002: {}
+  SC-AUTH-API-003: {}
+  SC-AUTH-API-004: {}
+  SC-AUTH-API-005: {}
+  SC-AUTH-API-006: {}
+  SC-AUTH-API-007: {}
+  SC-AUTH-API-008: {}
+  SC-AUTH-API-009: {}
+  SC-AUTH-PROFILE-001: {}
+  SC-AUTH-PROFILE-002: {}
+  SC-AUTH-PROFILE-003: {}
+  SC-AUTH-PROFILE-004: {}
+  SC-AUTH-PROFILE-005: {}
+  SC-AUTH-PROFILE-006: {}
+  SC-AUTH-PROFILE-007: {}
+  SC-AUTH-PROFILE-008: {}

@@ -9,7 +9,7 @@
 * Do not add test-only branches or special-case production logic.
 * Do not claim `done`, `fixed`, `verified`, or `passing` unless all relevant tests were executed and passed.
 * If tests cannot run or any relevant test fails, report the work as unverified or incomplete and include the failing command or test.
-* When editing `/test/tests/**`, do not inspect frontend or backend implementation. Derive expected behaviour only from `/test/specs/**` and `/test/**`.
+* When editing `/test/modules/**`, do not inspect frontend or backend implementation. Derive expected behaviour from the migrated module features and use-case documents.
 * Playwright tests must use `https://grip.vn/api`. Do not use mocks, stubs, localhost, staging, fake data, or hardcoded application data unless explicitly required by the test scenario.
 * Test data must be created through official APIs, migrations, seeds, or scripts and must follow the real public contract.
 * Reversible state changes must be tested in both directions and verified after reload or a fresh API read.
@@ -18,4 +18,4 @@
 * Do not move backend business logic into the frontend or make frontend-computed state authoritative.
 * Do not modify files, documentation, specs, or scope unrelated to the assigned task.
 * During Figma-only work, do not inspect or modify frontend or backend code.
-* Before admin work, read `/test/specs/admin-module-map.md`.
+* Before admin work, read the relevant `/test/modules/admin/**/README.md` and `behavior.feature`.

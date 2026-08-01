@@ -1,0 +1,18 @@
+module: content
+
+behavior:
+  feature: modules/content/behavior.feature
+  steps: modules/content/behavior.steps.ts
+
+scenarios:
+  SC-CONTENT-ABOUT-001: {}
+  SC-CONTENT-ABOUT-002: {}
+  SC-CONTENT-ARTICLE-001: {}
+  SC-CONTENT-ARTICLE-002: {}
+  SC-CONTENT-ARTICLE-003: {}
+  SC-CONTENT-ARTICLE-004: {}
+  SC-CONTENT-CONTACT-001: {}
+  SC-CONTENT-CONTACT-002: {}
+  SC-CONTENT-CONTACT-003: {}
+  SC-CONTENT-CONTACT-004: {}
+
