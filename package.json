@@ -15,7 +15,10 @@
     "test:all": "npm --prefix test run test:all --",
     "test:scenario": "npm --prefix test run test:scenario --",
     "test:api": "npm --prefix test run test:api --",
-    "test:browser": "npm --prefix test run test:browser --"
+    "test:api:non-catalog": "npm --prefix test run test:api:non-catalog --",
+    "test:catalog": "npm --prefix test run test:catalog --",
+    "test:browser": "npm --prefix test run test:browser --",
+    "test:browser:non-catalog": "npm --prefix test run test:browser:non-catalog --"
   },
   "dependencies": {
     "@radix-ui/react-accordion": "^1.2.12",
