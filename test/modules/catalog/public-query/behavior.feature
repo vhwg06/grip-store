@@ -53,6 +53,16 @@ Feature: Public catalog query
       Then the public search response status is `200`
       And the public search result is an empty array
 
+  @UC-CAT-PUBLIC-FILTER
+  Rule: Catalog Base exposes only the committed discovery filters
+
+    @deferred @api @SC-CAT-PUBLIC-FILTER-001
+    Scenario: Filter public ProductModels by Material Finish and SellingPrice
+      Given publicly sellable ProductModels have distinct Material, Finish, and SellingPrice values
+      When the shopper filters the public catalog by Material, Finish, and SellingPrice
+      Then every returned ProductModel satisfies every requested filter
+      And no generic attribute filtering contract is exposed
+
   @UC-CAT-PUBLIC-DETAIL
   Rule: Public product detail exposes the complete purchasable read model
 
@@ -82,6 +92,27 @@ Feature: Public catalog query
       Given an inactive or unavailable public product identifier is used
       When the shopper reads that public product detail
       Then the public product detail response status is `404`
+
+  @UC-CAT-PUBLIC-OPTIONS
+  Rule: Available options are derived from compatible publicly sellable Variants
+
+    @deferred @api @SC-CAT-PUBLIC-OPTIONS-001
+    Scenario: Exclude incompatible and non-public Variant options
+      Given an Active ProductModel has publicly sellable, inactive, and incompatible Variants
+      When the shopper asks for available options after selecting one dimension value
+      Then each returned option completes at least one publicly sellable Variant
+      And options belonging only to inactive or incompatible Variants are absent
+
+  @UC-CAT-PUBLIC-RESOLVE
+  Rule: Public Variant resolution uses an exact canonical combination
+
+    @deferred @api @SC-CAT-PUBLIC-RESOLVE-001
+    Scenario: Resolve only the exact publicly sellable selected combination
+      Given an Active ProductModel has a publicly sellable canonical Variant combination
+      When the shopper resolves that exact selected combination
+      Then the public catalog returns that Variant
+      When the shopper resolves a missing or non-public combination
+      Then the public catalog does not return a Variant
 
   @UC-CAT-PUBLIC-BUY-META
   Rule: Public buy metadata reports availability without changing catalog state
