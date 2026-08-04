@@ -1,0 +1,18 @@
+module: catalog.master-data
+
+behavior:
+  feature: modules/catalog/master-data/behavior.feature
+  steps: modules/catalog/master-data/behavior.steps.ts
+
+contract:
+  type: markdown
+  path: contracts/catalog-base.md
+  refs:
+    - catalog-master-data
+
+scenarios:
+  SC-CAT-MASTER-CATEGORY-001:
+  SC-CAT-MASTER-ATTRIBUTE-001:
+  SC-CAT-MASTER-ATTRIBUTE-002:
+  SC-CAT-MASTER-REFERENCE-001:
+  SC-CAT-MASTER-PACK-001:
