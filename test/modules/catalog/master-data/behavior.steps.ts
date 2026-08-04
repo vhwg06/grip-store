@@ -153,6 +153,26 @@ Then("the Category does not own an attribute template or publication rule", asyn
 Given("an existing ProductModel references a Category", async function (this: ScenarioWorld) {
   state(this).categoryId = await createCategory(this);
   state(this).modelId = await createModel(this);
+  const definition = await createDefinition(this, { valueKind: "Enum" });
+  const dimension = await (await api(this)).adminPost(await adminToken(this), `/v1/admin/catalog/product-models/${state(this).modelId}/variant-dimensions`, {
+    definitionId: definition,
+    allowedValues: [{ id: "default", label: "Default", active: true }],
+  });
+  expect(dimension.status).toBe(201);
+  const variant = await (await api(this)).adminPost(await adminToken(this), `/v1/admin/catalog/product-models/${state(this).modelId}/variants`, {
+    selectedOptions: { Default: "Default" },
+    sku: `CATEGORY-${crypto.randomUUID()}`,
+    sellingPrice: { amount: 400000, currency: "VND" },
+  });
+  expect(variant.status).toBe(201);
+  const media = await (await api(this)).adminPut(await adminToken(this), `/v1/admin/catalog/product-models/${state(this).modelId}/media`, {
+    images: [{ url: "https://cdn.example.test/catalog/category-model.png", ordering: 1, primary: true }],
+  });
+  expect(media.status).toBe(200);
+  const publish = await (await api(this)).adminPost(await adminToken(this), `/v1/admin/catalog/product-models/${state(this).modelId}/publish`);
+  expect(publish.status).toBe(200);
+  const unpublish = await (await api(this)).adminPost(await adminToken(this), `/v1/admin/catalog/product-models/${state(this).modelId}/unpublish`);
+  expect(unpublish.status).toBe(200);
 });
 
 When("Catalog Operator deactivates that Category", async function (this: ScenarioWorld) {
@@ -170,7 +190,8 @@ Then("new ProductModel assignment to that Category is rejected", async function 
 });
 
 Then("the existing ProductModel reference remains valid for republishing", async function (this: ScenarioWorld) {
-  const response = await (await api(this)).adminGet(await adminToken(this), `/v1/admin/catalog/product-models/${state(this).modelId}`);
+  const response = await (await api(this)).adminPost(await adminToken(this), `/v1/admin/catalog/product-models/${state(this).modelId}/publish`);
+  save(this, response);
   expect(response.status).toBe(200);
   state(this).existingData = record(response.data);
 });
@@ -319,6 +340,8 @@ Then("existing ProductModel and Variant references remain valid after master dea
   expect(response.status).toBe(200);
   const variant = await (await api(this)).adminGet(await adminToken(this), `/v1/admin/catalog/variants/${state(this).variantId}`);
   expect(variant.status).toBe(200);
+  expect(record(variant.data).status).toBe("Active");
+  expect(record(variant.data).saleReady).toBe(true);
 });
 
 When("Catalog Operator updates Finish display metadata and swatch media", async function (this: ScenarioWorld) {
