@@ -210,6 +210,43 @@ Then("khong co warranty claim state trong catalog projection", async function (t
   expect(data.claim_state).toBeUndefined();
 });
 
+function deferredProductModel(): never {
+  throw new Error("Catalog Base ProductModel operations are deferred pending canonical OpenAPI.");
+}
+
+Given("the Catalog Operator has ProductModel authoring access", deferredProductModel);
+When('Catalog Operator creates ProductModel Draft "Grip Handle A"', deferredProductModel);
+Then('the ProductModel is stored in "Draft" state', deferredProductModel);
+Then("the ProductModel owns its category, description, media, and WarrantySummary", deferredProductModel);
+Given("a ProductModel Draft exists", deferredProductModel);
+When("Catalog Operator reads the ProductModel authoring form", deferredProductModel);
+Then("the form exposes ProductModel content and catalog references", deferredProductModel);
+Then("the form does not expose stock, warehouse, order, or purchase-limit state", deferredProductModel);
+Given("a ProductModel Draft has name, Category, and a sale-ready Variant but no primary model image", deferredProductModel);
+When("Catalog Operator publishes the ProductModel", deferredProductModel);
+Then("the publication command is rejected", deferredProductModel);
+Then('the ProductModel remains in "Draft" state', deferredProductModel);
+Given("a ProductModel Draft has name, Category, and a primary model image but no sale-ready Variant", deferredProductModel);
+Given("an Active ProductModel has one primary model image", deferredProductModel);
+When("Catalog Operator replaces the primary model image with another model image", deferredProductModel);
+Then("the ProductModel has exactly one primary model image", deferredProductModel);
+Then("the previous image is no longer primary", deferredProductModel);
+Given("a ProductModel Draft has a numeric length definition", deferredProductModel);
+When("Catalog Operator sets Overall length with an incompatible unit", deferredProductModel);
+Then("the ProductModel measurement command is rejected", deferredProductModel);
+Given("a ProductModel exists in a non-terminal publication state", deferredProductModel);
+When("Catalog Operator discontinues the ProductModel", deferredProductModel);
+Then('the ProductModel transitions to "Discontinued"', deferredProductModel);
+Then("a later publish or unpublish transition is rejected", deferredProductModel);
+When("Catalog Operator saves WarrantySummary without a term", deferredProductModel);
+Then("the WarrantySummary command is rejected", deferredProductModel);
+Given("an Active ProductModel has one sale-ready Variant", deferredProductModel);
+When("Catalog Operator removes the last Variant SKU or SellingPrice", deferredProductModel);
+Then("the ProductModel remains publicly valid", deferredProductModel);
+When("Catalog Operator requests ProductModel deletion", deferredProductModel);
+Then("the deletion command is rejected", deferredProductModel);
+Then("the ProductModel remains readable in its current lifecycle state", deferredProductModel);
+
 Given("an Inactive ProductModel references an inactive Category", async function (this: ScenarioWorld) {
   await readAdminProducts(this);
 });
