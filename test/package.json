@@ -10,7 +10,10 @@
     "test:acceptance": "tsx tools/run-cucumber.ts acceptance",
     "test:all": "npm run test:acceptance",
     "test:api": "tsx tools/run-cucumber.ts api",
+    "test:api:non-catalog": "tsx tools/run-cucumber.ts api-non-catalog",
+    "test:catalog": "tsx tools/run-cucumber.ts catalog",
     "test:browser": "tsx tools/run-cucumber.ts browser",
+    "test:browser:non-catalog": "tsx tools/run-cucumber.ts browser-non-catalog",
     "validate:modules": "tsx tools/validate-modules.ts",
     "validate:openapi": "tsx tools/validate-openapi.ts"
   },

@@ -5,18 +5,69 @@ on:
     branches: [main, develop]
   pull_request:
     branches: [main, develop]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Gherkin is the acceptance source, Cucumber owns Scenario lifecycle, and the
+# step adapters use Playwright for both APIRequestContext and browser execution.
+# Keep the endpoint and credential names explicit so CI cannot silently fall
+# back to localhost or a fake account.
+env:
+  TEST_API_BASE_URL: https://grip.vn/api
+  TEST_WEB_BASE_URL: ${{ secrets.NEXT_PUBLIC_APP_URL }}
+  # These are the official migration seed accounts documented in
+  # docs/runbook-deploy-fe.md; repository secrets can override them.
+  TEST_USER_EMAIL: ${{ secrets.TEST_USER_EMAIL || 'test_buyer@example.com' }}
+  TEST_USER_PASSWORD: ${{ secrets.TEST_USER_PASSWORD || 'Password123!' }}
+  ADMIN_USER_EMAIL: ${{ secrets.ADMIN_USER_EMAIL || 'test_admin@example.com' }}
+  ADMIN_USER_PASSWORD: ${{ secrets.ADMIN_USER_PASSWORD || 'Password123!' }}
+  TEST_USER_TOKEN: ${{ secrets.TEST_USER_TOKEN }}
+  ADMIN_USER_TOKEN: ${{ secrets.ADMIN_USER_TOKEN }}
+  TEST_TENANT_ID: ${{ secrets.TEST_TENANT_ID }}
+  TEST_RUN_ID: ci-${{ github.run_id }}
 
 jobs:
-  test:
-    name: Playwright Tests (Shard ${{ matrix.shardIndex }}/${{ matrix.shardTotal }})
-    timeout-minutes: 10
+  contract:
+    name: Cucumber contract and binding checks
     runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: test/package-lock.json
+
+      - name: Install test dependencies
+        run: npm ci --prefix test
+
+      - name: Validate modules and OpenAPI contract
+        run: npm --prefix test run validate
+
+      - name: Rebuild traceability and migration audit
+        run: |
+          npm --prefix test run build:traceability
+          npm --prefix test run build:migration-audit
+
+      - name: Dry-run all accepted Gherkin scenarios
+        working-directory: test
+        run: ./node_modules/.bin/cucumber-js --config cucumber.config.cjs --dry-run --tags "@accepted"
+
+  test:
+    name: Playwright via Cucumber (${{ matrix.layer }}, non-Catalog)
+    needs: contract
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
     strategy:
       fail-fast: false
       matrix:
-        shardIndex: [1, 2, 3, 4]
-        shardTotal: [4]
-
+        layer: [api, browser]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -25,51 +76,52 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: "npm"
+          cache: npm
+          cache-dependency-path: test/package-lock.json
 
-      - name: Install dependencies
-        run: npm ci
+      - name: Install test dependencies
+        run: npm ci --prefix test
 
-      - name: Install Playwright browsers
+      - name: Verify runtime configuration
+        shell: bash
+        run: |
+          test -n "$TEST_API_BASE_URL"
+          test -n "$TEST_USER_EMAIL"
+          test -n "$TEST_USER_PASSWORD"
+          test -n "$ADMIN_USER_EMAIL"
+          test -n "$ADMIN_USER_PASSWORD"
+          test -n "$TEST_TENANT_ID"
+          if [ "${{ matrix.layer }}" = "browser" ]; then
+            test -n "$TEST_WEB_BASE_URL"
+          fi
+
+      - name: Install Playwright Chromium
+        if: matrix.layer == 'browser'
+        working-directory: test
         run: npx playwright install --with-deps chromium
 
-      - name: Run Playwright tests
-        run: npx playwright test --reporter=blob --shard=${{ matrix.shardIndex }}/${{ matrix.shardTotal }}
-        env:
-          CI: true
-          CI_EXTERNAL_BACKEND: "true"
-          GO_BACKEND_URL: ${{ secrets.GO_BACKEND_URL || 'http://localhost:8080' }}
-          NEXT_PUBLIC_API_URL: ${{ secrets.GO_BACKEND_URL || 'http://localhost:8080' }}
-          NEXT_PUBLIC_APP_URL: ${{ secrets.NEXT_PUBLIC_APP_URL || 'http://localhost:3000' }}
-          TEST_USER_EMAIL: ${{ secrets.TEST_USER_EMAIL || 'test_buyer@example.com' }}
-          TEST_USER_PASSWORD: ${{ secrets.TEST_USER_PASSWORD || 'Password123!' }}
-          ADMIN_USER_EMAIL: ${{ secrets.ADMIN_USER_EMAIL || 'test_admin@example.com' }}
-          ADMIN_USER_PASSWORD: ${{ secrets.ADMIN_USER_PASSWORD || 'Password123!' }}
-          TEST_USER_TOKEN: ${{ secrets.TEST_USER_TOKEN }}
-          ADMIN_USER_TOKEN: ${{ secrets.ADMIN_USER_TOKEN }}
+      - name: Run non-Catalog Gherkin scenarios on Playwright
+        working-directory: test
+        shell: bash
+        run: |
+          set -o pipefail
+          mkdir -p artifacts
+          npm run "test:${{ matrix.layer }}:non-catalog" 2>&1 | tee "artifacts/${{ matrix.layer }}.log"
 
-      - name: Upload test results
+      - name: Upload Cucumber log
+        if: always()
         uses: actions/upload-artifact@v4
-        if: ${{ !cancelled() }}
         with:
-          name: playwright-report-shard-${{ matrix.shardIndex }}
-          path: blob-report/
+          name: cucumber-${{ matrix.layer }}-non-catalog
+          path: test/artifacts/
+          if-no-files-found: ignore
           retention-days: 14
 
-      - name: Upload test artifacts
-        uses: actions/upload-artifact@v4
-        if: failure()
-        with:
-          name: playwright-artifacts-shard-${{ matrix.shardIndex }}
-          path: |
-            playwright/test-results/
-          retention-days: 7
-
-  merge-reports:
-    name: Merge Playwright Reports
-    needs: test
-    if: ${{ !cancelled() }}
+  catalog-expected-failure:
+    name: Catalog (expected failure until backend implementation)
+    needs: contract
     runs-on: ubuntu-latest
+    timeout-minutes: 45
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -78,29 +130,47 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: "npm"
+          cache: npm
+          cache-dependency-path: test/package-lock.json
 
-      - name: Install dependencies
-        run: npm ci
+      - name: Install test dependencies
+        run: npm ci --prefix test
 
-      - name: Download all shard reports
-        uses: actions/download-artifact@v4
-        with:
-          path: all-shard-reports
-          pattern: playwright-report-shard-*
-          merge-multiple: true
-
-      - name: Verify blob reports
+      - name: Verify runtime configuration
+        shell: bash
         run: |
-          ls -la all-shard-reports || true
-          find all-shard-reports -maxdepth 2 -type f -name '*.zip' -print
+          test -n "$TEST_API_BASE_URL"
+          test -n "$TEST_USER_EMAIL"
+          test -n "$TEST_USER_PASSWORD"
+          test -n "$ADMIN_USER_EMAIL"
+          test -n "$ADMIN_USER_PASSWORD"
 
-      - name: Merge reports
-        run: npx playwright merge-reports --reporter html ./all-shard-reports
+      - name: Run Catalog Gherkin scenarios (expected failure)
+        id: catalog
+        continue-on-error: true
+        working-directory: test
+        shell: bash
+        run: |
+          set -o pipefail
+          mkdir -p artifacts
+          npm run test:catalog 2>&1 | tee artifacts/catalog.log
 
-      - name: Upload merged report
+      - name: Explain expected Catalog result
+        if: always()
+        run: |
+          {
+            echo "## Catalog test status"
+            echo
+            echo "Catalog scenarios are executed against ${TEST_API_BASE_URL}."
+            echo "The backend Catalog Base is not implemented yet, so this job is intentionally non-blocking."
+            echo "All non-Catalog API and browser jobs remain blocking."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload Catalog log
+        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-report-merged
-          path: playwright-report/
+          name: cucumber-catalog-expected-failure
+          path: test/artifacts/
+          if-no-files-found: ignore
           retention-days: 14

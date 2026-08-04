@@ -3,7 +3,7 @@ import { expect } from "@playwright/test";
 import type { ScenarioWorld } from "../../../shared/cucumber/world";
 import { adminDelete, adminGet, adminPost, adminPut, adminState, assertAccepted, assertReadable, authenticateAdmin, responseData } from "../../../shared/cucumber/admin-runtime";
 import { AuthPage } from "../../../shared/runtime/objects/auth.page";
-import { getUserToken, requiredEnv } from "../../../shared/runtime/api-helpers/auth.helpers";
+import { getAdminToken, getUserToken, requiredEnv } from "../../../shared/runtime/api-helpers/auth.helpers";
 import { CatalogApiHelper } from "../../../shared/runtime/api-helpers/catalog.api";
 import { GoBackendClient } from "../../../shared/runtime/api-helpers/go-backend.client";
 import { requiredTestTenant, isolatedReference } from "../../../shared/data/test-isolation";
@@ -59,7 +59,7 @@ async function createReviewForBrowser(world: ScenarioWorld, initialStatus: "PEND
   world.state.reviewComment = comment;
   expect(world.state.reviewId).not.toBe("");
   world.registerCleanup(async () => {
-    const adminToken = await requiredEnv("ADMIN_ACCESS_TOKEN");
+    const adminToken = await getAdminToken(await world.getApiRequest());
     const response = await client.delete(`/v1/admin/reviews/${world.state.reviewId}`, {
       headers: { Authorization: `Bearer ${adminToken}` },
     });
