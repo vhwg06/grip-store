@@ -1259,7 +1259,7 @@
       "steps": "modules/catalog/product/behavior.steps.ts",
       "contract": "contracts/catalog-base.md",
       "title": "Create a sellable product and read its form",
-      "specStatus": "accepted",
+      "specStatus": "deferred",
       "useCase": "UC-CAT-PRODUCT-COMMAND",
       "layer": "api",
       "rule": "Product administration persists the complete commercial product contract"
@@ -1271,7 +1271,7 @@
       "steps": "modules/catalog/product/behavior.steps.ts",
       "contract": "contracts/catalog-base.md",
       "title": "Update product commercial state",
-      "specStatus": "accepted",
+      "specStatus": "deferred",
       "useCase": "UC-CAT-PRODUCT-COMMAND",
       "layer": "api",
       "rule": "Product administration persists the complete commercial product contract"
@@ -1283,7 +1283,7 @@
       "steps": "modules/catalog/product/behavior.steps.ts",
       "contract": "contracts/catalog-base.md",
       "title": "Maintain category hierarchy and position",
-      "specStatus": "accepted",
+      "specStatus": "deferred",
       "useCase": "UC-CAT-PRODUCT-COMMAND",
       "layer": "api",
       "rule": "Product administration persists the complete commercial product contract"
@@ -1295,7 +1295,7 @@
       "steps": "modules/catalog/product/behavior.steps.ts",
       "contract": "contracts/catalog-base.md",
       "title": "Keep editorial and media data inside the product form contract",
-      "specStatus": "accepted",
+      "specStatus": "deferred",
       "useCase": "UC-CAT-PRODUCT-COMMAND",
       "layer": "api",
       "rule": "Product administration persists the complete commercial product contract"
@@ -1307,7 +1307,7 @@
       "steps": "modules/catalog/product/behavior.steps.ts",
       "contract": "contracts/catalog-base.md",
       "title": "Expose only a published linked intro article in product projections",
-      "specStatus": "accepted",
+      "specStatus": "deferred",
       "useCase": "UC-CAT-PRODUCT-COMMAND",
       "layer": "api",
       "rule": "Product administration persists the complete commercial product contract"
@@ -1319,7 +1319,7 @@
       "steps": "modules/catalog/product/behavior.steps.ts",
       "contract": "contracts/catalog-base.md",
       "title": "Create a product with specifications",
-      "specStatus": "accepted",
+      "specStatus": "deferred",
       "useCase": "UC-CAT-PRODUCT-DETAILS",
       "layer": "api",
       "rule": "Product detail persistence is transactional and visible through public read models"
@@ -1331,7 +1331,7 @@
       "steps": "modules/catalog/product/behavior.steps.ts",
       "contract": "contracts/catalog-base.md",
       "title": "Replace product specifications transactionally",
-      "specStatus": "accepted",
+      "specStatus": "deferred",
       "useCase": "UC-CAT-PRODUCT-DETAILS",
       "layer": "api",
       "rule": "Product detail persistence is transactional and visible through public read models"
@@ -1343,7 +1343,7 @@
       "steps": "modules/catalog/product/behavior.steps.ts",
       "contract": "contracts/catalog-base.md",
       "title": "Delete a product and its public detail projection",
-      "specStatus": "accepted",
+      "specStatus": "deferred",
       "useCase": "UC-CAT-PRODUCT-DETAILS",
       "layer": "api",
       "rule": "Product detail persistence is transactional and visible through public read models"
@@ -1355,7 +1355,7 @@
       "steps": "modules/catalog/product/behavior.steps.ts",
       "contract": "contracts/catalog-base.md",
       "title": "Reject an unauthenticated product administration read",
-      "specStatus": "accepted",
+      "specStatus": "deferred",
       "useCase": "UC-CAT-PRODUCT-READ",
       "layer": "api",
       "rule": "Product administration reads are protected and expose operator health signals"
@@ -1367,7 +1367,7 @@
       "steps": "modules/catalog/product/behavior.steps.ts",
       "contract": "contracts/catalog-base.md",
       "title": "Reject a non-admin product administration read",
-      "specStatus": "accepted",
+      "specStatus": "deferred",
       "useCase": "UC-CAT-PRODUCT-READ",
       "layer": "api",
       "rule": "Product administration reads are protected and expose operator health signals"
@@ -1379,7 +1379,7 @@
       "steps": "modules/catalog/product/behavior.steps.ts",
       "contract": "contracts/catalog-base.md",
       "title": "Read the admin product catalog with operator fields",
-      "specStatus": "accepted",
+      "specStatus": "deferred",
       "useCase": "UC-CAT-PRODUCT-READ",
       "layer": "api",
       "rule": "Product administration reads are protected and expose operator health signals"
@@ -1391,7 +1391,7 @@
       "steps": "modules/catalog/product/behavior.steps.ts",
       "contract": "contracts/catalog-base.md",
       "title": "Read product health signals for operator triage",
-      "specStatus": "accepted",
+      "specStatus": "deferred",
       "useCase": "UC-CAT-PRODUCT-READ",
       "layer": "api",
       "rule": "Product administration reads are protected and expose operator health signals"
