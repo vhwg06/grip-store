@@ -7,7 +7,7 @@ Feature: Public catalog query
   @UC-CAT-PUBLIC-LIST
   Rule: The public product list is an active, paginated server projection
 
-    @deferred @api @SC-CAT-PUBLIC-LIST-005
+    @accepted @api @SC-CAT-PUBLIC-LIST-005
     Scenario: List only Active ProductModels with publicly sellable Variants
       Given the catalog contains Draft, Active, Inactive, and Discontinued ProductModels
       When the shopper reads the public ProductModel list
@@ -64,20 +64,20 @@ Feature: Public catalog query
   @UC-CAT-PUBLIC-FILTER
   Rule: Catalog Base exposes only the committed discovery filters
 
-    @deferred @api @SC-CAT-PUBLIC-FILTER-001
+    @accepted @api @SC-CAT-PUBLIC-FILTER-001
     Scenario: Filter public ProductModels by Material Finish and SellingPrice
       Given publicly sellable ProductModels have distinct Material, Finish, and SellingPrice values
       When the shopper filters the public catalog by Material, Finish, and SellingPrice
       Then every returned ProductModel satisfies every requested filter
       And no generic attribute filtering contract is exposed
 
-    @deferred @api @SC-CAT-PUBLIC-FILTER-002
+    @accepted @api @SC-CAT-PUBLIC-FILTER-002
     Scenario: Filter the public catalog by Material and Finish references
       Given publicly sellable ProductModels have distinct Material and Finish references
       When the shopper filters by a Material and a Finish reference
       Then every returned ProductModel matches both reference filters
 
-    @deferred @api @SC-CAT-PUBLIC-FILTER-003
+    @accepted @api @SC-CAT-PUBLIC-FILTER-003
     Scenario: Filter the public catalog by SellingPrice range
       Given publicly sellable Variants have different current SellingPrice values
       When the shopper filters by a SellingPrice range
@@ -86,7 +86,7 @@ Feature: Public catalog query
   @UC-CAT-PUBLIC-DETAIL
   Rule: Public product detail exposes the complete purchasable read model
 
-    @deferred @api @SC-CAT-PUBLIC-DETAIL-005
+    @accepted @api @SC-CAT-PUBLIC-DETAIL-005
     Scenario: Public detail exposes catalog-owned Variant and option data only
       Given an Active ProductModel has publicly sellable Variants and catalog media
       When the shopper reads the public ProductModel detail
@@ -123,14 +123,14 @@ Feature: Public catalog query
   @UC-CAT-PUBLIC-OPTIONS
   Rule: Available options are derived from compatible publicly sellable Variants
 
-    @deferred @api @SC-CAT-PUBLIC-OPTIONS-001
+    @accepted @api @SC-CAT-PUBLIC-OPTIONS-001
     Scenario: Exclude incompatible and non-public Variant options
       Given an Active ProductModel has publicly sellable, inactive, and incompatible Variants
       When the shopper asks for available options after selecting one dimension value
       Then each returned option completes at least one publicly sellable Variant
       And options belonging only to inactive or incompatible Variants are absent
 
-    @deferred @api @SC-CAT-PUBLIC-OPTIONS-002
+    @accepted @api @SC-CAT-PUBLIC-OPTIONS-002
     Scenario: Return an empty option projection when no public Variant is compatible
       Given an Active ProductModel has no publicly sellable Variant compatible with the selected values
       When the shopper asks for available options
@@ -139,7 +139,7 @@ Feature: Public catalog query
   @UC-CAT-PUBLIC-RESOLVE
   Rule: Public Variant resolution uses an exact canonical combination
 
-    @deferred @api @SC-CAT-PUBLIC-RESOLVE-001
+    @accepted @api @SC-CAT-PUBLIC-RESOLVE-001
     Scenario: Resolve only the exact publicly sellable selected combination
       Given an Active ProductModel has a publicly sellable canonical Variant combination
       When the shopper resolves that exact selected combination
@@ -147,7 +147,7 @@ Feature: Public catalog query
       When the shopper resolves a missing or non-public combination
       Then the public catalog does not return a Variant
 
-    @deferred @api @SC-CAT-PUBLIC-RESOLVE-002
+    @accepted @api @SC-CAT-PUBLIC-RESOLVE-002
     Scenario: Resolve equivalent canonical representations to one public Variant
       Given a publicly sellable Variant has a numeric Size canonicalized to `200 mm`
       When the shopper resolves the equivalent Size representation `20 cm`
