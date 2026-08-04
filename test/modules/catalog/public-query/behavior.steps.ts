@@ -142,6 +142,24 @@ Then("the public search result is an empty array", async function (this: Scenari
   expect(state(this).search).toEqual([]);
 });
 
+function deferredCatalogBaseQuery(): never {
+  throw new Error("Catalog Base public Variant operations are deferred pending canonical OpenAPI.");
+}
+
+Given("publicly sellable ProductModels have distinct Material, Finish, and SellingPrice values", deferredCatalogBaseQuery);
+When("the shopper filters the public catalog by Material, Finish, and SellingPrice", deferredCatalogBaseQuery);
+Then("every returned ProductModel satisfies every requested filter", deferredCatalogBaseQuery);
+Then("no generic attribute filtering contract is exposed", deferredCatalogBaseQuery);
+Given("an Active ProductModel has publicly sellable, inactive, and incompatible Variants", deferredCatalogBaseQuery);
+When("the shopper asks for available options after selecting one dimension value", deferredCatalogBaseQuery);
+Then("each returned option completes at least one publicly sellable Variant", deferredCatalogBaseQuery);
+Then("options belonging only to inactive or incompatible Variants are absent", deferredCatalogBaseQuery);
+Given("an Active ProductModel has a publicly sellable canonical Variant combination", deferredCatalogBaseQuery);
+When("the shopper resolves that exact selected combination", deferredCatalogBaseQuery);
+Then("the public catalog returns that Variant", deferredCatalogBaseQuery);
+When("the shopper resolves a missing or non-public combination", deferredCatalogBaseQuery);
+Then("the public catalog does not return a Variant", deferredCatalogBaseQuery);
+
 Given("an active public product exists", async function (this: ScenarioWorld) {
   await chooseProduct(this);
 });
