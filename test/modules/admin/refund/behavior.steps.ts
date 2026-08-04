@@ -6,7 +6,7 @@ import { AuthPage } from "../../../shared/runtime/objects/auth.page";
 import { getUserToken, requiredEnv } from "../../../shared/runtime/api-helpers/auth.helpers";
 import { CatalogApiHelper } from "../../../shared/runtime/api-helpers/catalog.api";
 import { GoBackendClient } from "../../../shared/runtime/api-helpers/go-backend.client";
-import { isolatedReference, requiredTestTenant } from "../../../shared/data/test-isolation";
+import { isolatedReference } from "../../../shared/data/test-isolation";
 
 function refundId(world: ScenarioWorld): string {
   const data = responseData(world);
@@ -27,7 +27,6 @@ async function loginRefundBrowser(world: ScenarioWorld): Promise<void> {
 }
 
 async function createBrowserRefund(world: ScenarioWorld, note: string): Promise<void> {
-  requiredTestTenant();
   await authenticateAdmin(world);
   const client = new GoBackendClient(await world.getApiRequest());
   const catalog = new CatalogApiHelper(client);
@@ -40,7 +39,6 @@ async function createBrowserRefund(world: ScenarioWorld, note: string): Promise<
     productId: product.id,
     quantity: 1,
     email: requiredEnv("TEST_USER_EMAIL"),
-    tenant_id: requiredTestTenant(),
     external_reference: isolatedReference(world, "refund-order"),
   }, { headers: { Authorization: `Bearer ${userToken}` } });
   expect(orderResponse.status).toBeGreaterThanOrEqual(200);
