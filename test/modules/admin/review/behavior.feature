@@ -147,3 +147,11 @@ Feature: Review moderation operations
       Given an admin has created a hidden review for browser removal
       When the moderator deletes that review in the browser
       Then the review disappears from the browser moderation queue
+
+  @UC-REV-QUEUE
+  Rule: The desktop review surface preserves its visual contract
+
+    @accepted @browser @visual @SC-VISUAL-ADMIN-REVIEWS-001
+    Scenario: Match the desktop reviews contract
+      Given the admin opens the desktop Figma reviews surface
+      Then the desktop reviews surface matches its visual contract

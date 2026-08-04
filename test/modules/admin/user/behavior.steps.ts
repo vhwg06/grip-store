@@ -185,3 +185,16 @@ Then("the account panel exposes block and customer handoff controls only", async
   await expect(panel.getByRole("button", { name: "Open refunds" })).toHaveCount(0);
   await expect(panel.getByRole("button", { name: "Open reviews" })).toHaveCount(0);
 });
+
+Given("the admin opens the desktop Figma users surface", async function (this: ScenarioWorld) {
+  await loginUserBrowser(this);
+  await (await userBrowser(this)).page.setViewportSize({ width: 1440, height: 1326 });
+});
+
+Then("the desktop users surface matches its visual contract", async function (this: ScenarioWorld) {
+  const current = await userBrowser(this);
+  await expect(current.page).toHaveScreenshot("users.png", {
+    maxDiffPixelRatio: 0.02,
+    mask: [current.page.locator('[data-testid="users-table-body"]')],
+  });
+});

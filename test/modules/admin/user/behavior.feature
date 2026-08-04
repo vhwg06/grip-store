@@ -85,3 +85,11 @@ Feature: User account operations
     Scenario: Keep commerce actions outside the account panel
       Given an admin opens the buyer account controls in the browser
       Then the account panel exposes block and customer handoff controls only
+
+  @UC-USER-SEARCH
+  Rule: The desktop user surface preserves its visual contract
+
+    @accepted @browser @visual @SC-VISUAL-ADMIN-USERS-001
+    Scenario: Match the desktop users contract
+      Given the admin opens the desktop Figma users surface
+      Then the desktop users surface matches its visual contract

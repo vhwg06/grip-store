@@ -3,7 +3,7 @@ import { expect } from "@playwright/test";
 import type { ScenarioWorld } from "../../../shared/cucumber/world";
 import { adminGet, adminState, assertReadable, authenticateAdmin, responseData } from "../../../shared/cucumber/admin-runtime";
 import { AuthPage } from "../../../shared/runtime/objects/auth.page";
-import { requiredEnv } from "../../../shared/runtime/api-helpers/auth.helpers";
+import { getUserToken, requiredEnv } from "../../../shared/runtime/api-helpers/auth.helpers";
 
 Before(function (this: ScenarioWorld) {
   if (this.scenarioBinding?.module !== "admin.customer") return;
@@ -51,6 +51,30 @@ Then("the admin can identify and open the correct customer context", async funct
 
 Then("similar records may require commerce signals to distinguish them", async function (this: ScenarioWorld) {
   expect(adminState(this).response?.status).toBeLessThan(300);
+});
+
+When("an unauthenticated client reads the customer root", async function (this: ScenarioWorld) {
+  const response = await (await this.getApiClient()).get("/v1/admin/users?q=test_buyer&page=1&pageSize=20");
+  adminState(this).response = { status: response.status, data: response.data, path: "/v1/admin/users" };
+});
+
+Then("the customer root response status is `401`", function (this: ScenarioWorld) {
+  expect(adminState(this).response?.status).toBe(401);
+});
+
+Given("a shopper token is available for customer access", async function (this: ScenarioWorld) {
+  this.state.customerAccessToken = await getUserToken(await this.getApiRequest());
+});
+
+When("the shopper reads the customer root", async function (this: ScenarioWorld) {
+  const response = await (await this.getApiClient()).get("/v1/admin/users?q=test_buyer&page=1&pageSize=20", {
+    headers: { Authorization: `Bearer ${String(this.state.customerAccessToken)}` },
+  });
+  adminState(this).response = { status: response.status, data: response.data, path: "/v1/admin/users" };
+});
+
+Then("the customer root response status is `403`", function (this: ScenarioWorld) {
+  expect(adminState(this).response?.status).toBe(403);
 });
 
 Given("the admin has found a customer", async function (this: ScenarioWorld) {

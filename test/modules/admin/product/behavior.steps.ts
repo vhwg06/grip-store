@@ -136,6 +136,20 @@ Then("product visibility and stock health filters are visible", async function (
   await expect(current.page.getByRole("button", { name: "Low stock" })).toBeVisible();
 });
 
+When("the admin searches for a non-existent product", async function (this: ScenarioWorld) {
+  const current = await ui(this);
+  const search = current.page.getByPlaceholder(/search/i).first();
+  await search.fill("nonexistent-product-12345xyz");
+  await search.press("Enter");
+  await current.page.waitForLoadState("networkidle");
+});
+
+Then("the product list shows an empty state without an error boundary", async function (this: ScenarioWorld) {
+  const current = await ui(this);
+  await expect(current.page.locator('[data-testid="admin-table-empty"], [data-testid="admin-table"]')).toBeVisible();
+  await expect(current.page.locator('[data-testid="error-boundary"]')).toHaveCount(0);
+});
+
 Given("an admin opens an existing product editor", async function (this: ScenarioWorld) {
   await login(this);
   const response = await (await this.getApiClient()).get<unknown>("/v1/admin/products", {
@@ -199,4 +213,47 @@ Then("the category read model preserves that position", async function (this: Sc
   expect(response.status).toBe(200);
   const rows = Array.isArray(response.data) ? response.data as Array<Record<string, unknown>> : [];
   expect(rows.some((row) => row.position === 1)).toBe(true);
+});
+
+Given("the admin opens the desktop Figma product list surface", async function (this: ScenarioWorld) {
+  await login(this);
+  const current = await ui(this);
+  await current.admin.navigateTo("products");
+  await current.page.setViewportSize({ width: 1440, height: 1326 });
+});
+
+Then("the desktop product list surface matches its visual contract", async function (this: ScenarioWorld) {
+  const current = await ui(this);
+  await expect(current.page).toHaveScreenshot("products.png", {
+    maxDiffPixelRatio: 0.02,
+    mask: [current.page.locator('[data-testid="admin-table"] tbody')],
+  });
+});
+
+Given("the admin opens the desktop Figma product create surface", async function (this: ScenarioWorld) {
+  await login(this);
+  const current = await ui(this);
+  await current.page.goto("/admin/product/new");
+  await current.page.waitForLoadState("networkidle");
+  await current.page.setViewportSize({ width: 1440, height: 1326 });
+});
+
+Then("the desktop product create surface matches its visual contract", async function (this: ScenarioWorld) {
+  const current = await ui(this);
+  await expect(current.page).toHaveScreenshot("product-create.png", { maxDiffPixelRatio: 0.02 });
+});
+
+Given("the admin opens the desktop Figma categories surface", async function (this: ScenarioWorld) {
+  await login(this);
+  const current = await ui(this);
+  await current.admin.navigateTo("categories");
+  await current.page.setViewportSize({ width: 1440, height: 1326 });
+});
+
+Then("the desktop categories surface matches its visual contract", async function (this: ScenarioWorld) {
+  const current = await ui(this);
+  await expect(current.page).toHaveScreenshot("categories.png", {
+    maxDiffPixelRatio: 0.02,
+    mask: [current.page.locator('[data-testid="categories-tree-container"]')],
+  });
 });

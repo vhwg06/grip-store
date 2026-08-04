@@ -90,6 +90,19 @@ Feature: Order operations
       When the admin reads the allowed actions for that order
       Then no ordinary order transition is available
 
+    @accepted @api @SC-ORD-TRANSITION-006
+    Scenario: Reject a malformed order transition payload
+      Given an operations admin is authenticated for order operations
+      When the admin submits a malformed `REFUNDED` order transition for `test-order-0002`
+      Then the order transition request returns `400`
+
+    @accepted @api @SC-ORD-TRANSITION-007
+    Scenario: Delete an admin-created order after cancelling it
+      Given an operations admin has created a new order in `PENDING` state
+      When the admin cancels and deletes that order through the admin API
+      Then the order cancellation and deletion are accepted
+      And a fresh order read returns `404`
+
   @UC-ORD-HISTORY
   Rule: Purchase history is a read projection of the order customer identity
 
@@ -186,3 +199,11 @@ Feature: Order operations
       Given an admin has a newly registered customer with no orders in the browser
       When the admin opens that customer's purchase history
       Then the browser shows no orders found without crashing
+
+  @UC-ORD-QUEUE
+  Rule: The desktop order surface preserves its visual contract
+
+    @accepted @browser @visual @SC-VISUAL-ADMIN-ORDERS-001
+    Scenario: Match the desktop orders contract
+      Given the admin opens the desktop Figma orders surface
+      Then the desktop orders surface matches its visual contract

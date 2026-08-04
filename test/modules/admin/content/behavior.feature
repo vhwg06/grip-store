@@ -106,8 +106,61 @@ Feature: Admin content operations
   Scenario: Preview a draft article
     Given the content operator is composing an article with draft status
     When the content operator triggers the article preview
-    Then a storefront preview modal opens
-    And the modal displays the draft article's title, cover image, and body content
+      Then a storefront preview modal opens
+      And the modal displays the draft article's title, cover image, and body content
+
+  @UC-CONT-ARTICLE
+  Rule: Article API CRUD preserves editorial fields and public deletion semantics
+
+    @accepted @api @security @SC-CONT-ARTICLE-API-001
+    Scenario: Reject unauthenticated article creation
+      When an unauthenticated client creates a content article
+      Then the article creation response status is `401` or `403`
+
+    @accepted @api @SC-CONT-ARTICLE-API-002
+    Scenario: CRUD an article with editorial metadata
+      Given an admin creates an article with priority tags topic and image metadata
+      When the admin updates the article title and priority
+      Then the admin article read contains all updated editorial fields
+      And the public article detail contains the updated article
+      When the admin deletes the article
+      Then the public article detail returns `404`
+
+    @accepted @api @SC-CONT-ARTICLE-API-003
+    Scenario: Sort and filter public articles by editorial metadata
+      Given an admin creates published articles with distinct priorities tags and topics
+      When a visitor reads the public article stream
+      Then the created articles are sorted by priority descending
+      When a visitor filters public articles by topic and tag
+      Then each filtered result preserves the requested editorial classification
+
+  @UC-CONT-BANNER
+  Rule: Public banner projection contains only active slides in sorted order
+
+    @accepted @api @SC-CONT-BANNER-API-001
+    Scenario: Manage banners and expose active slides publicly
+      Given an admin creates active and inactive banners with explicit sort order
+      When the admin updates the inactive banner to active with a higher priority
+      Then the public homepage exposes both created slides in sort order
+      And every created public slide is active
+
+  @UC-CONT-FAQ
+  Rule: Public FAQ projection contains active ordered answers only
+
+    @accepted @api @SC-CONT-FAQ-API-001
+    Scenario: Manage FAQs and expose active ordered entries publicly
+      Given an admin creates active and inactive FAQs with explicit sort order
+      When the admin activates and reorders the inactive FAQ
+      Then the public FAQ response exposes the created entries in the new order
+
+  @UC-CONT-ABOUT-LINK
+  Rule: About page API persistence reflects updated narrative and gallery
+
+    @accepted @api @SC-CONT-ABOUT-API-001
+    Scenario: Persist About page content and gallery
+      Given an admin creates About page content with a gallery
+      When the admin updates the About narrative and gallery
+      Then the public About page returns the updated narrative and gallery
 
   @UC-CONT-UI
   Rule: Admin content browser surfaces expose ownership and editorial controls
@@ -137,3 +190,35 @@ Feature: Admin content operations
     Scenario: Keep product editorial work inside product editor context
       Given an admin opens product management for editorial review
       Then product editor entry points are visible
+
+  @UC-CONT-BANNER
+  Rule: The desktop banner surface preserves its visual contract
+
+    @accepted @browser @visual @SC-VISUAL-ADMIN-BANNERS-001
+    Scenario: Match the desktop banner management contract
+      Given the admin opens the desktop Figma banner surface
+      Then the desktop banner surface matches its visual contract
+
+  @UC-CONT-MEDIA
+  Rule: The desktop media surface preserves its visual contract
+
+    @accepted @browser @visual @SC-VISUAL-ADMIN-MEDIA-001
+    Scenario: Match the desktop media management contract
+      Given the admin opens the desktop Figma media surface
+      Then the desktop media surface matches its visual contract
+
+  @UC-CONT-FAQ
+  Rule: The desktop FAQ surface preserves its visual contract
+
+    @accepted @browser @visual @SC-VISUAL-ADMIN-FAQS-001
+    Scenario: Match the desktop FAQ contract
+      Given the admin opens the desktop Figma FAQ surface
+      Then the desktop FAQ surface matches its visual contract
+
+  @UC-CONT-ARTICLE
+  Rule: The desktop article surface preserves its visual contract
+
+    @accepted @browser @visual @SC-VISUAL-ADMIN-ARTICLES-001
+    Scenario: Match the desktop article management contract
+      Given the admin opens the desktop Figma article surface
+      Then the desktop article management surface matches its visual contract

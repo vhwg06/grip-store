@@ -31,7 +31,7 @@ Given("the current admin wants to update display identity", async function (this
   await authenticateAdmin(this);
 });
 
-When("the admin saves a new display identity", async function (this: ScenarioWorld) {
+When("the admin submits a new display identity through the profile API", async function (this: ScenarioWorld) {
   await adminPatch(this, "/v1/profile", { display_name: `Cucumber Admin ${Date.now()}` });
 });
 
@@ -158,4 +158,20 @@ Then("static fallback session rows are absent", async function (this: ScenarioWo
   const current = await adminPage(this);
   await expect(current.page.getByText("Safari · iOS", { exact: true })).toHaveCount(0);
   await expect(current.page.getByText("Hanoi", { exact: true })).toHaveCount(0);
+});
+
+Given("the admin opens the desktop Figma profile surface", async function (this: ScenarioWorld) {
+  await loginAdmin(this);
+  const current = await adminPage(this);
+  await current.page.goto("/admin/profile");
+  await current.page.waitForLoadState("networkidle");
+  await current.page.setViewportSize({ width: 1440, height: 1326 });
+});
+
+Then("the desktop profile surface matches its visual contract", async function (this: ScenarioWorld) {
+  const current = await adminPage(this);
+  await expect(current.page).toHaveScreenshot("profile.png", {
+    maxDiffPixelRatio: 0.02,
+    mask: [current.page.locator('[data-testid="profile-identity-fields"]')],
+  });
 });

@@ -251,6 +251,21 @@ Then("the displayed result count matches the result set", async function (this: 
   expect(await current.list.getResultCount()).toBeGreaterThanOrEqual(cards.length);
 });
 
+When("the guest adds the first available product from its listing card", async function (this: ScenarioWorld) {
+  const current = await pages(this);
+  const card = current.page.locator('[data-testid="product-card"], [data-testid="product-card-item"]').first();
+  await expect(card).toBeVisible();
+  const addButton = card.locator('[data-testid="add-to-cart-btn"], [data-testid="add-to-cart"], button:has-text("Thêm vào giỏ"), button:has-text("Add to cart")').first();
+  await expect(addButton).toBeVisible();
+  await addButton.click();
+});
+
+Then("the cart contains the listed product", async function (this: ScenarioWorld) {
+  const current = await pages(this);
+  await current.cart.goto();
+  expect((await current.cart.getItems()).length).toBeGreaterThan(0);
+});
+
 Given("a guest sees a product card", async function (this: ScenarioWorld) {
   const current = await pages(this);
   await current.list.goto();

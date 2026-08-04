@@ -156,6 +156,12 @@ Feature: Shopper engagement
       When the client marks a notification as read without authentication
       Then the engagement response status is `401`
 
+    @accepted @api @SC-ENGAGEMENT-NOTIFICATIONS-014
+    Scenario: Mark one authenticated notification as read
+      Given an authenticated shopper is available for engagement
+      When the shopper marks an existing notification as read
+      Then the engagement response status is `200` or `204`
+
     @accepted @api @SC-ENGAGEMENT-NOTIFICATIONS-007
     Scenario: Mark all notifications as read
       Given an authenticated shopper is available for engagement

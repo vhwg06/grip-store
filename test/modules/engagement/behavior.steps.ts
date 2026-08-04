@@ -351,6 +351,21 @@ When("the client marks a notification as read without authentication", async fun
   state(this).response = { status: response.status, data: response.data };
 });
 
+When("the shopper marks an existing notification as read", async function (this: ScenarioWorld) {
+  const token = await engagementToken(this);
+  const inbox = await (await this.getApiClient()).get("/v1/notifications", { headers: { Authorization: `Bearer ${token}` } });
+  const payload = inbox.data && typeof inbox.data === "object" ? inbox.data as Record<string, unknown> : {};
+  const items = Array.isArray(inbox.data) ? inbox.data : Array.isArray(payload.items) ? payload.items : [];
+  const first = items[0] && typeof items[0] === "object" ? items[0] as Record<string, unknown> : {};
+  const id = String(first.id ?? "940001");
+  const response = await (await this.getApiClient()).post(`/v1/notifications/${id}/read`, undefined, { headers: { Authorization: `Bearer ${token}` } });
+  state(this).response = { status: response.status, data: response.data };
+});
+
+Then("the engagement response status is `200` or `204`", function (this: ScenarioWorld) {
+  expect([200, 204]).toContain(state(this).response?.status);
+});
+
 When("the shopper marks all notifications as read", async function (this: ScenarioWorld) {
   const response = await (await this.getApiClient()).post("/v1/notifications/read-all", undefined, { headers: { Authorization: `Bearer ${await engagementToken(this)}` } });
   state(this).response = { status: response.status, data: response.data };

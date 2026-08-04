@@ -94,7 +94,13 @@ Feature: Public catalog browsing
   Scenario: Display result count
     Given a guest has searched the catalog
     When matching results are returned
-    Then the displayed result count matches the result set
+      Then the displayed result count matches the result set
+
+  @accepted @browser @SC-BROWSE-CATALOG-009
+  Scenario: Add a product directly from a listing card
+    Given a guest opens the product listing
+    When the guest adds the first available product from its listing card
+    Then the cart contains the listed product
 
   @accepted @browser @SC-BROWSE-CATALOG-008
   Scenario: Navigate from product card

@@ -10,6 +10,24 @@ Before(function (this: ScenarioWorld) {
   this.activeModule = "admin.content";
 });
 
+type ContentRecord = Record<string, unknown>;
+
+function contentRecord(value: unknown): ContentRecord {
+  return value && typeof value === "object" && !Array.isArray(value) ? value as ContentRecord : {};
+}
+
+function contentList(value: unknown): ContentRecord[] {
+  if (Array.isArray(value)) return value.filter((item): item is ContentRecord => Boolean(item && typeof item === "object"));
+  const record = contentRecord(value);
+  if (Array.isArray(record.data)) return contentList(record.data);
+  if (Array.isArray(record.items)) return contentList(record.items);
+  return [];
+}
+
+async function contentAdminHeaders(world: ScenarioWorld): Promise<Record<string, string>> {
+  return { Authorization: `Bearer ${await getAdminToken(await world.getApiRequest())}` };
+}
+
 Given("the content operator needs a reusable asset", async function (this: ScenarioWorld) {
   await authenticateAdmin(this);
 });
@@ -225,6 +243,249 @@ Then("the modal displays the draft article's title, cover image, and body conten
   expect(responseData(this)).toBeTruthy();
 });
 
+When("an unauthenticated client creates a content article", async function (this: ScenarioWorld) {
+  const response = await (await this.getApiClient()).post("/v1/content/articles", { title: `Unauthenticated ${Date.now()}` });
+  adminState(this).response = { status: response.status, data: response.data, path: "/v1/content/articles" };
+});
+
+Then("the article creation response status is `401` or `403`", function (this: ScenarioWorld) {
+  expect([401, 403]).toContain(adminState(this).response?.status);
+});
+
+Given("an admin creates an article with priority tags topic and image metadata", async function (this: ScenarioWorld) {
+  const headers = await contentAdminHeaders(this);
+  const slug = `cucumber-article-${Date.now()}`;
+  const response = await (await this.getApiClient()).post("/v1/content/articles", {
+    title: "Cucumber API Article",
+    slug,
+    body: "This is a body test.",
+    status: "published",
+    image_url: "https://example.com/cucumber-article.png",
+    topic: "technology",
+    tags: ["cucumber", "api"],
+    priority: 42,
+  }, { headers });
+  expect(response.status).toBe(201);
+  const data = contentRecord(response.data);
+  this.state.articleId = String(data.id);
+  this.state.articleSlug = slug;
+  this.registerCleanup(async () => {
+    const deleted = await (await this.getApiClient()).delete(`/v1/content/articles/${this.state.articleId}`, { headers });
+    if (deleted.status !== 404 && (deleted.status < 200 || deleted.status >= 300)) throw new Error(`Article cleanup failed with ${deleted.status}`);
+  });
+});
+
+When("the admin updates the article title and priority", async function (this: ScenarioWorld) {
+  const headers = await contentAdminHeaders(this);
+  const response = await (await this.getApiClient()).patch(`/v1/content/articles/${this.state.articleId}`, {
+    title: "Updated Cucumber API Article",
+    priority: 99,
+  }, { headers });
+  adminState(this).response = { status: response.status, data: response.data, path: `/v1/content/articles/${this.state.articleId}` };
+});
+
+Then("the admin article read contains all updated editorial fields", function (this: ScenarioWorld) {
+  assertAccepted(this);
+  const data = contentRecord(responseData(this));
+  expect(data.title).toBe("Updated Cucumber API Article");
+  expect(data.priority).toBe(99);
+  expect(data.slug).toBe(this.state.articleSlug);
+  expect(data.image_url).toBe("https://example.com/cucumber-article.png");
+  expect(data.topic).toBe("technology");
+  expect(data.tags).toEqual(["cucumber", "api"]);
+});
+
+Then("the public article detail contains the updated article", async function (this: ScenarioWorld) {
+  const response = await (await this.getApiClient()).get(`/v1/public/content/articles/${this.state.articleId}`);
+  expect(response.status).toBe(200);
+  const data = contentRecord(response.data);
+  const publicData = contentRecord(data.data ?? data);
+  expect(publicData.id).toBe(this.state.articleId);
+  expect(publicData.title).toBe("Updated Cucumber API Article");
+});
+
+When("the admin deletes the article", async function (this: ScenarioWorld) {
+  const response = await (await this.getApiClient()).delete(`/v1/content/articles/${this.state.articleId}`, { headers: await contentAdminHeaders(this) });
+  adminState(this).response = { status: response.status, data: response.data, path: `/v1/content/articles/${this.state.articleId}` };
+});
+
+Then("the public article detail returns `404`", async function (this: ScenarioWorld) {
+  assertAccepted(this);
+  const response = await (await this.getApiClient()).get(`/v1/public/content/articles/${this.state.articleId}`);
+  expect(response.status).toBe(404);
+});
+
+Given("an admin creates published articles with distinct priorities tags and topics", async function (this: ScenarioWorld) {
+  const headers = await contentAdminHeaders(this);
+  const suffix = `${Date.now()}-${crypto.randomUUID().slice(0, 8)}`;
+  const articles = [
+    { title: `Cucumber Article A ${suffix}`, slug: `cucumber-a-${suffix}`, body: "Body A", status: "published", topic: "marketing", tags: ["announcement"], priority: 10 },
+    { title: `Cucumber Article B ${suffix}`, slug: `cucumber-b-${suffix}`, body: "Body B", status: "published", topic: "engineering", tags: ["tutorial"], priority: 50 },
+    { title: `Cucumber Article C ${suffix}`, slug: `cucumber-c-${suffix}`, body: "Body C", status: "published", topic: "engineering", tags: ["announcement", "featured"], priority: 5 },
+  ];
+  const ids: string[] = [];
+  for (const article of articles) {
+    const response = await (await this.getApiClient()).post("/v1/content/articles", article, { headers });
+    expect(response.status).toBe(201);
+    const id = String(contentRecord(response.data).id);
+    ids.push(id);
+    this.registerCleanup(async () => {
+      const deleted = await (await this.getApiClient()).delete(`/v1/content/articles/${id}`, { headers });
+      if (deleted.status !== 404 && (deleted.status < 200 || deleted.status >= 300)) throw new Error(`Article cleanup failed with ${deleted.status}`);
+    });
+  }
+  this.state.articleIds = ids;
+  this.state.articleTitles = articles.map((article) => article.title);
+});
+
+When("a visitor reads the public article stream", async function (this: ScenarioWorld) {
+  const response = await (await this.getApiClient()).get("/v1/public/content/articles");
+  expect(response.status).toBe(200);
+  this.state.publicArticles = contentList(response.data);
+});
+
+Then("the created articles are sorted by priority descending", function (this: ScenarioWorld) {
+  const ids = this.state.articleIds as string[];
+  const rows = (this.state.publicArticles as ContentRecord[]).filter((row) => ids.includes(String(row.id)));
+  expect(rows).toHaveLength(3);
+  expect(rows.map((row) => row.priority)).toEqual([50, 10, 5]);
+});
+
+When("a visitor filters public articles by topic and tag", async function (this: ScenarioWorld) {
+  const topicResponse = await (await this.getApiClient()).get("/v1/public/content/articles?topic=engineering");
+  const tagResponse = await (await this.getApiClient()).get("/v1/public/content/articles?tag=announcement");
+  expect(topicResponse.status).toBe(200);
+  expect(tagResponse.status).toBe(200);
+  this.state.topicArticles = contentList(topicResponse.data);
+  this.state.tagArticles = contentList(tagResponse.data);
+});
+
+Then("each filtered result preserves the requested editorial classification", function (this: ScenarioWorld) {
+  const ids = this.state.articleIds as string[];
+  const topics = (this.state.topicArticles as ContentRecord[]).filter((row) => ids.includes(String(row.id)));
+  const tags = (this.state.tagArticles as ContentRecord[]).filter((row) => ids.includes(String(row.id)));
+  expect(topics).toHaveLength(2);
+  expect(topics.every((row) => row.topic === "engineering")).toBe(true);
+  expect(tags).toHaveLength(2);
+  expect(tags.every((row) => Array.isArray(row.tags) && (row.tags as unknown[]).includes("announcement"))).toBe(true);
+});
+
+Given("an admin creates active and inactive banners with explicit sort order", async function (this: ScenarioWorld) {
+  const headers = await contentAdminHeaders(this);
+  const suffix = `${Date.now()}-${crypto.randomUUID().slice(0, 8)}`;
+  const first = { title: `Cucumber Banner A ${suffix}`, subtitle: "First", image: "https://example.com/banner-a.png", mobileImage: "https://example.com/banner-a-mobile.png", ctaText: "Shop A", ctaLink: "/products?a", sortOrder: 20, isActive: true };
+  const second = { title: `Cucumber Banner B ${suffix}`, subtitle: "Second", image: "https://example.com/banner-b.png", mobileImage: "https://example.com/banner-b-mobile.png", ctaText: "Shop B", ctaLink: "/products?b", sortOrder: 10, isActive: false };
+  const created: ContentRecord[] = [];
+  for (const banner of [first, second]) {
+    const response = await (await this.getApiClient()).post("/v1/admin/banners", banner, { headers });
+    expect(response.status).toBe(200);
+    created.push(contentRecord(response.data));
+  }
+  this.state.bannerA = created[0];
+  this.state.bannerB = created[1];
+  this.registerCleanup(async () => {
+    for (const banner of created) {
+      const deleted = await (await this.getApiClient()).delete(`/v1/admin/banners/${banner.id}`, { headers });
+      if (deleted.status !== 404 && (deleted.status < 200 || deleted.status >= 300)) throw new Error(`Banner cleanup failed with ${deleted.status}`);
+    }
+  });
+});
+
+When("the admin updates the inactive banner to active with a higher priority", async function (this: ScenarioWorld) {
+  const banner = this.state.bannerB as ContentRecord;
+  const response = await (await this.getApiClient()).post("/v1/admin/banners", { ...banner, isActive: true, sortOrder: 5 }, { headers: await contentAdminHeaders(this) });
+  expect(response.status).toBe(200);
+});
+
+Then("the public homepage exposes both created slides in sort order", async function (this: ScenarioWorld) {
+  const response = await (await this.getApiClient()).get("/v1/public/homepage");
+  expect(response.status).toBe(200);
+  const homepage = contentRecord(response.data);
+  const blocks = contentList(homepage.data ?? response.data);
+  const bannerBlock = blocks.find((block) => block.block_type === "banner");
+  const slides = contentList(contentRecord(contentRecord(bannerBlock).config).slides);
+  const titles = [String((this.state.bannerA as ContentRecord).title), String((this.state.bannerB as ContentRecord).title)];
+  const own = slides.filter((slide) => titles.includes(String(slide.title)));
+  expect(own.map((slide) => slide.title)).toEqual([titles[1], titles[0]]);
+  this.state.publicBannerSlides = own;
+});
+
+Then("every created public slide is active", function (this: ScenarioWorld) {
+  expect((this.state.publicBannerSlides as ContentRecord[]).every((slide) => slide.isActive === true)).toBe(true);
+});
+
+Given("an admin creates active and inactive FAQs with explicit sort order", async function (this: ScenarioWorld) {
+  const headers = await contentAdminHeaders(this);
+  const suffix = `${Date.now()}-${crypto.randomUUID().slice(0, 8)}`;
+  const first = { question: `Cucumber FAQ A ${suffix}`, answer: "Answer A", sortOrder: 20, isActive: false };
+  const second = { question: `Cucumber FAQ B ${suffix}`, answer: "Answer B", sortOrder: 10, isActive: true };
+  const created: ContentRecord[] = [];
+  for (const faq of [first, second]) {
+    const response = await (await this.getApiClient()).post("/v1/admin/faqs", faq, { headers });
+    expect(response.status).toBe(200);
+    created.push(contentRecord(response.data));
+  }
+  this.state.faqA = created[0];
+  this.state.faqB = created[1];
+  this.registerCleanup(async () => {
+    for (const faq of created) {
+      const deleted = await (await this.getApiClient()).delete(`/v1/admin/faqs/${faq.id}`, { headers });
+      if (deleted.status !== 404 && (deleted.status < 200 || deleted.status >= 300)) throw new Error(`FAQ cleanup failed with ${deleted.status}`);
+    }
+  });
+});
+
+When("the admin activates and reorders the inactive FAQ", async function (this: ScenarioWorld) {
+  const faq = this.state.faqA as ContentRecord;
+  const response = await (await this.getApiClient()).post("/v1/admin/faqs", { ...faq, answer: "Updated answer", sortOrder: 5, isActive: true }, { headers: await contentAdminHeaders(this) });
+  expect(response.status).toBe(200);
+});
+
+Then("the public FAQ response exposes the created entries in the new order", async function (this: ScenarioWorld) {
+  const response = await (await this.getApiClient()).get("/v1/faqs/active");
+  expect(response.status).toBe(200);
+  const faqPayload = contentRecord(response.data);
+  const rows = contentList(faqPayload.items ?? faqPayload.data ?? response.data);
+  const questions = [String((this.state.faqA as ContentRecord).question), String((this.state.faqB as ContentRecord).question)];
+  const own = rows.filter((row) => questions.includes(String(row.question)));
+  expect(own.map((row) => row.question)).toEqual([questions[0], questions[1]]);
+  expect(own.every((row) => row.isActive !== false)).toBe(true);
+});
+
+Given("an admin creates About page content with a gallery", async function (this: ScenarioWorld) {
+  const response = await (await this.getApiClient()).post("/v1/content/pages", {
+    title: "Cucumber About",
+    slug: "about",
+    body: "About body",
+    gallery: ["https://example.com/about-a.png", "https://example.com/about-b.png"],
+    template_key: "about-us",
+    status: "published",
+  }, { headers: await contentAdminHeaders(this) });
+  expect(response.status).toBe(201);
+});
+
+When("the admin updates the About narrative and gallery", async function (this: ScenarioWorld) {
+  const response = await (await this.getApiClient()).patch("/v1/content/pages/about", {
+    title: "Cucumber About Updated",
+    slug: "about",
+    body: "Updated About body",
+    gallery: ["https://example.com/about-c.png"],
+    template_key: "about-us",
+    status: "published",
+  }, { headers: await contentAdminHeaders(this) });
+  adminState(this).response = { status: response.status, data: response.data, path: "/v1/content/pages/about" };
+});
+
+Then("the public About page returns the updated narrative and gallery", async function (this: ScenarioWorld) {
+  assertAccepted(this);
+  const response = await (await this.getApiClient()).get("/v1/public/content/pages/about");
+  expect(response.status).toBe(200);
+  const data = contentRecord(response.data);
+  expect(data.title).toBe("Cucumber About Updated");
+  expect(data.body).toBe("Updated About body");
+  expect(data.gallery).toEqual(["https://example.com/about-c.png"]);
+});
+
 async function contentUi(world: ScenarioWorld) {
   const page = await world.getBrowserPage();
   return { page, auth: new AuthPage(page) };
@@ -312,4 +573,68 @@ Then("product editor entry points are visible", async function (this: ScenarioWo
   await expect(current.page.locator('[data-testid="create-btn"]')).toBeVisible();
   await expect(current.page.getByText(/quick access to full product editing/i)).toBeVisible();
   await expect(current.page.locator('[data-testid="edit-btn"]').first()).toBeVisible();
+});
+
+Given("the admin opens the desktop Figma banner surface", async function (this: ScenarioWorld) {
+  await loginContentAdmin(this);
+  const current = await contentUi(this);
+  await current.page.goto("/admin/banners");
+  await current.page.waitForLoadState("networkidle");
+  await current.page.setViewportSize({ width: 1440, height: 1326 });
+});
+
+Then("the desktop banner surface matches its visual contract", async function (this: ScenarioWorld) {
+  const current = await contentUi(this);
+  await expect(current.page).toHaveScreenshot("banner-management.png", {
+    maxDiffPixelRatio: 0.02,
+    mask: [current.page.locator('[data-testid="banners-list-container"]')],
+  });
+});
+
+Given("the admin opens the desktop Figma media surface", async function (this: ScenarioWorld) {
+  await loginContentAdmin(this);
+  const current = await contentUi(this);
+  await current.page.goto("/admin/media");
+  await current.page.waitForLoadState("networkidle");
+  await current.page.setViewportSize({ width: 1440, height: 1326 });
+});
+
+Then("the desktop media surface matches its visual contract", async function (this: ScenarioWorld) {
+  const current = await contentUi(this);
+  await expect(current.page).toHaveScreenshot("media-management.png", {
+    maxDiffPixelRatio: 0.02,
+    mask: [current.page.locator('[data-testid="media-grid-container"]')],
+  });
+});
+
+Given("the admin opens the desktop Figma FAQ surface", async function (this: ScenarioWorld) {
+  await loginContentAdmin(this);
+  const current = await contentUi(this);
+  await current.page.goto("/admin/faqs");
+  await current.page.waitForLoadState("networkidle");
+  await current.page.setViewportSize({ width: 1440, height: 1326 });
+});
+
+Then("the desktop FAQ surface matches its visual contract", async function (this: ScenarioWorld) {
+  const current = await contentUi(this);
+  await expect(current.page).toHaveScreenshot("faqs.png", {
+    maxDiffPixelRatio: 0.02,
+    mask: [current.page.locator('[data-testid="faqs-list-container"]')],
+  });
+});
+
+Given("the admin opens the desktop Figma article surface", async function (this: ScenarioWorld) {
+  await loginContentAdmin(this);
+  const current = await contentUi(this);
+  await current.page.goto("/admin/articles");
+  await current.page.waitForLoadState("networkidle");
+  await current.page.setViewportSize({ width: 1440, height: 1326 });
+});
+
+Then("the desktop article management surface matches its visual contract", async function (this: ScenarioWorld) {
+  const current = await contentUi(this);
+  await expect(current.page).toHaveScreenshot("article-management.png", {
+    maxDiffPixelRatio: 0.02,
+    mask: [current.page.locator('[data-testid="articles-list-container"]')],
+  });
 });

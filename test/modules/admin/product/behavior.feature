@@ -36,6 +36,12 @@ Feature: Admin product management
       Given an admin opens the product list
       Then product visibility and stock health filters are visible
 
+    @accepted @browser @empty-result @SC-ADMIN-PRODUCT-LIST-003
+    Scenario: Render an empty product search state
+      Given an admin opens the product list
+      When the admin searches for a non-existent product
+      Then the product list shows an empty state without an error boundary
+
   @UC-ADMIN-PRODUCT-EDITORIAL
   Rule: Product editor keeps linked editorial context inside the product boundary
 
@@ -54,3 +60,27 @@ Feature: Admin product management
       Given an admin opens category management
       When the admin saves a category position
       Then the category read model preserves that position
+
+  @UC-ADMIN-PRODUCT-LIST
+  Rule: The desktop product list preserves its visual contract
+
+    @accepted @browser @visual @SC-VISUAL-ADMIN-PRODUCT-LIST-001
+    Scenario: Match the desktop product list contract
+      Given the admin opens the desktop Figma product list surface
+      Then the desktop product list surface matches its visual contract
+
+  @UC-ADMIN-PRODUCT-CREATE
+  Rule: The desktop product editor preserves its visual contract
+
+    @accepted @browser @visual @SC-VISUAL-ADMIN-PRODUCT-CREATE-001
+    Scenario: Match the desktop product create contract
+      Given the admin opens the desktop Figma product create surface
+      Then the desktop product create surface matches its visual contract
+
+  @UC-ADMIN-PRODUCT-CATEGORY
+  Rule: The desktop category surface preserves its visual contract
+
+    @accepted @browser @visual @SC-VISUAL-ADMIN-CATEGORIES-001
+    Scenario: Match the desktop categories contract
+      Given the admin opens the desktop Figma categories surface
+      Then the desktop categories surface matches its visual contract

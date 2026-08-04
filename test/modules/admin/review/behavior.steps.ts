@@ -409,3 +409,28 @@ Then("the review disappears from the browser moderation queue", async function (
   await expect((await reviewCard(this))).toBeHidden();
   await expect(current.page.locator('[data-testid="reviews-queue-container"]')).toContainText("No reviews found");
 });
+
+Given("the admin opens the desktop Figma reviews surface", async function (this: ScenarioWorld) {
+  await loginReviewBrowser(this);
+  const current = await reviewBrowser(this);
+  await current.page.goto("/admin/reviews");
+  await current.page.waitForLoadState("networkidle");
+  await current.page.setViewportSize({ width: 1440, height: 1326 });
+});
+
+Then("the desktop reviews surface matches its visual contract", async function (this: ScenarioWorld) {
+  const current = await reviewBrowser(this);
+  await expect(current.page.getByRole("heading", { name: "Review Moderation" })).toBeVisible();
+  await expect(current.page.locator('[data-testid="reviews-queue-container"]')).toBeVisible();
+  await expect(current.page.locator('[data-testid="reviews-context-panel"]')).toBeVisible();
+  await expect(current.page).toHaveScreenshot("reviews.png", {
+    maxDiffPixelRatio: 0.02,
+    mask: [
+      current.page.locator('[data-testid="reviews-stats-pending"]'),
+      current.page.locator('[data-testid="reviews-stats-featured"]'),
+      current.page.locator('[data-testid="reviews-stats-hidden"]'),
+      current.page.locator('[data-testid="reviews-queue-container"]'),
+      current.page.locator('[data-testid="reviews-context-panel"]'),
+    ],
+  });
+});

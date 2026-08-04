@@ -3,6 +3,7 @@ import { expect } from "@playwright/test";
 import type { ScenarioWorld } from "../../../shared/cucumber/world";
 import {
   adminGet,
+  adminDelete,
   adminPatch,
   adminState,
   assertAccepted,
@@ -386,6 +387,29 @@ Then("no ordinary order transition is available", function (this: ScenarioWorld)
   if (actions !== undefined) expect(actions).toHaveLength(0);
 });
 
+When("the admin submits a malformed `REFUNDED` order transition for `test-order-0002`", async function (this: ScenarioWorld) {
+  await adminPatch(this, "/v1/admin/orders/test-order-0002", { status: "refunded" });
+});
+
+Then("the order transition request returns `400`", function (this: ScenarioWorld) {
+  expect(adminState(this).response?.status).toBe(400);
+});
+
+When("the admin cancels and deletes that order through the admin API", async function (this: ScenarioWorld) {
+  await adminPatch(this, `/v1/admin/orders/${state(this).orderId}`, { status: "cancelled" });
+  assertAccepted(this);
+  await adminDelete(this, `/v1/admin/orders/${state(this).orderId}`);
+});
+
+Then("the order cancellation and deletion are accepted", function (this: ScenarioWorld) {
+  assertAccepted(this);
+});
+
+Then("a fresh order read returns `404`", async function (this: ScenarioWorld) {
+  await adminGet(this, `/v1/admin/orders/${state(this).orderId}`);
+  expect(adminState(this).response?.status).toBe(404);
+});
+
 Given("an operations admin is reading an order detail with a resolved customer identity", async function (this: ScenarioWorld) {
   await authenticateAdmin(this);
   await adminGet(this, "/v1/admin/orders/test-order-0001");
@@ -674,4 +698,20 @@ Then("the browser shows no orders found without crashing", async function (this:
   const current = await browser(this);
   await expect(current.page).toHaveURL(/\/admin\/orders\/?\?q=/);
   await expect(current.page.getByText("No orders found")).toBeVisible();
+});
+
+Given("the admin opens the desktop Figma orders surface", async function (this: ScenarioWorld) {
+  await loginBrowser(this);
+  const current = await browser(this);
+  await current.page.goto("/admin/orders");
+  await current.page.waitForLoadState("networkidle");
+  await current.page.setViewportSize({ width: 1440, height: 1326 });
+});
+
+Then("the desktop orders surface matches its visual contract", async function (this: ScenarioWorld) {
+  const current = await browser(this);
+  await expect(current.page).toHaveScreenshot("orders.png", {
+    maxDiffPixelRatio: 0.02,
+    mask: [current.page.locator('[data-testid="orders-table-body"]')],
+  });
 });

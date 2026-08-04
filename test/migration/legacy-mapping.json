@@ -3,6 +3,176 @@
   "purpose": "Committed semantic mapping from legacy tests to vertical-slice Cucumber scenarios.",
   "entries": [
     {
+      "source_path": "test/specs/features/catalog/product-model-lifecycle.feature",
+      "source_line": 1,
+      "test_title": "Catalog Base ProductModel legacy feature scenarios",
+      "old_id": null,
+      "owner": "catalog.product-model",
+      "target_scenarios": [
+        "SC-CAT-MODEL-001",
+        "SC-CAT-MODEL-002",
+        "SC-CAT-MODEL-003",
+        "SC-CAT-MODEL-004",
+        "SC-CAT-MODEL-005",
+        "SC-CAT-MODEL-006",
+        "SC-CAT-MODEL-007",
+        "SC-CAT-MODEL-008",
+        "SC-CAT-MODEL-009",
+        "SC-CAT-MODEL-010",
+        "SC-CAT-MODEL-011",
+        "SC-CAT-MODEL-012",
+        "SC-CAT-MODEL-013"
+      ],
+      "disposition": "migrated",
+      "preserved_assertions": [
+        {
+          "kind": "gherkin_semantics",
+          "expected": "legacy ProductModel scopes, publication invariants, media ordering, lifecycle, and warranty behavior retained"
+        }
+      ]
+    },
+    {
+      "source_path": "test/specs/features/catalog/variant-management.feature",
+      "source_line": 1,
+      "test_title": "Catalog Base Variant legacy feature scenarios",
+      "old_id": null,
+      "owner": "catalog.variant",
+      "target_scenarios": [
+        "SC-CAT-VARIANT-001",
+        "SC-CAT-VARIANT-002",
+        "SC-CAT-VARIANT-003",
+        "SC-CAT-VARIANT-004",
+        "SC-CAT-VARIANT-005",
+        "SC-CAT-VARIANT-006",
+        "SC-CAT-VARIANT-007",
+        "SC-CAT-VARIANT-008",
+        "SC-CAT-VARIANT-009",
+        "SC-CAT-VARIANT-010",
+        "SC-CAT-VARIANT-011",
+        "SC-CAT-VARIANT-SKU-001",
+        "SC-CAT-VARIANT-SKU-002",
+        "SC-CAT-VARIANT-SKU-003",
+        "SC-CAT-VARIANT-PRICE-001",
+        "SC-CAT-VARIANT-PRICE-002",
+        "SC-CAT-VARIANT-PRICE-003",
+        "SC-CAT-VARIANT-PRICE-004",
+        "SC-CAT-VARIANT-PRICE-005",
+        "SC-CAT-VARIANT-PRICE-006",
+        "SC-CAT-VARIANT-PACK-001",
+        "SC-CAT-VARIANT-PACK-002"
+      ],
+      "disposition": "migrated",
+      "preserved_assertions": [
+        {
+          "kind": "gherkin_semantics",
+          "expected": "legacy Variant dimensions, canonical identity, technical values, availability, SKU, price, bulk atomicity, and pack behavior retained"
+        }
+      ]
+    },
+    {
+      "source_path": "test/specs/admin/product/scenarios.md",
+      "source_line": 1,
+      "test_title": "Catalog product administration scenarios consolidated into Catalog Base",
+      "old_id": null,
+      "owner": "catalog.product-model",
+      "target_scenarios": [
+        "SC-CAT-MODEL-014",
+        "SC-CAT-MODEL-015",
+        "SC-CAT-MODEL-016",
+        "SC-CAT-MODEL-017",
+        "SC-CAT-MODEL-018",
+        "SC-CAT-MODEL-019",
+        "SC-CAT-MODEL-020",
+        "SC-CAT-MODEL-021",
+        "SC-CAT-VARIANT-COMBINATION-012",
+        "SC-CAT-VARIANT-DIMENSIONS-013",
+        "SC-CAT-VARIANT-LIFECYCLE-014",
+        "SC-CAT-VARIANT-TECHNICAL-015",
+        "SC-CAT-VARIANT-PRICE-007",
+        "SC-CAT-VARIANT-COMMERCIAL-008"
+      ],
+      "disposition": "merged",
+      "preserved_assertions": [
+        {
+          "kind": "gherkin_semantics",
+          "expected": "legacy catalog product use-case policies are represented by colocated Catalog Base scenarios"
+        }
+      ]
+    },
+    {
+      "source_path": "test/specs/admin/order/scenarios.md",
+      "source_line": 1,
+      "test_title": "Legacy order queue and transition scenarios consolidated into operation-specific scenarios",
+      "old_id": null,
+      "owner": "admin.order",
+      "target_scenarios": [
+        "SC-ORD-QUEUE-002",
+        "SC-ORD-QUEUE-003",
+        "SC-ORD-TRANSITION-003"
+      ],
+      "disposition": "merged",
+      "preserved_assertions": [
+        {
+          "kind": "gherkin_semantics",
+          "expected": "queue empty/filter behavior and terminal transition policy retained"
+        }
+      ]
+    },
+    {
+      "source_path": "test/specs/admin/review/scenarios.md",
+      "source_line": 1,
+      "test_title": "Legacy review feature outcome scenario consolidated into moderation decision scenarios",
+      "old_id": null,
+      "owner": "admin.review",
+      "target_scenarios": [
+        "SC-REV-DECISION-003"
+      ],
+      "disposition": "merged",
+      "preserved_assertions": [
+        {
+          "kind": "gherkin_semantics",
+          "expected": "featuring a publicly suitable review remains distinct from approval, hiding, and deletion"
+        }
+      ]
+    },
+    {
+      "source_path": "test/specs/admin/store-setting/scenarios.md",
+      "source_line": 1,
+      "test_title": "Legacy storefront settings scenarios consolidated into settings use cases",
+      "old_id": null,
+      "owner": "admin.store-setting",
+      "target_scenarios": [
+        "SC-SET-CONTACT-001",
+        "SC-SET-HOMEPAGE-001",
+        "SC-SET-DISCOVERY-001",
+        "SC-SET-REGISTRY-001"
+      ],
+      "disposition": "merged",
+      "preserved_assertions": [
+        {
+          "kind": "gherkin_semantics",
+          "expected": "contact, homepage, discovery, and registry policy behavior retained"
+        }
+      ]
+    },
+    {
+      "source_path": "test/specs/admin/content/scenarios.md",
+      "source_line": 1,
+      "test_title": "Legacy About ownership scenario consolidated into content link use cases",
+      "old_id": null,
+      "owner": "admin.content",
+      "target_scenarios": [
+        "SC-CONT-ABOUT-LINK-002"
+      ],
+      "disposition": "merged",
+      "preserved_assertions": [
+        {
+          "kind": "gherkin_semantics",
+          "expected": "unlinking About content restores the default company narrative"
+        }
+      ]
+    },
+    {
       "source_path": "test/tests/admin/admin-profile.spec.ts",
       "source_line": 35,
       "test_title": "UC-APRO-01 renders the current admin identity instead of fallback account scaffolding",
@@ -76,9 +246,9 @@
       "test_title": "should allow adding, editing and deleting specs on product creation",
       "old_id": null,
       "owner": "admin.admin-specs",
-      "target_scenarios": [],
-      "disposition": "pending",
-      "preserved_assertions": []
+      "target_scenarios": ["SC-ADMIN-PRODUCT-CREATE-001"],
+      "disposition": "merged",
+      "preserved_assertions": [{"kind": "browser_contract", "expected": "product creation supports adding, editing, and persisting two specifications"}]
     },
     {
       "source_path": "test/tests/admin/articles.spec.ts",
@@ -86,9 +256,9 @@
       "test_title": "should support complete CRUD flow for articles and About ownership",
       "old_id": null,
       "owner": "admin.articles",
-      "target_scenarios": [],
-      "disposition": "pending",
-      "preserved_assertions": []
+      "target_scenarios": ["SC-CONT-ARTICLE-API-002"],
+      "disposition": "merged",
+      "preserved_assertions": [{"kind": "roundtrip", "expected": "article CRUD and linked content ownership"}]
     },
     {
       "source_path": "test/tests/admin/articles.spec.ts",
@@ -96,9 +266,9 @@
       "test_title": "should support previewing articles in storefront simulated modal",
       "old_id": null,
       "owner": "admin.articles",
-      "target_scenarios": [],
-      "disposition": "pending",
-      "preserved_assertions": []
+      "target_scenarios": ["SC-CONT-ARTICLE-PREVIEW-001"],
+      "disposition": "merged",
+      "preserved_assertions": [{"kind": "browser_contract", "expected": "draft title, cover image, and body preview"}]
     },
     {
       "source_path": "test/tests/admin/articles.spec.ts",
@@ -106,9 +276,9 @@
       "test_title": "should support toggling editor modes",
       "old_id": null,
       "owner": "admin.articles",
-      "target_scenarios": [],
-      "disposition": "pending",
-      "preserved_assertions": []
+      "target_scenarios": ["SC-CONT-EDITOR-001", "SC-CONT-EDITOR-002"],
+      "disposition": "merged",
+      "preserved_assertions": [{"kind": "editor_contract", "expected": "visual HTML and Markdown modes persist their respective content formats"}]
     },
     {
       "source_path": "test/tests/admin/banners.spec.ts",
@@ -116,9 +286,9 @@
       "test_title": "should allow adding, updating storefront visibility, and deleting a banner",
       "old_id": null,
       "owner": "admin.banners",
-      "target_scenarios": [],
-      "disposition": "pending",
-      "preserved_assertions": []
+      "target_scenarios": ["SC-CONT-BANNER-API-001"],
+      "disposition": "migrated",
+      "preserved_assertions": [{"kind": "roundtrip", "expected": "banner active visibility, ordering, public projection, and delete"}]
     },
     {
       "source_path": "test/tests/admin/content.spec.ts",
@@ -126,9 +296,9 @@
       "test_title": "UC-CONT-01 keeps media selection available as shared internal tooling",
       "old_id": "UC-CONT-01",
       "owner": "admin.content",
-      "target_scenarios": [],
-      "disposition": "pending",
-      "preserved_assertions": []
+      "target_scenarios": ["SC-CONT-UI-001"],
+      "disposition": "migrated",
+      "preserved_assertions": [{"kind": "browser_contract", "expected": "settings opens reusable media picker"}]
     },
     {
       "source_path": "test/tests/admin/content.spec.ts",
@@ -284,159 +454,159 @@
       "test_title": "should support complete CRUD flow for FAQs",
       "old_id": null,
       "owner": "admin.faqs",
-      "target_scenarios": [],
-      "disposition": "pending",
-      "preserved_assertions": []
+      "target_scenarios": ["SC-CONT-FAQ-API-001"],
+      "disposition": "migrated",
+      "preserved_assertions": [{"kind": "roundtrip", "expected": "FAQ CRUD, active visibility, order, public projection, and delete"}]
     },
     {
       "source_path": "test/tests/admin/figma-contract.spec.ts",
       "source_line": 16,
       "test_title": "Verify Store Settings page matches Figma @desktop",
       "old_id": null,
-      "owner": "admin.figma-contract",
-      "target_scenarios": [],
-      "disposition": "pending",
-      "preserved_assertions": []
+      "owner": "admin.store-setting",
+      "target_scenarios": ["SC-VISUAL-ADMIN-SETTINGS-001"],
+      "disposition": "migrated",
+      "preserved_assertions": [{"kind": "visual_contract", "expected": "desktop /admin/settings at 1440x1326, store-settings.png, mask settings-section-overview, maxDiff 0.02"}]
     },
     {
       "source_path": "test/tests/admin/figma-contract.spec.ts",
       "source_line": 28,
       "test_title": "Verify Products list page matches Figma @desktop",
       "old_id": null,
-      "owner": "admin.figma-contract",
-      "target_scenarios": [],
-      "disposition": "pending",
-      "preserved_assertions": []
+      "owner": "admin.product",
+      "target_scenarios": ["SC-VISUAL-ADMIN-PRODUCT-LIST-001"],
+      "disposition": "migrated",
+      "preserved_assertions": [{"kind": "visual_contract", "expected": "desktop /admin/products at 1440x1326, products.png, mask admin-table tbody, maxDiff 0.02"}]
     },
     {
       "source_path": "test/tests/admin/figma-contract.spec.ts",
       "source_line": 39,
       "test_title": "Verify Product Create page matches Figma @desktop",
       "old_id": null,
-      "owner": "admin.figma-contract",
-      "target_scenarios": [],
-      "disposition": "pending",
-      "preserved_assertions": []
+      "owner": "admin.product",
+      "target_scenarios": ["SC-VISUAL-ADMIN-PRODUCT-CREATE-001"],
+      "disposition": "migrated",
+      "preserved_assertions": [{"kind": "visual_contract", "expected": "desktop /admin/product/new at 1440x1326, product-create.png, maxDiff 0.02"}]
     },
     {
       "source_path": "test/tests/admin/figma-contract.spec.ts",
       "source_line": 47,
       "test_title": "Verify Banners page matches Figma @desktop",
       "old_id": null,
-      "owner": "admin.figma-contract",
-      "target_scenarios": [],
-      "disposition": "pending",
-      "preserved_assertions": []
+      "owner": "admin.content",
+      "target_scenarios": ["SC-VISUAL-ADMIN-BANNERS-001"],
+      "disposition": "migrated",
+      "preserved_assertions": [{"kind": "visual_contract", "expected": "desktop /admin/banners at 1440x1326, banner-management.png, mask banners-list-container, maxDiff 0.02"}]
     },
     {
       "source_path": "test/tests/admin/figma-contract.spec.ts",
       "source_line": 58,
       "test_title": "Verify Media Library page matches Figma @desktop",
       "old_id": null,
-      "owner": "admin.figma-contract",
-      "target_scenarios": [],
-      "disposition": "pending",
-      "preserved_assertions": []
+      "owner": "admin.content",
+      "target_scenarios": ["SC-VISUAL-ADMIN-MEDIA-001"],
+      "disposition": "migrated",
+      "preserved_assertions": [{"kind": "visual_contract", "expected": "desktop /admin/media at 1440x1326, media-management.png, mask media-grid-container, maxDiff 0.02"}]
     },
     {
       "source_path": "test/tests/admin/figma-contract.spec.ts",
       "source_line": 69,
       "test_title": "Verify Orders page matches Figma @desktop",
       "old_id": null,
-      "owner": "admin.figma-contract",
-      "target_scenarios": [],
-      "disposition": "pending",
-      "preserved_assertions": []
+      "owner": "admin.order",
+      "target_scenarios": ["SC-VISUAL-ADMIN-ORDERS-001"],
+      "disposition": "migrated",
+      "preserved_assertions": [{"kind": "visual_contract", "expected": "desktop /admin/orders at 1440x1326, orders.png, mask orders-table-body, maxDiff 0.02"}]
     },
     {
       "source_path": "test/tests/admin/figma-contract.spec.ts",
       "source_line": 80,
       "test_title": "Verify Refunds page matches Figma @desktop",
       "old_id": null,
-      "owner": "admin.figma-contract",
-      "target_scenarios": [],
-      "disposition": "pending",
-      "preserved_assertions": []
+      "owner": "admin.refund",
+      "target_scenarios": ["SC-VISUAL-ADMIN-REFUNDS-001"],
+      "disposition": "migrated",
+      "preserved_assertions": [{"kind": "visual_contract", "expected": "desktop /admin/refunds at 1440x1326, refunds.png, masks refunds queue decision and evidence panels, maxDiff 0.02"}]
     },
     {
       "source_path": "test/tests/admin/figma-contract.spec.ts",
       "source_line": 93,
       "test_title": "Verify Messages page matches Figma @desktop",
       "old_id": null,
-      "owner": "admin.figma-contract",
-      "target_scenarios": [],
-      "disposition": "pending",
-      "preserved_assertions": []
+      "owner": "admin.noty",
+      "target_scenarios": ["SC-VISUAL-ADMIN-MESSAGES-001"],
+      "disposition": "migrated",
+      "preserved_assertions": [{"kind": "visual_contract", "expected": "desktop /admin/notifications at 1440x1326, messages.png, mask messages-history-list, maxDiff 0.02"}]
     },
     {
       "source_path": "test/tests/admin/figma-contract.spec.ts",
       "source_line": 104,
       "test_title": "Verify Categories page matches Figma @desktop",
       "old_id": null,
-      "owner": "admin.figma-contract",
-      "target_scenarios": [],
-      "disposition": "pending",
-      "preserved_assertions": []
+      "owner": "admin.product",
+      "target_scenarios": ["SC-VISUAL-ADMIN-CATEGORIES-001"],
+      "disposition": "migrated",
+      "preserved_assertions": [{"kind": "visual_contract", "expected": "desktop /admin/categories at 1440x1326, categories.png, mask categories-tree-container, maxDiff 0.02"}]
     },
     {
       "source_path": "test/tests/admin/figma-contract.spec.ts",
       "source_line": 115,
       "test_title": "Verify Users page matches Figma @desktop",
       "old_id": null,
-      "owner": "admin.figma-contract",
-      "target_scenarios": [],
-      "disposition": "pending",
-      "preserved_assertions": []
+      "owner": "admin.user",
+      "target_scenarios": ["SC-VISUAL-ADMIN-USERS-001"],
+      "disposition": "migrated",
+      "preserved_assertions": [{"kind": "visual_contract", "expected": "desktop /admin/users at 1440x1326, users.png, mask users-table-body, maxDiff 0.02"}]
     },
     {
       "source_path": "test/tests/admin/figma-contract.spec.ts",
       "source_line": 126,
       "test_title": "Verify Reviews page matches Figma @desktop",
       "old_id": null,
-      "owner": "admin.figma-contract",
-      "target_scenarios": [],
-      "disposition": "pending",
-      "preserved_assertions": []
+      "owner": "admin.review",
+      "target_scenarios": ["SC-VISUAL-ADMIN-REVIEWS-001"],
+      "disposition": "migrated",
+      "preserved_assertions": [{"kind": "visual_contract", "expected": "desktop /admin/reviews at 1440x1326, heading/queue/context visibility, reviews.png, masks stats queue and context panels, maxDiff 0.02"}]
     },
     {
       "source_path": "test/tests/admin/figma-contract.spec.ts",
       "source_line": 144,
       "test_title": "Verify Collect page matches Figma @desktop",
       "old_id": null,
-      "owner": "admin.figma-contract",
-      "target_scenarios": [],
-      "disposition": "pending",
-      "preserved_assertions": []
+      "owner": "admin.payment-collection",
+      "target_scenarios": ["SC-VISUAL-ADMIN-COLLECT-001"],
+      "disposition": "migrated",
+      "preserved_assertions": [{"kind": "visual_contract", "expected": "desktop /admin/collect at 1440x1326, collect.png, mask collect-inputs-container, maxDiff 0.02"}]
     },
     {
       "source_path": "test/tests/admin/figma-contract.spec.ts",
       "source_line": 155,
       "test_title": "Verify Profile page matches Figma @desktop",
       "old_id": null,
-      "owner": "admin.figma-contract",
-      "target_scenarios": [],
-      "disposition": "pending",
-      "preserved_assertions": []
+      "owner": "admin.admin-profile",
+      "target_scenarios": ["SC-VISUAL-ADMIN-PROFILE-001"],
+      "disposition": "migrated",
+      "preserved_assertions": [{"kind": "visual_contract", "expected": "desktop /admin/profile at 1440x1326, profile.png, mask profile-identity-fields, maxDiff 0.02"}]
     },
     {
       "source_path": "test/tests/admin/figma-contract.spec.ts",
       "source_line": 166,
       "test_title": "Verify FAQs page matches Figma @desktop",
       "old_id": null,
-      "owner": "admin.figma-contract",
-      "target_scenarios": [],
-      "disposition": "pending",
-      "preserved_assertions": []
+      "owner": "admin.content",
+      "target_scenarios": ["SC-VISUAL-ADMIN-FAQS-001"],
+      "disposition": "migrated",
+      "preserved_assertions": [{"kind": "visual_contract", "expected": "desktop /admin/faqs at 1440x1326, faqs.png, mask faqs-list-container, maxDiff 0.02"}]
     },
     {
       "source_path": "test/tests/admin/figma-contract.spec.ts",
       "source_line": 177,
       "test_title": "Verify Articles page matches Figma @desktop",
       "old_id": null,
-      "owner": "admin.figma-contract",
-      "target_scenarios": [],
-      "disposition": "pending",
-      "preserved_assertions": []
+      "owner": "admin.content",
+      "target_scenarios": ["SC-VISUAL-ADMIN-ARTICLES-001"],
+      "disposition": "migrated",
+      "preserved_assertions": [{"kind": "visual_contract", "expected": "desktop /admin/articles at 1440x1326, article-management.png, mask articles-list-container, maxDiff 0.02"}]
     },
     {
       "source_path": "test/tests/admin/noty.spec.ts",
@@ -444,9 +614,9 @@
       "test_title": "UC-NOTY-01 renders outbound readiness controls for notification channels",
       "old_id": "UC-NOTY-01",
       "owner": "admin.noty",
-      "target_scenarios": [],
-      "disposition": "pending",
-      "preserved_assertions": []
+      "target_scenarios": ["SC-NOTY-SEND-002"],
+      "disposition": "migrated",
+      "preserved_assertions": [{"kind": "browser_contract", "expected": "channel settings readiness, Telegram, and email controls"}]
     },
     {
       "source_path": "test/tests/admin/noty.spec.ts",
@@ -454,9 +624,9 @@
       "test_title": "UC-NOTY-02 sends a website push from the compose flow and reflects it in the outbound table",
       "old_id": "UC-NOTY-02",
       "owner": "admin.noty",
-      "target_scenarios": [],
-      "disposition": "pending",
-      "preserved_assertions": []
+      "target_scenarios": ["SC-NOTY-SEND-003"],
+      "disposition": "migrated",
+      "preserved_assertions": [{"kind": "state", "expected": "accepted push reports success and appears Sent in table"}]
     },
     {
       "source_path": "test/tests/admin/noty.spec.ts",
@@ -464,9 +634,9 @@
       "test_title": "UC-NOTY-03 reads outbound notification list from backend state instead of only local scaffolding",
       "old_id": "UC-NOTY-03",
       "owner": "admin.noty",
-      "target_scenarios": [],
-      "disposition": "pending",
-      "preserved_assertions": []
+      "target_scenarios": ["SC-NOTY-HISTORY-002"],
+      "disposition": "migrated",
+      "preserved_assertions": [{"kind": "reload_invariant", "expected": "API-created notification appears after browser reload"}]
     },
     {
       "source_path": "test/tests/admin/noty.spec.ts",
@@ -474,9 +644,9 @@
       "test_title": "UC-NOTY-04 exposes send history with outcome trace separate from campaign composition",
       "old_id": "UC-NOTY-04",
       "owner": "admin.noty",
-      "target_scenarios": [],
-      "disposition": "pending",
-      "preserved_assertions": []
+      "target_scenarios": ["SC-NOTY-HISTORY-002"],
+      "disposition": "merged",
+      "preserved_assertions": [{"kind": "browser_contract", "expected": "history exposes title and sent/queued/failed outcome"}]
     },
     {
       "source_path": "test/tests/admin/noty.spec.ts",
@@ -484,9 +654,9 @@
       "test_title": "UC-NOTY-03 alternate: renders empty search state gracefully",
       "old_id": "UC-NOTY-03",
       "owner": "admin.noty",
-      "target_scenarios": [],
-      "disposition": "pending",
-      "preserved_assertions": []
+      "target_scenarios": ["SC-NOTY-HISTORY-003"],
+      "disposition": "migrated",
+      "preserved_assertions": [{"kind": "browser_contract", "expected": "empty campaign search and no error boundary"}]
     },
     {
       "source_path": "test/tests/admin/noty.spec.ts",
@@ -494,9 +664,12 @@
       "test_title": "EXC-NOTY-01 shows an explicit readiness error instead of fabricated defaults when notification settings fail",
       "old_id": "EXC-NOTY-01",
       "owner": "admin.noty",
-      "target_scenarios": [],
-      "disposition": "pending",
-      "preserved_assertions": []
+      "target_scenarios": ["SC-NOTY-SEND-005"],
+      "disposition": "deferred",
+      "preserved_assertions": [{"kind": "failure_contract", "expected": "explicit readiness error and no fabricated notification defaults"}],
+      "reason": "The legacy test requires backend notification-settings failure injection, which is not available in the current real-backend environment.",
+      "exit_criteria": "Provide a supported backend failure-injection fixture, then execute SC-NOTY-SEND-005 against it.",
+      "legacy_removed": false
     },
     {
       "source_path": "test/tests/admin/noty.spec.ts",
@@ -504,9 +677,9 @@
       "test_title": "UC-NOTY-01 alternate: updates channel readiness settings before sending a push notification",
       "old_id": "UC-NOTY-01",
       "owner": "admin.noty",
-      "target_scenarios": [],
-      "disposition": "pending",
-      "preserved_assertions": []
+      "target_scenarios": ["SC-NOTY-SEND-004"],
+      "disposition": "migrated",
+      "preserved_assertions": [{"kind": "state", "expected": "readiness save precedes successful push send"}]
     },
     {
       "source_path": "test/tests/admin/orders.spec.ts",
@@ -634,9 +807,9 @@
       "test_title": "UC-PCOL-01 reads collection sources from backend state instead of a static source catalog",
       "old_id": "UC-PCOL-01",
       "owner": "admin.payment-collection",
-      "target_scenarios": [],
-      "disposition": "pending",
-      "preserved_assertions": []
+      "target_scenarios": ["SC-PCOL-SOURCES-002"],
+      "disposition": "migrated",
+      "preserved_assertions": [{"kind": "browser_contract", "expected": "backend source labels and Ready/Unavailable counts"}]
     },
     {
       "source_path": "test/tests/admin/payment-collection.spec.ts",
@@ -644,9 +817,9 @@
       "test_title": "UC-PCOL-02 persists payee identity from the admin collection surface",
       "old_id": "UC-PCOL-02",
       "owner": "admin.payment-collection",
-      "target_scenarios": [],
-      "disposition": "pending",
-      "preserved_assertions": []
+      "target_scenarios": ["SC-PCOL-PAYEE-002"],
+      "disposition": "migrated",
+      "preserved_assertions": [{"kind": "state", "expected": "payee identity persists across reload"}]
     },
     {
       "source_path": "test/tests/admin/payment-collection.spec.ts",
@@ -654,9 +827,9 @@
       "test_title": "UC-PCOL-03 blocks invalid QR or transfer setup from being saved live",
       "old_id": "UC-PCOL-03",
       "owner": "admin.payment-collection",
-      "target_scenarios": [],
-      "disposition": "pending",
-      "preserved_assertions": []
+      "target_scenarios": ["SC-PCOL-SETUP-002"],
+      "disposition": "migrated",
+      "preserved_assertions": [{"kind": "validation", "expected": "invalid bank/transfer setup cannot save and reload keeps prior values"}]
     },
     {
       "source_path": "test/tests/admin/payment-collection.spec.ts",
@@ -664,9 +837,9 @@
       "test_title": "UC-PCOL-04 renders collection readiness from backend signals instead of hardcoded active badges",
       "old_id": "UC-PCOL-04",
       "owner": "admin.payment-collection",
-      "target_scenarios": [],
-      "disposition": "pending",
-      "preserved_assertions": []
+      "target_scenarios": ["SC-PCOL-READINESS-002"],
+      "disposition": "migrated",
+      "preserved_assertions": [{"kind": "browser_contract", "expected": "readiness warnings come from backend and no fabricated Active badge"}]
     },
     {
       "source_path": "test/tests/admin/payment.spec.ts",
@@ -674,9 +847,9 @@
       "test_title": "UC-PAY-01 reads payment info in order context",
       "old_id": "UC-PAY-01",
       "owner": "admin.payment",
-      "target_scenarios": [],
-      "disposition": "pending",
-      "preserved_assertions": []
+      "target_scenarios": ["SC-PAY-ORDER-CONTEXT-001"],
+      "disposition": "merged",
+      "preserved_assertions": [{"kind": "api_contract", "expected": "payment method/facts are visible as order context"}]
     },
     {
       "source_path": "test/tests/admin/payment.spec.ts",
@@ -684,9 +857,9 @@
       "test_title": "UC-PAY-02 reads payment context for refund decision",
       "old_id": "UC-PAY-02",
       "owner": "admin.payment",
-      "target_scenarios": [],
-      "disposition": "pending",
-      "preserved_assertions": []
+      "target_scenarios": ["SC-PAY-REFUND-CONTEXT-001"],
+      "disposition": "merged",
+      "preserved_assertions": [{"kind": "api_contract", "expected": "payment facts remain contextual during refund review"}]
     },
     {
       "source_path": "test/tests/admin/payment.spec.ts",
@@ -694,9 +867,9 @@
       "test_title": "UC-PAY-03 distinguishes payment information from payment execution",
       "old_id": "UC-PAY-03",
       "owner": "admin.payment",
-      "target_scenarios": [],
-      "disposition": "pending",
-      "preserved_assertions": []
+      "target_scenarios": ["SC-PAY-ORDER-CONTEXT-001"],
+      "disposition": "merged",
+      "preserved_assertions": [{"kind": "boundary", "expected": "payment context is not an execution control surface"}]
     },
     {
       "source_path": "test/tests/admin/product.spec.ts",
@@ -823,9 +996,9 @@
       "test_title": "should display admin product list",
       "old_id": null,
       "owner": "admin.products",
-      "target_scenarios": [],
-      "disposition": "pending",
-      "preserved_assertions": []
+      "target_scenarios": ["SC-ADMIN-PRODUCT-LIST-001"],
+      "disposition": "merged",
+      "preserved_assertions": [{"kind": "browser_contract", "expected": "product list rows expose lifecycle controls"}]
     },
     {
       "source_path": "test/tests/admin/products.spec.ts",
@@ -833,9 +1006,9 @@
       "test_title": "should create a new product",
       "old_id": null,
       "owner": "admin.products",
-      "target_scenarios": [],
-      "disposition": "pending",
-      "preserved_assertions": []
+      "target_scenarios": ["SC-ADMIN-PRODUCT-CREATE-001"],
+      "disposition": "merged",
+      "preserved_assertions": [{"kind": "browser_contract", "expected": "create product and public storefront verification"}]
     },
     {
       "source_path": "test/tests/admin/products.spec.ts",
@@ -843,9 +1016,9 @@
       "test_title": "should upload image via media uploader when creating product",
       "old_id": null,
       "owner": "admin.products",
-      "target_scenarios": [],
-      "disposition": "pending",
-      "preserved_assertions": []
+      "target_scenarios": ["SC-ADMIN-PRODUCT-CREATE-002"],
+      "disposition": "migrated",
+      "preserved_assertions": [{"kind": "browser_contract", "expected": "media upload preview card and image remain visible with save enabled"}]
     },
     {
       "source_path": "test/tests/admin/products.spec.ts",
@@ -853,9 +1026,9 @@
       "test_title": "should toggle product visibility",
       "old_id": null,
       "owner": "admin.products",
-      "target_scenarios": [],
-      "disposition": "pending",
-      "preserved_assertions": []
+      "target_scenarios": ["SC-ADMIN-PRODUCT-LIST-001"],
+      "disposition": "merged",
+      "preserved_assertions": [{"kind": "state", "expected": "row toggle action remains in product lifecycle controls"}]
     },
     {
       "source_path": "test/tests/admin/products.spec.ts",
@@ -863,9 +1036,9 @@
       "test_title": "should delete a product",
       "old_id": null,
       "owner": "admin.products",
-      "target_scenarios": [],
-      "disposition": "pending",
-      "preserved_assertions": []
+      "target_scenarios": ["SC-ADMIN-PRODUCT-LIST-001"],
+      "disposition": "merged",
+      "preserved_assertions": [{"kind": "state", "expected": "delete confirmation and list remains available"}]
     },
     {
       "source_path": "test/tests/admin/products.spec.ts",
@@ -873,9 +1046,9 @@
       "test_title": "should handle empty search state gracefully",
       "old_id": null,
       "owner": "admin.products",
-      "target_scenarios": [],
-      "disposition": "pending",
-      "preserved_assertions": []
+      "target_scenarios": ["SC-ADMIN-PRODUCT-LIST-003"],
+      "disposition": "migrated",
+      "preserved_assertions": [{"kind": "browser_contract", "expected": "empty product search state without error boundary"}]
     },
     {
       "source_path": "test/tests/admin/refund.spec.ts",
@@ -1073,9 +1246,9 @@
       "test_title": "should display settings page",
       "old_id": null,
       "owner": "admin.settings",
-      "target_scenarios": [],
-      "disposition": "pending",
-      "preserved_assertions": []
+      "target_scenarios": ["SC-SET-CONTACT-UI-001"],
+      "disposition": "merged",
+      "preserved_assertions": [{"kind": "browser_contract", "expected": "settings surface is reachable and exposes contact controls"}]
     },
     {
       "source_path": "test/tests/admin/settings.spec.ts",
@@ -1083,9 +1256,9 @@
       "test_title": "should manage categories",
       "old_id": null,
       "owner": "admin.settings",
-      "target_scenarios": [],
-      "disposition": "pending",
-      "preserved_assertions": []
+      "target_scenarios": ["SC-ADMIN-PRODUCT-CATEGORY-001"],
+      "disposition": "merged",
+      "preserved_assertions": [{"kind": "browser_contract", "expected": "category management remains reachable with position persistence"}]
     },
     {
       "source_path": "test/tests/admin/settings.spec.ts",
@@ -1093,9 +1266,9 @@
       "test_title": "should view users list",
       "old_id": null,
       "owner": "admin.settings",
-      "target_scenarios": [],
-      "disposition": "pending",
-      "preserved_assertions": []
+      "target_scenarios": ["SC-USER-SEARCH-002"],
+      "disposition": "merged",
+      "preserved_assertions": [{"kind": "browser_contract", "expected": "admin users list exposes account-centric search"}]
     },
     {
       "source_path": "test/tests/admin/site-config.spec.ts",
@@ -1103,9 +1276,9 @@
       "test_title": "should load settings page and show general config fields",
       "old_id": null,
       "owner": "admin.site-config",
-      "target_scenarios": [],
-      "disposition": "pending",
-      "preserved_assertions": []
+      "target_scenarios": ["SC-SET-CONTACT-API-001"],
+      "disposition": "merged",
+      "preserved_assertions": [{"kind": "api_contract", "expected": "structured brand/contact/admin settings read model"}]
     },
     {
       "source_path": "test/tests/admin/store-settings.spec.ts",
@@ -1113,9 +1286,9 @@
       "test_title": "UC-SET-01 submits storefront contact intent and reflects the new contact info publicly",
       "old_id": "UC-SET-01",
       "owner": "admin.store-settings",
-      "target_scenarios": [],
-      "disposition": "pending",
-      "preserved_assertions": []
+      "target_scenarios": ["SC-SET-CONTACT-UI-001"],
+      "disposition": "migrated",
+      "preserved_assertions": [{"kind": "browser_contract", "expected": "contact save toast and homepage address, hotline, and email after reload"}]
     },
     {
       "source_path": "test/tests/admin/store-settings.spec.ts",
@@ -1123,9 +1296,9 @@
       "test_title": "UC-SET-02 submits homepage composition decisions and reflects the new homepage priority",
       "old_id": "UC-SET-02",
       "owner": "admin.store-settings",
-      "target_scenarios": [],
-      "disposition": "pending",
-      "preserved_assertions": []
+      "target_scenarios": ["SC-SET-HOMEPAGE-UI-001"],
+      "disposition": "migrated",
+      "preserved_assertions": [{"kind": "browser_contract", "expected": "homepage composition save and public modules/news count"}]
     },
     {
       "source_path": "test/tests/admin/store-settings.spec.ts",
@@ -1133,9 +1306,9 @@
       "test_title": "UC-SET-02 negative path: rejects negative news count",
       "old_id": "UC-SET-02",
       "owner": "admin.store-settings",
-      "target_scenarios": [],
-      "disposition": "pending",
-      "preserved_assertions": []
+      "target_scenarios": ["SC-SET-HOMEPAGE-UI-002"],
+      "disposition": "migrated",
+      "preserved_assertions": [{"kind": "validation", "expected": "negative news count disables save"}]
     },
     {
       "source_path": "test/tests/admin/store-settings.spec.ts",
@@ -1143,9 +1316,9 @@
       "test_title": "UC-SET-04 submits footer and support touchpoint intent and reflects public support commitments",
       "old_id": "UC-SET-04",
       "owner": "admin.store-settings",
-      "target_scenarios": [],
-      "disposition": "pending",
-      "preserved_assertions": []
+      "target_scenarios": ["SC-SET-REGISTRY-UI-001"],
+      "disposition": "migrated",
+      "preserved_assertions": [{"kind": "browser_contract", "expected": "footer social and floating support links are visible publicly"}]
     },
     {
       "source_path": "test/tests/admin/store-settings.spec.ts",
@@ -1153,9 +1326,9 @@
       "test_title": "UC-SET-04 negative path: validation blocks invalid support email format",
       "old_id": "UC-SET-04",
       "owner": "admin.store-settings",
-      "target_scenarios": [],
-      "disposition": "pending",
-      "preserved_assertions": []
+      "target_scenarios": ["SC-SET-CONTACT-UI-002"],
+      "disposition": "migrated",
+      "preserved_assertions": [{"kind": "validation", "expected": "invalid email shows validation and disables contact save"}]
     },
     {
       "source_path": "test/tests/admin/user.spec.ts",
@@ -1335,9 +1508,9 @@
       "test_title": "UC-CUS-01 rejects unauthenticated customer-root reads",
       "old_id": "UC-CUS-01",
       "owner": "admin-customer",
-      "target_scenarios": [],
-      "disposition": "pending",
-      "preserved_assertions": []
+      "target_scenarios": ["SC-CUS-SEARCH-005"],
+      "disposition": "migrated",
+      "preserved_assertions": [{"kind": "status_code", "expected": "401"}]
     },
     {
       "source_path": "test/tests/api/integration/admin-customer.spec.ts",
@@ -1345,9 +1518,9 @@
       "test_title": "UC-CUS-01 rejects non-admin customer-root reads",
       "old_id": "UC-CUS-01",
       "owner": "admin-customer",
-      "target_scenarios": [],
-      "disposition": "pending",
-      "preserved_assertions": []
+      "target_scenarios": ["SC-CUS-SEARCH-006"],
+      "disposition": "migrated",
+      "preserved_assertions": [{"kind": "status_code", "expected": "403"}]
     },
     {
       "source_path": "test/tests/api/integration/admin-customer.spec.ts",
@@ -2013,9 +2186,9 @@
       "test_title": "UC-REF-01 rejects unauthenticated refund queue reads",
       "old_id": "UC-REF-01",
       "owner": "admin-refund",
-      "target_scenarios": [],
-      "disposition": "pending",
-      "preserved_assertions": []
+      "target_scenarios": ["SC-REF-QUEUE-005"],
+      "disposition": "migrated",
+      "preserved_assertions": [{"kind": "status_code", "expected": "401"}]
     },
     {
       "source_path": "test/tests/api/integration/admin-refund.spec.ts",
@@ -2023,9 +2196,9 @@
       "test_title": "UC-REF-01 rejects non-admin refund queue reads",
       "old_id": "UC-REF-01",
       "owner": "admin-refund",
-      "target_scenarios": [],
-      "disposition": "pending",
-      "preserved_assertions": []
+      "target_scenarios": ["SC-REF-QUEUE-006"],
+      "disposition": "migrated",
+      "preserved_assertions": [{"kind": "status_code", "expected": "403"}]
     },
     {
       "source_path": "test/tests/api/integration/admin-refund.spec.ts",
@@ -2250,9 +2423,9 @@
       "test_title": "lists products with admin token",
       "old_id": null,
       "owner": "admin",
-      "target_scenarios": [],
-      "disposition": "pending",
-      "preserved_assertions": []
+      "target_scenarios": ["SC-CAT-PRODUCT-READ-003"],
+      "disposition": "merged",
+      "preserved_assertions": [{"kind": "status_code", "expected": "200 and non-empty admin product rows"}]
     },
     {
       "source_path": "test/tests/api/integration/admin.api.spec.ts",
@@ -2260,9 +2433,9 @@
       "test_title": "returns 403 without admin role",
       "old_id": null,
       "owner": "admin",
-      "target_scenarios": [],
-      "disposition": "pending",
-      "preserved_assertions": []
+      "target_scenarios": ["SC-CAT-PRODUCT-READ-002"],
+      "disposition": "merged",
+      "preserved_assertions": [{"kind": "status_code", "expected": "403 for shopper token"}]
     },
     {
       "source_path": "test/tests/api/integration/admin.api.spec.ts",
@@ -2270,9 +2443,9 @@
       "test_title": "returns 401 without auth",
       "old_id": null,
       "owner": "admin",
-      "target_scenarios": [],
-      "disposition": "pending",
-      "preserved_assertions": []
+      "target_scenarios": ["SC-CAT-PRODUCT-READ-001"],
+      "disposition": "merged",
+      "preserved_assertions": [{"kind": "status_code", "expected": "401 without auth"}]
     },
     {
       "source_path": "test/tests/api/integration/admin.api.spec.ts",
@@ -2280,9 +2453,9 @@
       "test_title": "creates, updates, and deletes a product roundtrip",
       "old_id": null,
       "owner": "admin",
-      "target_scenarios": [],
-      "disposition": "pending",
-      "preserved_assertions": []
+      "target_scenarios": ["SC-CAT-PRODUCT-COMMAND-001", "SC-CAT-PRODUCT-COMMAND-002", "SC-CAT-PRODUCT-DETAILS-003"],
+      "disposition": "merged",
+      "preserved_assertions": [{"kind": "roundtrip", "expected": "201 create, 200 update fields, 204 delete"}]
     },
     {
       "source_path": "test/tests/api/integration/admin.api.spec.ts",
@@ -2290,9 +2463,9 @@
       "test_title": "lists categories with admin token",
       "old_id": null,
       "owner": "admin",
-      "target_scenarios": [],
-      "disposition": "pending",
-      "preserved_assertions": []
+      "target_scenarios": ["SC-CAT-PRODUCT-COMMAND-003"],
+      "disposition": "merged",
+      "preserved_assertions": [{"kind": "status_code", "expected": "200 and non-empty category list"}]
     },
     {
       "source_path": "test/tests/api/integration/admin.api.spec.ts",
@@ -2300,9 +2473,9 @@
       "test_title": "creates, updates, and deletes a category roundtrip",
       "old_id": null,
       "owner": "admin",
-      "target_scenarios": [],
-      "disposition": "pending",
-      "preserved_assertions": []
+      "target_scenarios": ["SC-CAT-PRODUCT-COMMAND-003"],
+      "disposition": "merged",
+      "preserved_assertions": [{"kind": "roundtrip", "expected": "201 category create, 200 update, 204 delete with parent/position read"}]
     },
     {
       "source_path": "test/tests/api/integration/admin.api.spec.ts",
@@ -2310,9 +2483,9 @@
       "test_title": "lists orders with admin token",
       "old_id": null,
       "owner": "admin",
-      "target_scenarios": [],
-      "disposition": "pending",
-      "preserved_assertions": []
+      "target_scenarios": ["SC-ORD-QUEUE-001"],
+      "disposition": "merged",
+      "preserved_assertions": [{"kind": "api_contract", "expected": "200 order rows and page metadata"}]
     },
     {
       "source_path": "test/tests/api/integration/admin.api.spec.ts",
@@ -2320,9 +2493,9 @@
       "test_title": "returns seeded admin order detail",
       "old_id": null,
       "owner": "admin",
-      "target_scenarios": [],
-      "disposition": "pending",
-      "preserved_assertions": []
+      "target_scenarios": ["SC-ORD-DETAIL-001"],
+      "disposition": "merged",
+      "preserved_assertions": [{"kind": "api_contract", "expected": "seeded order identity, DELIVERED status, and items"}]
     },
     {
       "source_path": "test/tests/api/integration/admin.api.spec.ts",
@@ -2330,9 +2503,9 @@
       "test_title": "updates order status and deletes an admin-created order",
       "old_id": null,
       "owner": "admin",
-      "target_scenarios": [],
-      "disposition": "pending",
-      "preserved_assertions": []
+      "target_scenarios": ["SC-ORD-TRANSITION-007"],
+      "disposition": "migrated",
+      "preserved_assertions": [{"kind": "roundtrip", "expected": "cancel accepted, delete 204, fresh read 404"}]
     },
     {
       "source_path": "test/tests/api/integration/admin.api.spec.ts",
@@ -2340,9 +2513,9 @@
       "test_title": "rejects malformed order update payload",
       "old_id": null,
       "owner": "admin",
-      "target_scenarios": [],
-      "disposition": "pending",
-      "preserved_assertions": []
+      "target_scenarios": ["SC-ORD-TRANSITION-006"],
+      "disposition": "migrated",
+      "preserved_assertions": [{"kind": "status_code", "expected": "400 for invalid REFUNDED transition"}]
     },
     {
       "source_path": "test/tests/api/integration/admin.api.spec.ts",
@@ -2350,9 +2523,9 @@
       "test_title": "lists pending refunds",
       "old_id": null,
       "owner": "admin",
-      "target_scenarios": [],
-      "disposition": "pending",
-      "preserved_assertions": []
+      "target_scenarios": ["SC-REF-QUEUE-001"],
+      "disposition": "merged",
+      "preserved_assertions": [{"kind": "status_code", "expected": "200 pending refund list"}]
     },
     {
       "source_path": "test/tests/api/integration/admin.api.spec.ts",
@@ -2360,9 +2533,9 @@
       "test_title": "approves and rejects fresh refund requests",
       "old_id": null,
       "owner": "admin",
-      "target_scenarios": [],
-      "disposition": "pending",
-      "preserved_assertions": []
+      "target_scenarios": ["SC-REF-DECISION-001", "SC-REF-DECISION-002"],
+      "disposition": "merged",
+      "preserved_assertions": [{"kind": "state", "expected": "fresh refund approve and reject return final statuses"}]
     },
     {
       "source_path": "test/tests/api/integration/admin.api.spec.ts",
@@ -2370,9 +2543,9 @@
       "test_title": "rejects invalid refund id shape",
       "old_id": null,
       "owner": "admin",
-      "target_scenarios": [],
-      "disposition": "pending",
-      "preserved_assertions": []
+      "target_scenarios": ["SC-REF-DECISION-007"],
+      "disposition": "migrated",
+      "preserved_assertions": [{"kind": "status_code", "expected": "400 for non-numeric refund id"}]
     },
     {
       "source_path": "test/tests/api/integration/admin.api.spec.ts",
@@ -2380,9 +2553,9 @@
       "test_title": "returns 403 without admin role",
       "old_id": null,
       "owner": "admin",
-      "target_scenarios": [],
-      "disposition": "pending",
-      "preserved_assertions": []
+      "target_scenarios": ["SC-ORD-QUEUE-005"],
+      "disposition": "merged",
+      "preserved_assertions": [{"kind": "status_code", "expected": "403 for shopper order queue read"}]
     },
     {
       "source_path": "test/tests/api/integration/auth.api.spec.ts",
@@ -2903,9 +3076,9 @@
       "test_title": "should require auth for admin article CRUD operations",
       "old_id": null,
       "owner": "content",
-      "target_scenarios": [],
-      "disposition": "pending",
-      "preserved_assertions": []
+      "target_scenarios": ["SC-CONT-ARTICLE-API-001"],
+      "disposition": "migrated",
+      "preserved_assertions": [{"kind": "status_code", "expected": "401 or 403"}]
     },
     {
       "source_path": "test/tests/api/integration/content.api.spec.ts",
@@ -2913,9 +3086,9 @@
       "test_title": "should allow admin to CRUD articles with custom priority, tags, topics, image",
       "old_id": null,
       "owner": "content",
-      "target_scenarios": [],
-      "disposition": "pending",
-      "preserved_assertions": []
+      "target_scenarios": ["SC-CONT-ARTICLE-API-002"],
+      "disposition": "migrated",
+      "preserved_assertions": [{"kind": "roundtrip", "expected": "custom priority, tags, topic, image, public detail, delete, and 404"}]
     },
     {
       "source_path": "test/tests/api/integration/content.api.spec.ts",
@@ -2923,9 +3096,9 @@
       "test_title": "should list public articles sorted by priority and support filtering by tag and topic",
       "old_id": null,
       "owner": "content",
-      "target_scenarios": [],
-      "disposition": "pending",
-      "preserved_assertions": []
+      "target_scenarios": ["SC-CONT-ARTICLE-API-003"],
+      "disposition": "migrated",
+      "preserved_assertions": [{"kind": "query_contract", "expected": "priority ordering plus topic and tag filters"}]
     },
     {
       "source_path": "test/tests/api/integration/content.api.spec.ts",
@@ -2933,9 +3106,9 @@
       "test_title": "should allow admin to manage banners and reflect only active slides publicly in sort order",
       "old_id": null,
       "owner": "content",
-      "target_scenarios": [],
-      "disposition": "pending",
-      "preserved_assertions": []
+      "target_scenarios": ["SC-CONT-BANNER-API-001"],
+      "disposition": "migrated",
+      "preserved_assertions": [{"kind": "projection", "expected": "only active slides are public and sort order is preserved"}]
     },
     {
       "source_path": "test/tests/api/integration/content.api.spec.ts",
@@ -2943,9 +3116,9 @@
       "test_title": "should allow admin to CRUD FAQs and expose only active ordered entries publicly",
       "old_id": null,
       "owner": "content",
-      "target_scenarios": [],
-      "disposition": "pending",
-      "preserved_assertions": []
+      "target_scenarios": ["SC-CONT-FAQ-API-001"],
+      "disposition": "migrated",
+      "preserved_assertions": [{"kind": "projection", "expected": "only active FAQ entries are public in explicit order"}]
     },
     {
       "source_path": "test/tests/api/integration/content.api.spec.ts",
@@ -2953,9 +3126,9 @@
       "test_title": "should persist about page content and gallery for public reflection",
       "old_id": null,
       "owner": "content",
-      "target_scenarios": [],
-      "disposition": "pending",
-      "preserved_assertions": []
+      "target_scenarios": ["SC-CONT-ABOUT-API-001"],
+      "disposition": "migrated",
+      "preserved_assertions": [{"kind": "projection", "expected": "updated About title, body, and gallery are public"}]
     },
     {
       "source_path": "test/tests/api/integration/media.api.spec.ts",
@@ -3099,9 +3272,9 @@
       "test_title": "marks one notification as read for authenticated buyer",
       "old_id": null,
       "owner": "notifications",
-      "target_scenarios": [],
-      "disposition": "pending",
-      "preserved_assertions": []
+      "target_scenarios": ["SC-ENGAGEMENT-NOTIFICATIONS-014"],
+      "disposition": "migrated",
+      "preserved_assertions": [{"kind": "state", "expected": "authenticated notification read mutation returns success"}]
     },
     {
       "source_path": "test/tests/api/integration/notifications.api.spec.ts",
@@ -3262,9 +3435,9 @@
       "test_title": "UC-ORD-01 reviews the order queue as a server-owned projection",
       "old_id": "UC-ORD-01",
       "owner": "orders",
-      "target_scenarios": [],
-      "disposition": "pending",
-      "preserved_assertions": []
+      "target_scenarios": ["SC-ORD-QUEUE-001"],
+      "disposition": "merged",
+      "preserved_assertions": [{"kind": "api_contract", "expected": "server queue projection, pagination, states, and row identity"}]
     },
     {
       "source_path": "test/tests/api/integration/orders.api.spec.ts",
@@ -3272,9 +3445,9 @@
       "test_title": "UC-ORD-02 returns order detail context before any action is taken",
       "old_id": "UC-ORD-02",
       "owner": "orders",
-      "target_scenarios": [],
-      "disposition": "pending",
-      "preserved_assertions": []
+      "target_scenarios": ["SC-ORD-DETAIL-001"],
+      "disposition": "merged",
+      "preserved_assertions": [{"kind": "api_contract", "expected": "order identity, customer, items, timeline, payment, and shipping"}]
     },
     {
       "source_path": "test/tests/api/integration/orders.api.spec.ts",
@@ -3282,9 +3455,9 @@
       "test_title": "UC-ORD-03 performs an allowed pending-to-paid transition",
       "old_id": "UC-ORD-03",
       "owner": "orders",
-      "target_scenarios": [],
-      "disposition": "pending",
-      "preserved_assertions": []
+      "target_scenarios": ["SC-ORD-TRANSITION-001"],
+      "disposition": "merged",
+      "preserved_assertions": [{"kind": "state", "expected": "204 transition, PAID reread, paidAt, and ordered timeline"}]
     },
     {
       "source_path": "test/tests/api/integration/orders.api.spec.ts",
@@ -3292,9 +3465,9 @@
       "test_title": "UC-ORD-03 rejects a pending-to-delivered shortcut",
       "old_id": "UC-ORD-03",
       "owner": "orders",
-      "target_scenarios": [],
-      "disposition": "pending",
-      "preserved_assertions": []
+      "target_scenarios": ["SC-ORD-TRANSITION-002"],
+      "disposition": "merged",
+      "preserved_assertions": [{"kind": "status_code", "expected": "409 and no invalid transition"}]
     },
     {
       "source_path": "test/tests/api/integration/profile.api.spec.ts",
@@ -3563,9 +3736,9 @@
       "test_title": "UC-SET-01 reads storefront identity from the structured admin and public read models",
       "old_id": "UC-SET-01",
       "owner": "store-settings",
-      "target_scenarios": [],
-      "disposition": "pending",
-      "preserved_assertions": []
+      "target_scenarios": ["SC-SET-CONTACT-API-001"],
+      "disposition": "migrated",
+      "preserved_assertions": [{"kind": "api_contract", "expected": "admin brand/contact/stats/visitorCount plus public site/catalog identity"}]
     },
     {
       "source_path": "test/tests/api/integration/store-settings.api.spec.ts",
@@ -3573,9 +3746,9 @@
       "test_title": "UC-SET-01 updates brand and contact facts and reflects the new storefront identity publicly",
       "old_id": "UC-SET-01",
       "owner": "store-settings",
-      "target_scenarios": [],
-      "disposition": "pending",
-      "preserved_assertions": []
+      "target_scenarios": ["SC-SET-CONTACT-API-002"],
+      "disposition": "migrated",
+      "preserved_assertions": [{"kind": "projection", "expected": "updated brand/contact facts reflected in admin and public catalog reads"}]
     },
     {
       "source_path": "test/tests/api/integration/store-settings.api.spec.ts",
@@ -3583,9 +3756,9 @@
       "test_title": "UC-SET-01 rejects storefront identity reads without valid admin authorization",
       "old_id": "UC-SET-01",
       "owner": "store-settings",
-      "target_scenarios": [],
-      "disposition": "pending",
-      "preserved_assertions": []
+      "target_scenarios": ["SC-SET-CONTACT-API-003"],
+      "disposition": "migrated",
+      "preserved_assertions": [{"kind": "status_code", "expected": "401 unauthenticated and 403 non-admin"}]
     },
     {
       "source_path": "test/tests/api/integration/store-settings.api.spec.ts",
@@ -3593,9 +3766,9 @@
       "test_title": "UC-SET-02 accepts a homepage composition decision and rejects ordering conflicts",
       "old_id": "UC-SET-02",
       "owner": "store-settings",
-      "target_scenarios": [],
-      "disposition": "pending",
-      "preserved_assertions": []
+      "target_scenarios": ["SC-SET-HOMEPAGE-API-001"],
+      "disposition": "migrated",
+      "preserved_assertions": [{"kind": "status_code", "expected": "200 valid composition and 400 duplicate order/negative news count"}]
     },
     {
       "source_path": "test/tests/api/integration/store-settings.api.spec.ts",
@@ -3603,9 +3776,9 @@
       "test_title": "UC-SET-04 updates footer and support commitments and rejects malformed support targets",
       "old_id": "UC-SET-04",
       "owner": "store-settings",
-      "target_scenarios": [],
-      "disposition": "pending",
-      "preserved_assertions": []
+      "target_scenarios": ["SC-SET-REGISTRY-API-001"],
+      "disposition": "migrated",
+      "preserved_assertions": [{"kind": "status_code", "expected": "valid footer/support success and malformed target 400"}]
     },
     {
       "source_path": "test/tests/api/integration/wishlist.api.spec.ts",
@@ -3885,9 +4058,9 @@
       "test_title": "test at line 65",
       "old_id": null,
       "owner": "auth",
-      "target_scenarios": [],
-      "disposition": "pending",
-      "preserved_assertions": []
+      "target_scenarios": ["SC-AUTH-SIGNUP-004"],
+      "disposition": "merged",
+      "preserved_assertions": [{"kind": "browser_contract", "expected": "unique registration flow accepts or exposes explicit environment failure"}]
     },
     {
       "source_path": "test/tests/browse/figma-contract.spec.ts",
@@ -3895,9 +4068,9 @@
       "test_title": "homepage should expose hero/category/featured blocks",
       "old_id": null,
       "owner": "browse",
-      "target_scenarios": [],
-      "disposition": "pending",
-      "preserved_assertions": []
+      "target_scenarios": ["SC-BROWSE-HOME-001"],
+      "disposition": "merged",
+      "preserved_assertions": [{"kind": "browser_contract", "expected": "hero, category, and featured blocks"}]
     },
     {
       "source_path": "test/tests/browse/figma-contract.spec.ts",
@@ -3905,9 +4078,9 @@
       "test_title": "category CTA should navigate from homepage to listing",
       "old_id": null,
       "owner": "browse",
-      "target_scenarios": [],
-      "disposition": "pending",
-      "preserved_assertions": []
+      "target_scenarios": ["SC-BROWSE-HOME-003"],
+      "disposition": "merged",
+      "preserved_assertions": [{"kind": "navigation", "expected": "category CTA opens listing"}]
     },
     {
       "source_path": "test/tests/browse/figma-contract.spec.ts",
@@ -3915,9 +4088,9 @@
       "test_title": "listing and detail should satisfy required sections",
       "old_id": null,
       "owner": "browse",
-      "target_scenarios": [],
-      "disposition": "pending",
-      "preserved_assertions": []
+      "target_scenarios": ["SC-BROWSE-CATALOG-001", "SC-BROWSE-DETAIL-001", "SC-BROWSE-DETAIL-002", "SC-BROWSE-DETAIL-003", "SC-BROWSE-DETAIL-004"],
+      "disposition": "merged",
+      "preserved_assertions": [{"kind": "browser_contract", "expected": "listing and detail required sections and CTA"}]
     },
     {
       "source_path": "test/tests/browse/homepage-refactor.spec.ts",
@@ -3925,9 +4098,9 @@
       "test_title": "should display banner and category icons",
       "old_id": null,
       "owner": "browse",
-      "target_scenarios": [],
-      "disposition": "pending",
-      "preserved_assertions": []
+      "target_scenarios": ["SC-BROWSE-HOME-001", "SC-BROWSE-HOME-002"],
+      "disposition": "merged",
+      "preserved_assertions": [{"kind": "browser_contract", "expected": "homepage banner/category icons"}]
     },
     {
       "source_path": "test/tests/browse/homepage-refactor.spec.ts",
@@ -3935,9 +4108,9 @@
       "test_title": "should navigate to products page when category icon is clicked",
       "old_id": null,
       "owner": "browse",
-      "target_scenarios": [],
-      "disposition": "pending",
-      "preserved_assertions": []
+      "target_scenarios": ["SC-BROWSE-HOME-003"],
+      "disposition": "merged",
+      "preserved_assertions": [{"kind": "navigation", "expected": "category icon opens products"}]
     },
     {
       "source_path": "test/tests/browse/homepage-refactor.spec.ts",
@@ -3945,9 +4118,9 @@
       "test_title": "should navigate to detail page when Discover button on product card is clicked",
       "old_id": null,
       "owner": "browse",
-      "target_scenarios": [],
-      "disposition": "pending",
-      "preserved_assertions": []
+      "target_scenarios": ["SC-BROWSE-HOME-004"],
+      "disposition": "merged",
+      "preserved_assertions": [{"kind": "navigation", "expected": "Discover CTA opens product detail"}]
     },
     {
       "source_path": "test/tests/browse/homepage.spec.ts",
@@ -4040,9 +4213,9 @@
       "test_title": "hero banner renders correct R2 image URL from backend",
       "old_id": null,
       "owner": "browse",
-      "target_scenarios": [],
-      "disposition": "pending",
-      "preserved_assertions": []
+      "target_scenarios": ["SC-BROWSE-HOME-002"],
+      "disposition": "merged",
+      "preserved_assertions": [{"kind": "api_projection", "expected": "hero image URL is backend-owned"}]
     },
     {
       "source_path": "test/tests/browse/product-detail-refactor.spec.ts",
@@ -4050,9 +4223,9 @@
       "test_title": "should render product specs table",
       "old_id": null,
       "owner": "browse",
-      "target_scenarios": [],
-      "disposition": "pending",
-      "preserved_assertions": []
+      "target_scenarios": ["SC-BROWSE-DETAIL-005"],
+      "disposition": "merged",
+      "preserved_assertions": [{"kind": "browser_contract", "expected": "detail specifications table"}]
     },
     {
       "source_path": "test/tests/browse/product-detail-refactor.spec.ts",
@@ -4060,9 +4233,9 @@
       "test_title": "should allow adding to cart from detail page",
       "old_id": null,
       "owner": "browse",
-      "target_scenarios": [],
-      "disposition": "pending",
-      "preserved_assertions": []
+      "target_scenarios": ["SC-BROWSE-DETAIL-006"],
+      "disposition": "merged",
+      "preserved_assertions": [{"kind": "state", "expected": "detail add-to-cart places product in cart"}]
     },
     {
       "source_path": "test/tests/browse/product-detail.spec.ts",
@@ -4138,9 +4311,9 @@
       "test_title": "should display product listing with cards",
       "old_id": null,
       "owner": "browse",
-      "target_scenarios": [],
-      "disposition": "pending",
-      "preserved_assertions": []
+      "target_scenarios": ["SC-BROWSE-CATALOG-001"],
+      "disposition": "merged",
+      "preserved_assertions": [{"kind": "browser_contract", "expected": "listing cards"}]
     },
     {
       "source_path": "test/tests/browse/product-list-refactor.spec.ts",
@@ -4148,9 +4321,9 @@
       "test_title": "should allow adding a product directly to cart from list card",
       "old_id": null,
       "owner": "browse",
-      "target_scenarios": [],
-      "disposition": "pending",
-      "preserved_assertions": []
+      "target_scenarios": ["SC-BROWSE-CATALOG-009"],
+      "disposition": "migrated",
+      "preserved_assertions": [{"kind": "state", "expected": "listing card add action places product in cart"}]
     },
     {
       "source_path": "test/tests/browse/product-list-refactor.spec.ts",
@@ -4158,9 +4331,9 @@
       "test_title": "should search products by keyword",
       "old_id": null,
       "owner": "browse",
-      "target_scenarios": [],
-      "disposition": "pending",
-      "preserved_assertions": []
+      "target_scenarios": ["SC-BROWSE-CATALOG-005"],
+      "disposition": "merged",
+      "preserved_assertions": [{"kind": "query_contract", "expected": "keyword search results"}]
     },
     {
       "source_path": "test/tests/browse/product-list-refactor.spec.ts",
@@ -4168,9 +4341,9 @@
       "test_title": "should navigate to detail page when product card title or image is clicked",
       "old_id": null,
       "owner": "browse",
-      "target_scenarios": [],
-      "disposition": "pending",
-      "preserved_assertions": []
+      "target_scenarios": ["SC-BROWSE-CATALOG-008"],
+      "disposition": "merged",
+      "preserved_assertions": [{"kind": "navigation", "expected": "card title/image opens detail"}]
     },
     {
       "source_path": "test/tests/browse/product-list.spec.ts",
@@ -4246,9 +4419,9 @@
       "test_title": "should return search results for valid query",
       "old_id": null,
       "owner": "browse",
-      "target_scenarios": [],
-      "disposition": "pending",
-      "preserved_assertions": []
+      "target_scenarios": ["SC-BROWSE-CATALOG-005"],
+      "disposition": "merged",
+      "preserved_assertions": [{"kind": "query_contract", "expected": "valid query results"}]
     },
     {
       "source_path": "test/tests/browse/search.spec.ts",
@@ -4256,9 +4429,9 @@
       "test_title": "should show empty state for no matches",
       "old_id": null,
       "owner": "browse",
-      "target_scenarios": [],
-      "disposition": "pending",
-      "preserved_assertions": []
+      "target_scenarios": ["SC-BROWSE-CATALOG-006"],
+      "disposition": "merged",
+      "preserved_assertions": [{"kind": "browser_contract", "expected": "no-result state"}]
     },
     {
       "source_path": "test/tests/browse/search.spec.ts",
@@ -4266,9 +4439,9 @@
       "test_title": "should display result count matching results",
       "old_id": null,
       "owner": "browse",
-      "target_scenarios": [],
-      "disposition": "pending",
-      "preserved_assertions": []
+      "target_scenarios": ["SC-BROWSE-CATALOG-007"],
+      "disposition": "merged",
+      "preserved_assertions": [{"kind": "browser_contract", "expected": "result count matches cards"}]
     },
     {
       "source_path": "test/tests/checkout/cart.spec.ts",
@@ -4361,9 +4534,9 @@
       "test_title": "cart route should expose cart total + checkout CTA",
       "old_id": null,
       "owner": "checkout",
-      "target_scenarios": [],
-      "disposition": "pending",
-      "preserved_assertions": []
+      "target_scenarios": ["SC-CHECKOUT-ORDER-001"],
+      "disposition": "merged",
+      "preserved_assertions": [{"kind": "browser_contract", "expected": "cart total and checkout CTA"}]
     },
     {
       "source_path": "test/tests/checkout/figma-contract.spec.ts",
@@ -4371,9 +4544,9 @@
       "test_title": "detail to cart to checkout should preserve core CTA flow",
       "old_id": null,
       "owner": "checkout",
-      "target_scenarios": [],
-      "disposition": "pending",
-      "preserved_assertions": []
+      "target_scenarios": ["SC-CHECKOUT-ORDER-002"],
+      "disposition": "merged",
+      "preserved_assertions": [{"kind": "navigation", "expected": "detail to cart to checkout fields and order CTA"}]
     },
     {
       "source_path": "test/tests/checkout/order-flow.spec.ts",
@@ -4415,9 +4588,9 @@
       "test_title": "should render about page",
       "old_id": null,
       "owner": "content",
-      "target_scenarios": [],
-      "disposition": "pending",
-      "preserved_assertions": []
+      "target_scenarios": ["SC-CONTENT-ABOUT-001"],
+      "disposition": "merged",
+      "preserved_assertions": [{"kind": "browser_contract", "expected": "About page content visible"}]
     },
     {
       "source_path": "test/tests/content/about.spec.ts",
@@ -4425,9 +4598,9 @@
       "test_title": "should load and display dynamic About narrative and gallery correctly",
       "old_id": null,
       "owner": "content",
-      "target_scenarios": [],
-      "disposition": "pending",
-      "preserved_assertions": []
+      "target_scenarios": ["SC-CONTENT-ABOUT-002"],
+      "disposition": "merged",
+      "preserved_assertions": [{"kind": "browser_contract", "expected": "dynamic About narrative and gallery"}]
     },
     {
       "source_path": "test/tests/content/articles.spec.ts",
@@ -4435,9 +4608,9 @@
       "test_title": "should render article list",
       "old_id": null,
       "owner": "content",
-      "target_scenarios": [],
-      "disposition": "pending",
-      "preserved_assertions": []
+      "target_scenarios": ["SC-CONTENT-ARTICLE-001"],
+      "disposition": "merged",
+      "preserved_assertions": [{"kind": "browser_contract", "expected": "article cards visible"}]
     },
     {
       "source_path": "test/tests/content/articles.spec.ts",
@@ -4462,9 +4635,9 @@
       "test_title": "should display article content",
       "old_id": null,
       "owner": "content",
-      "target_scenarios": [],
-      "disposition": "pending",
-      "preserved_assertions": []
+      "target_scenarios": ["SC-CONTENT-ARTICLE-003"],
+      "disposition": "merged",
+      "preserved_assertions": [{"kind": "browser_contract", "expected": "article detail content"}]
     },
     {
       "source_path": "test/tests/content/articles.spec.ts",
@@ -4472,9 +4645,9 @@
       "test_title": "should handle pagination",
       "old_id": null,
       "owner": "content",
-      "target_scenarios": [],
-      "disposition": "pending",
-      "preserved_assertions": []
+      "target_scenarios": ["SC-CONTENT-ARTICLE-004"],
+      "disposition": "merged",
+      "preserved_assertions": [{"kind": "navigation", "expected": "article pagination changes result page"}]
     },
     {
       "source_path": "test/tests/content/contact.spec.ts",
@@ -4482,9 +4655,9 @@
       "test_title": "should render contact form",
       "old_id": null,
       "owner": "content",
-      "target_scenarios": [],
-      "disposition": "pending",
-      "preserved_assertions": []
+      "target_scenarios": ["SC-CONTENT-CONTACT-001"],
+      "disposition": "merged",
+      "preserved_assertions": [{"kind": "browser_contract", "expected": "contact form visible"}]
     },
     {
       "source_path": "test/tests/content/contact.spec.ts",
@@ -4492,9 +4665,9 @@
       "test_title": "should display map embed",
       "old_id": null,
       "owner": "content",
-      "target_scenarios": [],
-      "disposition": "pending",
-      "preserved_assertions": []
+      "target_scenarios": ["SC-CONTENT-CONTACT-002"],
+      "disposition": "merged",
+      "preserved_assertions": [{"kind": "browser_contract", "expected": "contact map embed"}]
     },
     {
       "source_path": "test/tests/content/contact.spec.ts",
@@ -4536,9 +4709,9 @@
       "test_title": "should display reviews on product page",
       "old_id": null,
       "owner": "engagement",
-      "target_scenarios": [],
-      "disposition": "pending",
-      "preserved_assertions": []
+      "target_scenarios": ["SC-ENGAGEMENT-REVIEW-001"],
+      "disposition": "merged",
+      "preserved_assertions": [{"kind": "browser_contract", "expected": "public product reviews visible"}]
     },
     {
       "source_path": "test/tests/engagement/reviews.spec.ts",
@@ -4546,9 +4719,9 @@
       "test_title": "should submit review with rating",
       "old_id": null,
       "owner": "engagement",
-      "target_scenarios": [],
-      "disposition": "pending",
-      "preserved_assertions": []
+      "target_scenarios": ["SC-ENGAGEMENT-REVIEW-002"],
+      "disposition": "merged",
+      "preserved_assertions": [{"kind": "state", "expected": "eligible shopper review submission with rating accepted"}]
     },
     {
       "source_path": "test/tests/engagement/reviews.spec.ts",
@@ -4556,9 +4729,9 @@
       "test_title": "should show review on product page after submission",
       "old_id": null,
       "owner": "engagement",
-      "target_scenarios": [],
-      "disposition": "pending",
-      "preserved_assertions": []
+      "target_scenarios": ["SC-ENGAGEMENT-REVIEW-003"],
+      "disposition": "merged",
+      "preserved_assertions": [{"kind": "reload_invariant", "expected": "submitted review appears according to visibility state after reload"}]
     },
     {
       "source_path": "test/tests/engagement/wishlist.spec.ts",
@@ -4583,9 +4756,9 @@
       "test_title": "should view wishlist page",
       "old_id": null,
       "owner": "engagement",
-      "target_scenarios": [],
-      "disposition": "pending",
-      "preserved_assertions": []
+      "target_scenarios": ["SC-ENGAGEMENT-WISHLIST-002"],
+      "disposition": "merged",
+      "preserved_assertions": [{"kind": "browser_contract", "expected": "wishlist page renders saved items"}]
     },
     {
       "source_path": "test/tests/engagement/wishlist.spec.ts",

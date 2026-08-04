@@ -16,6 +16,17 @@ Feature: Refund operations
     Then the system opens its evidence and context
     And an unavailable request ends the review without a false decision
 
+    @accepted @api @security @SC-REF-QUEUE-005
+    Scenario: Reject unauthenticated refund queue read
+      When an unauthenticated client reads the pending refund queue
+      Then the refund queue response status is `401`
+
+    @accepted @api @security @SC-REF-QUEUE-006
+    Scenario: Reject non-admin refund queue read
+      Given a shopper token is available for refund access
+      When the shopper reads the pending refund queue
+      Then the refund queue response status is `403`
+
   @UC-REF-DECISION
   Rule: Refund decisions require evidence and are auditable
 
@@ -101,3 +112,20 @@ Feature: Refund operations
       Given an admin has approved a refund request with historical evidence
       When the admin opens that refund in browser history
       Then the browser shows the approved outcome and its evidence
+
+  @UC-REF-DECISION
+  Rule: Refund command identifiers must conform to the admin contract
+
+    @accepted @api @SC-REF-DECISION-007
+    Scenario: Reject a refund decision with an invalid identifier
+      Given the admin is authenticated for refund operations
+      When the admin approves a refund with an invalid identifier
+      Then the refund decision request returns `400`
+
+  @UC-REF-QUEUE
+  Rule: The desktop refund surface preserves its visual contract
+
+    @accepted @browser @visual @SC-VISUAL-ADMIN-REFUNDS-001
+    Scenario: Match the desktop refunds contract
+      Given the admin opens the desktop Figma refunds surface
+      Then the desktop refunds surface matches its visual contract

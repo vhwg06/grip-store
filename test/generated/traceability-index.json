@@ -75,6 +75,18 @@
       "rule": "Product list actions expose lifecycle controls without hiding the row context"
     },
     {
+      "id": "SC-ADMIN-PRODUCT-LIST-003",
+      "module": "admin.product",
+      "feature": "modules/admin/product/behavior.feature",
+      "steps": "modules/admin/product/behavior.steps.ts",
+      "contract": "contracts/catalog-base.md",
+      "title": "Render an empty product search state",
+      "specStatus": "accepted",
+      "useCase": "UC-ADMIN-PRODUCT-LIST",
+      "layer": "browser",
+      "rule": "Product list actions expose lifecycle controls without hiding the row context"
+    },
+    {
       "id": "SC-APRO-IDENTITY-001",
       "module": "admin.admin-profile",
       "feature": "modules/admin/admin-profile/behavior.feature",
@@ -542,6 +554,17 @@
       "feature": "modules/browse/behavior.feature",
       "steps": "modules/browse/behavior.steps.ts",
       "title": "Navigate from product card",
+      "specStatus": "accepted",
+      "useCase": "UC-BROWSE-CATALOG",
+      "layer": "browser",
+      "rule": "Browse, filter, sort, search, and paginate the public catalog"
+    },
+    {
+      "id": "SC-BROWSE-CATALOG-009",
+      "module": "browse",
+      "feature": "modules/browse/behavior.feature",
+      "steps": "modules/browse/behavior.steps.ts",
+      "title": "Add a product directly from a listing card",
       "specStatus": "accepted",
       "useCase": "UC-BROWSE-CATALOG",
       "layer": "browser",
@@ -1789,6 +1812,17 @@
       "rule": "Move from cart through checkout to a durable order"
     },
     {
+      "id": "SC-CONT-ABOUT-API-001",
+      "module": "admin.content",
+      "feature": "modules/admin/content/behavior.feature",
+      "steps": "modules/admin/content/behavior.steps.ts",
+      "title": "Persist About page content and gallery",
+      "specStatus": "accepted",
+      "useCase": "UC-CONT-ABOUT-LINK",
+      "layer": "api",
+      "rule": "About page API persistence reflects updated narrative and gallery"
+    },
+    {
       "id": "SC-CONT-ABOUT-LINK-001",
       "module": "admin.content",
       "feature": "modules/admin/content/behavior.feature",
@@ -1822,6 +1856,39 @@
       "rule": "Articles move from editorial state to public reading state"
     },
     {
+      "id": "SC-CONT-ARTICLE-API-001",
+      "module": "admin.content",
+      "feature": "modules/admin/content/behavior.feature",
+      "steps": "modules/admin/content/behavior.steps.ts",
+      "title": "Reject unauthenticated article creation",
+      "specStatus": "accepted",
+      "useCase": "UC-CONT-ARTICLE",
+      "layer": "api",
+      "rule": "Article API CRUD preserves editorial fields and public deletion semantics"
+    },
+    {
+      "id": "SC-CONT-ARTICLE-API-002",
+      "module": "admin.content",
+      "feature": "modules/admin/content/behavior.feature",
+      "steps": "modules/admin/content/behavior.steps.ts",
+      "title": "CRUD an article with editorial metadata",
+      "specStatus": "accepted",
+      "useCase": "UC-CONT-ARTICLE",
+      "layer": "api",
+      "rule": "Article API CRUD preserves editorial fields and public deletion semantics"
+    },
+    {
+      "id": "SC-CONT-ARTICLE-API-003",
+      "module": "admin.content",
+      "feature": "modules/admin/content/behavior.feature",
+      "steps": "modules/admin/content/behavior.steps.ts",
+      "title": "Sort and filter public articles by editorial metadata",
+      "specStatus": "accepted",
+      "useCase": "UC-CONT-ARTICLE",
+      "layer": "api",
+      "rule": "Article API CRUD preserves editorial fields and public deletion semantics"
+    },
+    {
       "id": "SC-CONT-ARTICLE-PREVIEW-001",
       "module": "admin.content",
       "feature": "modules/admin/content/behavior.feature",
@@ -1842,6 +1909,17 @@
       "useCase": "UC-CONT-BANNER",
       "layer": "api",
       "rule": "Banner sets are managed per page context"
+    },
+    {
+      "id": "SC-CONT-BANNER-API-001",
+      "module": "admin.content",
+      "feature": "modules/admin/content/behavior.feature",
+      "steps": "modules/admin/content/behavior.steps.ts",
+      "title": "Manage banners and expose active slides publicly",
+      "specStatus": "accepted",
+      "useCase": "UC-CONT-BANNER",
+      "layer": "api",
+      "rule": "Public banner projection contains only active slides in sorted order"
     },
     {
       "id": "SC-CONT-EDITOR-001",
@@ -1875,6 +1953,17 @@
       "useCase": "UC-CONT-FAQ",
       "layer": "api",
       "rule": "FAQ knowledge is ordered and selectively public"
+    },
+    {
+      "id": "SC-CONT-FAQ-API-001",
+      "module": "admin.content",
+      "feature": "modules/admin/content/behavior.feature",
+      "steps": "modules/admin/content/behavior.steps.ts",
+      "title": "Manage FAQs and expose active ordered entries publicly",
+      "specStatus": "accepted",
+      "useCase": "UC-CONT-FAQ",
+      "layer": "api",
+      "rule": "Public FAQ projection contains active ordered answers only"
     },
     {
       "id": "SC-CONT-MEDIA-001",
@@ -2108,6 +2197,17 @@
       "rule": "A customer may expose a linked user account without changing ownership"
     },
     {
+      "id": "SC-CUS-ACCOUNT-LINK-002",
+      "module": "admin.customer",
+      "feature": "modules/admin/customer/behavior.feature",
+      "steps": "modules/admin/customer/behavior.steps.ts",
+      "title": "Move from customer root to linked account controls",
+      "specStatus": "accepted",
+      "useCase": "UC-CUS-ACCOUNT-LINK",
+      "layer": "browser",
+      "rule": "Customer account navigation hands off to user ownership without copying commerce controls"
+    },
+    {
       "id": "SC-CUS-COMMERCE-HISTORY-001",
       "module": "admin.customer",
       "feature": "modules/admin/customer/behavior.feature",
@@ -2119,11 +2219,77 @@
       "rule": "Empty commerce history is a valid customer projection"
     },
     {
+      "id": "SC-CUS-COMMERCE-HISTORY-002",
+      "module": "admin.customer",
+      "feature": "modules/admin/customer/behavior.feature",
+      "steps": "modules/admin/customer/behavior.steps.ts",
+      "title": "Read an empty customer commerce state in the browser",
+      "specStatus": "accepted",
+      "useCase": "UC-CUS-COMMERCE-HISTORY",
+      "layer": "browser",
+      "rule": "A newly registered customer remains valid when commerce history is empty"
+    },
+    {
       "id": "SC-CUS-SEARCH-001",
       "module": "admin.customer",
       "feature": "modules/admin/customer/behavior.feature",
       "steps": "modules/admin/customer/behavior.steps.ts",
       "title": "Search And Open Customer Context",
+      "specStatus": "accepted",
+      "useCase": "UC-CUS-SEARCH",
+      "layer": "api",
+      "rule": "Support can find and open a customer commerce context"
+    },
+    {
+      "id": "SC-CUS-SEARCH-002",
+      "module": "admin.customer",
+      "feature": "modules/admin/customer/behavior.feature",
+      "steps": "modules/admin/customer/behavior.steps.ts",
+      "title": "Find a customer from the admin browser search",
+      "specStatus": "accepted",
+      "useCase": "UC-CUS-SEARCH",
+      "layer": "browser",
+      "rule": "Customer search in the browser returns only commerce customer context"
+    },
+    {
+      "id": "SC-CUS-SEARCH-003",
+      "module": "admin.customer",
+      "feature": "modules/admin/customer/behavior.feature",
+      "steps": "modules/admin/customer/behavior.steps.ts",
+      "title": "Render an empty customer search state",
+      "specStatus": "accepted",
+      "useCase": "UC-CUS-SEARCH",
+      "layer": "browser",
+      "rule": "Customer search in the browser returns only commerce customer context"
+    },
+    {
+      "id": "SC-CUS-SEARCH-004",
+      "module": "admin.customer",
+      "feature": "modules/admin/customer/behavior.feature",
+      "steps": "modules/admin/customer/behavior.steps.ts",
+      "title": "Customer search excludes administrator accounts",
+      "specStatus": "accepted",
+      "useCase": "UC-CUS-SEARCH",
+      "layer": "browser",
+      "rule": "Customer search in the browser returns only commerce customer context"
+    },
+    {
+      "id": "SC-CUS-SEARCH-005",
+      "module": "admin.customer",
+      "feature": "modules/admin/customer/behavior.feature",
+      "steps": "modules/admin/customer/behavior.steps.ts",
+      "title": "Reject unauthenticated customer root read",
+      "specStatus": "accepted",
+      "useCase": "UC-CUS-SEARCH",
+      "layer": "api",
+      "rule": "Support can find and open a customer commerce context"
+    },
+    {
+      "id": "SC-CUS-SEARCH-006",
+      "module": "admin.customer",
+      "feature": "modules/admin/customer/behavior.feature",
+      "steps": "modules/admin/customer/behavior.steps.ts",
+      "title": "Reject non-admin customer root read",
       "specStatus": "accepted",
       "useCase": "UC-CUS-SEARCH",
       "layer": "api",
@@ -2139,6 +2305,28 @@
       "useCase": "UC-CUS-SUMMARY",
       "layer": "api",
       "rule": "Customer summary preserves commerce traversal context"
+    },
+    {
+      "id": "SC-CUS-SUMMARY-002",
+      "module": "admin.customer",
+      "feature": "modules/admin/customer/behavior.feature",
+      "steps": "modules/admin/customer/behavior.steps.ts",
+      "title": "Read customer summary and commerce indicators in the browser",
+      "specStatus": "accepted",
+      "useCase": "UC-CUS-SUMMARY",
+      "layer": "browser",
+      "rule": "The browser customer summary exposes commerce indicators and cross-domain actions"
+    },
+    {
+      "id": "SC-CUS-SUMMARY-003",
+      "module": "admin.customer",
+      "feature": "modules/admin/customer/behavior.feature",
+      "steps": "modules/admin/customer/behavior.steps.ts",
+      "title": "Open commerce links from the customer root",
+      "specStatus": "accepted",
+      "useCase": "UC-CUS-SUMMARY",
+      "layer": "browser",
+      "rule": "The browser customer summary exposes commerce indicators and cross-domain actions"
     },
     {
       "id": "SC-ENGAGEMENT-API-001",
@@ -2405,6 +2593,17 @@
       "rule": "Notification inbox operations preserve authentication and read-state contracts"
     },
     {
+      "id": "SC-ENGAGEMENT-NOTIFICATIONS-014",
+      "module": "engagement",
+      "feature": "modules/engagement/behavior.feature",
+      "steps": "modules/engagement/behavior.steps.ts",
+      "title": "Mark one authenticated notification as read",
+      "specStatus": "accepted",
+      "useCase": "UC-ENGAGEMENT-NOTIFICATIONS",
+      "layer": "api",
+      "rule": "Notification inbox operations preserve authentication and read-state contracts"
+    },
+    {
       "id": "SC-ENGAGEMENT-REVIEW-001",
       "module": "engagement",
       "feature": "modules/engagement/behavior.feature",
@@ -2493,6 +2692,28 @@
       "rule": "Outbound notification history remains traceable"
     },
     {
+      "id": "SC-NOTY-HISTORY-002",
+      "module": "admin.noty",
+      "feature": "modules/admin/noty/behavior.feature",
+      "steps": "modules/admin/noty/behavior.steps.ts",
+      "title": "Read outbound notifications from browser history",
+      "specStatus": "accepted",
+      "useCase": "UC-NOTY-HISTORY",
+      "layer": "browser",
+      "rule": "Browser notification history is server-backed and filterable"
+    },
+    {
+      "id": "SC-NOTY-HISTORY-003",
+      "module": "admin.noty",
+      "feature": "modules/admin/noty/behavior.feature",
+      "steps": "modules/admin/noty/behavior.steps.ts",
+      "title": "Render an empty notification search state",
+      "specStatus": "accepted",
+      "useCase": "UC-NOTY-HISTORY",
+      "layer": "browser",
+      "rule": "Browser notification history is server-backed and filterable"
+    },
+    {
       "id": "SC-NOTY-SEND-001",
       "module": "admin.noty",
       "feature": "modules/admin/noty/behavior.feature",
@@ -2502,6 +2723,50 @@
       "useCase": "UC-NOTY-SEND",
       "layer": "api",
       "rule": "Outbound notification sending is gated by readiness"
+    },
+    {
+      "id": "SC-NOTY-SEND-002",
+      "module": "admin.noty",
+      "feature": "modules/admin/noty/behavior.feature",
+      "steps": "modules/admin/noty/behavior.steps.ts",
+      "title": "Read outbound channel readiness in the browser",
+      "specStatus": "accepted",
+      "useCase": "UC-NOTY-SEND",
+      "layer": "browser",
+      "rule": "Browser notification controls expose channel readiness before dispatch"
+    },
+    {
+      "id": "SC-NOTY-SEND-003",
+      "module": "admin.noty",
+      "feature": "modules/admin/noty/behavior.feature",
+      "steps": "modules/admin/noty/behavior.steps.ts",
+      "title": "Send a website push from the browser compose flow",
+      "specStatus": "accepted",
+      "useCase": "UC-NOTY-SEND",
+      "layer": "browser",
+      "rule": "Browser notification controls expose channel readiness before dispatch"
+    },
+    {
+      "id": "SC-NOTY-SEND-004",
+      "module": "admin.noty",
+      "feature": "modules/admin/noty/behavior.feature",
+      "steps": "modules/admin/noty/behavior.steps.ts",
+      "title": "Update channel readiness before sending a push",
+      "specStatus": "accepted",
+      "useCase": "UC-NOTY-SEND",
+      "layer": "browser",
+      "rule": "Browser notification controls expose channel readiness before dispatch"
+    },
+    {
+      "id": "SC-NOTY-SEND-005",
+      "module": "admin.noty",
+      "feature": "modules/admin/noty/behavior.feature",
+      "steps": "modules/admin/noty/behavior.steps.ts",
+      "title": "Show an explicit readiness error when notification settings fail",
+      "specStatus": "deferred",
+      "useCase": "UC-NOTY-SEND",
+      "layer": "browser",
+      "rule": "Notification failure readiness remains explicit when failure injection is available"
     },
     {
       "id": "SC-ORD-DETAIL-001",
@@ -2537,6 +2802,39 @@
       "rule": "Order detail is the complete context before an operational decision"
     },
     {
+      "id": "SC-ORD-DETAIL-004",
+      "module": "admin.order",
+      "feature": "modules/admin/order/behavior.feature",
+      "steps": "modules/admin/order/behavior.steps.ts",
+      "title": "Read complete order detail in the browser",
+      "specStatus": "accepted",
+      "useCase": "UC-ORD-DETAIL",
+      "layer": "browser",
+      "rule": "The browser detail view must preserve operational context and safe fallbacks"
+    },
+    {
+      "id": "SC-ORD-DETAIL-005",
+      "module": "admin.order",
+      "feature": "modules/admin/order/behavior.feature",
+      "steps": "modules/admin/order/behavior.steps.ts",
+      "title": "Read incomplete order detail with safe fallbacks in the browser",
+      "specStatus": "accepted",
+      "useCase": "UC-ORD-DETAIL",
+      "layer": "browser",
+      "rule": "The browser detail view must preserve operational context and safe fallbacks"
+    },
+    {
+      "id": "SC-ORD-DETAIL-006",
+      "module": "admin.order",
+      "feature": "modules/admin/order/behavior.feature",
+      "steps": "modules/admin/order/behavior.steps.ts",
+      "title": "Opening a missing order shows a not-found state in the browser",
+      "specStatus": "accepted",
+      "useCase": "UC-ORD-DETAIL",
+      "layer": "browser",
+      "rule": "The browser detail view must preserve operational context and safe fallbacks"
+    },
+    {
       "id": "SC-ORD-HISTORY-001",
       "module": "admin.order",
       "feature": "modules/admin/order/behavior.feature",
@@ -2557,6 +2855,28 @@
       "useCase": "UC-ORD-HISTORY",
       "layer": "api",
       "rule": "Purchase history is a read projection of the order customer identity"
+    },
+    {
+      "id": "SC-ORD-HISTORY-003",
+      "module": "admin.order",
+      "feature": "modules/admin/order/behavior.feature",
+      "steps": "modules/admin/order/behavior.steps.ts",
+      "title": "Open customer purchase history from an order customer",
+      "specStatus": "accepted",
+      "useCase": "UC-ORD-HISTORY",
+      "layer": "browser",
+      "rule": "Browser customer history navigation preserves the selected customer identity"
+    },
+    {
+      "id": "SC-ORD-HISTORY-004",
+      "module": "admin.order",
+      "feature": "modules/admin/order/behavior.feature",
+      "steps": "modules/admin/order/behavior.steps.ts",
+      "title": "Render an empty customer purchase history in the browser",
+      "specStatus": "accepted",
+      "useCase": "UC-ORD-HISTORY",
+      "layer": "browser",
+      "rule": "Browser customer history navigation preserves the selected customer identity"
     },
     {
       "id": "SC-ORD-QUEUE-001",
@@ -2614,6 +2934,39 @@
       "rule": "The order queue is a server projection for operational triage"
     },
     {
+      "id": "SC-ORD-QUEUE-006",
+      "module": "admin.order",
+      "feature": "modules/admin/order/behavior.feature",
+      "steps": "modules/admin/order/behavior.steps.ts",
+      "title": "Open a pending order from the admin queue",
+      "specStatus": "accepted",
+      "useCase": "UC-ORD-QUEUE",
+      "layer": "browser",
+      "rule": "The admin order queue exposes the same server projection through the browser"
+    },
+    {
+      "id": "SC-ORD-QUEUE-007",
+      "module": "admin.order",
+      "feature": "modules/admin/order/behavior.feature",
+      "steps": "modules/admin/order/behavior.steps.ts",
+      "title": "Render an empty filtered order queue",
+      "specStatus": "accepted",
+      "useCase": "UC-ORD-QUEUE",
+      "layer": "browser",
+      "rule": "The admin order queue exposes the same server projection through the browser"
+    },
+    {
+      "id": "SC-ORD-QUEUE-008",
+      "module": "admin.order",
+      "feature": "modules/admin/order/behavior.feature",
+      "steps": "modules/admin/order/behavior.steps.ts",
+      "title": "Filter the browser order queue to matching rows",
+      "specStatus": "accepted",
+      "useCase": "UC-ORD-QUEUE",
+      "layer": "browser",
+      "rule": "The admin order queue exposes the same server projection through the browser"
+    },
+    {
       "id": "SC-ORD-REFUND-CONTEXT-001",
       "module": "admin.order",
       "feature": "modules/admin/order/behavior.feature",
@@ -2658,6 +3011,50 @@
       "rule": "The backend owns the allowed order transition matrix"
     },
     {
+      "id": "SC-ORD-TRANSITION-004",
+      "module": "admin.order",
+      "feature": "modules/admin/order/behavior.feature",
+      "steps": "modules/admin/order/behavior.steps.ts",
+      "title": "Execute a valid transition from the browser queue",
+      "specStatus": "accepted",
+      "useCase": "UC-ORD-TRANSITION",
+      "layer": "browser",
+      "rule": "Browser transition controls reflect the server-owned order state machine"
+    },
+    {
+      "id": "SC-ORD-TRANSITION-005",
+      "module": "admin.order",
+      "feature": "modules/admin/order/behavior.feature",
+      "steps": "modules/admin/order/behavior.steps.ts",
+      "title": "Terminal order exposes no browser transition controls",
+      "specStatus": "accepted",
+      "useCase": "UC-ORD-TRANSITION",
+      "layer": "browser",
+      "rule": "Browser transition controls reflect the server-owned order state machine"
+    },
+    {
+      "id": "SC-ORD-TRANSITION-006",
+      "module": "admin.order",
+      "feature": "modules/admin/order/behavior.feature",
+      "steps": "modules/admin/order/behavior.steps.ts",
+      "title": "Reject a malformed order transition payload",
+      "specStatus": "accepted",
+      "useCase": "UC-ORD-TRANSITION",
+      "layer": "api",
+      "rule": "The backend owns the allowed order transition matrix"
+    },
+    {
+      "id": "SC-ORD-TRANSITION-007",
+      "module": "admin.order",
+      "feature": "modules/admin/order/behavior.feature",
+      "steps": "modules/admin/order/behavior.steps.ts",
+      "title": "Delete an admin-created order after cancelling it",
+      "specStatus": "accepted",
+      "useCase": "UC-ORD-TRANSITION",
+      "layer": "api",
+      "rule": "The backend owns the allowed order transition matrix"
+    },
+    {
       "id": "SC-PAY-ORDER-CONTEXT-001",
       "module": "admin.payment",
       "feature": "modules/admin/payment/behavior.feature",
@@ -2691,6 +3088,17 @@
       "rule": "Collection sources retain an explicit payee identity"
     },
     {
+      "id": "SC-PCOL-PAYEE-002",
+      "module": "admin.payment-collection",
+      "feature": "modules/admin/payment-collection/behavior.feature",
+      "steps": "modules/admin/payment-collection/behavior.steps.ts",
+      "title": "Persist payee identity from the browser collection surface",
+      "specStatus": "accepted",
+      "useCase": "UC-PCOL-PAYEE",
+      "layer": "browser",
+      "rule": "Browser payee edits persist across reloads"
+    },
+    {
       "id": "SC-PCOL-READINESS-001",
       "module": "admin.payment-collection",
       "feature": "modules/admin/payment-collection/behavior.feature",
@@ -2700,6 +3108,17 @@
       "useCase": "UC-PCOL-READINESS",
       "layer": "api",
       "rule": "Collection readiness is visible before live use"
+    },
+    {
+      "id": "SC-PCOL-READINESS-002",
+      "module": "admin.payment-collection",
+      "feature": "modules/admin/payment-collection/behavior.feature",
+      "steps": "modules/admin/payment-collection/behavior.steps.ts",
+      "title": "Inspect collection readiness in the browser",
+      "specStatus": "accepted",
+      "useCase": "UC-PCOL-READINESS",
+      "layer": "browser",
+      "rule": "Browser readiness is derived from backend warnings and state"
     },
     {
       "id": "SC-PCOL-SETUP-001",
@@ -2713,6 +3132,17 @@
       "rule": "QR and transfer setup must be valid before becoming live configuration"
     },
     {
+      "id": "SC-PCOL-SETUP-002",
+      "module": "admin.payment-collection",
+      "feature": "modules/admin/payment-collection/behavior.feature",
+      "steps": "modules/admin/payment-collection/behavior.steps.ts",
+      "title": "Reject invalid QR or transfer setup in the browser",
+      "specStatus": "accepted",
+      "useCase": "UC-PCOL-SETUP",
+      "layer": "browser",
+      "rule": "Invalid collection setup never becomes live configuration"
+    },
+    {
       "id": "SC-PCOL-SOURCES-001",
       "module": "admin.payment-collection",
       "feature": "modules/admin/payment-collection/behavior.feature",
@@ -2722,6 +3152,17 @@
       "useCase": "UC-PCOL-SOURCES",
       "layer": "api",
       "rule": "Collection sources expose their active receive-money configuration"
+    },
+    {
+      "id": "SC-PCOL-SOURCES-002",
+      "module": "admin.payment-collection",
+      "feature": "modules/admin/payment-collection/behavior.feature",
+      "steps": "modules/admin/payment-collection/behavior.steps.ts",
+      "title": "Read collection sources in the browser",
+      "specStatus": "accepted",
+      "useCase": "UC-PCOL-SOURCES",
+      "layer": "browser",
+      "rule": "The browser collection surface reflects backend source readiness"
     },
     {
       "id": "SC-PF-CART-COMPOSITION-001",
@@ -2770,6 +3211,61 @@
       "rule": "Refund decisions require evidence and are auditable"
     },
     {
+      "id": "SC-REF-DECISION-003",
+      "module": "admin.refund",
+      "feature": "modules/admin/refund/behavior.feature",
+      "steps": "modules/admin/refund/behavior.steps.ts",
+      "title": "Approve a refund from the browser decision surface",
+      "specStatus": "accepted",
+      "useCase": "UC-REF-DECISION",
+      "layer": "browser",
+      "rule": "Browser refund decisions require evidence and reconcile the pending queue"
+    },
+    {
+      "id": "SC-REF-DECISION-004",
+      "module": "admin.refund",
+      "feature": "modules/admin/refund/behavior.feature",
+      "steps": "modules/admin/refund/behavior.steps.ts",
+      "title": "Reject a refund from the browser decision surface",
+      "specStatus": "accepted",
+      "useCase": "UC-REF-DECISION",
+      "layer": "browser",
+      "rule": "Browser refund decisions require evidence and reconcile the pending queue"
+    },
+    {
+      "id": "SC-REF-DECISION-005",
+      "module": "admin.refund",
+      "feature": "modules/admin/refund/behavior.feature",
+      "steps": "modules/admin/refund/behavior.steps.ts",
+      "title": "Preserve a decision note when approving a refund",
+      "specStatus": "accepted",
+      "useCase": "UC-REF-DECISION",
+      "layer": "browser",
+      "rule": "Browser refund decisions require evidence and reconcile the pending queue"
+    },
+    {
+      "id": "SC-REF-DECISION-006",
+      "module": "admin.refund",
+      "feature": "modules/admin/refund/behavior.feature",
+      "steps": "modules/admin/refund/behavior.steps.ts",
+      "title": "Prevent a second decision on a historical refund",
+      "specStatus": "accepted",
+      "useCase": "UC-REF-DECISION",
+      "layer": "browser",
+      "rule": "Browser refund decisions require evidence and reconcile the pending queue"
+    },
+    {
+      "id": "SC-REF-DECISION-007",
+      "module": "admin.refund",
+      "feature": "modules/admin/refund/behavior.feature",
+      "steps": "modules/admin/refund/behavior.steps.ts",
+      "title": "Reject a refund decision with an invalid identifier",
+      "specStatus": "accepted",
+      "useCase": "UC-REF-DECISION",
+      "layer": "api",
+      "rule": "Refund command identifiers must conform to the admin contract"
+    },
+    {
       "id": "SC-REF-HISTORY-001",
       "module": "admin.refund",
       "feature": "modules/admin/refund/behavior.feature",
@@ -2781,11 +3277,77 @@
       "rule": "Final refund outcomes remain historical evidence"
     },
     {
+      "id": "SC-REF-HISTORY-002",
+      "module": "admin.refund",
+      "feature": "modules/admin/refund/behavior.feature",
+      "steps": "modules/admin/refund/behavior.steps.ts",
+      "title": "Read an approved refund from browser history",
+      "specStatus": "accepted",
+      "useCase": "UC-REF-HISTORY",
+      "layer": "browser",
+      "rule": "Browser refund history keeps final outcomes and decision evidence readable"
+    },
+    {
       "id": "SC-REF-QUEUE-001",
       "module": "admin.refund",
       "feature": "modules/admin/refund/behavior.feature",
       "steps": "modules/admin/refund/behavior.steps.ts",
       "title": "Read Queue Then Open Evidence",
+      "specStatus": "accepted",
+      "useCase": "UC-REF-QUEUE",
+      "layer": "api",
+      "rule": "Refund review starts from a traceable pending queue"
+    },
+    {
+      "id": "SC-REF-QUEUE-002",
+      "module": "admin.refund",
+      "feature": "modules/admin/refund/behavior.feature",
+      "steps": "modules/admin/refund/behavior.steps.ts",
+      "title": "Read the refund queue and open evidence in the browser",
+      "specStatus": "accepted",
+      "useCase": "UC-REF-QUEUE",
+      "layer": "browser",
+      "rule": "The refund browser queue contains only actionable pending requests"
+    },
+    {
+      "id": "SC-REF-QUEUE-003",
+      "module": "admin.refund",
+      "feature": "modules/admin/refund/behavior.feature",
+      "steps": "modules/admin/refund/behavior.steps.ts",
+      "title": "Render an empty refund queue search",
+      "specStatus": "accepted",
+      "useCase": "UC-REF-QUEUE",
+      "layer": "browser",
+      "rule": "The refund browser queue contains only actionable pending requests"
+    },
+    {
+      "id": "SC-REF-QUEUE-004",
+      "module": "admin.refund",
+      "feature": "modules/admin/refund/behavior.feature",
+      "steps": "modules/admin/refund/behavior.steps.ts",
+      "title": "Keep an approved refund out of the pending browser queue",
+      "specStatus": "accepted",
+      "useCase": "UC-REF-QUEUE",
+      "layer": "browser",
+      "rule": "The refund browser queue contains only actionable pending requests"
+    },
+    {
+      "id": "SC-REF-QUEUE-005",
+      "module": "admin.refund",
+      "feature": "modules/admin/refund/behavior.feature",
+      "steps": "modules/admin/refund/behavior.steps.ts",
+      "title": "Reject unauthenticated refund queue read",
+      "specStatus": "accepted",
+      "useCase": "UC-REF-QUEUE",
+      "layer": "api",
+      "rule": "Refund review starts from a traceable pending queue"
+    },
+    {
+      "id": "SC-REF-QUEUE-006",
+      "module": "admin.refund",
+      "feature": "modules/admin/refund/behavior.feature",
+      "steps": "modules/admin/refund/behavior.steps.ts",
+      "title": "Reject non-admin refund queue read",
       "specStatus": "accepted",
       "useCase": "UC-REF-QUEUE",
       "layer": "api",
@@ -2801,6 +3363,28 @@
       "useCase": "UC-REV-BULK",
       "layer": "api",
       "rule": "Bulk moderation preserves individual eligibility rules"
+    },
+    {
+      "id": "SC-REV-BULK-002",
+      "module": "admin.review",
+      "feature": "modules/admin/review/behavior.feature",
+      "steps": "modules/admin/review/behavior.steps.ts",
+      "title": "Bulk publish pending reviews in the browser",
+      "specStatus": "accepted",
+      "useCase": "UC-REV-BULK",
+      "layer": "browser",
+      "rule": "Browser bulk moderation applies eligibility per selected review"
+    },
+    {
+      "id": "SC-REV-BULK-003",
+      "module": "admin.review",
+      "feature": "modules/admin/review/behavior.feature",
+      "steps": "modules/admin/review/behavior.steps.ts",
+      "title": "Bulk publish only eligible reviews in the browser",
+      "specStatus": "accepted",
+      "useCase": "UC-REV-BULK",
+      "layer": "browser",
+      "rule": "Browser bulk moderation applies eligibility per selected review"
     },
     {
       "id": "SC-REV-DECISION-001",
@@ -2836,6 +3420,50 @@
       "rule": "A moderation decision controls the review's public visibility state"
     },
     {
+      "id": "SC-REV-DECISION-004",
+      "module": "admin.review",
+      "feature": "modules/admin/review/behavior.feature",
+      "steps": "modules/admin/review/behavior.steps.ts",
+      "title": "Approve a pending review in the browser",
+      "specStatus": "accepted",
+      "useCase": "UC-REV-DECISION",
+      "layer": "browser",
+      "rule": "Browser moderation actions produce distinct public visibility outcomes"
+    },
+    {
+      "id": "SC-REV-DECISION-005",
+      "module": "admin.review",
+      "feature": "modules/admin/review/behavior.feature",
+      "steps": "modules/admin/review/behavior.steps.ts",
+      "title": "Hide an approved review in the browser",
+      "specStatus": "accepted",
+      "useCase": "UC-REV-DECISION",
+      "layer": "browser",
+      "rule": "Browser moderation actions produce distinct public visibility outcomes"
+    },
+    {
+      "id": "SC-REV-DECISION-006",
+      "module": "admin.review",
+      "feature": "modules/admin/review/behavior.feature",
+      "steps": "modules/admin/review/behavior.steps.ts",
+      "title": "Feature an approved review in the browser",
+      "specStatus": "accepted",
+      "useCase": "UC-REV-DECISION",
+      "layer": "browser",
+      "rule": "Browser moderation actions produce distinct public visibility outcomes"
+    },
+    {
+      "id": "SC-REV-DECISION-007",
+      "module": "admin.review",
+      "feature": "modules/admin/review/behavior.feature",
+      "steps": "modules/admin/review/behavior.steps.ts",
+      "title": "Prevent hiding a review that is already hidden",
+      "specStatus": "accepted",
+      "useCase": "UC-REV-DECISION",
+      "layer": "browser",
+      "rule": "Browser moderation actions produce distinct public visibility outcomes"
+    },
+    {
       "id": "SC-REV-DELETE-001",
       "module": "admin.review",
       "feature": "modules/admin/review/behavior.feature",
@@ -2847,11 +3475,88 @@
       "rule": "Removing a review is distinct from hiding it"
     },
     {
+      "id": "SC-REV-DELETE-002",
+      "module": "admin.review",
+      "feature": "modules/admin/review/behavior.feature",
+      "steps": "modules/admin/review/behavior.steps.ts",
+      "title": "Remove a hidden review from the browser moderation surface",
+      "specStatus": "accepted",
+      "useCase": "UC-REV-DELETE",
+      "layer": "browser",
+      "rule": "Browser removal ends the review artifact rather than changing only visibility"
+    },
+    {
       "id": "SC-REV-QUEUE-001",
       "module": "admin.review",
       "feature": "modules/admin/review/behavior.feature",
       "steps": "modules/admin/review/behavior.steps.ts",
       "title": "Queue Scan Then Context Read",
+      "specStatus": "accepted",
+      "useCase": "UC-REV-QUEUE",
+      "layer": "api",
+      "rule": "Review moderation begins with queue state and context"
+    },
+    {
+      "id": "SC-REV-QUEUE-002",
+      "module": "admin.review",
+      "feature": "modules/admin/review/behavior.feature",
+      "steps": "modules/admin/review/behavior.steps.ts",
+      "title": "Read the moderation queue in the browser",
+      "specStatus": "accepted",
+      "useCase": "UC-REV-QUEUE",
+      "layer": "browser",
+      "rule": "The browser moderation queue exposes state, statistics, actions, and context together"
+    },
+    {
+      "id": "SC-REV-QUEUE-003",
+      "module": "admin.review",
+      "feature": "modules/admin/review/behavior.feature",
+      "steps": "modules/admin/review/behavior.steps.ts",
+      "title": "Render an empty moderation search",
+      "specStatus": "accepted",
+      "useCase": "UC-REV-QUEUE",
+      "layer": "browser",
+      "rule": "The browser moderation queue exposes state, statistics, actions, and context together"
+    },
+    {
+      "id": "SC-REV-QUEUE-004",
+      "module": "admin.review",
+      "feature": "modules/admin/review/behavior.feature",
+      "steps": "modules/admin/review/behavior.steps.ts",
+      "title": "Read selected review context in the browser",
+      "specStatus": "accepted",
+      "useCase": "UC-REV-QUEUE",
+      "layer": "browser",
+      "rule": "The browser moderation queue exposes state, statistics, actions, and context together"
+    },
+    {
+      "id": "SC-REV-QUEUE-005",
+      "module": "admin.review",
+      "feature": "modules/admin/review/behavior.feature",
+      "steps": "modules/admin/review/behavior.steps.ts",
+      "title": "Reject unauthenticated moderation queue access",
+      "specStatus": "accepted",
+      "useCase": "UC-REV-QUEUE",
+      "layer": "api",
+      "rule": "Review moderation begins with queue state and context"
+    },
+    {
+      "id": "SC-REV-QUEUE-006",
+      "module": "admin.review",
+      "feature": "modules/admin/review/behavior.feature",
+      "steps": "modules/admin/review/behavior.steps.ts",
+      "title": "Reject non-admin moderation queue access",
+      "specStatus": "accepted",
+      "useCase": "UC-REV-QUEUE",
+      "layer": "api",
+      "rule": "Review moderation begins with queue state and context"
+    },
+    {
+      "id": "SC-REV-QUEUE-007",
+      "module": "admin.review",
+      "feature": "modules/admin/review/behavior.feature",
+      "steps": "modules/admin/review/behavior.steps.ts",
+      "title": "Read moderation context from the queue payload",
       "specStatus": "accepted",
       "useCase": "UC-REV-QUEUE",
       "layer": "api",
@@ -2867,6 +3572,61 @@
       "useCase": "UC-SET-CONTACT",
       "layer": "api",
       "rule": "Storefront contact facts can be changed without accepting invalid data"
+    },
+    {
+      "id": "SC-SET-CONTACT-API-001",
+      "module": "admin.store-setting",
+      "feature": "modules/admin/store-setting/behavior.feature",
+      "steps": "modules/admin/store-setting/behavior.steps.ts",
+      "title": "Read structured storefront identity from all read models",
+      "specStatus": "accepted",
+      "useCase": "UC-SET-CONTACT",
+      "layer": "api",
+      "rule": "Store settings read models expose structured identity facts across admin and public APIs"
+    },
+    {
+      "id": "SC-SET-CONTACT-API-002",
+      "module": "admin.store-setting",
+      "feature": "modules/admin/store-setting/behavior.feature",
+      "steps": "modules/admin/store-setting/behavior.steps.ts",
+      "title": "Update storefront identity and reflect it publicly",
+      "specStatus": "accepted",
+      "useCase": "UC-SET-CONTACT",
+      "layer": "api",
+      "rule": "Store settings read models expose structured identity facts across admin and public APIs"
+    },
+    {
+      "id": "SC-SET-CONTACT-API-003",
+      "module": "admin.store-setting",
+      "feature": "modules/admin/store-setting/behavior.feature",
+      "steps": "modules/admin/store-setting/behavior.steps.ts",
+      "title": "Reject storefront identity reads without admin authorization",
+      "specStatus": "accepted",
+      "useCase": "UC-SET-CONTACT",
+      "layer": "api",
+      "rule": "Store settings read models expose structured identity facts across admin and public APIs"
+    },
+    {
+      "id": "SC-SET-CONTACT-UI-001",
+      "module": "admin.store-setting",
+      "feature": "modules/admin/store-setting/behavior.feature",
+      "steps": "modules/admin/store-setting/behavior.steps.ts",
+      "title": "Save contact facts and reflect them on the homepage",
+      "specStatus": "accepted",
+      "useCase": "UC-SET-CONTACT",
+      "layer": "browser",
+      "rule": "Store settings browser controls persist only valid contact input"
+    },
+    {
+      "id": "SC-SET-CONTACT-UI-002",
+      "module": "admin.store-setting",
+      "feature": "modules/admin/store-setting/behavior.feature",
+      "steps": "modules/admin/store-setting/behavior.steps.ts",
+      "title": "Block invalid contact email in the browser",
+      "specStatus": "accepted",
+      "useCase": "UC-SET-CONTACT",
+      "layer": "browser",
+      "rule": "Store settings browser controls persist only valid contact input"
     },
     {
       "id": "SC-SET-DISCOVERY-001",
@@ -2891,6 +3651,39 @@
       "rule": "Homepage composition preserves priority and uniqueness rules"
     },
     {
+      "id": "SC-SET-HOMEPAGE-API-001",
+      "module": "admin.store-setting",
+      "feature": "modules/admin/store-setting/behavior.feature",
+      "steps": "modules/admin/store-setting/behavior.steps.ts",
+      "title": "Accept homepage composition and reject ordering conflicts",
+      "specStatus": "accepted",
+      "useCase": "UC-SET-HOMEPAGE",
+      "layer": "api",
+      "rule": "Homepage settings reject duplicate ordering and negative news counts"
+    },
+    {
+      "id": "SC-SET-HOMEPAGE-UI-001",
+      "module": "admin.store-setting",
+      "feature": "modules/admin/store-setting/behavior.feature",
+      "steps": "modules/admin/store-setting/behavior.steps.ts",
+      "title": "Save homepage composition in the browser",
+      "specStatus": "accepted",
+      "useCase": "UC-SET-HOMEPAGE",
+      "layer": "browser",
+      "rule": "Homepage composition controls persist priority decisions through the browser"
+    },
+    {
+      "id": "SC-SET-HOMEPAGE-UI-002",
+      "module": "admin.store-setting",
+      "feature": "modules/admin/store-setting/behavior.feature",
+      "steps": "modules/admin/store-setting/behavior.steps.ts",
+      "title": "Block negative homepage news count in the browser",
+      "specStatus": "accepted",
+      "useCase": "UC-SET-HOMEPAGE",
+      "layer": "browser",
+      "rule": "Homepage composition controls persist priority decisions through the browser"
+    },
+    {
       "id": "SC-SET-REGISTRY-001",
       "module": "admin.store-setting",
       "feature": "modules/admin/store-setting/behavior.feature",
@@ -2900,6 +3693,28 @@
       "useCase": "UC-SET-REGISTRY",
       "layer": "api",
       "rule": "Registry and legacy commitments have explicit policy behavior"
+    },
+    {
+      "id": "SC-SET-REGISTRY-API-001",
+      "module": "admin.store-setting",
+      "feature": "modules/admin/store-setting/behavior.feature",
+      "steps": "modules/admin/store-setting/behavior.steps.ts",
+      "title": "Update footer support commitments and reject malformed targets",
+      "specStatus": "accepted",
+      "useCase": "UC-SET-REGISTRY",
+      "layer": "api",
+      "rule": "Footer and support settings reject malformed external targets"
+    },
+    {
+      "id": "SC-SET-REGISTRY-UI-001",
+      "module": "admin.store-setting",
+      "feature": "modules/admin/store-setting/behavior.feature",
+      "steps": "modules/admin/store-setting/behavior.steps.ts",
+      "title": "Save footer and support commitments in the browser",
+      "specStatus": "accepted",
+      "useCase": "UC-SET-REGISTRY",
+      "layer": "browser",
+      "rule": "Footer and support controls remain visible in the browser"
     },
     {
       "id": "SC-USER-CUSTOMER-HANDOFF-001",
@@ -2913,6 +3728,17 @@
       "rule": "Commerce concerns hand off from user context to customer context"
     },
     {
+      "id": "SC-USER-CUSTOMER-HANDOFF-002",
+      "module": "admin.user",
+      "feature": "modules/admin/user/behavior.feature",
+      "steps": "modules/admin/user/behavior.steps.ts",
+      "title": "Open customer context from account management",
+      "specStatus": "accepted",
+      "useCase": "UC-USER-CUSTOMER-HANDOFF",
+      "layer": "browser",
+      "rule": "Account context hands commerce concerns to the customer root"
+    },
+    {
       "id": "SC-USER-SCOPE-001",
       "module": "admin.user",
       "feature": "modules/admin/user/behavior.feature",
@@ -2922,6 +3748,17 @@
       "useCase": "UC-USER-SCOPE",
       "layer": "api",
       "rule": "Account controls do not replace commerce support operations"
+    },
+    {
+      "id": "SC-USER-SCOPE-002",
+      "module": "admin.user",
+      "feature": "modules/admin/user/behavior.feature",
+      "steps": "modules/admin/user/behavior.steps.ts",
+      "title": "Keep commerce actions outside the account panel",
+      "specStatus": "accepted",
+      "useCase": "UC-USER-SCOPE",
+      "layer": "browser",
+      "rule": "Account controls do not expose customer commerce actions"
     },
     {
       "id": "SC-USER-SEARCH-001",
@@ -2935,6 +3772,28 @@
       "rule": "User administration can identify and read an account"
     },
     {
+      "id": "SC-USER-SEARCH-002",
+      "module": "admin.user",
+      "feature": "modules/admin/user/behavior.feature",
+      "steps": "modules/admin/user/behavior.steps.ts",
+      "title": "Search the account management root",
+      "specStatus": "accepted",
+      "useCase": "UC-USER-SEARCH",
+      "layer": "browser",
+      "rule": "The browser account root is explicitly account-centric"
+    },
+    {
+      "id": "SC-USER-SEARCH-003",
+      "module": "admin.user",
+      "feature": "modules/admin/user/behavior.feature",
+      "steps": "modules/admin/user/behavior.steps.ts",
+      "title": "Refine account search after an empty result",
+      "specStatus": "accepted",
+      "useCase": "UC-USER-SEARCH",
+      "layer": "browser",
+      "rule": "The browser account root is explicitly account-centric"
+    },
+    {
       "id": "SC-USER-STATE-001",
       "module": "admin.user",
       "feature": "modules/admin/user/behavior.feature",
@@ -2944,6 +3803,185 @@
       "useCase": "UC-USER-STATE",
       "layer": "api",
       "rule": "Account state changes are controlled by the user domain"
+    },
+    {
+      "id": "SC-USER-STATE-002",
+      "module": "admin.user",
+      "feature": "modules/admin/user/behavior.feature",
+      "steps": "modules/admin/user/behavior.steps.ts",
+      "title": "Read and reverse an account block state",
+      "specStatus": "accepted",
+      "useCase": "UC-USER-STATE",
+      "layer": "browser",
+      "rule": "Browser account controls expose reversible block state owned by the user domain"
+    },
+    {
+      "id": "SC-VISUAL-ADMIN-ARTICLES-001",
+      "module": "admin.content",
+      "feature": "modules/admin/content/behavior.feature",
+      "steps": "modules/admin/content/behavior.steps.ts",
+      "title": "Match the desktop article management contract",
+      "specStatus": "accepted",
+      "useCase": "UC-CONT-ARTICLE",
+      "layer": "browser",
+      "rule": "The desktop article surface preserves its visual contract"
+    },
+    {
+      "id": "SC-VISUAL-ADMIN-BANNERS-001",
+      "module": "admin.content",
+      "feature": "modules/admin/content/behavior.feature",
+      "steps": "modules/admin/content/behavior.steps.ts",
+      "title": "Match the desktop banner management contract",
+      "specStatus": "accepted",
+      "useCase": "UC-CONT-BANNER",
+      "layer": "browser",
+      "rule": "The desktop banner surface preserves its visual contract"
+    },
+    {
+      "id": "SC-VISUAL-ADMIN-CATEGORIES-001",
+      "module": "admin.product",
+      "feature": "modules/admin/product/behavior.feature",
+      "steps": "modules/admin/product/behavior.steps.ts",
+      "contract": "contracts/catalog-base.md",
+      "title": "Match the desktop categories contract",
+      "specStatus": "accepted",
+      "useCase": "UC-ADMIN-PRODUCT-CATEGORY",
+      "layer": "browser",
+      "rule": "The desktop category surface preserves its visual contract"
+    },
+    {
+      "id": "SC-VISUAL-ADMIN-COLLECT-001",
+      "module": "admin.payment-collection",
+      "feature": "modules/admin/payment-collection/behavior.feature",
+      "steps": "modules/admin/payment-collection/behavior.steps.ts",
+      "title": "Match the desktop collect contract",
+      "specStatus": "accepted",
+      "useCase": "UC-PCOL-SOURCES",
+      "layer": "browser",
+      "rule": "The desktop collection surface preserves its visual contract"
+    },
+    {
+      "id": "SC-VISUAL-ADMIN-FAQS-001",
+      "module": "admin.content",
+      "feature": "modules/admin/content/behavior.feature",
+      "steps": "modules/admin/content/behavior.steps.ts",
+      "title": "Match the desktop FAQ contract",
+      "specStatus": "accepted",
+      "useCase": "UC-CONT-FAQ",
+      "layer": "browser",
+      "rule": "The desktop FAQ surface preserves its visual contract"
+    },
+    {
+      "id": "SC-VISUAL-ADMIN-MEDIA-001",
+      "module": "admin.content",
+      "feature": "modules/admin/content/behavior.feature",
+      "steps": "modules/admin/content/behavior.steps.ts",
+      "title": "Match the desktop media management contract",
+      "specStatus": "accepted",
+      "useCase": "UC-CONT-MEDIA",
+      "layer": "browser",
+      "rule": "The desktop media surface preserves its visual contract"
+    },
+    {
+      "id": "SC-VISUAL-ADMIN-MESSAGES-001",
+      "module": "admin.noty",
+      "feature": "modules/admin/noty/behavior.feature",
+      "steps": "modules/admin/noty/behavior.steps.ts",
+      "title": "Match the desktop messages contract",
+      "specStatus": "accepted",
+      "useCase": "UC-NOTY-HISTORY",
+      "layer": "browser",
+      "rule": "The desktop notification surface preserves its visual contract"
+    },
+    {
+      "id": "SC-VISUAL-ADMIN-ORDERS-001",
+      "module": "admin.order",
+      "feature": "modules/admin/order/behavior.feature",
+      "steps": "modules/admin/order/behavior.steps.ts",
+      "title": "Match the desktop orders contract",
+      "specStatus": "accepted",
+      "useCase": "UC-ORD-QUEUE",
+      "layer": "browser",
+      "rule": "The desktop order surface preserves its visual contract"
+    },
+    {
+      "id": "SC-VISUAL-ADMIN-PRODUCT-CREATE-001",
+      "module": "admin.product",
+      "feature": "modules/admin/product/behavior.feature",
+      "steps": "modules/admin/product/behavior.steps.ts",
+      "contract": "contracts/catalog-base.md",
+      "title": "Match the desktop product create contract",
+      "specStatus": "accepted",
+      "useCase": "UC-ADMIN-PRODUCT-CREATE",
+      "layer": "browser",
+      "rule": "The desktop product editor preserves its visual contract"
+    },
+    {
+      "id": "SC-VISUAL-ADMIN-PRODUCT-LIST-001",
+      "module": "admin.product",
+      "feature": "modules/admin/product/behavior.feature",
+      "steps": "modules/admin/product/behavior.steps.ts",
+      "contract": "contracts/catalog-base.md",
+      "title": "Match the desktop product list contract",
+      "specStatus": "accepted",
+      "useCase": "UC-ADMIN-PRODUCT-LIST",
+      "layer": "browser",
+      "rule": "The desktop product list preserves its visual contract"
+    },
+    {
+      "id": "SC-VISUAL-ADMIN-PROFILE-001",
+      "module": "admin.admin-profile",
+      "feature": "modules/admin/admin-profile/behavior.feature",
+      "steps": "modules/admin/admin-profile/behavior.steps.ts",
+      "title": "Match the desktop profile contract",
+      "specStatus": "accepted",
+      "useCase": "UC-APRO-UI",
+      "layer": "browser",
+      "rule": "The desktop profile surface preserves its visual contract"
+    },
+    {
+      "id": "SC-VISUAL-ADMIN-REFUNDS-001",
+      "module": "admin.refund",
+      "feature": "modules/admin/refund/behavior.feature",
+      "steps": "modules/admin/refund/behavior.steps.ts",
+      "title": "Match the desktop refunds contract",
+      "specStatus": "accepted",
+      "useCase": "UC-REF-QUEUE",
+      "layer": "browser",
+      "rule": "The desktop refund surface preserves its visual contract"
+    },
+    {
+      "id": "SC-VISUAL-ADMIN-REVIEWS-001",
+      "module": "admin.review",
+      "feature": "modules/admin/review/behavior.feature",
+      "steps": "modules/admin/review/behavior.steps.ts",
+      "title": "Match the desktop reviews contract",
+      "specStatus": "accepted",
+      "useCase": "UC-REV-QUEUE",
+      "layer": "browser",
+      "rule": "The desktop review surface preserves its visual contract"
+    },
+    {
+      "id": "SC-VISUAL-ADMIN-SETTINGS-001",
+      "module": "admin.store-setting",
+      "feature": "modules/admin/store-setting/behavior.feature",
+      "steps": "modules/admin/store-setting/behavior.steps.ts",
+      "title": "Match the desktop store settings contract",
+      "specStatus": "accepted",
+      "useCase": "UC-SET-CONTACT",
+      "layer": "browser",
+      "rule": "The desktop settings surface preserves its visual contract"
+    },
+    {
+      "id": "SC-VISUAL-ADMIN-USERS-001",
+      "module": "admin.user",
+      "feature": "modules/admin/user/behavior.feature",
+      "steps": "modules/admin/user/behavior.steps.ts",
+      "title": "Match the desktop users contract",
+      "specStatus": "accepted",
+      "useCase": "UC-USER-SEARCH",
+      "layer": "browser",
+      "rule": "The desktop user surface preserves its visual contract"
     }
   ]
 }

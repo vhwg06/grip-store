@@ -15,6 +15,17 @@ Feature: Customer support context
     Then the admin can identify and open the correct customer context
     But similar records may require commerce signals to distinguish them
 
+    @accepted @api @security @SC-CUS-SEARCH-005
+    Scenario: Reject unauthenticated customer root read
+      When an unauthenticated client reads the customer root
+      Then the customer root response status is `401`
+
+    @accepted @api @security @SC-CUS-SEARCH-006
+    Scenario: Reject non-admin customer root read
+      Given a shopper token is available for customer access
+      When the shopper reads the customer root
+      Then the customer root response status is `403`
+
   @UC-CUS-SUMMARY
   Rule: Customer summary preserves commerce traversal context
 

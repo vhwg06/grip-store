@@ -24,3 +24,4 @@ scenarios:
   SC-REV-BULK-002: {}
   SC-REV-BULK-003: {}
   SC-REV-DELETE-002: {}
+  SC-VISUAL-ADMIN-REVIEWS-001: {}

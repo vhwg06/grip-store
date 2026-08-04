@@ -77,6 +77,30 @@ When("the admin opens the refund queue", async function (this: ScenarioWorld) {
   await adminGet(this, "/v1/admin/refunds?status=pending");
 });
 
+When("an unauthenticated client reads the pending refund queue", async function (this: ScenarioWorld) {
+  const response = await (await this.getApiClient()).get("/v1/admin/refunds?status=pending");
+  adminState(this).response = { status: response.status, data: response.data, path: "/v1/admin/refunds?status=pending" };
+});
+
+Then("the refund queue response status is `401`", function (this: ScenarioWorld) {
+  expect(adminState(this).response?.status).toBe(401);
+});
+
+Given("a shopper token is available for refund access", async function (this: ScenarioWorld) {
+  this.state.refundAccessToken = await getUserToken(await this.getApiRequest());
+});
+
+When("the shopper reads the pending refund queue", async function (this: ScenarioWorld) {
+  const response = await (await this.getApiClient()).get("/v1/admin/refunds?status=pending", {
+    headers: { Authorization: `Bearer ${String(this.state.refundAccessToken)}` },
+  });
+  adminState(this).response = { status: response.status, data: response.data, path: "/v1/admin/refunds?status=pending" };
+});
+
+Then("the refund queue response status is `403`", function (this: ScenarioWorld) {
+  expect(adminState(this).response?.status).toBe(403);
+});
+
 Then("the system returns pending requests and contextual states", async function (this: ScenarioWorld) {
   assertReadable(this);
   expect(responseData(this)).toBeTruthy();
@@ -150,6 +174,18 @@ Then("the admin reads it as historical operational evidence", async function (th
 
 Then("the admin does not treat it as pending decision work", async function (this: ScenarioWorld) {
   expect(adminState(this).response?.status).toBeLessThan(300);
+});
+
+Given("the admin is authenticated for refund operations", async function (this: ScenarioWorld) {
+  await authenticateAdmin(this);
+});
+
+When("the admin approves a refund with an invalid identifier", async function (this: ScenarioWorld) {
+  await adminPost(this, "/v1/admin/refunds/not-a-number/approve", { note: "invalid id" });
+});
+
+Then("the refund decision request returns `400`", function (this: ScenarioWorld) {
+  expect(adminState(this).response?.status).toBe(400);
 });
 
 Given("an admin opens the refund queue in the browser", async function (this: ScenarioWorld) {
@@ -323,4 +359,24 @@ Then("the browser shows the approved outcome and its evidence", async function (
   await expect(current.page.locator('[data-testid="refunds-decision-panel"]')).toContainText(String(this.state.refundOrderId));
   await expect(current.page.locator('[data-testid="refunds-decision-panel"]')).toContainText(/approved/i);
   await expect(current.page.locator('[data-testid="refunds-evidence-panel"]')).toContainText("Historical decision note from Cucumber");
+});
+
+Given("the admin opens the desktop Figma refunds surface", async function (this: ScenarioWorld) {
+  await loginRefundBrowser(this);
+  const current = await refundBrowser(this);
+  await current.page.goto("/admin/refunds");
+  await current.page.waitForLoadState("networkidle");
+  await current.page.setViewportSize({ width: 1440, height: 1326 });
+});
+
+Then("the desktop refunds surface matches its visual contract", async function (this: ScenarioWorld) {
+  const current = await refundBrowser(this);
+  await expect(current.page).toHaveScreenshot("refunds.png", {
+    maxDiffPixelRatio: 0.02,
+    mask: [
+      current.page.locator('[data-testid="refunds-queue-container"]'),
+      current.page.locator('[data-testid="refunds-decision-panel"]'),
+      current.page.locator('[data-testid="refunds-evidence-panel"]'),
+    ],
+  });
 });

@@ -16,7 +16,7 @@ Feature: Admin profile operations
     @accepted @api @SC-APRO-IDENTITY-002
   Scenario: Change Display Identity
     Given the current admin wants to update display identity
-    When the admin saves a new display identity
+    When the admin submits a new display identity through the profile API
     Then the current admin profile reflects the new identity
     And the admin's permission posture does not change as a side effect
 
@@ -62,3 +62,11 @@ Feature: Admin profile operations
       When the profile requests recent access
       Then a backend session device and location are visible
       And static fallback session rows are absent
+
+  @UC-APRO-UI
+  Rule: The desktop profile surface preserves its visual contract
+
+    @accepted @browser @visual @SC-VISUAL-ADMIN-PROFILE-001
+    Scenario: Match the desktop profile contract
+      Given the admin opens the desktop Figma profile surface
+      Then the desktop profile surface matches its visual contract
