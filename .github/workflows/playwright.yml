@@ -59,15 +59,11 @@ jobs:
         working-directory: test
         run: ./node_modules/.bin/cucumber-js --config cucumber.config.cjs --dry-run --tags "@accepted"
 
-  test:
-    name: Playwright via Cucumber (${{ matrix.layer }}, non-Catalog)
+  api-tests:
+    name: API tests via Playwright (@accepted and @api)
     needs: contract
     runs-on: ubuntu-latest
     timeout-minutes: 45
-    strategy:
-      fail-fast: false
-      matrix:
-        layer: [api, browser]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -91,34 +87,26 @@ jobs:
           test -n "$ADMIN_USER_EMAIL"
           test -n "$ADMIN_USER_PASSWORD"
           test -n "$TEST_TENANT_ID"
-          if [ "${{ matrix.layer }}" = "browser" ]; then
-            test -n "$TEST_WEB_BASE_URL"
-          fi
 
-      - name: Install Playwright Chromium
-        if: matrix.layer == 'browser'
-        working-directory: test
-        run: npx playwright install --with-deps chromium
-
-      - name: Run non-Catalog Gherkin scenarios on Playwright
+      - name: Run API-tagged Gherkin scenarios on Playwright
         working-directory: test
         shell: bash
         run: |
           set -o pipefail
           mkdir -p artifacts
-          npm run "test:${{ matrix.layer }}:non-catalog" 2>&1 | tee "artifacts/${{ matrix.layer }}.log"
+          npm run test:api -- --parallel 1 2>&1 | tee artifacts/api.log
 
       - name: Upload Cucumber log
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: cucumber-${{ matrix.layer }}-non-catalog
+          name: cucumber-api
           path: test/artifacts/
           if-no-files-found: ignore
           retention-days: 14
 
-  catalog-expected-failure:
-    name: Catalog (expected failure until backend implementation)
+  e2e-tests:
+    name: E2E tests via Playwright (@accepted and @browser)
     needs: contract
     runs-on: ubuntu-latest
     timeout-minutes: 45
@@ -144,33 +132,26 @@ jobs:
           test -n "$TEST_USER_PASSWORD"
           test -n "$ADMIN_USER_EMAIL"
           test -n "$ADMIN_USER_PASSWORD"
+          test -n "$TEST_TENANT_ID"
+          test -n "$TEST_WEB_BASE_URL"
 
-      - name: Run Catalog Gherkin scenarios (expected failure)
-        id: catalog
-        continue-on-error: true
+      - name: Install Playwright Chromium
+        working-directory: test
+        run: npx playwright install --with-deps chromium
+
+      - name: Run browser-tagged Gherkin scenarios on Playwright
         working-directory: test
         shell: bash
         run: |
           set -o pipefail
           mkdir -p artifacts
-          npm run test:catalog 2>&1 | tee artifacts/catalog.log
+          npm run test:browser -- --parallel 1 2>&1 | tee artifacts/e2e.log
 
-      - name: Explain expected Catalog result
-        if: always()
-        run: |
-          {
-            echo "## Catalog test status"
-            echo
-            echo "Catalog scenarios are executed against ${TEST_API_BASE_URL}."
-            echo "The backend Catalog Base is not implemented yet, so this job is intentionally non-blocking."
-            echo "All non-Catalog API and browser jobs remain blocking."
-          } >> "$GITHUB_STEP_SUMMARY"
-
-      - name: Upload Catalog log
+      - name: Upload E2E log
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: cucumber-catalog-expected-failure
+          name: cucumber-e2e
           path: test/artifacts/
           if-no-files-found: ignore
           retention-days: 14
