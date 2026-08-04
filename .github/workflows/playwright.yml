@@ -16,7 +16,7 @@ permissions:
 # back to localhost or a fake account.
 env:
   TEST_API_BASE_URL: https://grip.vn/api
-  TEST_WEB_BASE_URL: ${{ secrets.NEXT_PUBLIC_APP_URL }}
+  TEST_WEB_BASE_URL: ${{ secrets.NEXT_PUBLIC_APP_URL || 'https://grip.vn' }}
   # These are the official migration seed accounts documented in
   # docs/runbook-deploy-fe.md; repository secrets can override them.
   TEST_USER_EMAIL: ${{ secrets.TEST_USER_EMAIL || 'test_buyer@example.com' }}
