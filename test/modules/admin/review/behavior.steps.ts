@@ -6,7 +6,7 @@ import { AuthPage } from "../../../shared/runtime/objects/auth.page";
 import { getAdminToken, getUserToken, requiredEnv } from "../../../shared/runtime/api-helpers/auth.helpers";
 import { CatalogApiHelper } from "../../../shared/runtime/api-helpers/catalog.api";
 import { GoBackendClient } from "../../../shared/runtime/api-helpers/go-backend.client";
-import { requiredTestTenant, isolatedReference } from "../../../shared/data/test-isolation";
+import { isolatedReference } from "../../../shared/data/test-isolation";
 
 function reviewId(world: ScenarioWorld): string {
   const data = responseData(world);
@@ -36,7 +36,6 @@ async function loginReviewBrowser(world: ScenarioWorld): Promise<void> {
 }
 
 async function createReviewForBrowser(world: ScenarioWorld, initialStatus: "PENDING" | "APPROVED" | "HIDDEN", label: string): Promise<void> {
-  requiredTestTenant();
   const client = new GoBackendClient(await world.getApiRequest());
   const catalog = new CatalogApiHelper(client);
   const products = await catalog.getProducts({ page: 1, limit: 20 });
@@ -49,7 +48,6 @@ async function createReviewForBrowser(world: ScenarioWorld, initialStatus: "PEND
     product_id: product.id,
     rating: 5,
     content: comment,
-    tenant_id: requiredTestTenant(),
     external_reference: isolatedReference(world, "review"),
   }, { headers: { Authorization: `Bearer ${token}` } });
   expect([200, 201]).toContain(created.status);
