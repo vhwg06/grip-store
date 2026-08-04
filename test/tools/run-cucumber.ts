@@ -4,7 +4,7 @@ import path from "node:path";
 const mode = process.argv[2];
 const value = process.argv[3];
 const cucumberBin = path.resolve(__dirname, "../node_modules/.bin/cucumber-js");
-const args = ["--config", "cucumber.config.ts"];
+const args = ["--config", "cucumber.config.cjs"];
 const extraArgs = mode === "scenario" || mode === "module"
   ? process.argv.slice(4)
   : process.argv.slice(3);

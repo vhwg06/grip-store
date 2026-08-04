@@ -57,7 +57,7 @@ jobs:
 
       - name: Dry-run all accepted Gherkin scenarios
         working-directory: test
-        run: ./node_modules/.bin/cucumber-js --config cucumber.config.ts --dry-run --tags "@accepted"
+        run: ./node_modules/.bin/cucumber-js --config cucumber.config.cjs --dry-run --tags "@accepted"
 
   test:
     name: Playwright via Cucumber (${{ matrix.layer }}, non-Catalog)
