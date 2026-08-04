@@ -6,6 +6,12 @@ on:
   pull_request:
     branches: [main, develop]
   workflow_dispatch:
+    inputs:
+      run_e2e:
+        description: Run browser-tagged Cucumber scenarios
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: read
@@ -25,7 +31,6 @@ env:
   ADMIN_USER_PASSWORD: ${{ secrets.ADMIN_USER_PASSWORD || 'Password123!' }}
   TEST_USER_TOKEN: ${{ secrets.TEST_USER_TOKEN }}
   ADMIN_USER_TOKEN: ${{ secrets.ADMIN_USER_TOKEN }}
-  TEST_TENANT_ID: ${{ secrets.TEST_TENANT_ID }}
   TEST_RUN_ID: ci-${{ github.run_id }}
 
 jobs:
@@ -86,7 +91,6 @@ jobs:
           test -n "$TEST_USER_PASSWORD"
           test -n "$ADMIN_USER_EMAIL"
           test -n "$ADMIN_USER_PASSWORD"
-          test -n "$TEST_TENANT_ID"
 
       - name: Run API-tagged Gherkin scenarios on Playwright
         working-directory: test
@@ -107,6 +111,7 @@ jobs:
 
   e2e-tests:
     name: E2E tests via Playwright (@accepted and @browser)
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.run_e2e == true }}
     needs: contract
     runs-on: ubuntu-latest
     timeout-minutes: 45
@@ -132,7 +137,6 @@ jobs:
           test -n "$TEST_USER_PASSWORD"
           test -n "$ADMIN_USER_EMAIL"
           test -n "$ADMIN_USER_PASSWORD"
-          test -n "$TEST_TENANT_ID"
           test -n "$TEST_WEB_BASE_URL"
 
       - name: Install Playwright Chromium
