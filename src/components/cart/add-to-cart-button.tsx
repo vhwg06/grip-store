@@ -8,17 +8,21 @@ interface AddToCartButtonProps {
   className?: string;
   showQuantity?: boolean;
   quantity?: number;
+  disabled?: boolean;
 }
 
-export function AddToCartButton({ product, className = "", showQuantity = true, quantity: propQuantity }: AddToCartButtonProps) {
+export function AddToCartButton({ product, className = "", showQuantity = true, quantity: propQuantity, disabled = false }: AddToCartButtonProps) {
   const { addItem } = useCart();
   const [localQuantity, setLocalQuantity] = useState(1);
   const [showToast, setShowToast] = useState(false);
 
   const quantity = propQuantity !== undefined ? propQuantity : localQuantity;
-  const setQuantity = propQuantity !== undefined 
-    ? (val: number | ((prev: number) => number)) => {} 
-    : setLocalQuantity;
+  const decrement = () => {
+    if (propQuantity === undefined) setLocalQuantity((value) => Math.max(1, value - 1));
+  };
+  const increment = () => {
+    if (propQuantity === undefined) setLocalQuantity((value) => value + 1);
+  };
 
   const handleAdd = () => {
     addItem(product, quantity);
@@ -33,15 +37,17 @@ export function AddToCartButton({ product, className = "", showQuantity = true, 
           <span className="font-medium text-sm">Số lượng:</span>
           <div className="flex items-center border rounded-md">
             <button 
+              type="button"
               className="px-3 py-1.5 text-neutral-500 hover:text-black hover:bg-neutral-50"
-              onClick={() => setQuantity(q => Math.max(1, q - 1))}
+              onClick={decrement}
             >
               -
             </button>
             <span className="px-4 font-medium min-w-[3ch] text-center">{quantity}</span>
             <button 
+              type="button"
               className="px-3 py-1.5 text-neutral-500 hover:text-black hover:bg-neutral-50"
-              onClick={() => setQuantity(q => q + 1)}
+              onClick={increment}
             >
               +
             </button>
@@ -49,11 +55,13 @@ export function AddToCartButton({ product, className = "", showQuantity = true, 
         </div>
       )}
       <button
+        type="button"
         data-testid="add-to-cart-btn"
+        disabled={disabled}
         onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleAdd(); }}
-        className="w-full bg-primary text-primary-foreground font-bold py-3.5 rounded-full hover:bg-primary/90 transition-colors"
+        className="w-full bg-primary text-primary-foreground font-bold py-3.5 rounded-full hover:bg-primary/90 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
       >
-        THÊM VÀO GIỎ
+        {disabled ? "CHỌN TUỲ CHỌN" : "THÊM VÀO GIỎ"}
       </button>
 
       {showToast && (
