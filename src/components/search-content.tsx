@@ -5,14 +5,12 @@ import { useEffect, useMemo, useState } from "react"
 import { useRouter } from "next/navigation"
 import { useI18n } from "@/lib/i18n/context"
 import { Card, CardContent, CardFooter } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import ReactMarkdown from "react-markdown"
-import { cn } from "@/lib/utils"
 import { buildExportRoutePath } from "@/lib/export-route"
 
-type Category = { name: string; icon: string | null; sortOrder: number }
+type Category = { id: string; name: string; icon: string | null; sortOrder: number }
 type Product = {
   id: string
   name: string
@@ -21,9 +19,6 @@ type Product = {
   compareAtPrice: string | null
   image: string | null
   category: string | null
-  isHot: boolean
-  stockCount: number
-  soldCount: number
 }
 
 function buildUrl(params: Record<string, string | number | undefined | null>) {
@@ -55,7 +50,7 @@ export function SearchContent(props: {
   useEffect(() => setQ(props.q), [props.q])
 
   const categories = useMemo(() => {
-    const base = [{ name: 'all', icon: null, sortOrder: -1 } as Category]
+    const base = [{ id: 'all', name: 'all', icon: null, sortOrder: -1 } as Category]
     return [...base, ...props.categories]
   }, [props.categories])
 
@@ -65,11 +60,9 @@ export function SearchContent(props: {
 
   const sortOptions = [
     { key: 'default', label: t('home.sort.default') },
-    { key: 'hot', label: t('search.sort.hot') },
-    { key: 'stockDesc', label: t('home.sort.stock') },
-    { key: 'soldDesc', label: t('home.sort.sold') },
-    { key: 'priceAsc', label: t('home.sort.priceAsc') },
-    { key: 'priceDesc', label: t('home.sort.priceDesc') },
+    { key: 'newest', label: 'Mới nhất' },
+    { key: 'price_asc', label: t('home.sort.priceAsc') },
+    { key: 'price_desc', label: t('home.sort.priceDesc') },
   ]
 
   return (
@@ -92,11 +85,11 @@ export function SearchContent(props: {
         <div className="flex flex-wrap gap-2">
           {categories.map((c) => (
             <Button
-              key={c.name}
+              key={c.id}
               type="button"
               size="sm"
-              variant={props.category === c.name ? 'default' : 'outline'}
-              onClick={() => router.push(buildUrl({ q: props.q, category: c.name, sort: props.sort, page: 1, pageSize: props.pageSize }))}
+              variant={props.category === c.id ? 'default' : 'outline'}
+              onClick={() => router.push(buildUrl({ q: props.q, category: c.id, sort: props.sort, page: 1, pageSize: props.pageSize }))}
             >
               {c.name === 'all' ? t('common.all') : `${c.icon ? `${c.icon} ` : ''}${c.name}`}
             </Button>
@@ -132,15 +125,10 @@ export function SearchContent(props: {
           {props.products.map((product) => (
             <Card key={product.id} className="group overflow-hidden hover:border-primary/30 transition-all duration-300 tech-card flex flex-col">
               <div className="relative overflow-hidden">
-                {product.isHot && (
-                  <Badge className="absolute top-3 left-3 bg-primary/15 text-primary border border-primary/30">
-                    {t('buy.hot')}
-                  </Badge>
-                )}
                 {product.category && product.category !== 'general' && (
-                  <Badge className="absolute top-3 right-3 capitalize bg-background/80 backdrop-blur-sm border-border/50 text-foreground shadow-sm">
+                  <span className="absolute top-3 right-3 rounded-full border border-border/50 bg-background/80 px-2 py-1 text-xs capitalize text-foreground shadow-sm backdrop-blur-sm">
                     {product.category}
-                  </Badge>
+                  </span>
                 )}
               </div>
 
@@ -165,19 +153,8 @@ export function SearchContent(props: {
                     )}
                   </div>
                 </div>
-                <div className="flex flex-col items-end gap-2 min-w-0">
-                  <div className="flex flex-wrap justify-end gap-1.5 opacity-80 hover:opacity-100 transition-opacity">
-                    <Badge variant="outline" className="text-[10px] h-5 px-2 text-muted-foreground border-border/50 whitespace-nowrap min-w-max overflow-visible">
-                      {t('common.sold')} {product.soldCount}
-                    </Badge>
-                    <Badge
-                      variant={product.stockCount > 0 ? "secondary" : "destructive"}
-                      className={cn("text-[10px] h-5 px-2 whitespace-nowrap min-w-max overflow-visible")}
-                    >
-                      {product.stockCount > 0 ? `${t('common.stock')} ${product.stockCount}` : t('common.outOfStock')}
-                    </Badge>
-                  </div>
-                  <Link href={buildExportRoutePath("/buy", product.id)} className="w-full">
+                <div className="flex min-w-0 flex-col items-end gap-2">
+                  <Link href={buildExportRoutePath("/products", product.id)} className="w-full">
                     <Button size="sm" className="w-full bg-primary text-primary-foreground hover:bg-primary/90 whitespace-nowrap shadow-md hover:shadow-lg transition-all">
                       {t('common.viewDetails')}
                     </Button>
