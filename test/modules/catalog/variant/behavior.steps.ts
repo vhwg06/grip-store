@@ -485,3 +485,40 @@ When("Catalog Operator assigns a non-positive price or a non-catalog currency", 
 Then("the commercial update is rejected", async function (this: ScenarioWorld) {
   await reject(this);
 });
+
+function deferredVariant(): never {
+  throw new Error("Catalog Base Variant operations are deferred pending canonical OpenAPI.");
+}
+
+Given("a ProductModel has an active VariantDimension with allowed values", deferredVariant);
+When("Catalog Operator creates a Variant using a value outside that set", deferredVariant);
+Then("the Variant command is rejected", deferredVariant);
+Given("an existing Variant uses a selectable value", deferredVariant);
+When("Catalog Operator deactivates that selectable value", deferredVariant);
+Then("new Variant creation using that value is rejected", deferredVariant);
+Then("the existing Variant selection remains readable", deferredVariant);
+Given("a Variant exists with an immutable selected combination", deferredVariant);
+When("Catalog Operator requests a different selected combination for that Variant", deferredVariant);
+Then("the selected-combination mutation is rejected", deferredVariant);
+Then("a replacement Variant is required before the old Variant is inactivated", deferredVariant);
+Given("a ProductModel has a text VariantDimension", deferredVariant);
+Given('a Variant exists with canonical option value "black handle"', deferredVariant);
+When("Catalog Operator creates a Variant with equivalent whitespace and casing", deferredVariant);
+Then("the duplicate canonical combination is rejected", deferredVariant);
+Given("a ProductModel has Material, Finish, and Pack Reference dimensions", deferredVariant);
+When("Catalog Operator selects a referenced master by display text", deferredVariant);
+Then("the Variant stores the master identity rather than display text", deferredVariant);
+Then("equivalent display labels cannot create a duplicate combination", deferredVariant);
+Given("a ProductModel has a fixed Pack reference and no Pack VariantDimension", deferredVariant);
+When("Catalog Operator creates a Variant from its selectable dimensions", deferredVariant);
+Then("every Variant uses the ProductModel Pack reference", deferredVariant);
+Then("the fixed Pack reference does not change combination identity", deferredVariant);
+Given("an Active Variant has a reserved SKU and current SellingPrice", deferredVariant);
+Then("the Variant is excluded from public sellability", deferredVariant);
+Then("its SKU, SellingPrice, Pack reference, and history remain readable", deferredVariant);
+Given("a ProductModel has existing Variants and a VariantDimension", deferredVariant);
+When("Catalog Operator replaces that VariantDimension with another definition", deferredVariant);
+Given("an Active Variant has a valid SKU and SellingPrice", deferredVariant);
+When("Catalog Operator removes its SKU or makes its price invalid", deferredVariant);
+Then("the Variant is no longer sale-ready", deferredVariant);
+Then("no independent sale-ready flag is stored", deferredVariant);
