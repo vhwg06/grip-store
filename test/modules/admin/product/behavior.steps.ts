@@ -5,7 +5,6 @@ import { getAdminToken, requiredEnv } from "../../../shared/runtime/api-helpers/
 import { AdminPage } from "../../../shared/runtime/objects/admin.page";
 import { AuthPage } from "../../../shared/runtime/objects/auth.page";
 import { ProductListPage } from "../../../shared/runtime/objects/product-list.page";
-import { requiredTestTenant } from "../../../shared/data/test-isolation";
 
 type AdminProductUiState = {
   productName?: string;
@@ -41,7 +40,6 @@ Given("an admin opens the product creation form", async function (this: Scenario
 });
 
 When("the admin creates a product with two specifications", async function (this: ScenarioWorld) {
-  requiredTestTenant();
   const current = await ui(this);
   const unique = `${Date.now()}-${crypto.randomUUID().slice(0, 8)}`;
   state(this).productName = `Cucumber admin product ${unique}`;
