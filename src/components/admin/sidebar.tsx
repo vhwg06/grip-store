@@ -18,7 +18,8 @@ import {
   Menu, 
   Image as BannersIcon,
   FileText,
-  User
+  User,
+  SlidersHorizontal,
 } from "lucide-react"
 import { useI18n } from "@/lib/i18n/context"
 import { getPendingRefundRequestCount } from "@/adapters/api/admin.api"
@@ -131,7 +132,7 @@ function SidebarContent({ closeOnNavigate = false, showTitle = true, username, t
   ) : null
 
   const isSettingsActive = pathname === "/admin/settings" || pathname === "/admin"
-  const isProductsActive = pathname === "/admin/products"
+  const isProductsActive = pathname === "/admin/products" || pathname.startsWith("/admin/product/")
   
   return (
     <div className="flex flex-col h-full w-full">
@@ -147,6 +148,7 @@ function SidebarContent({ closeOnNavigate = false, showTitle = true, username, t
           <NavLink href="/admin/banners" testId={withTestIds ? "admin-nav-banners" : undefined} icon={<BannersIcon className="mr-2 h-4 w-4 shrink-0" />} label="Banners" closeOnNavigate={closeOnNavigate} isActive={pathname === "/admin/banners"} />
           <NavLink href="/admin/articles" testId={withTestIds ? "admin-nav-articles" : undefined} icon={<FileText className="mr-2 h-4 w-4 shrink-0" />} label="Articles" closeOnNavigate={closeOnNavigate} isActive={pathname === "/admin/articles" || pathname.startsWith("/admin/article/")} />
           <NavLink href="/admin/products" testId={withTestIds ? "admin-nav-products" : undefined} icon={<Package className="mr-2 h-4 w-4 shrink-0" />} label="Products" closeOnNavigate={closeOnNavigate} isActive={isProductsActive} />
+          <NavLink href="/admin/attributes" icon={<SlidersHorizontal className="mr-2 h-4 w-4 shrink-0" />} label="Catalog Data" closeOnNavigate={closeOnNavigate} isActive={pathname === "/admin/attributes"} />
           <NavLink href="/admin/orders" testId={withTestIds ? "admin-nav-orders" : undefined} icon={<CreditCard className="mr-2 h-4 w-4 shrink-0" />} label="Orders & Refunds" closeOnNavigate={closeOnNavigate} isActive={pathname === "/admin/orders" || pathname.startsWith("/admin/orders/")} />
           <NavLink href="/admin/users" testId={withTestIds ? "admin-nav-users" : undefined} icon={<Users className="mr-2 h-4 w-4 shrink-0" />} label="Users" closeOnNavigate={closeOnNavigate} isActive={pathname === "/admin/users"} />
           <NavLink href="/admin/reviews" testId={withTestIds ? "admin-nav-reviews" : undefined} icon={<Star className="mr-2 h-4 w-4 shrink-0" />} label="Reviews" closeOnNavigate={closeOnNavigate} isActive={pathname === "/admin/reviews"} />
@@ -196,6 +198,7 @@ export function AdminSidebar({ username }: { username: string }) {
         <nav data-testid={isMobileView ? "admin-nav" : undefined} className="flex items-center gap-2 overflow-x-auto px-4 pb-3">
           <Link data-testid={isMobileView ? "admin-nav-settings" : undefined} href="/admin/settings" className="rounded-md border px-3 py-1.5 text-sm whitespace-nowrap">Store Settings</Link>
           <Link data-testid={isMobileView ? "admin-nav-products" : undefined} href="/admin/products" className="rounded-md border px-3 py-1.5 text-sm whitespace-nowrap">Products</Link>
+          <Link href="/admin/attributes" className="rounded-md border px-3 py-1.5 text-sm whitespace-nowrap">Catalog Data</Link>
           <Link data-testid={isMobileView ? "admin-nav-banners" : undefined} href="/admin/banners" className="rounded-md border px-3 py-1.5 text-sm whitespace-nowrap">Banners</Link>
           <Link data-testid={isMobileView ? "admin-nav-articles" : undefined} href="/admin/articles" className="rounded-md border px-3 py-1.5 text-sm whitespace-nowrap">Articles</Link>
           <Link data-testid={isMobileView ? "admin-nav-orders" : undefined} href="/admin/orders" className="rounded-md border px-3 py-1.5 text-sm whitespace-nowrap">Orders & Refunds</Link>
