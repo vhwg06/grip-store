@@ -159,6 +159,27 @@ When("the shopper resolves that exact selected combination", deferredCatalogBase
 Then("the public catalog returns that Variant", deferredCatalogBaseQuery);
 When("the shopper resolves a missing or non-public combination", deferredCatalogBaseQuery);
 Then("the public catalog does not return a Variant", deferredCatalogBaseQuery);
+Given("the catalog contains Draft, Active, Inactive, and Discontinued ProductModels", deferredCatalogBaseQuery);
+When("the shopper reads the public ProductModel list", deferredCatalogBaseQuery);
+Then("only Active ProductModels are returned", deferredCatalogBaseQuery);
+Then("every returned ProductModel has at least one publicly sellable Variant", deferredCatalogBaseQuery);
+Then("stock and warehouse state are absent from the Catalog Base projection", deferredCatalogBaseQuery);
+Given("publicly sellable ProductModels have distinct Material and Finish references", deferredCatalogBaseQuery);
+When("the shopper filters by a Material and a Finish reference", deferredCatalogBaseQuery);
+Then("every returned ProductModel matches both reference filters", deferredCatalogBaseQuery);
+Given("publicly sellable Variants have different current SellingPrice values", deferredCatalogBaseQuery);
+When("the shopper filters by a SellingPrice range", deferredCatalogBaseQuery);
+Then("every returned ProductModel has a publicly sellable Variant in that range", deferredCatalogBaseQuery);
+Given("an Active ProductModel has publicly sellable Variants and catalog media", deferredCatalogBaseQuery);
+When("the shopper reads the public ProductModel detail", deferredCatalogBaseQuery);
+Then("the detail exposes model content, media, options, and current SellingPrice", deferredCatalogBaseQuery);
+Then("the detail does not expose stock, warehouse, order, or warranty-claim state", deferredCatalogBaseQuery);
+Given("an Active ProductModel has no publicly sellable Variant compatible with the selected values", deferredCatalogBaseQuery);
+When("the shopper asks for available options", deferredCatalogBaseQuery);
+Then("the available option projection is empty", deferredCatalogBaseQuery);
+Given('a publicly sellable Variant has a numeric Size canonicalized to `200 mm`', deferredCatalogBaseQuery);
+When('the shopper resolves the equivalent Size representation `20 cm`', deferredCatalogBaseQuery);
+Then("the public catalog returns the same Variant", deferredCatalogBaseQuery);
 
 Given("an active public product exists", async function (this: ScenarioWorld) {
   await chooseProduct(this);
