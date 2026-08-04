@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
   "generatedBy": "tools/build-migration-audit.ts",
-  "sourceEntries": 374,
-  "featureScenarioIds": 354,
-  "mappedSourceEntries": 374,
+  "sourceEntries": 375,
+  "featureScenarioIds": 395,
+  "mappedSourceEntries": 375,
   "pendingSourceEntries": 0,
   "invalidTargets": [],
   "orphanScenarios": [],
   "dispositions": {
-    "deferred": 1,
+    "deferred": 2,
     "merged": 181,
     "migrated": 192
   },
