@@ -190,3 +190,88 @@ Feature: Catalog Base ProductModel
       When Customer resolves the exact selected combination
       Then the Inactive Variant is not returned as a public result
 
+  @UC-CAT-MODEL-AUTHORING
+  Rule: ProductModel authoring creates a Draft owned by the model boundary
+
+    @deferred @api @SC-CAT-MODEL-022
+    Scenario: Create a ProductModel Draft with classification and content
+      Given the Catalog Operator has ProductModel authoring access
+      When Catalog Operator creates ProductModel Draft "Grip Handle A"
+      Then the ProductModel is stored in "Draft" state
+      And the ProductModel owns its category, description, media, and WarrantySummary
+
+    @deferred @api @SC-CAT-MODEL-023
+    Scenario: ProductModel does not expose stock or order ownership
+      Given a ProductModel Draft exists
+      When Catalog Operator reads the ProductModel authoring form
+      Then the form exposes ProductModel content and catalog references
+      And the form does not expose stock, warehouse, order, or purchase-limit state
+
+  @UC-CAT-MODEL-PUBLICATION-VALIDATION
+  Rule: Publication validates every universal ProductModel invariant
+
+    @deferred @api @SC-CAT-MODEL-024
+    Scenario: Reject publication without a primary model image
+      Given a ProductModel Draft has name, Category, and a sale-ready Variant but no primary model image
+      When Catalog Operator publishes the ProductModel
+      Then the publication command is rejected
+      And the ProductModel remains in "Draft" state
+
+    @deferred @api @SC-CAT-MODEL-025
+    Scenario: Reject publication without a sale-ready Variant
+      Given a ProductModel Draft has name, Category, and a primary model image but no sale-ready Variant
+      When Catalog Operator publishes the ProductModel
+      Then the publication command is rejected
+      And the ProductModel remains in "Draft" state
+
+    @deferred @api @SC-CAT-MODEL-026
+    Scenario: Replace a primary model image without creating two primaries
+      Given an Active ProductModel has one primary model image
+      When Catalog Operator replaces the primary model image with another model image
+      Then the ProductModel has exactly one primary model image
+      And the previous image is no longer primary
+
+    @deferred @api @SC-CAT-MODEL-027
+    Scenario: Reject incompatible numeric measurement units
+      Given a ProductModel Draft has a numeric length definition
+      When Catalog Operator sets Overall length with an incompatible unit
+      Then the ProductModel measurement command is rejected
+
+  @UC-CAT-MODEL-LIFECYCLE
+  Rule: Discontinuation is a valid terminal transition
+
+    @deferred @api @SC-CAT-MODEL-028
+    Scenario: Discontinue a ProductModel from a non-terminal publication state
+      Given a ProductModel exists in a non-terminal publication state
+      When Catalog Operator discontinues the ProductModel
+      Then the ProductModel transitions to "Discontinued"
+      And a later publish or unpublish transition is rejected
+
+  @UC-CAT-MODEL-WARRANTY
+  Rule: WarrantySummary has no claim workflow
+
+    @deferred @api @SC-CAT-MODEL-029
+    Scenario: Reject WarrantySummary without a required term
+      Given a ProductModel Draft exists
+      When Catalog Operator saves WarrantySummary without a term
+      Then the WarrantySummary command is rejected
+
+  @UC-CAT-MODEL-INVARIANTS
+  Rule: Active ProductModel rejects every mutation that breaks publication invariants
+
+    @deferred @api @SC-CAT-MODEL-030
+    Scenario: Reject removing the last sale-ready commercial field from an Active model
+      Given an Active ProductModel has one sale-ready Variant
+      When Catalog Operator removes the last Variant SKU or SellingPrice
+      Then the command is rejected
+      And the ProductModel remains publicly valid
+
+  @UC-CAT-MODEL-LIFECYCLE
+  Rule: ProductModel records are never deleted
+
+    @deferred @api @SC-CAT-MODEL-031
+    Scenario: Preserve a ProductModel through lifecycle transitions instead of deletion
+      Given a ProductModel exists
+      When Catalog Operator requests ProductModel deletion
+      Then the deletion command is rejected
+      And the ProductModel remains readable in its current lifecycle state
