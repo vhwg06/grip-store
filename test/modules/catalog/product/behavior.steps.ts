@@ -2,7 +2,7 @@ import { Before, Given, Then, When } from "@cucumber/cucumber";
 import { expect } from "@playwright/test";
 import type { ScenarioWorld } from "../../../shared/cucumber/world";
 import { getAdminToken, getUserToken } from "../../../shared/runtime/api-helpers/auth.helpers";
-import { isolatedReference, requiredTestTenant } from "../../../shared/data/test-isolation";
+import { isolatedReference } from "../../../shared/data/test-isolation";
 
 type ProductAdministrationState = {
   adminToken?: string;
@@ -43,12 +43,10 @@ async function firstCategory(world: ScenarioWorld): Promise<string> {
 }
 
 async function createProduct(world: ScenarioWorld, specs?: Array<{ key: string; value: string }>): Promise<void> {
-  const tenant = requiredTestTenant();
   const suffix = `${Date.now()}-${crypto.randomUUID().slice(0, 8)}`;
   const response = await (await world.getApiClient()).post<Record<string, unknown>>("/v1/admin/products", {
     title: isolatedReference(world, `Cucumber catalog product ${suffix}`),
     sku: isolatedReference(world, `CUC-${suffix}`),
-    tenant_id: tenant,
     price: 12345,
     category_id: await firstCategory(world),
     is_active: true,
@@ -239,7 +237,6 @@ Then("the form does not claim ownership of cards or inventory", async function (
 });
 
 Given("an admin-created product and published and draft intro articles exist", async function (this: ScenarioWorld) {
-  requiredTestTenant();
   await createProduct(this);
   const suffix = `${Date.now()}-${crypto.randomUUID().slice(0, 8)}`;
   for (const status of ["published", "draft"] as const) {

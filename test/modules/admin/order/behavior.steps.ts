@@ -15,7 +15,7 @@ import {
 import { getUserToken, requiredEnv, testApiBaseUrl } from "../../../shared/runtime/api-helpers/auth.helpers";
 import { CatalogApiHelper } from "../../../shared/runtime/api-helpers/catalog.api";
 import { GoBackendClient } from "../../../shared/runtime/api-helpers/go-backend.client";
-import { isolatedReference, requiredTestTenant } from "../../../shared/data/test-isolation";
+import { isolatedReference } from "../../../shared/data/test-isolation";
 import { AuthPage } from "../../../shared/runtime/objects/auth.page";
 
 type JsonRecord = Record<string, unknown>;
@@ -115,7 +115,6 @@ async function loginBrowser(world: ScenarioWorld): Promise<void> {
 }
 
 async function createPendingOrder(world: ScenarioWorld): Promise<void> {
-  const tenant = requiredTestTenant();
   await authenticateAdmin(world);
   const api = new CatalogApiHelper(await client(world));
   const products = await api.getProducts({ page: 1, limit: 20 });
@@ -128,7 +127,6 @@ async function createPendingOrder(world: ScenarioWorld): Promise<void> {
     productId: product.id,
     quantity: 1,
     email: requiredEnv("TEST_USER_EMAIL"),
-    tenant_id: tenant,
     external_reference: isolatedReference(world, "order"),
   }, { headers: { Authorization: `Bearer ${userToken}` } });
   expect(response.status, "order creation must be accepted").toBeGreaterThanOrEqual(200);

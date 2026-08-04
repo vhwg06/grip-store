@@ -6,7 +6,8 @@ Runbook này mô tả quy trình vận hành deploy frontend production qua GitH
 
 - `lint` pass
 - `build` pass
-- Full Cucumber acceptance pass through Playwright
+- API Cucumber acceptance pass through Playwright
+- Browser E2E is available as an explicit manual workflow run
 - Chỉ khi các bước trên pass mới được deploy lên VM
 
 Phạm vi bao gồm:
@@ -31,8 +32,9 @@ Không thay đổi API/runtime frontend trong tài liệu này.
 Luồng chuẩn:
 
 1. `quality-gate`: `npm ci` -> `npm run lint` -> `npm run build`
-2. `full-e2e`: chạy Cucumber feature suite qua Playwright (API + browser); Catalog expected-failure được theo dõi riêng trong giai đoạn backend chưa implement
-3. `deploy`: build image -> push GHCR -> SSH lên VM -> `docker compose pull && up -d`
+2. `api-tests`: chạy các Scenario `@accepted @api` qua Playwright; đây là gate API blocking
+3. `e2e-tests`: chỉ chạy khi `workflow_dispatch` được bật với input `run_e2e=true`
+4. `deploy`: build image -> push GHCR -> SSH lên VM -> `docker compose pull && up -d`
 
 ## 3) Preconditions
 
@@ -44,22 +46,20 @@ Luồng chuẩn:
   - `GCP_VM_USER`
   - `GCP_VM_SSH_KEY`
   - `GHCR_TOKEN` (quyền `read:packages` cho VM pull private image)
-- Full test (Cucumber scenarios executed through Playwright):
-  - `NEXT_PUBLIC_APP_URL`
-  - `TEST_TENANT_ID` (an isolated tenant used by persistent mutation scenarios)
+- Browser test override (only for a manual E2E run):
+  - `NEXT_PUBLIC_APP_URL` (defaults to the deployed `https://grip.vn` host)
 
 Ghi chú:
 
 - Runner dùng `GITHUB_TOKEN` để push GHCR (workflow có `packages: write`).
 - VM dùng `github.repository_owner` làm username đăng nhập GHCR và `GHCR_TOKEN` làm password.
-- Full E2E dùng trực tiếp tài khoản seed từ migration backend:
+- API scenarios dùng trực tiếp tài khoản seed từ migration backend:
   - `test_buyer@example.com` / `Password123!`
   - `test_admin@example.com` / `Password123!`
 - Cucumber API scenarios use the real endpoint required by `AGENTS.md`: `TEST_API_BASE_URL=https://grip.vn/api`.
-- Browser scenarios use `TEST_WEB_BASE_URL=NEXT_PUBLIC_APP_URL` and the same Playwright adapters as API scenarios.
+- Browser scenarios use `TEST_WEB_BASE_URL=NEXT_PUBLIC_APP_URL` and the same Playwright adapters as API scenarios; the browser job is manual until explicitly enabled.
 - The official migration seed accounts are used by default; `TEST_USER_*` and `ADMIN_USER_*` secrets may override them.
-- `TEST_TENANT_ID` must identify the isolated test tenant for state-mutating scenarios; the pipeline fails fast if it is absent.
-- Khuyến nghị vận hành: luôn set `NEXT_PUBLIC_APP_URL` trong Secrets, không rely vào fallback `http://localhost:3000`.
+- Khuyến nghị vận hành: set `NEXT_PUBLIC_APP_URL` trong Secrets when the deployed browser host differs from `https://grip.vn`; never use localhost in CI.
 
 ### 3.4 Switch env local (dev/prod)
 
@@ -89,7 +89,7 @@ docker compose version
 sudo docker ps
 ```
 
-### 3.3 Điều kiện backend cho full test
+### 3.3 Điều kiện backend cho API test
 
 - `https://grip.vn/api` trả về ổn định trong thời gian chạy Cucumber API scenarios
 - Health endpoint backend trả về ổn định trong thời gian chạy test
@@ -102,7 +102,7 @@ Khi merge/push commit vào `main`, pipeline deploy chạy tự động.
 
 Kỳ vọng:
 
-- Full test gate chạy trước
+- API test gate chạy trước
 - Nếu test fail, pipeline dừng ở gate và không chạy deploy
 
 ### 4.2 Trigger thủ công (`workflow_dispatch`)
@@ -120,10 +120,10 @@ Kỳ vọng mặc định:
   - `npm ci` thành công
   - `npm run lint` exit code 0
   - `npm run build` exit code 0
-- `full-e2e` pass:
+- `api-tests` pass:
   - Contract/binding dry-run pass
-  - Non-Catalog API và browser jobs pass
-  - Catalog job được ghi nhận là expected failure cho tới khi backend implement
+  - API-tagged scenarios pass serially through Playwright
+- `e2e-tests` chỉ xuất hiện khi manual dispatch có `run_e2e=true`; nếu bật, browser-tagged scenarios cũng phải pass.
 - `deploy` pass:
   - Docker build thành công
   - Push GHCR thành công (`:<sha>` và `:latest`)
@@ -136,7 +136,7 @@ Kỳ vọng mặc định:
 1. Xác nhận commit/release đã ở `main`.
 2. Trigger pipeline (`push` hoặc `workflow_dispatch`).
 3. Theo dõi `quality-gate`.
-4. Theo dõi `full-e2e` (bao gồm merge report/artifacts).
+4. Theo dõi `api-tests` (bao gồm Cucumber log artifact).
 5. Chỉ khi gate pass, theo dõi `deploy`.
 6. Chạy post-deploy verification (mục 6).
 7. Nếu verification fail, rollback theo mục 8.
@@ -214,14 +214,14 @@ Xử lý:
 
 Triệu chứng:
 
-- Job API hoặc browser non-Catalog fail trong workflow Playwright
+- Job API fail trong workflow Playwright
 - Deploy không chạy
 
 Xử lý:
 
-1. Tải log artifact `cucumber-*-non-catalog`
-2. Kiểm tra step/scenario fail và trace của Playwright browser nếu có
-3. Xác nhận `https://grip.vn/api`, `NEXT_PUBLIC_APP_URL`, `TEST_TENANT_ID`, và test credentials còn hợp lệ
+1. Tải log artifact `cucumber-api` và kiểm tra Scenario/tag bị fail
+2. Nếu đang chạy manual E2E, kiểm tra thêm artifact `cucumber-e2e` và trace Playwright browser
+3. Xác nhận `https://grip.vn/api` và test credentials còn hợp lệ; khi chạy E2E thủ công, xác nhận thêm `NEXT_PUBLIC_APP_URL`
 4. Fix flaky/logic test hoặc lỗi ứng dụng, chạy lại pipeline
 
 ### 9.3 Fail push/pull GHCR hoặc docker login

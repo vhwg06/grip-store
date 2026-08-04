@@ -28,9 +28,7 @@ type PublicQueryState = {
 };
 
 function state(world: ScenarioWorld): PublicQueryState {
-  const current = world.state as Partial<PublicQueryState>;
-  if (!current.api) current.api = new CatalogApiHelper(world.getApiClient() as never);
-  return current as PublicQueryState;
+  return world.state as Partial<PublicQueryState> as PublicQueryState;
 }
 
 async function api(world: ScenarioWorld): Promise<CatalogApiHelper> {

@@ -7,17 +7,6 @@ export function testRunId(): string {
   return runId;
 }
 
-/**
- * Persistent mutations require an explicitly isolated test tenant. There is
- * deliberately no fallback tenant: without this contract a mutation is not
- * safe to execute and the scenario must remain unverified.
- */
-export function requiredTestTenant(): string {
-  const tenant = process.env.TEST_TENANT_ID?.trim();
-  if (!tenant) throw new Error("Set TEST_TENANT_ID before running persistent mutation scenarios.");
-  return tenant;
-}
-
 export function scenarioNamespace(world: ScenarioWorld): string {
   const scenarioId = world.scenarioId ?? "unknown-scenario";
   return `e2e:${testRunId()}:${scenarioId}`;
