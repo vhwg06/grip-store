@@ -1,2 +1,436 @@
-# No authoritative OpenAPI source exists for the requested test repository yet.
-# This placeholder deliberately defines no operations or schemas.
+openapi: 3.0.3
+info:
+  title: Grip Catalog Base API
+  version: 1.0.0
+  description: |
+    Canonical Catalog Base contract. ProductModel and Variant replace the
+    legacy Product contract; stock, warehouse, order, warranty claims,
+    quantity pricing, and generic attribute rules are outside this API.
+servers:
+  - url: https://grip.vn/api
+security:
+  - bearerAuth: []
+tags:
+  - name: Catalog master data
+  - name: ProductModel administration
+  - name: Variant administration
+  - name: Public catalog
+paths:
+  /v1/admin/catalog/categories:
+    get:
+      tags: [Catalog master data]
+      operationId: listCatalogCategories
+      responses:
+        '200': { $ref: '#/components/responses/CategoryList' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+    post:
+      tags: [Catalog master data]
+      operationId: createCatalogCategory
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/CategoryInput' } } } }
+      responses:
+        '201': { $ref: '#/components/responses/Category' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+  /v1/admin/catalog/categories/{categoryId}:
+    parameters: [{ $ref: '#/components/parameters/CategoryId' }]
+    delete:
+      tags: [Catalog master data]
+      operationId: deleteCatalogCategory
+      responses:
+        '405': { description: Category deletion is not supported }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+    patch:
+      tags: [Catalog master data]
+      operationId: updateCatalogCategory
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/CategoryInput' } } } }
+      responses:
+        '200': { $ref: '#/components/responses/Category' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+  /v1/admin/catalog/categories/{categoryId}/deactivate:
+    parameters: [{ $ref: '#/components/parameters/CategoryId' }]
+    post:
+      tags: [Catalog master data]
+      operationId: deactivateCatalogCategory
+      responses:
+        '200': { $ref: '#/components/responses/Category' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+  /v1/admin/catalog/attribute-definitions:
+    get:
+      tags: [Catalog master data]
+      operationId: listAttributeDefinitions
+      responses:
+        '200': { $ref: '#/components/responses/AttributeDefinitionList' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+    post:
+      tags: [Catalog master data]
+      operationId: createAttributeDefinition
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/AttributeDefinitionInput' } } } }
+      responses:
+        '201': { $ref: '#/components/responses/AttributeDefinition' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+  /v1/admin/catalog/attribute-definitions/{definitionId}:
+    parameters: [{ $ref: '#/components/parameters/DefinitionId' }]
+    patch:
+      tags: [Catalog master data]
+      operationId: updateAttributeDefinition
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/AttributeDefinitionPatch' } } } }
+      responses:
+        '200': { $ref: '#/components/responses/AttributeDefinition' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+  /v1/admin/catalog/attribute-definitions/{definitionId}/deactivate:
+    parameters: [{ $ref: '#/components/parameters/DefinitionId' }]
+    post:
+      tags: [Catalog master data]
+      operationId: deactivateAttributeDefinition
+      responses:
+        '200': { $ref: '#/components/responses/AttributeDefinition' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+  /v1/admin/catalog/attribute-definitions/{definitionId}/enum-values:
+    parameters: [{ $ref: '#/components/parameters/DefinitionId' }]
+    post:
+      tags: [Catalog master data]
+      operationId: addEnumValue
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/EnumValueInput' } } } }
+      responses:
+        '201': { $ref: '#/components/responses/EnumValue' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '409': { $ref: '#/components/responses/Conflict' }
+  /v1/admin/catalog/attribute-definitions/{definitionId}/enum-values/{enumValueId}/deactivate:
+    parameters:
+      - { $ref: '#/components/parameters/DefinitionId' }
+      - { $ref: '#/components/parameters/EnumValueId' }
+    post:
+      tags: [Catalog master data]
+      operationId: deactivateEnumValue
+      responses:
+        '200': { $ref: '#/components/responses/EnumValue' }
+        '404': { $ref: '#/components/responses/NotFound' }
+  /v1/admin/catalog/masters/{masterKind}:
+    parameters: [{ $ref: '#/components/parameters/MasterKind' }]
+    get:
+      tags: [Catalog master data]
+      operationId: listCatalogMasters
+      responses:
+        '200': { $ref: '#/components/responses/MasterList' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+    post:
+      tags: [Catalog master data]
+      operationId: createCatalogMaster
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/MasterInput' } } } }
+      responses:
+        '201': { $ref: '#/components/responses/Master' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+  /v1/admin/catalog/masters/{masterKind}/{masterId}:
+    parameters:
+      - { $ref: '#/components/parameters/MasterKind' }
+      - { $ref: '#/components/parameters/MasterId' }
+    patch:
+      tags: [Catalog master data]
+      operationId: updateCatalogMaster
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/MasterPatch' } } } }
+      responses:
+        '200': { $ref: '#/components/responses/Master' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '409': { $ref: '#/components/responses/Conflict' }
+  /v1/admin/catalog/masters/{masterKind}/{masterId}/deactivate:
+    parameters:
+      - { $ref: '#/components/parameters/MasterKind' }
+      - { $ref: '#/components/parameters/MasterId' }
+    post:
+      tags: [Catalog master data]
+      operationId: deactivateCatalogMaster
+      responses:
+        '200': { $ref: '#/components/responses/Master' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /v1/admin/catalog/product-models:
+    get:
+      tags: [ProductModel administration]
+      operationId: listProductModels
+      responses:
+        '200': { $ref: '#/components/responses/ProductModelList' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+    post:
+      tags: [ProductModel administration]
+      operationId: createProductModel
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/ProductModelInput' } } } }
+      responses:
+        '201': { $ref: '#/components/responses/ProductModel' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+  /v1/admin/catalog/product-models/{modelId}:
+    parameters: [{ $ref: '#/components/parameters/ModelId' }]
+    get:
+      tags: [ProductModel administration]
+      operationId: getProductModel
+      responses:
+        '200': { $ref: '#/components/responses/ProductModel' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    patch:
+      tags: [ProductModel administration]
+      operationId: updateProductModel
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/ProductModelPatch' } } } }
+      responses:
+        '200': { $ref: '#/components/responses/ProductModel' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '409': { $ref: '#/components/responses/Conflict' }
+    delete:
+      tags: [ProductModel administration]
+      operationId: deleteProductModel
+      responses:
+        '405': { description: ProductModel deletion is not supported }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+  /v1/admin/catalog/product-models/{modelId}/publish:
+    parameters: [{ $ref: '#/components/parameters/ModelId' }]
+    post:
+      tags: [ProductModel administration]
+      operationId: publishProductModel
+      responses:
+        '200': { $ref: '#/components/responses/ProductModel' }
+        '409': { $ref: '#/components/responses/Conflict' }
+  /v1/admin/catalog/product-models/{modelId}/unpublish:
+    parameters: [{ $ref: '#/components/parameters/ModelId' }]
+    post:
+      tags: [ProductModel administration]
+      operationId: unpublishProductModel
+      responses:
+        '200': { $ref: '#/components/responses/ProductModel' }
+        '409': { $ref: '#/components/responses/Conflict' }
+  /v1/admin/catalog/product-models/{modelId}/discontinue:
+    parameters: [{ $ref: '#/components/parameters/ModelId' }]
+    post:
+      tags: [ProductModel administration]
+      operationId: discontinueProductModel
+      responses:
+        '200': { $ref: '#/components/responses/ProductModel' }
+        '409': { $ref: '#/components/responses/Conflict' }
+  /v1/admin/catalog/product-models/{modelId}/media:
+    parameters: [{ $ref: '#/components/parameters/ModelId' }]
+    put:
+      tags: [ProductModel administration]
+      operationId: replaceProductModelMedia
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [images], properties: { images: { type: array, items: { $ref: '#/components/schemas/ProductImageInput' } } } } } } }
+      responses:
+        '200': { $ref: '#/components/responses/ProductModel' }
+        '409': { $ref: '#/components/responses/Conflict' }
+  /v1/admin/catalog/product-models/{modelId}/variant-dimensions:
+    parameters: [{ $ref: '#/components/parameters/ModelId' }]
+    post:
+      tags: [Variant administration]
+      operationId: addVariantDimension
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/VariantDimensionInput' } } } }
+      responses:
+        '201': { $ref: '#/components/responses/VariantDimension' }
+        '409': { $ref: '#/components/responses/Conflict' }
+  /v1/admin/catalog/product-models/{modelId}/variant-dimensions/{dimensionId}:
+    parameters:
+      - { $ref: '#/components/parameters/ModelId' }
+      - { $ref: '#/components/parameters/DimensionId' }
+    patch:
+      tags: [Variant administration]
+      operationId: updateVariantDimension
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/VariantDimensionPatch' } } } }
+      responses:
+        '200': { $ref: '#/components/responses/VariantDimension' }
+        '409': { $ref: '#/components/responses/Conflict' }
+  /v1/admin/catalog/product-models/{modelId}/variant-dimensions/{dimensionId}/values:
+    parameters:
+      - { $ref: '#/components/parameters/ModelId' }
+      - { $ref: '#/components/parameters/DimensionId' }
+    post:
+      tags: [Variant administration]
+      operationId: addVariantDimensionValue
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/VariantValueInput' } } } }
+      responses:
+        '201': { $ref: '#/components/responses/VariantDimension' }
+        '409': { $ref: '#/components/responses/Conflict' }
+  /v1/admin/catalog/product-models/{modelId}/variant-dimensions/{dimensionId}/values/{valueId}/deactivate:
+    parameters:
+      - { $ref: '#/components/parameters/ModelId' }
+      - { $ref: '#/components/parameters/DimensionId' }
+      - { $ref: '#/components/parameters/ValueId' }
+    post:
+      tags: [Variant administration]
+      operationId: deactivateVariantDimensionValue
+      responses:
+        '200': { $ref: '#/components/responses/VariantDimension' }
+        '404': { $ref: '#/components/responses/NotFound' }
+  /v1/admin/catalog/product-models/{modelId}/variants:
+    parameters: [{ $ref: '#/components/parameters/ModelId' }]
+    get:
+      tags: [Variant administration]
+      operationId: listModelVariants
+      responses:
+        '200': { $ref: '#/components/responses/VariantList' }
+    post:
+      tags: [Variant administration]
+      operationId: createVariant
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/VariantInput' } } } }
+      responses:
+        '201': { $ref: '#/components/responses/Variant' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '409': { $ref: '#/components/responses/Conflict' }
+  /v1/admin/catalog/variants/{variantId}:
+    parameters: [{ $ref: '#/components/parameters/VariantId' }]
+    get:
+      tags: [Variant administration]
+      operationId: getVariant
+      responses:
+        '200': { $ref: '#/components/responses/Variant' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    patch:
+      tags: [Variant administration]
+      operationId: updateVariant
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/VariantPatch' } } } }
+      responses:
+        '200': { $ref: '#/components/responses/Variant' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '409': { $ref: '#/components/responses/Conflict' }
+  /v1/admin/catalog/variants/{variantId}/activate:
+    parameters: [{ $ref: '#/components/parameters/VariantId' }]
+    post:
+      tags: [Variant administration]
+      operationId: activateVariant
+      responses:
+        '200': { $ref: '#/components/responses/Variant' }
+        '409': { $ref: '#/components/responses/Conflict' }
+  /v1/admin/catalog/variants/{variantId}/inactivate:
+    parameters: [{ $ref: '#/components/parameters/VariantId' }]
+    post:
+      tags: [Variant administration]
+      operationId: inactivateVariant
+      responses:
+        '200': { $ref: '#/components/responses/Variant' }
+        '409': { $ref: '#/components/responses/Conflict' }
+  /v1/admin/catalog/variants/prices:bulk:
+    post:
+      tags: [Variant administration]
+      operationId: bulkSetSellingPrice
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/BulkPriceInput' } } } }
+      responses:
+        '200': { $ref: '#/components/responses/VariantList' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '409': { $ref: '#/components/responses/Conflict' }
+
+  /v1/catalog/product-models:
+    get:
+      security: []
+      tags: [Public catalog]
+      operationId: browseCatalog
+      parameters:
+        - { $ref: '#/components/parameters/Page' }
+        - { $ref: '#/components/parameters/Limit' }
+        - { name: categoryId, in: query, schema: { type: string } }
+        - { name: materialId, in: query, schema: { type: string } }
+        - { name: finishId, in: query, schema: { type: string } }
+        - { name: minPrice, in: query, schema: { type: number, format: double, minimum: 0 } }
+        - { name: maxPrice, in: query, schema: { type: number, format: double, minimum: 0 } }
+        - { name: search, in: query, schema: { type: string } }
+        - { name: sort, in: query, schema: { type: string, enum: [price_asc, price_desc, newest] } }
+      responses:
+        '200': { $ref: '#/components/responses/PublicProductModelList' }
+  /v1/catalog/product-models/{modelId}:
+    parameters: [{ $ref: '#/components/parameters/ModelId' }]
+    get:
+      security: []
+      tags: [Public catalog]
+      operationId: getPublicProductModel
+      responses:
+        '200': { $ref: '#/components/responses/ProductModel' }
+        '404': { $ref: '#/components/responses/NotFound' }
+  /v1/catalog/product-models/{modelId}/options:
+    parameters: [{ $ref: '#/components/parameters/ModelId' }]
+    get:
+      security: []
+      tags: [Public catalog]
+      operationId: getAvailableOptions
+      parameters:
+        - { name: selected, in: query, schema: { type: string }, description: JSON object of selected dimension values }
+      responses:
+        '200': { $ref: '#/components/responses/AvailableOptions' }
+        '404': { $ref: '#/components/responses/NotFound' }
+  /v1/catalog/product-models/{modelId}/variants:resolve:
+    parameters: [{ $ref: '#/components/parameters/ModelId' }]
+    post:
+      security: []
+      tags: [Public catalog]
+      operationId: resolvePublicVariant
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/ResolveVariantInput' } } } }
+      responses:
+        '200': { $ref: '#/components/responses/Variant' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+components:
+  securitySchemes:
+    bearerAuth: { type: http, scheme: bearer }
+  parameters:
+    CategoryId: { name: categoryId, in: path, required: true, schema: { type: string, format: uuid } }
+    DefinitionId: { name: definitionId, in: path, required: true, schema: { type: string, format: uuid } }
+    EnumValueId: { name: enumValueId, in: path, required: true, schema: { type: string, format: uuid } }
+    DimensionId: { name: dimensionId, in: path, required: true, schema: { type: string, format: uuid } }
+    ValueId: { name: valueId, in: path, required: true, schema: { type: string } }
+    MasterId: { name: masterId, in: path, required: true, schema: { type: string, format: uuid } }
+    MasterKind: { name: masterKind, in: path, required: true, schema: { type: string, enum: [material, finish, pack] } }
+    ModelId: { name: modelId, in: path, required: true, schema: { type: string, format: uuid } }
+    VariantId: { name: variantId, in: path, required: true, schema: { type: string, format: uuid } }
+    Page: { name: page, in: query, schema: { type: integer, minimum: 1, default: 1 } }
+    Limit: { name: limit, in: query, schema: { type: integer, minimum: 1, maximum: 100, default: 20 } }
+  responses:
+    BadRequest: { description: Invalid command, content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
+    Conflict: { description: Domain invariant or optimistic conflict, content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
+    Forbidden: { description: Caller lacks catalog permission, content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
+    NotFound: { description: Resource does not exist or is not public, content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
+    Unauthorized: { description: Authentication required, content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
+    Category: { description: Category, content: { application/json: { schema: { $ref: '#/components/schemas/Category' } } } }
+    CategoryList: { description: Categories, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/Category' } } } } }
+    AttributeDefinition: { description: Attribute definition, content: { application/json: { schema: { $ref: '#/components/schemas/AttributeDefinition' } } } }
+    AttributeDefinitionList: { description: Attribute definitions, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/AttributeDefinition' } } } } }
+    EnumValue: { description: Enum value, content: { application/json: { schema: { $ref: '#/components/schemas/EnumValue' } } } }
+    Master: { description: Catalog master, content: { application/json: { schema: { $ref: '#/components/schemas/Master' } } } }
+    MasterList: { description: Catalog masters, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/Master' } } } } }
+    ProductModel: { description: ProductModel, content: { application/json: { schema: { $ref: '#/components/schemas/ProductModel' } } } }
+    ProductModelList: { description: ProductModels, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/ProductModel' } } } } }
+    PublicProductModelList: { description: Public ProductModels, content: { application/json: { schema: { $ref: '#/components/schemas/PageOfProductModels' } } } }
+    Variant: { description: Variant, content: { application/json: { schema: { $ref: '#/components/schemas/Variant' } } } }
+    VariantList: { description: Variants, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/Variant' } } } } }
+    VariantDimension: { description: Variant dimension, content: { application/json: { schema: { $ref: '#/components/schemas/VariantDimension' } } } }
+    AvailableOptions: { description: Available options, content: { application/json: { schema: { type: object, required: [options], properties: { options: { type: array, items: { type: object, required: [key, values], properties: { key: { type: string }, values: { type: array, items: { type: object, required: [id, label], properties: { id: { type: string }, label: { type: string } } } } } } } } } } } }
+  schemas:
+    Error: { type: object, required: [code, message], properties: { code: { type: string }, message: { type: string }, details: { type: object, additionalProperties: true } } }
+    CategoryInput: { type: object, required: [name, slug], properties: { name: { type: string, minLength: 1 }, slug: { type: string, minLength: 1 }, parentId: { type: string, format: uuid }, position: { type: integer, minimum: 0 }, active: { type: boolean, default: true } } }
+    Category: { allOf: [{ $ref: '#/components/schemas/CategoryInput' }, { type: object, required: [id, active], properties: { id: { type: string, format: uuid }, active: { type: boolean } } }] }
+    AttributeDefinitionInput: { type: object, required: [key, valueKind], properties: { key: { type: string }, displayName: { type: string }, description: { type: string }, ordering: { type: integer }, valueKind: { type: string, enum: [Scalar, Enum, Reference] }, dataType: { type: string, enum: [Text, Number, Boolean] }, referenceTarget: { type: string, enum: [Material, Finish, Pack] }, unitFamily: { type: string }, unit: { type: string } } }
+    AttributeDefinitionPatch: { type: object, properties: { displayName: { type: string }, description: { type: string }, ordering: { type: integer }, valueKind: { type: string }, dataType: { type: string }, referenceTarget: { type: string }, unitFamily: { type: string }, unit: { type: string } } }
+    AttributeDefinition: { allOf: [{ $ref: '#/components/schemas/AttributeDefinitionInput' }, { type: object, required: [id, active], properties: { id: { type: string, format: uuid }, active: { type: boolean } } }] }
+    EnumValueInput: { type: object, required: [key, label], properties: { key: { type: string }, label: { type: string }, active: { type: boolean, default: true } } }
+    EnumValue: { allOf: [{ $ref: '#/components/schemas/EnumValueInput' }, { type: object, required: [id], properties: { id: { type: string, format: uuid } } }] }
+    MasterInput: { type: object, required: [name], properties: { name: { type: string }, description: { type: string }, swatchMedia: { type: array, items: { type: string, format: uri } }, sellingUnit: { type: string }, quantity: { type: number, exclusiveMinimum: 0 }, baseUnit: { type: string } } }
+    MasterPatch: { allOf: [{ $ref: '#/components/schemas/MasterInput' }, { type: object, properties: { active: { type: boolean } } }] }
+    Master: { allOf: [{ $ref: '#/components/schemas/MasterInput' }, { type: object, required: [id, active], properties: { id: { type: string, format: uuid }, active: { type: boolean } } }] }
+    ProductModelInput: { type: object, required: [name, categoryId], properties: { name: { type: string, minLength: 1 }, categoryId: { type: string, format: uuid }, description: { type: string }, warrantySummary: { $ref: '#/components/schemas/WarrantySummary' }, fixedAttributes: { type: object, additionalProperties: true }, fixedPackId: { type: string, format: uuid }, variantDimensions: { type: array, items: { type: string, format: uuid } }, measurements: { type: object, additionalProperties: true } } }
+    ProductModelPatch: { type: object, properties: { name: { type: string, minLength: 1 }, categoryId: { type: string, format: uuid }, description: { type: string }, warrantySummary: { $ref: '#/components/schemas/WarrantySummary' }, fixedAttributes: { type: object, additionalProperties: true }, fixedPackId: { type: string, format: uuid }, variantDimensions: { type: array, items: { type: string, format: uuid } }, measurements: { type: object, additionalProperties: true }, status: { type: string, enum: [Draft, Active, Inactive, Discontinued] }, primaryImageId: { type: string, format: uuid } } }
+    ProductModel: { allOf: [{ $ref: '#/components/schemas/ProductModelInput' }, { type: object, required: [id, status, images, variants], properties: { id: { type: string, format: uuid }, status: { type: string, enum: [Draft, Active, Inactive, Discontinued] }, images: { type: array, items: { $ref: '#/components/schemas/ProductImage' } }, variants: { type: array, items: { $ref: '#/components/schemas/Variant' } } } }] }
+    ProductImage: { type: object, required: [id, url, ordering, primary], properties: { id: { type: string, format: uuid }, url: { type: string, format: uri }, ordering: { type: integer, minimum: 0 }, primary: { type: boolean } } }
+    ProductImageInput: { type: object, required: [url, ordering, primary], properties: { url: { type: string, format: uri }, ordering: { type: integer, minimum: 0 }, primary: { type: boolean } } }
+    WarrantySummary: { type: object, required: [term], properties: { term: { type: string, minLength: 1 }, note: { type: string } } }
+    VariantDimensionInput: { type: object, required: [definitionId], properties: { definitionId: { type: string, format: uuid }, allowedValues: { type: array, items: { type: object, required: [id, label], properties: { id: { type: string }, label: { type: string }, active: { type: boolean } } } } } }
+    VariantDimensionPatch: { type: object, properties: { definitionId: { type: string, format: uuid }, allowedValues: { type: array, items: { $ref: '#/components/schemas/VariantValueInput' } } } }
+    VariantValueInput: { type: object, required: [id, label], properties: { id: { type: string }, label: { type: string }, active: { type: boolean, default: true } } }
+    VariantDimension: { allOf: [{ $ref: '#/components/schemas/VariantDimensionInput' }, { type: object, required: [id], properties: { id: { type: string, format: uuid } } }] }
+    VariantInput: { type: object, required: [selectedOptions], properties: { selectedOptions: { type: object, additionalProperties: { type: string } }, technicalValues: { type: object, additionalProperties: true }, sku: { type: string }, sellingPrice: { $ref: '#/components/schemas/Money' }, packId: { type: string, format: uuid } } }
+    VariantPatch: { type: object, properties: { selectedOptions: { type: object, additionalProperties: { type: string } }, technicalValues: { type: object, additionalProperties: true }, sku: { type: string }, sellingPrice: { $ref: '#/components/schemas/Money' }, packId: { type: string, format: uuid } } }
+    Variant: { allOf: [{ $ref: '#/components/schemas/VariantInput' }, { type: object, required: [id, status, saleReady, canonicalCombination], properties: { id: { type: string, format: uuid }, status: { type: string, enum: [Active, Inactive] }, saleReady: { type: boolean }, canonicalCombination: { type: string }, history: { type: array, items: { type: object, additionalProperties: true } } } }] }
+    Money: { type: object, required: [amount, currency], properties: { amount: { type: number, exclusiveMinimum: 0 }, currency: { type: string, minLength: 3, maxLength: 3 } } }
+    BulkPriceInput: { type: object, required: [variantIds, sellingPrice], properties: { variantIds: { type: array, minItems: 1, items: { type: string, format: uuid } }, sellingPrice: { $ref: '#/components/schemas/Money' } } }
+    ResolveVariantInput: { type: object, required: [selectedOptions], properties: { selectedOptions: { type: object, additionalProperties: { type: string } } } }
+    PageOfProductModels: { type: object, required: [items, page, limit, total], properties: { items: { type: array, items: { $ref: '#/components/schemas/ProductModel' } }, page: { type: integer }, limit: { type: integer }, total: { type: integer } } }

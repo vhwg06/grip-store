@@ -1,12 +1,21 @@
 import { Given, When, Then, Before } from "@cucumber/cucumber";
 import { expect } from "@playwright/test";
 import type { ScenarioWorld } from "../../../shared/cucumber/world";
+import { isolatedReference } from "../../../shared/data/test-isolation";
 import { getAdminToken } from "../../../shared/runtime/api-helpers/auth.helpers";
+import { catalogBaseApi, entityId, record, type CatalogBaseApi, type JsonRecord } from "../../../shared/runtime/api-helpers/catalog-base.api";
 
 type ModelState = {
   productId?: string;
   response?: { status: number; data: unknown };
   model?: Record<string, unknown>;
+  baseApi?: CatalogBaseApi;
+  baseAdminToken?: string;
+  baseCategoryId?: string;
+  baseModelId?: string;
+  baseVariantId?: string;
+  baseDimensionId?: string;
+  baseResponse?: { status: number; data: unknown };
 };
 
 function state(world: ScenarioWorld): ModelState {
@@ -208,6 +217,289 @@ Then("khong co warranty claim state trong catalog projection", async function (t
   const data = state(this).response?.data as Record<string, unknown>;
   expect(data).toBeTruthy();
   expect(data.claim_state).toBeUndefined();
+});
+
+async function baseApi(world: ScenarioWorld): Promise<CatalogBaseApi> {
+  state(world).baseApi ??= catalogBaseApi(await world.getApiClient());
+  return state(world).baseApi!;
+}
+
+async function baseToken(world: ScenarioWorld): Promise<string> {
+  state(world).baseAdminToken ??= await getAdminToken(await world.getApiRequest());
+  return state(world).baseAdminToken!;
+}
+
+function baseRemember(world: ScenarioWorld, response: { status: number; data: unknown }): void {
+  state(world).baseResponse = { status: response.status, data: response.data };
+  state(world).response = { status: response.status, data: response.data };
+}
+
+function baseId(world: ScenarioWorld, data: unknown, resource: string): string {
+  const id = entityId(data);
+  expect(id, `${resource} response must contain an id`).toBeTruthy();
+  return id;
+}
+
+function baseName(world: ScenarioWorld, label: string): string {
+  return isolatedReference(world, label);
+}
+
+function baseRejected(world: ScenarioWorld): void {
+  expect(state(world).baseResponse?.status, "Catalog Base command should be rejected").toBeGreaterThanOrEqual(400);
+  expect(state(world).baseResponse?.status).toBeLessThan(500);
+}
+
+async function baseCategory(world: ScenarioWorld): Promise<string> {
+  if (state(world).baseCategoryId) return state(world).baseCategoryId!;
+  const response = await (await baseApi(world)).adminPost(await baseToken(world), "/v1/admin/catalog/categories", {
+    name: baseName(world, "Grip Category"),
+    slug: baseName(world, "grip-category").toLowerCase().replace(/[^a-z0-9-]/g, "-"),
+  });
+  baseRemember(world, response);
+  expect(response.status).toBe(201);
+  state(world).baseCategoryId = baseId(world, response.data, "Category");
+  return state(world).baseCategoryId!;
+}
+
+async function baseModel(world: ScenarioWorld, input: JsonRecord = {}): Promise<string> {
+  if (state(world).baseModelId) return state(world).baseModelId!;
+  const response = await (await baseApi(world)).adminPost(await baseToken(world), "/v1/admin/catalog/product-models", {
+    name: baseName(world, "Grip Handle A"),
+    categoryId: await baseCategory(world),
+    description: "Catalog Base ProductModel content",
+    warrantySummary: { term: "24 thang", note: "Bao hanh co khi" },
+    ...input,
+  });
+  baseRemember(world, response);
+  expect(response.status).toBe(201);
+  state(world).baseModelId = baseId(world, response.data, "ProductModel");
+  return state(world).baseModelId!;
+}
+
+async function baseDimension(world: ScenarioWorld, label = "Size", values = ["200 mm", "300 mm"]): Promise<string> {
+  if (state(world).baseDimensionId) return state(world).baseDimensionId!;
+  const definition = await (await baseApi(world)).adminPost(await baseToken(world), "/v1/admin/catalog/attribute-definitions", {
+    key: baseName(world, `${label}-definition`).toLowerCase().replace(/[^a-z0-9-]/g, "-"),
+    displayName: label,
+    valueKind: "Enum",
+  });
+  baseRemember(world, definition);
+  expect(definition.status).toBe(201);
+  const allowedValues = values.map((value) => ({ id: value.toLowerCase().replace(/[^a-z0-9]+/g, "-"), label: value, active: true }));
+  const response = await (await baseApi(world)).adminPost(await baseToken(world), `/v1/admin/catalog/product-models/${await baseModel(world)}/variant-dimensions`, {
+    definitionId: baseId(world, definition.data, "Attribute definition"),
+    allowedValues,
+  });
+  baseRemember(world, response);
+  expect(response.status).toBe(201);
+  state(world).baseDimensionId = baseId(world, response.data, "VariantDimension");
+  return state(world).baseDimensionId!;
+}
+
+async function baseVariant(world: ScenarioWorld, input: JsonRecord = {}): Promise<string> {
+  const response = await (await baseApi(world)).adminPost(await baseToken(world), `/v1/admin/catalog/product-models/${await baseModel(world)}/variants`, {
+    selectedOptions: { Size: "200 mm" },
+    sku: `GRIP-${crypto.randomUUID()}`,
+    sellingPrice: { amount: 400000, currency: "VND" },
+    ...input,
+  });
+  baseRemember(world, response);
+  expect(response.status).toBe(201);
+  state(world).baseVariantId = baseId(world, response.data, "Variant");
+  return state(world).baseVariantId!;
+}
+
+async function baseReadModel(world: ScenarioWorld): Promise<JsonRecord> {
+  const response = await (await baseApi(world)).adminGet(await baseToken(world), `/v1/admin/catalog/product-models/${await baseModel(world)}`);
+  baseRemember(world, response);
+  expect(response.status).toBe(200);
+  return record(response.data);
+}
+
+Given("the Catalog Operator has ProductModel authoring access", async function (this: ScenarioWorld) {
+  await baseToken(this);
+});
+
+When('Catalog Operator creates ProductModel Draft "Grip Handle A"', async function (this: ScenarioWorld) {
+  await baseModel(this);
+});
+
+Then('the ProductModel is stored in "Draft" state', async function (this: ScenarioWorld) {
+  const model = await baseReadModel(this);
+  expect(model.status).toBe("Draft");
+});
+
+Then("the ProductModel owns its category, description, media, and WarrantySummary", async function (this: ScenarioWorld) {
+  const model = record(state(this).baseResponse?.data);
+  expect(model.categoryId).toBe(state(this).baseCategoryId);
+  expect(model.description).toBeDefined();
+  expect(Array.isArray(model.images)).toBe(true);
+  expect(record(model.warrantySummary).term).toBe("24 thang");
+});
+
+Given("a ProductModel Draft exists", async function (this: ScenarioWorld) {
+  await baseModel(this);
+});
+
+When("Catalog Operator reads the ProductModel authoring form", async function (this: ScenarioWorld) {
+  await baseReadModel(this);
+});
+
+Then("the form exposes ProductModel content and catalog references", function (this: ScenarioWorld) {
+  const model = record(state(this).baseResponse?.data);
+  for (const key of ["id", "name", "categoryId", "description", "images", "warrantySummary", "variants"]) expect(model[key]).toBeDefined();
+});
+
+Then("the form does not expose stock, warehouse, order, or purchase-limit state", function (this: ScenarioWorld) {
+  const model = record(state(this).baseResponse?.data);
+  for (const key of ["stock", "warehouse", "order", "purchaseLimit", "quantityPriceTiers"]) expect(model).not.toHaveProperty(key);
+});
+
+Given("a ProductModel Draft has name, Category, and a sale-ready Variant but no primary model image", async function (this: ScenarioWorld) {
+  await baseModel(this);
+  await baseDimension(this);
+  await baseVariant(this);
+});
+
+When("Catalog Operator publishes the ProductModel", async function (this: ScenarioWorld) {
+  const response = await (await baseApi(this)).adminPost(await baseToken(this), `/v1/admin/catalog/product-models/${await baseModel(this)}/publish`);
+  baseRemember(this, response);
+});
+
+Then("the publication command is rejected", function (this: ScenarioWorld) {
+  baseRejected(this);
+});
+
+Then('the ProductModel remains in "Draft" state', async function (this: ScenarioWorld) {
+  const model = await baseReadModel(this);
+  expect(model.status).toBe("Draft");
+});
+
+Given("a ProductModel Draft has name, Category, and a primary model image but no sale-ready Variant", async function (this: ScenarioWorld) {
+  await baseModel(this);
+  const response = await (await baseApi(this)).adminPut(await baseToken(this), `/v1/admin/catalog/product-models/${await baseModel(this)}/media`, {
+    images: [{ url: "https://cdn.example.test/grip-primary.png", ordering: 1, primary: true }],
+  });
+  baseRemember(this, response);
+  expect(response.status).toBe(200);
+});
+
+Given("an Active ProductModel has one primary model image", async function (this: ScenarioWorld) {
+  await baseModel(this);
+  await baseDimension(this);
+  await baseVariant(this);
+  const media = await (await baseApi(this)).adminPut(await baseToken(this), `/v1/admin/catalog/product-models/${await baseModel(this)}/media`, {
+    images: [{ url: "https://cdn.example.test/grip-primary-old.png", ordering: 1, primary: true }],
+  });
+  baseRemember(this, media);
+  expect(media.status).toBe(200);
+  const publish = await (await baseApi(this)).adminPost(await baseToken(this), `/v1/admin/catalog/product-models/${await baseModel(this)}/publish`);
+  baseRemember(this, publish);
+  expect(publish.status).toBe(200);
+});
+
+When("Catalog Operator replaces the primary model image with another model image", async function (this: ScenarioWorld) {
+  const response = await (await baseApi(this)).adminPut(await baseToken(this), `/v1/admin/catalog/product-models/${await baseModel(this)}/media`, {
+    images: [{ url: "https://cdn.example.test/grip-primary-new.png", ordering: 1, primary: true }],
+  });
+  baseRemember(this, response);
+  expect(response.status).toBe(200);
+});
+
+Then("the ProductModel has exactly one primary model image", async function (this: ScenarioWorld) {
+  const model = await baseReadModel(this);
+  const images = Array.isArray(model.images) ? model.images.map(record) : [];
+  expect(images.filter((image) => image.primary === true)).toHaveLength(1);
+});
+
+Then("the previous image is no longer primary", async function (this: ScenarioWorld) {
+  const model = await baseReadModel(this);
+  const images = Array.isArray(model.images) ? model.images.map(record) : [];
+  expect(images.some((image) => image.url === "https://cdn.example.test/grip-primary-old.png" && image.primary === true)).toBe(false);
+});
+
+Given("a ProductModel Draft has a numeric length definition", async function (this: ScenarioWorld) {
+  await baseModel(this, { measurements: { overallLength: { value: 200, unit: "mm" } } });
+});
+
+When("Catalog Operator sets Overall length with an incompatible unit", async function (this: ScenarioWorld) {
+  const response = await (await baseApi(this)).adminPatch(await baseToken(this), `/v1/admin/catalog/product-models/${await baseModel(this)}`, {
+    measurements: { overallLength: { value: 20, unit: "kg" } },
+  });
+  baseRemember(this, response);
+});
+
+Then("the ProductModel measurement command is rejected", function (this: ScenarioWorld) {
+  baseRejected(this);
+});
+
+Given("a ProductModel exists in a non-terminal publication state", async function (this: ScenarioWorld) {
+  await baseModel(this);
+});
+
+When("Catalog Operator discontinues the ProductModel", async function (this: ScenarioWorld) {
+  const response = await (await baseApi(this)).adminPost(await baseToken(this), `/v1/admin/catalog/product-models/${await baseModel(this)}/discontinue`);
+  baseRemember(this, response);
+});
+
+Then('the ProductModel transitions to "Discontinued"', async function (this: ScenarioWorld) {
+  expect(state(this).baseResponse?.status).toBe(200);
+  expect(record(state(this).baseResponse?.data).status).toBe("Discontinued");
+});
+
+Then("a later publish or unpublish transition is rejected", async function (this: ScenarioWorld) {
+  const response = await (await baseApi(this)).adminPost(await baseToken(this), `/v1/admin/catalog/product-models/${await baseModel(this)}/publish`);
+  baseRemember(this, response);
+  baseRejected(this);
+});
+
+When("Catalog Operator saves WarrantySummary without a term", async function (this: ScenarioWorld) {
+  const response = await (await baseApi(this)).adminPatch(await baseToken(this), `/v1/admin/catalog/product-models/${await baseModel(this)}`, {
+    warrantySummary: { note: "term is required" },
+  });
+  baseRemember(this, response);
+});
+
+Then("the WarrantySummary command is rejected", function (this: ScenarioWorld) {
+  baseRejected(this);
+});
+
+Given("an Active ProductModel has one sale-ready Variant", async function (this: ScenarioWorld) {
+  await baseModel(this);
+  await baseDimension(this);
+  await baseVariant(this);
+  const media = await (await baseApi(this)).adminPut(await baseToken(this), `/v1/admin/catalog/product-models/${await baseModel(this)}/media`, {
+    images: [{ url: "https://cdn.example.test/grip-active.png", ordering: 1, primary: true }],
+  });
+  expect(media.status).toBe(200);
+  const publish = await (await baseApi(this)).adminPost(await baseToken(this), `/v1/admin/catalog/product-models/${await baseModel(this)}/publish`);
+  baseRemember(this, publish);
+  expect(publish.status).toBe(200);
+});
+
+When("Catalog Operator removes the last Variant SKU or SellingPrice", async function (this: ScenarioWorld) {
+  const response = await (await baseApi(this)).adminPatch(await baseToken(this), `/v1/admin/catalog/variants/${state(this).baseVariantId}`, { sku: "" });
+  baseRemember(this, response);
+});
+
+Then("the ProductModel remains publicly valid", async function (this: ScenarioWorld) {
+  baseRejected(this);
+  const response = await (await baseApi(this)).publicGet(`/v1/catalog/product-models/${await baseModel(this)}`);
+  expect(response.status).toBe(200);
+});
+
+When("Catalog Operator requests ProductModel deletion", async function (this: ScenarioWorld) {
+  const response = await (await baseApi(this)).adminDelete(await baseToken(this), `/v1/admin/catalog/product-models/${await baseModel(this)}`);
+  baseRemember(this, response);
+});
+
+Then("the deletion command is rejected", function (this: ScenarioWorld) {
+  baseRejected(this);
+});
+
+Then("the ProductModel remains readable in its current lifecycle state", async function (this: ScenarioWorld) {
+  const model = await baseReadModel(this);
+  expect(model.id).toBe(state(this).baseModelId);
 });
 
 Given("an Inactive ProductModel references an inactive Category", async function (this: ScenarioWorld) {

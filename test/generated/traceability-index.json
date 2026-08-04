@@ -725,6 +725,162 @@
       "rule": "Discover catalog entry points from the homepage"
     },
     {
+      "id": "SC-CAT-MASTER-ATTRIBUTE-001",
+      "module": "catalog.master-data",
+      "feature": "modules/catalog/master-data/behavior.feature",
+      "steps": "modules/catalog/master-data/behavior.steps.ts",
+      "contract": "contracts/catalog-base.md",
+      "title": "Reject meaningless attribute type combinations",
+      "specStatus": "accepted",
+      "useCase": "UC-CAT-MASTER-ATTRIBUTE",
+      "layer": "api",
+      "rule": "Attribute definitions have one typed semantic shape"
+    },
+    {
+      "id": "SC-CAT-MASTER-ATTRIBUTE-002",
+      "module": "catalog.master-data",
+      "feature": "modules/catalog/master-data/behavior.feature",
+      "steps": "modules/catalog/master-data/behavior.steps.ts",
+      "contract": "contracts/catalog-base.md",
+      "title": "Preserve used attribute semantic structure",
+      "specStatus": "accepted",
+      "useCase": "UC-CAT-MASTER-ATTRIBUTE",
+      "layer": "api",
+      "rule": "Attribute definitions have one typed semantic shape"
+    },
+    {
+      "id": "SC-CAT-MASTER-ATTRIBUTE-003",
+      "module": "catalog.master-data",
+      "feature": "modules/catalog/master-data/behavior.feature",
+      "steps": "modules/catalog/master-data/behavior.steps.ts",
+      "contract": "contracts/catalog-base.md",
+      "title": "Store a valid Scalar Number definition with a compatible unit",
+      "specStatus": "accepted",
+      "useCase": "UC-CAT-MASTER-ATTRIBUTE",
+      "layer": "api",
+      "rule": "Attribute definitions have one typed semantic shape"
+    },
+    {
+      "id": "SC-CAT-MASTER-ATTRIBUTE-004",
+      "module": "catalog.master-data",
+      "feature": "modules/catalog/master-data/behavior.feature",
+      "steps": "modules/catalog/master-data/behavior.steps.ts",
+      "contract": "contracts/catalog-base.md",
+      "title": "Store a valid Enum definition and selectable values",
+      "specStatus": "accepted",
+      "useCase": "UC-CAT-MASTER-ATTRIBUTE",
+      "layer": "api",
+      "rule": "Attribute definitions have one typed semantic shape"
+    },
+    {
+      "id": "SC-CAT-MASTER-ATTRIBUTE-005",
+      "module": "catalog.master-data",
+      "feature": "modules/catalog/master-data/behavior.feature",
+      "steps": "modules/catalog/master-data/behavior.steps.ts",
+      "contract": "contracts/catalog-base.md",
+      "title": "Store a valid Reference definition with one target",
+      "specStatus": "accepted",
+      "useCase": "UC-CAT-MASTER-ATTRIBUTE",
+      "layer": "api",
+      "rule": "Attribute definitions have one typed semantic shape"
+    },
+    {
+      "id": "SC-CAT-MASTER-ATTRIBUTE-006",
+      "module": "catalog.master-data",
+      "feature": "modules/catalog/master-data/behavior.feature",
+      "steps": "modules/catalog/master-data/behavior.steps.ts",
+      "contract": "contracts/catalog-base.md",
+      "title": "Deactivate a used attribute definition without rewriting data",
+      "specStatus": "accepted",
+      "useCase": "UC-CAT-MASTER-ATTRIBUTE",
+      "layer": "api",
+      "rule": "Attribute definitions have one typed semantic shape"
+    },
+    {
+      "id": "SC-CAT-MASTER-CATEGORY-001",
+      "module": "catalog.master-data",
+      "feature": "modules/catalog/master-data/behavior.feature",
+      "steps": "modules/catalog/master-data/behavior.steps.ts",
+      "contract": "contracts/catalog-base.md",
+      "title": "Deactivate Category Without Breaking Existing Model",
+      "specStatus": "accepted",
+      "useCase": "UC-CAT-MASTER-CATEGORY",
+      "layer": "api",
+      "rule": "Category is classification with a non-destructive lifecycle"
+    },
+    {
+      "id": "SC-CAT-MASTER-CATEGORY-002",
+      "module": "catalog.master-data",
+      "feature": "modules/catalog/master-data/behavior.feature",
+      "steps": "modules/catalog/master-data/behavior.steps.ts",
+      "contract": "contracts/catalog-base.md",
+      "title": "Maintain Category hierarchy without assigning product rules",
+      "specStatus": "accepted",
+      "useCase": "UC-CAT-MASTER-CATEGORY",
+      "layer": "api",
+      "rule": "Category is classification with a non-destructive lifecycle"
+    },
+    {
+      "id": "SC-CAT-MASTER-CATEGORY-003",
+      "module": "catalog.master-data",
+      "feature": "modules/catalog/master-data/behavior.feature",
+      "steps": "modules/catalog/master-data/behavior.steps.ts",
+      "contract": "contracts/catalog-base.md",
+      "title": "Category deactivation is not deletion",
+      "specStatus": "accepted",
+      "useCase": "UC-CAT-MASTER-CATEGORY",
+      "layer": "api",
+      "rule": "Category is classification with a non-destructive lifecycle"
+    },
+    {
+      "id": "SC-CAT-MASTER-PACK-001",
+      "module": "catalog.master-data",
+      "feature": "modules/catalog/master-data/behavior.feature",
+      "steps": "modules/catalog/master-data/behavior.steps.ts",
+      "contract": "contracts/catalog-base.md",
+      "title": "Maintain Pack as the source of truth for selling unit",
+      "specStatus": "accepted",
+      "useCase": "UC-CAT-MASTER-PACK",
+      "layer": "api",
+      "rule": "Pack owns selling-unit metadata"
+    },
+    {
+      "id": "SC-CAT-MASTER-PACK-002",
+      "module": "catalog.master-data",
+      "feature": "modules/catalog/master-data/behavior.feature",
+      "steps": "modules/catalog/master-data/behavior.steps.ts",
+      "contract": "contracts/catalog-base.md",
+      "title": "Pack metadata remains distinct from stock and quantity pricing",
+      "specStatus": "accepted",
+      "useCase": "UC-CAT-MASTER-PACK",
+      "layer": "api",
+      "rule": "Pack owns selling-unit metadata"
+    },
+    {
+      "id": "SC-CAT-MASTER-REFERENCE-001",
+      "module": "catalog.master-data",
+      "feature": "modules/catalog/master-data/behavior.feature",
+      "steps": "modules/catalog/master-data/behavior.steps.ts",
+      "contract": "contracts/catalog-base.md",
+      "title": "Deactivate Material Finish or Pack without rewriting existing references",
+      "specStatus": "accepted",
+      "useCase": "UC-CAT-MASTER-REFERENCE",
+      "layer": "api",
+      "rule": "Reference masters are the only assignment source for their values"
+    },
+    {
+      "id": "SC-CAT-MASTER-REFERENCE-002",
+      "module": "catalog.master-data",
+      "feature": "modules/catalog/master-data/behavior.feature",
+      "steps": "modules/catalog/master-data/behavior.steps.ts",
+      "contract": "contracts/catalog-base.md",
+      "title": "Finish owns display metadata and swatch media",
+      "specStatus": "accepted",
+      "useCase": "UC-CAT-MASTER-REFERENCE",
+      "layer": "api",
+      "rule": "Reference masters are the only assignment source for their values"
+    },
+    {
       "id": "SC-CAT-MODEL-001",
       "module": "catalog.product-model",
       "feature": "modules/catalog/product-model/behavior.feature",
@@ -977,13 +1133,133 @@
       "rule": "Public projection resolves only publicly sellable catalog data"
     },
     {
+      "id": "SC-CAT-MODEL-022",
+      "module": "catalog.product-model",
+      "feature": "modules/catalog/product-model/behavior.feature",
+      "steps": "modules/catalog/product-model/behavior.steps.ts",
+      "contract": "contracts/catalog-base.md",
+      "title": "Create a ProductModel Draft with classification and content",
+      "specStatus": "accepted",
+      "useCase": "UC-CAT-MODEL-AUTHORING",
+      "layer": "api",
+      "rule": "ProductModel authoring creates a Draft owned by the model boundary"
+    },
+    {
+      "id": "SC-CAT-MODEL-023",
+      "module": "catalog.product-model",
+      "feature": "modules/catalog/product-model/behavior.feature",
+      "steps": "modules/catalog/product-model/behavior.steps.ts",
+      "contract": "contracts/catalog-base.md",
+      "title": "ProductModel does not expose stock or order ownership",
+      "specStatus": "accepted",
+      "useCase": "UC-CAT-MODEL-AUTHORING",
+      "layer": "api",
+      "rule": "ProductModel authoring creates a Draft owned by the model boundary"
+    },
+    {
+      "id": "SC-CAT-MODEL-024",
+      "module": "catalog.product-model",
+      "feature": "modules/catalog/product-model/behavior.feature",
+      "steps": "modules/catalog/product-model/behavior.steps.ts",
+      "contract": "contracts/catalog-base.md",
+      "title": "Reject publication without a primary model image",
+      "specStatus": "accepted",
+      "useCase": "UC-CAT-MODEL-PUBLICATION-VALIDATION",
+      "layer": "api",
+      "rule": "Publication validates every universal ProductModel invariant"
+    },
+    {
+      "id": "SC-CAT-MODEL-025",
+      "module": "catalog.product-model",
+      "feature": "modules/catalog/product-model/behavior.feature",
+      "steps": "modules/catalog/product-model/behavior.steps.ts",
+      "contract": "contracts/catalog-base.md",
+      "title": "Reject publication without a sale-ready Variant",
+      "specStatus": "accepted",
+      "useCase": "UC-CAT-MODEL-PUBLICATION-VALIDATION",
+      "layer": "api",
+      "rule": "Publication validates every universal ProductModel invariant"
+    },
+    {
+      "id": "SC-CAT-MODEL-026",
+      "module": "catalog.product-model",
+      "feature": "modules/catalog/product-model/behavior.feature",
+      "steps": "modules/catalog/product-model/behavior.steps.ts",
+      "contract": "contracts/catalog-base.md",
+      "title": "Replace a primary model image without creating two primaries",
+      "specStatus": "accepted",
+      "useCase": "UC-CAT-MODEL-PUBLICATION-VALIDATION",
+      "layer": "api",
+      "rule": "Publication validates every universal ProductModel invariant"
+    },
+    {
+      "id": "SC-CAT-MODEL-027",
+      "module": "catalog.product-model",
+      "feature": "modules/catalog/product-model/behavior.feature",
+      "steps": "modules/catalog/product-model/behavior.steps.ts",
+      "contract": "contracts/catalog-base.md",
+      "title": "Reject incompatible numeric measurement units",
+      "specStatus": "accepted",
+      "useCase": "UC-CAT-MODEL-PUBLICATION-VALIDATION",
+      "layer": "api",
+      "rule": "Publication validates every universal ProductModel invariant"
+    },
+    {
+      "id": "SC-CAT-MODEL-028",
+      "module": "catalog.product-model",
+      "feature": "modules/catalog/product-model/behavior.feature",
+      "steps": "modules/catalog/product-model/behavior.steps.ts",
+      "contract": "contracts/catalog-base.md",
+      "title": "Discontinue a ProductModel from a non-terminal publication state",
+      "specStatus": "accepted",
+      "useCase": "UC-CAT-MODEL-LIFECYCLE",
+      "layer": "api",
+      "rule": "Discontinuation is a valid terminal transition"
+    },
+    {
+      "id": "SC-CAT-MODEL-029",
+      "module": "catalog.product-model",
+      "feature": "modules/catalog/product-model/behavior.feature",
+      "steps": "modules/catalog/product-model/behavior.steps.ts",
+      "contract": "contracts/catalog-base.md",
+      "title": "Reject WarrantySummary without a required term",
+      "specStatus": "accepted",
+      "useCase": "UC-CAT-MODEL-WARRANTY",
+      "layer": "api",
+      "rule": "WarrantySummary has no claim workflow"
+    },
+    {
+      "id": "SC-CAT-MODEL-030",
+      "module": "catalog.product-model",
+      "feature": "modules/catalog/product-model/behavior.feature",
+      "steps": "modules/catalog/product-model/behavior.steps.ts",
+      "contract": "contracts/catalog-base.md",
+      "title": "Reject removing the last sale-ready commercial field from an Active model",
+      "specStatus": "accepted",
+      "useCase": "UC-CAT-MODEL-INVARIANTS",
+      "layer": "api",
+      "rule": "Active ProductModel rejects every mutation that breaks publication invariants"
+    },
+    {
+      "id": "SC-CAT-MODEL-031",
+      "module": "catalog.product-model",
+      "feature": "modules/catalog/product-model/behavior.feature",
+      "steps": "modules/catalog/product-model/behavior.steps.ts",
+      "contract": "contracts/catalog-base.md",
+      "title": "Preserve a ProductModel through lifecycle transitions instead of deletion",
+      "specStatus": "accepted",
+      "useCase": "UC-CAT-MODEL-LIFECYCLE",
+      "layer": "api",
+      "rule": "ProductModel records are never deleted"
+    },
+    {
       "id": "SC-CAT-PRODUCT-COMMAND-001",
       "module": "catalog.product",
       "feature": "modules/catalog/product/behavior.feature",
       "steps": "modules/catalog/product/behavior.steps.ts",
       "contract": "contracts/catalog-base.md",
       "title": "Create a sellable product and read its form",
-      "specStatus": "accepted",
+      "specStatus": "deferred",
       "useCase": "UC-CAT-PRODUCT-COMMAND",
       "layer": "api",
       "rule": "Product administration persists the complete commercial product contract"
@@ -995,7 +1271,7 @@
       "steps": "modules/catalog/product/behavior.steps.ts",
       "contract": "contracts/catalog-base.md",
       "title": "Update product commercial state",
-      "specStatus": "accepted",
+      "specStatus": "deferred",
       "useCase": "UC-CAT-PRODUCT-COMMAND",
       "layer": "api",
       "rule": "Product administration persists the complete commercial product contract"
@@ -1007,7 +1283,7 @@
       "steps": "modules/catalog/product/behavior.steps.ts",
       "contract": "contracts/catalog-base.md",
       "title": "Maintain category hierarchy and position",
-      "specStatus": "accepted",
+      "specStatus": "deferred",
       "useCase": "UC-CAT-PRODUCT-COMMAND",
       "layer": "api",
       "rule": "Product administration persists the complete commercial product contract"
@@ -1019,7 +1295,7 @@
       "steps": "modules/catalog/product/behavior.steps.ts",
       "contract": "contracts/catalog-base.md",
       "title": "Keep editorial and media data inside the product form contract",
-      "specStatus": "accepted",
+      "specStatus": "deferred",
       "useCase": "UC-CAT-PRODUCT-COMMAND",
       "layer": "api",
       "rule": "Product administration persists the complete commercial product contract"
@@ -1031,7 +1307,7 @@
       "steps": "modules/catalog/product/behavior.steps.ts",
       "contract": "contracts/catalog-base.md",
       "title": "Expose only a published linked intro article in product projections",
-      "specStatus": "accepted",
+      "specStatus": "deferred",
       "useCase": "UC-CAT-PRODUCT-COMMAND",
       "layer": "api",
       "rule": "Product administration persists the complete commercial product contract"
@@ -1043,7 +1319,7 @@
       "steps": "modules/catalog/product/behavior.steps.ts",
       "contract": "contracts/catalog-base.md",
       "title": "Create a product with specifications",
-      "specStatus": "accepted",
+      "specStatus": "deferred",
       "useCase": "UC-CAT-PRODUCT-DETAILS",
       "layer": "api",
       "rule": "Product detail persistence is transactional and visible through public read models"
@@ -1055,7 +1331,7 @@
       "steps": "modules/catalog/product/behavior.steps.ts",
       "contract": "contracts/catalog-base.md",
       "title": "Replace product specifications transactionally",
-      "specStatus": "accepted",
+      "specStatus": "deferred",
       "useCase": "UC-CAT-PRODUCT-DETAILS",
       "layer": "api",
       "rule": "Product detail persistence is transactional and visible through public read models"
@@ -1067,7 +1343,7 @@
       "steps": "modules/catalog/product/behavior.steps.ts",
       "contract": "contracts/catalog-base.md",
       "title": "Delete a product and its public detail projection",
-      "specStatus": "accepted",
+      "specStatus": "deferred",
       "useCase": "UC-CAT-PRODUCT-DETAILS",
       "layer": "api",
       "rule": "Product detail persistence is transactional and visible through public read models"
@@ -1079,7 +1355,7 @@
       "steps": "modules/catalog/product/behavior.steps.ts",
       "contract": "contracts/catalog-base.md",
       "title": "Reject an unauthenticated product administration read",
-      "specStatus": "accepted",
+      "specStatus": "deferred",
       "useCase": "UC-CAT-PRODUCT-READ",
       "layer": "api",
       "rule": "Product administration reads are protected and expose operator health signals"
@@ -1091,7 +1367,7 @@
       "steps": "modules/catalog/product/behavior.steps.ts",
       "contract": "contracts/catalog-base.md",
       "title": "Reject a non-admin product administration read",
-      "specStatus": "accepted",
+      "specStatus": "deferred",
       "useCase": "UC-CAT-PRODUCT-READ",
       "layer": "api",
       "rule": "Product administration reads are protected and expose operator health signals"
@@ -1103,7 +1379,7 @@
       "steps": "modules/catalog/product/behavior.steps.ts",
       "contract": "contracts/catalog-base.md",
       "title": "Read the admin product catalog with operator fields",
-      "specStatus": "accepted",
+      "specStatus": "deferred",
       "useCase": "UC-CAT-PRODUCT-READ",
       "layer": "api",
       "rule": "Product administration reads are protected and expose operator health signals"
@@ -1115,7 +1391,7 @@
       "steps": "modules/catalog/product/behavior.steps.ts",
       "contract": "contracts/catalog-base.md",
       "title": "Read product health signals for operator triage",
-      "specStatus": "accepted",
+      "specStatus": "deferred",
       "useCase": "UC-CAT-PRODUCT-READ",
       "layer": "api",
       "rule": "Product administration reads are protected and expose operator health signals"
@@ -1217,6 +1493,54 @@
       "rule": "Public product detail exposes the complete purchasable read model"
     },
     {
+      "id": "SC-CAT-PUBLIC-DETAIL-005",
+      "module": "catalog.public-query",
+      "feature": "modules/catalog/public-query/behavior.feature",
+      "steps": "modules/catalog/public-query/behavior.steps.ts",
+      "contract": "contracts/catalog-base.md",
+      "title": "Public detail exposes catalog-owned Variant and option data only",
+      "specStatus": "accepted",
+      "useCase": "UC-CAT-PUBLIC-DETAIL",
+      "layer": "api",
+      "rule": "Public product detail exposes the complete purchasable read model"
+    },
+    {
+      "id": "SC-CAT-PUBLIC-FILTER-001",
+      "module": "catalog.public-query",
+      "feature": "modules/catalog/public-query/behavior.feature",
+      "steps": "modules/catalog/public-query/behavior.steps.ts",
+      "contract": "contracts/catalog-base.md",
+      "title": "Filter public ProductModels by Material Finish and SellingPrice",
+      "specStatus": "accepted",
+      "useCase": "UC-CAT-PUBLIC-FILTER",
+      "layer": "api",
+      "rule": "Catalog Base exposes only the committed discovery filters"
+    },
+    {
+      "id": "SC-CAT-PUBLIC-FILTER-002",
+      "module": "catalog.public-query",
+      "feature": "modules/catalog/public-query/behavior.feature",
+      "steps": "modules/catalog/public-query/behavior.steps.ts",
+      "contract": "contracts/catalog-base.md",
+      "title": "Filter the public catalog by Material and Finish references",
+      "specStatus": "accepted",
+      "useCase": "UC-CAT-PUBLIC-FILTER",
+      "layer": "api",
+      "rule": "Catalog Base exposes only the committed discovery filters"
+    },
+    {
+      "id": "SC-CAT-PUBLIC-FILTER-003",
+      "module": "catalog.public-query",
+      "feature": "modules/catalog/public-query/behavior.feature",
+      "steps": "modules/catalog/public-query/behavior.steps.ts",
+      "contract": "contracts/catalog-base.md",
+      "title": "Filter the public catalog by SellingPrice range",
+      "specStatus": "accepted",
+      "useCase": "UC-CAT-PUBLIC-FILTER",
+      "layer": "api",
+      "rule": "Catalog Base exposes only the committed discovery filters"
+    },
+    {
       "id": "SC-CAT-PUBLIC-LIST-001",
       "module": "catalog.public-query",
       "feature": "modules/catalog/public-query/behavior.feature",
@@ -1263,6 +1587,66 @@
       "useCase": "UC-CAT-PUBLIC-LIST",
       "layer": "api",
       "rule": "The public product list is an active, paginated server projection"
+    },
+    {
+      "id": "SC-CAT-PUBLIC-LIST-005",
+      "module": "catalog.public-query",
+      "feature": "modules/catalog/public-query/behavior.feature",
+      "steps": "modules/catalog/public-query/behavior.steps.ts",
+      "contract": "contracts/catalog-base.md",
+      "title": "List only Active ProductModels with publicly sellable Variants",
+      "specStatus": "accepted",
+      "useCase": "UC-CAT-PUBLIC-LIST",
+      "layer": "api",
+      "rule": "The public product list is an active, paginated server projection"
+    },
+    {
+      "id": "SC-CAT-PUBLIC-OPTIONS-001",
+      "module": "catalog.public-query",
+      "feature": "modules/catalog/public-query/behavior.feature",
+      "steps": "modules/catalog/public-query/behavior.steps.ts",
+      "contract": "contracts/catalog-base.md",
+      "title": "Exclude incompatible and non-public Variant options",
+      "specStatus": "accepted",
+      "useCase": "UC-CAT-PUBLIC-OPTIONS",
+      "layer": "api",
+      "rule": "Available options are derived from compatible publicly sellable Variants"
+    },
+    {
+      "id": "SC-CAT-PUBLIC-OPTIONS-002",
+      "module": "catalog.public-query",
+      "feature": "modules/catalog/public-query/behavior.feature",
+      "steps": "modules/catalog/public-query/behavior.steps.ts",
+      "contract": "contracts/catalog-base.md",
+      "title": "Return an empty option projection when no public Variant is compatible",
+      "specStatus": "accepted",
+      "useCase": "UC-CAT-PUBLIC-OPTIONS",
+      "layer": "api",
+      "rule": "Available options are derived from compatible publicly sellable Variants"
+    },
+    {
+      "id": "SC-CAT-PUBLIC-RESOLVE-001",
+      "module": "catalog.public-query",
+      "feature": "modules/catalog/public-query/behavior.feature",
+      "steps": "modules/catalog/public-query/behavior.steps.ts",
+      "contract": "contracts/catalog-base.md",
+      "title": "Resolve only the exact publicly sellable selected combination",
+      "specStatus": "accepted",
+      "useCase": "UC-CAT-PUBLIC-RESOLVE",
+      "layer": "api",
+      "rule": "Public Variant resolution uses an exact canonical combination"
+    },
+    {
+      "id": "SC-CAT-PUBLIC-RESOLVE-002",
+      "module": "catalog.public-query",
+      "feature": "modules/catalog/public-query/behavior.feature",
+      "steps": "modules/catalog/public-query/behavior.steps.ts",
+      "contract": "contracts/catalog-base.md",
+      "title": "Resolve equivalent canonical representations to one public Variant",
+      "specStatus": "accepted",
+      "useCase": "UC-CAT-PUBLIC-RESOLVE",
+      "layer": "api",
+      "rule": "Public Variant resolution uses an exact canonical combination"
     },
     {
       "id": "SC-CAT-PUBLIC-SEARCH-001",
@@ -1445,6 +1829,30 @@
       "rule": "Catalog Base high-level behavior remains traceable"
     },
     {
+      "id": "SC-CAT-VARIANT-COMMERCIAL-009",
+      "module": "catalog.variant",
+      "feature": "modules/catalog/variant/behavior.feature",
+      "steps": "modules/catalog/variant/behavior.steps.ts",
+      "contract": "contracts/catalog-base.md",
+      "title": "Preserve SKU and SellingPrice when a Variant becomes Inactive",
+      "specStatus": "accepted",
+      "useCase": "UC-CAT-VARIANT-COMMERCIAL",
+      "layer": "api",
+      "rule": "Inactive Variants preserve commercial history"
+    },
+    {
+      "id": "SC-CAT-VARIANT-COMMERCIAL-011",
+      "module": "catalog.variant",
+      "feature": "modules/catalog/variant/behavior.feature",
+      "steps": "modules/catalog/variant/behavior.steps.ts",
+      "contract": "contracts/catalog-base.md",
+      "title": "Derive sale readiness from Active state SKU and SellingPrice",
+      "specStatus": "accepted",
+      "useCase": "UC-CAT-VARIANT-COMMERCIAL",
+      "layer": "api",
+      "rule": "Sale readiness is derived and not a separate mutable flag"
+    },
+    {
       "id": "SC-CAT-VARIANT-DIMENSIONS-013",
       "module": "catalog.variant",
       "feature": "modules/catalog/variant/behavior.feature",
@@ -1455,6 +1863,42 @@
       "useCase": "UC-CAT-VARIANT-HIGH-LEVEL",
       "layer": "api",
       "rule": "Catalog Base high-level behavior remains traceable"
+    },
+    {
+      "id": "SC-CAT-VARIANT-IDENTITY-018",
+      "module": "catalog.variant",
+      "feature": "modules/catalog/variant/behavior.feature",
+      "steps": "modules/catalog/variant/behavior.steps.ts",
+      "contract": "contracts/catalog-base.md",
+      "title": "Change a Variant combination by replacement rather than mutation",
+      "specStatus": "accepted",
+      "useCase": "UC-CAT-VARIANT-IDENTITY",
+      "layer": "api",
+      "rule": "Variant option identity is immutable and canonical"
+    },
+    {
+      "id": "SC-CAT-VARIANT-IDENTITY-019",
+      "module": "catalog.variant",
+      "feature": "modules/catalog/variant/behavior.feature",
+      "steps": "modules/catalog/variant/behavior.steps.ts",
+      "contract": "contracts/catalog-base.md",
+      "title": "Canonicalize text selections before combination uniqueness checks",
+      "specStatus": "accepted",
+      "useCase": "UC-CAT-VARIANT-IDENTITY",
+      "layer": "api",
+      "rule": "Variant option identity is immutable and canonical"
+    },
+    {
+      "id": "SC-CAT-VARIANT-IDENTITY-020",
+      "module": "catalog.variant",
+      "feature": "modules/catalog/variant/behavior.feature",
+      "steps": "modules/catalog/variant/behavior.steps.ts",
+      "contract": "contracts/catalog-base.md",
+      "title": "Use master identity for Reference selections",
+      "specStatus": "accepted",
+      "useCase": "UC-CAT-VARIANT-IDENTITY",
+      "layer": "api",
+      "rule": "Variant option identity is immutable and canonical"
     },
     {
       "id": "SC-CAT-VARIANT-LIFECYCLE-014",
@@ -1491,6 +1935,18 @@
       "useCase": "UC-CAT-VARIANT-PACK",
       "layer": "api",
       "rule": "Pack is the source of truth for the selling unit"
+    },
+    {
+      "id": "SC-CAT-VARIANT-PACK-003",
+      "module": "catalog.variant",
+      "feature": "modules/catalog/variant/behavior.feature",
+      "steps": "modules/catalog/variant/behavior.steps.ts",
+      "contract": "contracts/catalog-base.md",
+      "title": "Fixed Pack reference does not become a Variant dimension",
+      "specStatus": "accepted",
+      "useCase": "UC-CAT-VARIANT-PACK",
+      "layer": "api",
+      "rule": "Pack can be fixed or dimensional but remains the selling-unit source"
     },
     {
       "id": "SC-CAT-VARIANT-PRICE-001",
@@ -1613,6 +2069,18 @@
       "rule": "SKU is normalized and unique"
     },
     {
+      "id": "SC-CAT-VARIANT-STRUCTURE-010",
+      "module": "catalog.variant",
+      "feature": "modules/catalog/variant/behavior.feature",
+      "steps": "modules/catalog/variant/behavior.steps.ts",
+      "contract": "contracts/catalog-base.md",
+      "title": "Reject replacing an existing VariantDimension",
+      "specStatus": "accepted",
+      "useCase": "UC-CAT-VARIANT-STRUCTURE",
+      "layer": "api",
+      "rule": "Dimension structure cannot be replaced after Variant creation"
+    },
+    {
       "id": "SC-CAT-VARIANT-TECHNICAL-015",
       "module": "catalog.variant",
       "feature": "modules/catalog/variant/behavior.feature",
@@ -1623,6 +2091,30 @@
       "useCase": "UC-CAT-VARIANT-HIGH-LEVEL",
       "layer": "api",
       "rule": "Catalog Base high-level behavior remains traceable"
+    },
+    {
+      "id": "SC-CAT-VARIANT-VALUES-016",
+      "module": "catalog.variant",
+      "feature": "modules/catalog/variant/behavior.feature",
+      "steps": "modules/catalog/variant/behavior.steps.ts",
+      "contract": "contracts/catalog-base.md",
+      "title": "Reject a Variant selection outside the dimension value set",
+      "specStatus": "accepted",
+      "useCase": "UC-CAT-VARIANT-VALUES",
+      "layer": "api",
+      "rule": "Variant selections must use active allowed values"
+    },
+    {
+      "id": "SC-CAT-VARIANT-VALUES-017",
+      "module": "catalog.variant",
+      "feature": "modules/catalog/variant/behavior.feature",
+      "steps": "modules/catalog/variant/behavior.steps.ts",
+      "contract": "contracts/catalog-base.md",
+      "title": "Deactivate a selectable value without rewriting existing Variants",
+      "specStatus": "accepted",
+      "useCase": "UC-CAT-VARIANT-VALUES",
+      "layer": "api",
+      "rule": "Variant selections must use active allowed values"
     },
     {
       "id": "SC-CHECKOUT-API-001",

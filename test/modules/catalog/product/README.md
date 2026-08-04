@@ -1,10 +1,16 @@
-# Catalog product administration
+# Retired legacy Product slice
 
-This vertical slice owns catalog administration API behavior: operator reads,
-product creation and update, category hierarchy, product editorial/media
-boundary, and transactional detail persistence. ProductModel and Variant
-policies remain in their dedicated catalog slices; admin product UI belongs to
-`admin.product`.
+This directory is retained only as a migration ledger for the pre-Catalog Base
+`Product` contract. The Catalog Base Markdown explicitly replaces that model
+with `ProductModel` and `Variant`; therefore these scenarios are deferred and
+must not be treated as accepted behavior.
 
-All steps call the real admin/public API. Authentication and the API base URL
-are resolved during scenario execution from the test environment.
+Authoritative Catalog Base behavior lives in:
+
+- `catalog.master-data`
+- `catalog.product-model`
+- `catalog.variant`
+- `catalog.public-query`
+
+Do not add new scenarios here. Retire this ledger after the legacy migration
+mapping is formally closed.

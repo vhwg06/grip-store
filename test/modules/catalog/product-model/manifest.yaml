@@ -74,4 +74,13 @@ scenarios:
   SC-CAT-MODEL-021:
     contract_refs:
       - catalog-product-model-lifecycle
-
+  SC-CAT-MODEL-022:
+  SC-CAT-MODEL-023:
+  SC-CAT-MODEL-024:
+  SC-CAT-MODEL-025:
+  SC-CAT-MODEL-026:
+  SC-CAT-MODEL-027:
+  SC-CAT-MODEL-028:
+  SC-CAT-MODEL-029:
+  SC-CAT-MODEL-030:
+  SC-CAT-MODEL-031:

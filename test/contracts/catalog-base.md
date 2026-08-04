@@ -1,25 +1,28 @@
 # Catalog Base Contract
 
-This document is the transport contract for the Catalog Base vertical slices.
-It records the public catalog and admin product surfaces used by the accepted
-API scenarios. Product lifecycle semantics remain specified by the colocated
+This document is the semantic contract for the Catalog Base vertical slices.
+The canonical machine-readable transport contract is
+`contracts/openapi.yaml`; ProductModel and Variant replace the legacy Product
+surface. Product lifecycle semantics remain specified by the colocated
 Gherkin features.
 
 <!-- contract-ref: catalog-public-product-list -->
 
 ## Public product list
 
-`GET /v1/catalog/products` is public and returns paginated active products.
-Filtering is server-side and supports category, keyword, price, brand, sort,
-page, and limit inputs. Inactive products are excluded.
+`GET /v1/catalog/product-models` is public and returns paginated Active
+ProductModels with at least one publicly sale-ready Variant. Filtering is
+server-side and supports Category, Material, Finish, SellingPrice range, sort,
+page, and limit inputs. Inactive and terminal ProductModels are excluded.
 
 <!-- contract-ref: catalog-public-product-detail -->
 
 ## Public product detail
 
-`GET /v1/catalog/products/{id}` is public and returns product core data,
-media, category, stock, and `specs`. Missing or inactive products return
-`404`. Missing optional detail rows do not make a valid product request fail.
+`GET /v1/catalog/product-models/{modelId}` is public and returns ProductModel
+content, catalog media, options, and current SellingPrice. Stock, warehouse,
+order, purchase-limit, and warranty-claim state are outside this projection.
+Missing or inactive models return `404`.
 
 <!-- contract-ref: catalog-admin-product-management -->
 
@@ -38,17 +41,41 @@ writes are transactional, and replacing details removes omitted specs.
 
 ## ProductModel lifecycle
 
-ProductModel publication scenarios use the admin product management transport
-surface while asserting the lifecycle rules declared in
+ProductModel publication uses `POST /v1/admin/catalog/product-models/{modelId}/publish`,
+`/unpublish`, and `/discontinue`; media replacement uses `/media`. The
+scenarios assert the lifecycle rules declared in
 `modules/catalog/product-model/behavior.feature`.
+
+<!-- contract-ref: catalog-master-data -->
+
+## Catalog master data
+
+Category, AttributeDefinition, EnumValue, Material, Finish, and Pack are
+admin-owned catalog masters under `/v1/admin/catalog`. Their lifecycle is
+non-destructive: deactivation rejects new assignment while preserving
+existing references. Attribute definitions use one valid typed shape
+(`Scalar`, `Enum`, or `Reference`); definitions that are already in use may
+change display metadata only. The exact request and response shapes are in
+`contracts/openapi.yaml`.
 
 <!-- contract-ref: catalog-variant-management -->
 
 ## Variant management
 
-Variant scenarios use the Catalog Base admin product transport surface while
-asserting selected option, SKU, price, and sale-readiness rules declared in
+Variant scenarios use `/v1/admin/catalog/product-models/{modelId}/variants`
+and `/v1/admin/catalog/variants/{variantId}` while asserting selected option,
+SKU, price, pack, identity, and derived sale-readiness rules declared in
 `modules/catalog/variant/behavior.feature`.
+
+<!-- contract-ref: catalog-public-variant-resolution -->
+
+## Public Variant resolution
+
+Public catalog discovery filters only by Category, Material, Finish, and
+SellingPrice in this phase. Available options are read from
+`/v1/catalog/product-models/{modelId}/options` and resolving a Variant uses
+`POST /v1/catalog/product-models/{modelId}/variants:resolve`; both are derived
+from compatible publicly sellable Variants and canonical selected options.
 
 <!-- contract-ref: catalog-cart-boundary -->
 
