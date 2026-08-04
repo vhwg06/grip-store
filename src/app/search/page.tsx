@@ -54,12 +54,9 @@ export default function SearchPage() {
         price: product.price,
         compareAtPrice: product.compareAtPrice ?? null,
         image: product.image,
-        category: product.category,
-        isHot: product.isHot ?? false,
-        stockCount: product.stock,
-        soldCount: product.sold,
+        category: categories.find((item) => String(item.id) === String(product.categoryId))?.name ?? null,
       }))}
-      categories={categories.map((categoryItem) => ({ name: categoryItem.name, icon: categoryItem.icon, sortOrder: categoryItem.sortOrder }))}
+      categories={categories.map((categoryItem) => ({ id: String(categoryItem.id), name: categoryItem.name, icon: categoryItem.icon, sortOrder: categoryItem.sortOrder }))}
     />
   )
 }
