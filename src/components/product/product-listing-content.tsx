@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import { ProductCard } from "@/components/product/product-card";
 import { ProductSidebar } from "@/components/product/product-sidebar";
 import { ChevronDown, X } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 
 export function ProductListingContent() {
   const router = useRouter();
@@ -15,13 +15,6 @@ export function ProductListingContent() {
   const category = searchParams.get("category") || undefined;
   const q = searchParams.get("q") || undefined;
   const sort = searchParams.get("sort") || "default";
-  const selectedBrands = useMemo(
-    () => (searchParams.get("brand") || "")
-      .split(",")
-      .map((value) => value.trim())
-      .filter(Boolean),
-    [searchParams]
-  );
   const minPrice = Number(searchParams.get("minPrice") || 0);
   const maxPrice = Number(searchParams.get("maxPrice") || Number.MAX_SAFE_INTEGER);
   const page = Math.max(1, Number(searchParams.get("page") || 1));
@@ -36,7 +29,6 @@ export function ProductListingContent() {
     category, 
     q, 
     sort,
-    brand: selectedBrands.join(",") || undefined,
     minPrice,
     maxPrice: maxPrice === Number.MAX_SAFE_INTEGER ? undefined : maxPrice,
     limit: pageSize,
@@ -129,7 +121,6 @@ export function ProductListingContent() {
                 className="appearance-none flex items-center gap-2 border border-[#c0a060] px-4 py-2.5 pr-9 rounded text-sm text-[#767676] font-semibold cursor-pointer bg-white"
               >
                 <option value="default">Mặc định</option>
-                <option value="popular">Phổ biến</option>
                 <option value="price_asc">Giá thấp đến cao</option>
                 <option value="price_desc">Giá cao đến thấp</option>
                 <option value="newest">Mới nhất</option>
@@ -143,27 +134,6 @@ export function ProductListingContent() {
         <div className="bg-[#f9f9f9] rounded flex items-center justify-between p-3 border border-neutral-100">
           <div className="flex items-center gap-3 flex-wrap">
             <span className="text-sm font-medium text-[#6e6e6e] font-svn-gilroy">Bộ lọc đang áp dụng:</span>
-            {selectedBrands.map((brand) => (
-              <button
-                key={brand}
-                type="button"
-                onClick={() => {
-                  const params = new URLSearchParams(searchParams.toString());
-                  const nextBrands = selectedBrands.filter((value) => value !== brand);
-                  if (nextBrands.length > 0) {
-                    params.set("brand", nextBrands.join(","));
-                  } else {
-                    params.delete("brand");
-                  }
-                  params.set("page", "1");
-                  router.push(`${pathname}?${params.toString()}`);
-                }}
-                className="flex items-center gap-1.5 bg-[#f5f5f5] border border-[#c5c5c5] rounded-full px-3 py-1"
-              >
-                <span className="text-sm font-medium text-[#090909]">{brand}</span>
-                <X className="w-3.5 h-3.5 text-[#4e4e4e]" />
-              </button>
-            ))}
             {(minPrice > 0 || maxPrice !== Number.MAX_SAFE_INTEGER) && (
               <button
                 type="button"
