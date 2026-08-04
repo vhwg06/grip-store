@@ -6,7 +6,7 @@ Runbook này mô tả quy trình vận hành deploy frontend production qua GitH
 
 - `lint` pass
 - `build` pass
-- Full Playwright pass
+- Full Cucumber acceptance pass through Playwright
 - Chỉ khi các bước trên pass mới được deploy lên VM
 
 Phạm vi bao gồm:
@@ -31,7 +31,7 @@ Không thay đổi API/runtime frontend trong tài liệu này.
 Luồng chuẩn:
 
 1. `quality-gate`: `npm ci` -> `npm run lint` -> `npm run build`
-2. `full-e2e`: chạy full Playwright (shard + merge report)
+2. `full-e2e`: chạy Cucumber feature suite qua Playwright (API + browser); Catalog expected-failure được theo dõi riêng trong giai đoạn backend chưa implement
 3. `deploy`: build image -> push GHCR -> SSH lên VM -> `docker compose pull && up -d`
 
 ## 3) Preconditions
@@ -44,9 +44,9 @@ Luồng chuẩn:
   - `GCP_VM_USER`
   - `GCP_VM_SSH_KEY`
   - `GHCR_TOKEN` (quyền `read:packages` cho VM pull private image)
-- Full test (Playwright):
-  - `GO_BACKEND_URL`
+- Full test (Cucumber scenarios executed through Playwright):
   - `NEXT_PUBLIC_APP_URL`
+  - `TEST_TENANT_ID` (an isolated tenant used by persistent mutation scenarios)
 
 Ghi chú:
 
@@ -55,7 +55,10 @@ Ghi chú:
 - Full E2E dùng trực tiếp tài khoản seed từ migration backend:
   - `test_buyer@example.com` / `Password123!`
   - `test_admin@example.com` / `Password123!`
-- Trong job `full-e2e`, frontend test được ép `NEXT_PUBLIC_API_URL = GO_BACKEND_URL` để FE và API tests cùng trỏ về cùng backend dev/staging.
+- Cucumber API scenarios use the real endpoint required by `AGENTS.md`: `TEST_API_BASE_URL=https://grip.vn/api`.
+- Browser scenarios use `TEST_WEB_BASE_URL=NEXT_PUBLIC_APP_URL` and the same Playwright adapters as API scenarios.
+- The official migration seed accounts are used by default; `TEST_USER_*` and `ADMIN_USER_*` secrets may override them.
+- `TEST_TENANT_ID` must identify the isolated test tenant for state-mutating scenarios; the pipeline fails fast if it is absent.
 - Khuyến nghị vận hành: luôn set `NEXT_PUBLIC_APP_URL` trong Secrets, không rely vào fallback `http://localhost:3000`.
 
 ### 3.4 Switch env local (dev/prod)
@@ -88,7 +91,7 @@ sudo docker ps
 
 ### 3.3 Điều kiện backend cho full test
 
-- `GO_BACKEND_URL` trỏ tới môi trường staging/production-like ổn định
+- `https://grip.vn/api` trả về ổn định trong thời gian chạy Cucumber API scenarios
 - Health endpoint backend trả về ổn định trong thời gian chạy test
 
 ## 4) Trigger và theo dõi deploy
@@ -118,8 +121,9 @@ Kỳ vọng mặc định:
   - `npm run lint` exit code 0
   - `npm run build` exit code 0
 - `full-e2e` pass:
-  - Tất cả shard pass
-  - Merge report thành công
+  - Contract/binding dry-run pass
+  - Non-Catalog API và browser jobs pass
+  - Catalog job được ghi nhận là expected failure cho tới khi backend implement
 - `deploy` pass:
   - Docker build thành công
   - Push GHCR thành công (`:<sha>` và `:latest`)
@@ -164,11 +168,11 @@ curl -I https://<DOMAIN>/
 
 ### 7.1 GitHub Actions
 
-- Mở run tương ứng và xem log theo job: `quality-gate`, `full-e2e`, `merge-reports`, `deploy`
-- Tải artifacts Playwright khi test fail:
-  - `playwright-report-shard-*`
-  - `playwright-artifacts-shard-*`
-  - `playwright-report-merged`
+- Mở run tương ứng và xem log theo job: `contract`, `test (api/browser)`, `catalog-expected-failure`, `deploy`
+- Tải artifacts Cucumber/Playwright khi test fail:
+  - `cucumber-api-non-catalog`
+  - `cucumber-browser-non-catalog`
+  - `cucumber-catalog-expected-failure`
 
 ### 7.2 VM/container
 
@@ -206,18 +210,18 @@ Xử lý:
 2. Sửa lỗi trong codebase
 3. Push lại `main` hoặc rerun sau khi fix
 
-### 9.2 Fail Playwright shard/full suite
+### 9.2 Fail Cucumber/Playwright feature suite
 
 Triệu chứng:
 
-- Một hoặc nhiều shard fail trong `full-e2e`
+- Job API hoặc browser non-Catalog fail trong workflow Playwright
 - Deploy không chạy
 
 Xử lý:
 
-1. Tải và mở `playwright-report-merged`
-2. Kiểm tra screenshot/trace/video của test fail
-3. Xác nhận `GO_BACKEND_URL` và test credentials còn hợp lệ
+1. Tải log artifact `cucumber-*-non-catalog`
+2. Kiểm tra step/scenario fail và trace của Playwright browser nếu có
+3. Xác nhận `https://grip.vn/api`, `NEXT_PUBLIC_APP_URL`, `TEST_TENANT_ID`, và test credentials còn hợp lệ
 4. Fix flaky/logic test hoặc lỗi ứng dụng, chạy lại pipeline
 
 ### 9.3 Fail push/pull GHCR hoặc docker login
