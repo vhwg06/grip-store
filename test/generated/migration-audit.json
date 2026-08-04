@@ -8,9 +8,9 @@
   "invalidTargets": [],
   "orphanScenarios": [],
   "dispositions": {
-    "deferred": 2,
+    "deferred": 1,
     "merged": 181,
-    "migrated": 192
+    "migrated": 193
   },
   "pendingSources": []
 }
