@@ -20,6 +20,23 @@ import type {
   AdminLead,
   AdminOrderDetails
 } from "@/domain/admin"
+import type {
+  CatalogAttributeDefinition,
+  CatalogCategory,
+  CatalogMaster,
+  CatalogMasterKind,
+  CatalogProductImage,
+  CatalogProductModel,
+  CatalogVariant,
+  CatalogVariantDimension,
+} from "@/domain/catalog"
+import {
+  normalizeCatalogAttributeDefinition,
+  normalizeCatalogMaster,
+  normalizeCatalogProductModel,
+  normalizeCatalogVariant,
+  unwrapCatalogPayload,
+} from "@/adapters/api/catalog-model"
 
 function qs(params: Record<string, string | number | boolean | null | undefined>) {
   const search = new URLSearchParams()
@@ -122,6 +139,253 @@ function deleteJson(path: string, body?: unknown) {
     method: "DELETE",
     body: body === undefined ? undefined : JSON.stringify(body),
   }).then(normalizeActionResult)
+}
+
+function catalogList(payload: unknown): unknown[] {
+  const value = unwrapCatalogPayload(payload) as any
+  if (Array.isArray(value)) return value
+  return Array.isArray(value?.items) ? value.items : []
+}
+
+export async function getCatalogCategories(): Promise<CatalogCategory[]> {
+  const payload = await apiFetch<unknown>("/api/admin/catalog/categories")
+  return catalogList(payload).map((value: any) => ({
+    id: String(value?.id ?? ""),
+    name: String(value?.name ?? ""),
+    slug: value?.slug ?? undefined,
+    icon: null,
+    sortOrder: Number(value?.position ?? 0),
+    parentId: value?.parentId ?? value?.parent_id ?? null,
+    active: value?.active !== false,
+  }))
+}
+
+export async function saveCatalogCategory(
+  input: { id?: string; name: string; slug: string; parentId?: string | null; position: number; active?: boolean },
+): Promise<CatalogCategory> {
+  const { id, ...body } = input
+  const payload = await apiFetch<unknown>(
+    id
+      ? `/api/admin/catalog/categories/${encodeURIComponent(id)}`
+      : "/api/admin/catalog/categories",
+    { method: id ? "PATCH" : "POST", body: JSON.stringify(body) },
+  )
+  const value = (unwrapCatalogPayload(payload) ?? {}) as Record<string, unknown>
+  return {
+    id: String(value.id ?? ""),
+    name: String(value.name ?? ""),
+    slug: value.slug == null ? undefined : String(value.slug),
+    icon: null,
+    sortOrder: Number(value.position ?? 0),
+    parentId: value.parentId == null ? null : String(value.parentId),
+    active: value.active !== false,
+  }
+}
+
+export async function deactivateCatalogCategory(id: string): Promise<void> {
+  await apiFetch<unknown>(
+    `/api/admin/catalog/categories/${encodeURIComponent(id)}/deactivate`,
+    { method: "POST" },
+  )
+}
+
+export async function getCatalogAttributeDefinitions(): Promise<CatalogAttributeDefinition[]> {
+  const payload = await apiFetch<unknown>("/api/admin/catalog/attribute-definitions")
+  return catalogList(payload)
+    .map(normalizeCatalogAttributeDefinition)
+    .sort((left, right) => left.ordering - right.ordering || left.displayName.localeCompare(right.displayName))
+}
+
+export async function saveCatalogAttributeDefinition(
+  input: Record<string, unknown> & { id?: string },
+): Promise<CatalogAttributeDefinition> {
+  const { id, ...body } = input
+  const payload = await apiFetch<unknown>(
+    id
+      ? `/api/admin/catalog/attribute-definitions/${encodeURIComponent(id)}`
+      : "/api/admin/catalog/attribute-definitions",
+    {
+      method: id ? "PATCH" : "POST",
+      body: JSON.stringify(body),
+    },
+  )
+  return normalizeCatalogAttributeDefinition(payload)
+}
+
+export async function deactivateCatalogAttributeDefinition(id: string): Promise<CatalogAttributeDefinition> {
+  const payload = await apiFetch<unknown>(
+    `/api/admin/catalog/attribute-definitions/${encodeURIComponent(id)}/deactivate`,
+    { method: "POST" },
+  )
+  return normalizeCatalogAttributeDefinition(payload)
+}
+
+export async function addCatalogEnumValue(
+  definitionId: string,
+  input: { key: string; label: string },
+): Promise<void> {
+  await apiFetch<unknown>(
+    `/api/admin/catalog/attribute-definitions/${encodeURIComponent(definitionId)}/enum-values`,
+    { method: "POST", body: JSON.stringify(input) },
+  )
+}
+
+export async function deactivateCatalogEnumValue(definitionId: string, valueId: string): Promise<void> {
+  await apiFetch<unknown>(
+    `/api/admin/catalog/attribute-definitions/${encodeURIComponent(definitionId)}/enum-values/${encodeURIComponent(valueId)}/deactivate`,
+    { method: "POST" },
+  )
+}
+
+export async function getCatalogMasters(kind: CatalogMasterKind): Promise<CatalogMaster[]> {
+  const payload = await apiFetch<unknown>(`/api/admin/catalog/masters/${kind}`)
+  return catalogList(payload).map(normalizeCatalogMaster)
+}
+
+export async function saveCatalogMaster(
+  kind: CatalogMasterKind,
+  input: Record<string, unknown> & { id?: string },
+): Promise<CatalogMaster> {
+  const { id, ...body } = input
+  const payload = await apiFetch<unknown>(
+    id
+      ? `/api/admin/catalog/masters/${kind}/${encodeURIComponent(id)}`
+      : `/api/admin/catalog/masters/${kind}`,
+    {
+      method: id ? "PATCH" : "POST",
+      body: JSON.stringify(body),
+    },
+  )
+  return normalizeCatalogMaster(payload)
+}
+
+export async function deactivateCatalogMaster(kind: CatalogMasterKind, id: string): Promise<CatalogMaster> {
+  const payload = await apiFetch<unknown>(
+    `/api/admin/catalog/masters/${kind}/${encodeURIComponent(id)}/deactivate`,
+    { method: "POST" },
+  )
+  return normalizeCatalogMaster(payload)
+}
+
+export async function getCatalogProductModels(): Promise<CatalogProductModel[]> {
+  const payload = await apiFetch<unknown>("/api/admin/catalog/product-models")
+  return catalogList(payload).map(normalizeCatalogProductModel)
+}
+
+export async function getCatalogProductModel(id: string): Promise<CatalogProductModel> {
+  const payload = await apiFetch<unknown>(
+    `/api/admin/catalog/product-models/${encodeURIComponent(id)}`,
+  )
+  return normalizeCatalogProductModel(payload)
+}
+
+export async function getCatalogProductModelForm(id?: string) {
+  const [model, categories, definitions, materials, finishes, packs] = await Promise.all([
+    id ? getCatalogProductModel(id) : Promise.resolve(null),
+    getCatalogCategories(),
+    getCatalogAttributeDefinitions(),
+    getCatalogMasters("material"),
+    getCatalogMasters("finish"),
+    getCatalogMasters("pack"),
+  ])
+  return {
+    model,
+    categories,
+    definitions,
+    masters: { material: materials, finish: finishes, pack: packs },
+  }
+}
+
+export async function saveCatalogProductModel(
+  input: Record<string, unknown> & { id?: string },
+): Promise<CatalogProductModel> {
+  const { id, ...body } = input
+  const payload = await apiFetch<unknown>(
+    id
+      ? `/api/admin/catalog/product-models/${encodeURIComponent(id)}`
+      : "/api/admin/catalog/product-models",
+    {
+      method: id ? "PATCH" : "POST",
+      body: JSON.stringify(body),
+    },
+  )
+  return normalizeCatalogProductModel(payload)
+}
+
+export async function replaceCatalogProductMedia(
+  modelId: string,
+  images: Array<Omit<CatalogProductImage, "id">>,
+): Promise<CatalogProductModel> {
+  const payload = await apiFetch<unknown>(
+    `/api/admin/catalog/product-models/${encodeURIComponent(modelId)}/media`,
+    { method: "PUT", body: JSON.stringify({ images }) },
+  )
+  return normalizeCatalogProductModel(payload)
+}
+
+export async function transitionCatalogProductModel(
+  modelId: string,
+  action: "publish" | "unpublish" | "discontinue",
+): Promise<CatalogProductModel> {
+  const payload = await apiFetch<unknown>(
+    `/api/admin/catalog/product-models/${encodeURIComponent(modelId)}/${action}`,
+    { method: "POST" },
+  )
+  return normalizeCatalogProductModel(payload)
+}
+
+export async function createCatalogVariantDimension(
+  modelId: string,
+  input: { definitionId: string; allowedValues: Array<{ id: string; label: string; active: boolean }> },
+): Promise<CatalogVariantDimension> {
+  return apiFetch<CatalogVariantDimension>(
+    `/api/admin/catalog/product-models/${encodeURIComponent(modelId)}/variant-dimensions`,
+    { method: "POST", body: JSON.stringify(input) },
+  )
+}
+
+export async function addCatalogVariantDimensionValue(
+  modelId: string,
+  dimensionId: string,
+  input: { id: string; label: string; active: boolean },
+): Promise<CatalogVariantDimension> {
+  return apiFetch<CatalogVariantDimension>(
+    `/api/admin/catalog/product-models/${encodeURIComponent(modelId)}/variant-dimensions/${encodeURIComponent(dimensionId)}/values`,
+    { method: "POST", body: JSON.stringify(input) },
+  )
+}
+
+export async function createCatalogVariant(
+  modelId: string,
+  input: Record<string, unknown>,
+): Promise<CatalogVariant> {
+  const payload = await apiFetch<unknown>(
+    `/api/admin/catalog/product-models/${encodeURIComponent(modelId)}/variants`,
+    { method: "POST", body: JSON.stringify(input) },
+  )
+  return normalizeCatalogVariant(payload)
+}
+
+export async function updateCatalogVariant(
+  variantId: string,
+  input: Record<string, unknown>,
+): Promise<CatalogVariant> {
+  const payload = await apiFetch<unknown>(
+    `/api/admin/catalog/variants/${encodeURIComponent(variantId)}`,
+    { method: "PATCH", body: JSON.stringify(input) },
+  )
+  return normalizeCatalogVariant(payload)
+}
+
+export async function transitionCatalogVariant(
+  variantId: string,
+  action: "activate" | "inactivate",
+): Promise<CatalogVariant> {
+  const payload = await apiFetch<unknown>(
+    `/api/admin/catalog/variants/${encodeURIComponent(variantId)}/${action}`,
+    { method: "POST" },
+  )
+  return normalizeCatalogVariant(payload)
 }
 
 export async function checkAdmin() {

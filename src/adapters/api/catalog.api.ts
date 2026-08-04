@@ -3,14 +3,20 @@
 import { apiFetch } from "@/adapters/api/http-client"
 import type {
   CatalogCategory,
-  CatalogLinkedArticle,
-  CatalogProduct,
-  CatalogProductDetail,
-  CatalogProductsResponse,
   CatalogSearchParams,
   CatalogSettings,
   CatalogProductViewState,
+  CatalogAvailableOption,
+  CatalogProductsResponse,
+  CatalogVariant,
 } from "@/domain/catalog"
+import {
+  catalogProductFromModel,
+  normalizeCatalogOptions,
+  normalizeCatalogProductModel,
+  normalizeCatalogVariant,
+  unwrapCatalogPayload,
+} from "@/adapters/api/catalog-model"
 
 function withQuery(path: string, params: Record<string, string | number | undefined | null>) {
   const search = new URLSearchParams()
@@ -26,157 +32,108 @@ function withQuery(path: string, params: Record<string, string | number | undefi
   return query ? `${path}?${query}` : path
 }
 
-function normalizeProduct(product: Partial<CatalogProduct>): CatalogProduct {
-  const raw = product as any
-  const rawSpecs = Array.isArray(raw.specs)
-    ? raw.specs
-    : (Array.isArray(raw.details) ? raw.details : [])
-  const specs = rawSpecs
-    .map((spec: any) => ({
-      key: String(spec?.key ?? spec?.label ?? "").trim(),
-      value: String(spec?.value ?? "").trim(),
-    }))
-    .filter((spec: { key: string; value: string }) => spec.key.length > 0)
+type UnknownRecord = Record<string, unknown>
 
-  const introArticle: CatalogLinkedArticle | null = raw.intro_article
-    ? {
-        id: String(raw.intro_article.id ?? ""),
-        title: String(raw.intro_article.title ?? ""),
-        slug: String(raw.intro_article.slug ?? ""),
-        content: String(raw.intro_article.content ?? raw.intro_article.body ?? ""),
-        featuredImage:
-          raw.intro_article.featuredImage ??
-          raw.intro_article.featured_image ??
-          raw.intro_article.image_url ??
-          raw.intro_article.image ??
-          null,
-      }
-    : null
-
-  return {
-    id: String(product.id || ""),
-    name: String(product.name || raw.title || ""),
-    description: product.description ?? null,
-    price: String(product.price !== undefined ? product.price : "0"),
-    compareAtPrice: product.compareAtPrice !== undefined 
-      ? product.compareAtPrice 
-      : (raw.compare_price !== undefined ? String(raw.compare_price) : null),
-    image: product.image ?? raw.image_url ?? null,
-    images: Array.isArray(product.images) ? product.images : [],
-    category: product.category ?? null,
-    categoryId: typeof product.categoryId === 'number' 
-      ? product.categoryId 
-      : (typeof raw.category_id === 'number' ? raw.category_id : undefined),
-    brand: product.brand ?? undefined,
-    brandId: typeof product.brandId === 'number' 
-      ? product.brandId 
-      : (typeof raw.brand_id === 'number' ? raw.brand_id : undefined),
-    sku: product.sku ?? undefined,
-    isHot: Boolean(product.isHot),
-    isNew: Boolean(product.isNew),
-    isBestSeller: Boolean(product.isBestSeller),
-    isShared: Boolean(product.isShared),
-    purchaseLimit: product.purchaseLimit ?? null,
-    purchaseWarning: product.purchaseWarning ?? null,
-    visibilityLevel: Number(product.visibilityLevel ?? -1),
-    stock: Number(product.stock !== undefined ? product.stock : (raw.stock_count !== undefined ? raw.stock_count : 0)),
-    sold: Number(product.sold !== undefined ? product.sold : (raw.sold_count !== undefined ? raw.sold_count : 0)),
-    rating: Number(product.rating ?? 0),
-    reviewCount: Number(product.reviewCount ?? 0),
-    specs,
-    usageGuide: product.usageGuide ?? null,
-    bundledGifts: product.bundledGifts ?? null,
-    discountPercent: typeof product.discountPercent === 'number' ? product.discountPercent : undefined,
-    introArticleId: raw.intro_article_id ?? raw.introArticleId ?? null,
-    introArticle,
-  }
+function object(value: unknown): UnknownRecord {
+  return value && typeof value === "object" && !Array.isArray(value)
+    ? value as UnknownRecord
+    : {}
 }
 
-function normalizeProductsResponse(payload: unknown, fallback: CatalogSearchParams = {}): CatalogProductsResponse {
-  const value = (payload ?? {}) as any
-  
-  // Unwrap Go backend response envelope {"data": [...], "meta": ...} or use array fallback
-  const rawItems = Array.isArray(value) 
-    ? value 
-    : (Array.isArray(value.data) ? value.data : (Array.isArray(value.items) ? value.items : []))
-    
-  const items = rawItems.map((item: any) => normalizeProduct(item))
+export async function getActiveProducts(options: CatalogSearchParams = {}): Promise<CatalogProductsResponse> {
+  const supportedSort = options.sort === "price_asc" || options.sort === "price_desc" || options.sort === "newest"
+    ? options.sort
+    : undefined
+  const payload = await apiFetch<unknown>(
+    withQuery("/api/catalog/product-models", {
+      search: options.q,
+      categoryId: options.category && options.category !== "all" ? options.category : undefined,
+      minPrice: options.minPrice,
+      maxPrice: options.maxPrice,
+      page: options.page,
+      limit: options.limit,
+      sort: supportedSort,
+    }),
+  )
+
+  const value = unwrapCatalogPayload(payload)
+  const record = object(value)
+  const rawItems = Array.isArray(value)
+    ? value
+    : (Array.isArray(record.items) ? record.items : [])
+  const items = rawItems
+    .map(normalizeCatalogProductModel)
+    .map(catalogProductFromModel)
 
   return {
     items,
-    page: Number(value.page ?? value.meta?.page ?? fallback.page ?? 1),
-    limit: Number(value.limit ?? value.meta?.limit ?? fallback.limit ?? 20),
-    total: Number(value.total ?? value.meta?.total ?? items.length),
+    page: Number(record.page ?? options.page ?? 1),
+    limit: Number(record.limit ?? options.limit ?? 20),
+    total: Number(record.total ?? items.length),
   }
-}
-
-export async function getActiveProducts(options: CatalogSearchParams = {}) {
-  const payload = await apiFetch<unknown>(
-    withQuery("/api/catalog/products", {
-      q: options.q,
-      category: options.category,
-      brand: options.brand,
-      minPrice: options.minPrice,
-      maxPrice: options.maxPrice,
-      page: options.page,
-      limit: options.limit,
-      sort: options.sort,
-    }),
-  )
-
-  return normalizeProductsResponse(payload, options)
 }
 
 export async function getProduct(id: string): Promise<CatalogProductViewState> {
-  const payload = await apiFetch<unknown>(`/api/catalog/products/${encodeURIComponent(id)}`)
-  const value = (payload ?? {}) as any
-
-  // Unwrap Go backend success envelope {"data": { ...product... }} or use fallback
-  const rawProduct = value.data !== undefined ? value.data : (value.product !== undefined ? value.product : value)
+  const payload = await apiFetch<unknown>(`/api/catalog/product-models/${encodeURIComponent(id)}`)
+  const model = normalizeCatalogProductModel(payload)
 
   return {
-    product: rawProduct ? normalizeProduct(rawProduct) : null,
-    requiredLevel: value.requiredLevel ?? null,
+    product: model.id ? catalogProductFromModel(model) : null,
+    requiredLevel: null,
   }
 }
 
-export async function searchProducts(options: CatalogSearchParams = {}) {
-  const payload = await apiFetch<unknown>(
-    withQuery("/api/catalog/search", {
-      q: options.q,
-      category: options.category,
-      brand: options.brand,
-      minPrice: options.minPrice,
-      maxPrice: options.maxPrice,
-      page: options.page,
-      limit: options.limit,
-      sort: options.sort,
-    }),
-  )
-
-  return normalizeProductsResponse(payload, options)
+export async function searchProducts(options: CatalogSearchParams = {}): Promise<CatalogProductsResponse> {
+  return getActiveProducts(options)
 }
 
-export async function getCategories() {
+export async function getProductModelOptions(
+  modelId: string,
+  selected: Record<string, string>,
+): Promise<CatalogAvailableOption[]> {
+  const payload = await apiFetch<unknown>(
+    withQuery(`/api/catalog/product-models/${encodeURIComponent(modelId)}/options`, {
+      selected: JSON.stringify(selected),
+    }),
+  )
+  return normalizeCatalogOptions(payload)
+}
+
+export async function resolveProductModelVariant(
+  modelId: string,
+  selectedOptions: Record<string, string>,
+): Promise<CatalogVariant> {
+  const payload = await apiFetch<unknown>(
+    `/api/catalog/product-models/${encodeURIComponent(modelId)}/variants:resolve`,
+    {
+      method: "POST",
+      body: JSON.stringify({ selectedOptions }),
+    },
+  )
+  return normalizeCatalogVariant(unwrapCatalogPayload(payload))
+}
+
+export async function getCategories(): Promise<CatalogCategory[]> {
   const payload = await apiFetch<unknown>("/api/catalog/categories")
-  const value = payload as any
+  const value = unwrapCatalogPayload(payload)
+  const record = object(value)
   const items = Array.isArray(value)
     ? value
-    : (Array.isArray(value?.data)
-      ? value.data
-      : (Array.isArray(value?.items)
-        ? value.items
-        : []))
+    : (Array.isArray(record.items) ? record.items : [])
 
-  return items.map((item: any): CatalogCategory => ({
-    id: item.id,
-    name: String(item.name || ""),
-    slug: item.slug ?? undefined,
-    icon: item.icon ?? null,
-    sortOrder: Number(item.sortOrder ?? 0),
-    parentId: item.parentId ?? null,
-    productCount: item.productCount ?? undefined,
-  }))
+  return items.map((value): CatalogCategory => {
+    const item = object(value)
+    return {
+      id: String(item.id ?? ""),
+      name: String(item.name || ""),
+      slug: item.slug == null ? undefined : String(item.slug),
+      icon: item.icon == null ? null : String(item.icon),
+      sortOrder: Number(item.position ?? item.sortOrder ?? 0),
+      parentId: item.parentId == null ? null : String(item.parentId),
+      productCount: item.productCount == null ? undefined : Number(item.productCount),
+      active: item.active !== false,
+    }
+  })
 }
 
 export async function getCategoryTree() {

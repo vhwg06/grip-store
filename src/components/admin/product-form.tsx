@@ -1,769 +1,432 @@
-'use client'
+"use client"
 
-import { getProductForAdminAction, saveProduct, updateProductIntroArticle } from "@/adapters/api/admin.api"
-import { useAdminArticles } from "@/application/hooks/useAdmin"
+import { useEffect, useMemo, useState, type ReactNode } from "react"
+import Link from "next/link"
+import { useRouter } from "next/navigation"
+import { Boxes, ImageIcon, Plus, Ruler, Save, ShieldCheck, Tags } from "lucide-react"
+import { toast } from "sonner"
+import {
+  createCatalogVariant,
+  createCatalogVariantDimension,
+  replaceCatalogProductMedia,
+  saveCatalogProductModel,
+  transitionCatalogProductModel,
+  transitionCatalogVariant,
+} from "@/adapters/api/admin.api"
+import MediaUploader from "@/components/admin/media-uploader"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { useEffect, useRef, useState } from "react"
-import { toast } from "sonner"
-import { useRouter } from "next/navigation"
-import { useI18n } from "@/lib/i18n/context"
-import MediaUploader from "@/components/admin/media-uploader"
-import Link from "next/link"
+import type {
+  CatalogAttributeDefinition,
+  CatalogCategory,
+  CatalogMaster,
+  CatalogProductModel,
+} from "@/domain/catalog"
 import { buildExportRoutePath } from "@/lib/export-route"
 
 interface ProductFormProps {
-    product?: any
-    categories?: Array<{ id?: string | number; name: string; slug?: string }>
-    isCreate?: boolean
+  model?: CatalogProductModel | null
+  categories: CatalogCategory[]
+  definitions: CatalogAttributeDefinition[]
+  masters: Record<"material" | "finish" | "pack", CatalogMaster[]>
+  isCreate?: boolean
+  onChanged?: () => Promise<unknown>
 }
 
-export default function ProductForm({ product, categories = [], isCreate = false }: ProductFormProps) {
-    const router = useRouter()
-    const { t } = useI18n()
-    const submitLock = useRef(false)
-    const mediaLock = useRef(false)
+type MeasurementRow = { key: string; value: string; unit: string }
 
-    const [currentProduct, setCurrentProduct] = useState(product)
-    const [formSeed, setFormSeed] = useState(0)
-    const [generalSaving, setGeneralSaving] = useState(false)
-    const [mediaSaving, setMediaSaving] = useState(false)
-    const [introSaving, setIntroSaving] = useState(false)
+function rawValue(value: unknown): string {
+  if (value == null) return ""
+  if (typeof value === "object" && !Array.isArray(value)) {
+    return String((value as Record<string, unknown>).value ?? "")
+  }
+  return String(value)
+}
 
-    const [visibilityLevel, setVisibilityLevel] = useState(String(product?.visibilityLevel ?? -1))
-    const [mainImage, setMainImage] = useState(product?.image || "")
-    const [galleryImages, setGalleryImages] = useState<string[]>(product?.images || [])
-    const [specs, setSpecs] = useState<Array<{ key: string; value: string }>>(product?.specs || [])
-    const [linkedArticleId, setLinkedArticleId] = useState<string>(product?.introArticleId ?? product?.introArticle?.id ?? "")
-    const { data: articles = [] } = useAdminArticles()
-
-    // Validation state for the publish checklist panel
-    const hasSlug = Boolean(currentProduct?.id)
-    const hasPrice = Boolean(currentProduct?.price && Number(currentProduct.price) > 0)
-    const hasPrimaryImage = Boolean(mainImage)
-    const hasCategory = Boolean(currentProduct?.categoryId)
-    const linkedArticle = articles.find((article) => article.id === linkedArticleId) ?? currentProduct?.introArticle ?? null
-
-    const publishReady = hasSlug && hasPrice && hasPrimaryImage && hasCategory
-
-    useEffect(() => {
-        setCurrentProduct(product)
-        setMainImage(product?.image || "")
-        setGalleryImages(product?.images || [])
-        setVisibilityLevel(String(product?.visibilityLevel ?? -1))
-        setLinkedArticleId(product?.introArticleId ?? product?.introArticle?.id ?? "")
-        setFormSeed(s => s + 1)
-        if (product?.specs) setSpecs(product.specs)
-        else setSpecs([])
-    }, [product?.id])
-
-    // Refresh product data from backend after load (for edit)
-    useEffect(() => {
-        if (!product?.id) return
-        let active = true
-        ;(async () => {
-            try {
-                const latest = await getProductForAdminAction(product.id)
-                if (!active || !latest) return
-                setCurrentProduct(latest as any)
-                setMainImage((latest as any)?.image || "")
-                setGalleryImages((latest as any)?.images || [])
-                setVisibilityLevel(String((latest as any)?.visibilityLevel ?? -1))
-                setLinkedArticleId((latest as any)?.introArticleId ?? (latest as any)?.introArticle?.id ?? "")
-                setFormSeed(s => s + 1)
-                if ((latest as any)?.specs) setSpecs((latest as any).specs)
-            } catch { /* ignore */ }
-        })()
-        return () => { active = false }
-    }, [product?.id])
-
-    // --- General fields save ---
-    async function handleSaveGeneral(e: React.FormEvent<HTMLFormElement>) {
-        e.preventDefault()
-        if (submitLock.current) return
-        submitLock.current = true
-        setGeneralSaving(true)
-        try {
-            const form = e.currentTarget
-            const formData = new FormData(form)
-            // Keep existing images if not changed in general save
-            formData.delete("image")
-            formData.delete("images")
-            formData.set("image", mainImage)
-            formData.set("images", galleryImages.join("\n"))
-
-            const cleanedSpecs = specs.filter(s => s.key.trim() !== "")
-            formData.set("specs", JSON.stringify(cleanedSpecs))
-            if (linkedArticleId) {
-                formData.set("introArticleId", linkedArticleId)
-            }
-
-            const res = await saveProduct(formData)
-            if (res.success === false) {
-                toast.error((res as any).error || t('common.error'))
-            } else {
-                toast.success(isCreate ? "Draft created!" : "General info saved!")
-                if (isCreate) {
-                    // Redirect to edit page with the returned product id
-                    const createdId = (res as any).id || (res as any).data?.id
-                    if (createdId) {
-                        router.push(buildExportRoutePath("/admin/product/edit", String(createdId)))
-                    } else {
-                        router.push("/admin/products")
-                    }
-                } else {
-                    router.refresh()
-                }
-            }
-        } catch (e: any) {
-            toast.error(e?.message || t('common.error'))
-        } finally {
-            setGeneralSaving(false)
-            submitLock.current = false
-        }
-    }
-
-    async function handleSaveIntroArticle() {
-        if (!currentProduct?.id) return
-        setIntroSaving(true)
-        try {
-            const res = await updateProductIntroArticle(currentProduct.id, linkedArticleId || null)
-            if (res.success === false) {
-                toast.error((res as any).error || t('common.error'))
-            } else {
-                toast.success(linkedArticleId ? "Intro article linked!" : "Intro article cleared!")
-                router.refresh()
-            }
-        } catch (e: any) {
-            toast.error(e?.message || t('common.error'))
-        } finally {
-            setIntroSaving(false)
-        }
-    }
-
-    // --- Media save (edit mode only) ---
-    async function handleSaveMedia() {
-        if (!currentProduct?.id || mediaLock.current) return
-        mediaLock.current = true
-        setMediaSaving(true)
-        try {
-            const formData = new FormData()
-            formData.set("id", currentProduct.id)
-            formData.set("image", mainImage)
-            formData.set("images", galleryImages.join("\n"))
-            const res = await saveProduct(formData)
-            if (res.success === false) {
-                toast.error((res as any).error || t('common.error'))
-            } else {
-                toast.success("Media saved!")
-                router.refresh()
-            }
-        } catch (e: any) {
-            toast.error(e?.message || t('common.error'))
-        } finally {
-            setMediaSaving(false)
-            mediaLock.current = false
-        }
-    }
-
-    const handleAddSpec = () => setSpecs(prev => [...prev, { key: "", value: "" }])
-    const handleSpecChange = (i: number, field: "key" | "value", val: string) => {
-        setSpecs(prev => { const n = [...prev]; n[i] = { ...n[i], [field]: val }; return n })
-    }
-    const handleRemoveSpec = (i: number) => setSpecs(prev => prev.filter((_, idx) => idx !== i))
-    const productEditorReturnTo = currentProduct?.id
-        ? buildExportRoutePath("/admin/product/edit", String(currentProduct.id))
-        : "/admin/products"
-    const createLinkedArticleHref = `/admin/articles?compose=new&linkProductId=${encodeURIComponent(String(currentProduct?.id ?? ""))}&returnTo=${encodeURIComponent(productEditorReturnTo)}&returnLabel=${encodeURIComponent("Product Editor")}`
-    const editLinkedArticleHref = linkedArticle?.id
-        ? `/admin/articles?articleId=${encodeURIComponent(String(linkedArticle.id))}&linkProductId=${encodeURIComponent(String(currentProduct?.id ?? ""))}&returnTo=${encodeURIComponent(productEditorReturnTo)}&returnLabel=${encodeURIComponent("Product Editor")}`
-        : null
-
-
-    return (
-        <div className="w-[1056px]">
-            {/* Breadcrumbs */}
-            <div className="flex items-center gap-1.5 text-xs text-[#787774] mb-1 font-medium mt-[26px]">
-                <span>Admin</span>
-                <span>/</span>
-                <span>Catalog</span>
-                <span>/</span>
-                <span className="text-foreground font-medium">
-                    {isCreate ? "Product Create" : "Product Editor"}
-                </span>
-            </div>
-
-            {/* Title & CTA row */}
-            <div className="flex items-center justify-between mt-[57px] mb-[12px] leading-none">
-                <h1 className="text-[32px] font-bold tracking-tight text-[#211e18] font-svn-gilroy">
-                    {isCreate ? "Product Create" : "Product Editor"}
-                </h1>
-                <div className="flex items-center gap-3">
-                    <Button
-                        type="submit"
-                        form="product-general-form"
-                        disabled={generalSaving}
-                        className="w-[153px] h-10 bg-[#99782b] hover:bg-[#99782b]/90 text-white rounded-lg text-sm font-semibold border-none"
-                    >
-                        {generalSaving
-                            ? "Saving..."
-                            : isCreate ? "Create draft" : "Save product"}
-                    </Button>
-                </div>
-            </div>
-
-            {/* Subtitle */}
-            <p className="text-sm text-[#71685a] mt-[12px] mb-[34px]">
-                {isCreate
-                    ? "Create a new product with commercial fields, media, and SEO checks in separate save-safe groups."
-                    : "Edit an existing product with loaded state, blocked publish rules, inline media updates, and route-safe error handling."}
-            </p>
-
-            {/* Stats Cards Row */}
-            <div className="flex gap-6 mb-8 w-[1056px]">
-                <div className="w-[220px] h-[100px] bg-white border border-[#e7e1d7] rounded-lg p-5 flex flex-col justify-between">
-                    <span className="text-xs text-[#71685a] font-medium">Drafts</span>
-                    <span className="text-2xl font-bold text-[#211e18]">
-                        {!currentProduct?.isActive ? 1 : 0}
-                    </span>
-                </div>
-                <div className="w-[220px] h-[100px] bg-white border border-[#e7e1d7] rounded-lg p-5 flex flex-col justify-between">
-                    <span className="text-xs text-[#71685a] font-medium">Published</span>
-                    <span className="text-2xl font-bold text-[#211e18]">
-                        {currentProduct?.isActive ? 1 : 0}
-                    </span>
-                </div>
-
-                <div className="w-[324px] h-[100px] bg-[#fffcf6] border border-[#e7e1d7] rounded-lg p-5 text-xs text-[#71685a] leading-relaxed flex items-center">
-                    {isCreate
-                        ? "Slug, category, price, and visibility rules validate before first publish."
-                        : "Edit route shows loading, not-found, and blocked publish states before save."}
-                </div>
-            </div>
-
-            {/* Main two-column layout */}
-            <div className="flex items-start gap-6 w-[1056px]">
-
-                {/* LEFT: General form */}
-                <div className="w-[648px]">
-                    <form
-                        id="product-general-form"
-                        key={formSeed}
-                        onSubmit={handleSaveGeneral}
-                    >
-                        {/* Hidden product ID for updates */}
-                        {currentProduct?.id && (
-                            <input type="hidden" name="id" value={currentProduct.id} />
-                        )}
-
-                        {/* Form container card */}
-                        <div className="bg-white border border-[#e7e1d7] rounded-lg p-6 space-y-5">
-
-                            {/* Route-safe not-found banner for edit mode */}
-                            {!isCreate && !currentProduct && (
-                                <div className="bg-[#fff1f0] border border-[#ffccc7] rounded-lg p-3 text-xs text-[#a33b2b] font-medium">
-                                    If the product cannot load, replace the form with a route-safe not-found panel.
-                                </div>
-                            )}
-
-                            {/* Slug (new only) */}
-                            {isCreate && (
-                                <div className="space-y-1.5">
-                                    <Label htmlFor="slug" className="text-xs font-semibold text-[#211e18]">
-                                        Product URL slug
-                                    </Label>
-                                    <div className="flex items-center gap-2">
-                                        <span className="text-sm text-[#9a9184]">/buy/</span>
-                                        <Input
-                                            id="slug"
-                                            name="slug"
-                                            placeholder="e.g. daytona-cnc-carbon"
-                                            pattern="^[a-zA-Z0-9_-]+$"
-                                            className="flex-1 h-9 border-[#e7e1d7] focus-visible:ring-[#99782b]/30 text-sm"
-                                        />
-                                    </div>
-                                    <p className="text-[11px] text-[#9a9184]">URL-safe slug, set once. Cannot be changed after creation.</p>
-                                </div>
-                            )}
-
-                            {/* Product name */}
-                            <div className="space-y-1.5">
-                                <Label htmlFor="name" className="text-xs font-semibold text-[#211e18]">
-                                    Product title
-                                </Label>
-                                <Input
-                                    data-testid="field-title"
-                                    id="name"
-                                    name="name"
-                                    defaultValue={currentProduct?.name}
-                                    placeholder="e.g. Daytona CNC Grip Carbon"
-                                    required
-                                    className="h-9 border-[#e7e1d7] focus-visible:ring-[#99782b]/30 text-sm"
-                                />
-                            </div>
-
-                            {/* Price & Stock row */}
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-1.5">
-                                    <Label htmlFor="price" className="text-xs font-semibold text-[#211e18]">
-                                        Price (VNĐ)
-                                    </Label>
-                                    <Input
-                                        data-testid="field-price"
-                                        id="price"
-                                        name="price"
-                                        type="number"
-                                        step="0.01"
-                                        defaultValue={currentProduct?.price}
-                                        placeholder="0.00"
-                                        required
-                                        className="h-9 border-[#e7e1d7] focus-visible:ring-[#99782b]/30 text-sm"
-                                    />
-                                </div>
-                                <div className="space-y-1.5">
-                                    <Label className="text-xs font-semibold text-[#211e18]">Stock</Label>
-                                    <div className="h-9 border border-[#e7e1d7] rounded-md bg-[#f8f5ef] px-3 flex items-center text-sm text-[#787774]">
-                                        {currentProduct?.stock ?? 0} in stock
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Compare-at price */}
-                            <div className="space-y-1.5">
-                                <Label htmlFor="compareAtPrice" className="text-xs font-semibold text-[#211e18]">
-                                    Compare-at price (optional)
-                                </Label>
-                                <Input
-                                    id="compareAtPrice"
-                                    name="compareAtPrice"
-                                    type="number"
-                                    step="0.01"
-                                    defaultValue={currentProduct?.compareAtPrice || ""}
-                                    placeholder="Strike-through price"
-                                    className="h-9 border-[#e7e1d7] focus-visible:ring-[#99782b]/30 text-sm"
-                                />
-                            </div>
-
-                            {/* Visibility */}
-                            <div className="space-y-1.5">
-                                <Label htmlFor="visibilityLevel" className="text-xs font-semibold text-[#211e18]">
-                                    Visibility
-                                </Label>
-                                <select
-                                    id="visibilityLevel"
-                                    name="visibilityLevel"
-                                    value={visibilityLevel}
-                                    onChange={e => setVisibilityLevel(e.target.value)}
-                                    className="h-9 w-full rounded-md border border-[#e7e1d7] bg-transparent px-3 text-sm focus:outline-none focus:ring-1 focus:ring-[#99782b]/50"
-                                >
-                                    <option value="-1">All visitors</option>
-                                    <option value="0">Logged-in only</option>
-                                    <option value="1">Level 1+</option>
-                                    <option value="2">Level 2+</option>
-                                    <option value="3">Level 3+</option>
-                                </select>
-                                {isCreate && (
-                                    <p className="text-[11px] text-[#9a9184]">Draft visibility. Publish stays blocked until slug, price, and media checks all pass.</p>
-                                )}
-                            </div>
-
-                            {/* Category */}
-                            <div className="space-y-1.5">
-                                <Label htmlFor="category" className="text-xs font-semibold text-[#211e18]">
-                                    Category
-                                </Label>
-                                <Input
-                                    id="category"
-                                    name="category"
-                                    list="product-category-list"
-                                    defaultValue={currentProduct?.category}
-                                    placeholder="General category"
-                                    className="h-9 border-[#e7e1d7] focus-visible:ring-[#99782b]/30 text-sm"
-                                />
-                                <datalist id="product-category-list">
-                                    {categories.map(c => (
-                                        <option key={String(c.id ?? c.name)} value={c.name} />
-                                    ))}
-                                </datalist>
-                            </div>
-
-                            {/* SKU */}
-                            <div className="space-y-1.5">
-                                <Label htmlFor="sku" className="text-xs font-semibold text-[#211e18]">
-                                    SKU (optional)
-                                </Label>
-                                <Input
-                                    id="sku"
-                                    name="sku"
-                                    defaultValue={currentProduct?.sku || ""}
-                                    placeholder="e.g. GRIP-001"
-                                    className="h-9 border-[#e7e1d7] focus-visible:ring-[#99782b]/30 text-sm"
-                                />
-                            </div>
-
-                            {/* Description */}
-                            <div className="space-y-1.5">
-                                <Label htmlFor="description" className="text-xs font-semibold text-[#211e18]">
-                                    Description
-                                </Label>
-                                <Textarea
-                                    data-testid="field-description"
-                                    id="description"
-                                    name="description"
-                                    defaultValue={currentProduct?.description || ""}
-                                    placeholder="Product description (Markdown supported)..."
-                                    className="min-h-[80px] border-[#e7e1d7] focus-visible:ring-[#99782b]/30 text-sm resize-none"
-                                />
-                            </div>
-
-                            {/* Usage guide */}
-                            <div className="space-y-1.5">
-                                <Label htmlFor="usageGuide" className="text-xs font-semibold text-[#211e18]">
-                                    Usage guide (optional)
-                                </Label>
-                                <Textarea
-                                    id="usageGuide"
-                                    name="usageGuide"
-                                    defaultValue={currentProduct?.usageGuide || ""}
-                                    placeholder="How to use this product..."
-                                    className="min-h-[60px] border-[#e7e1d7] focus-visible:ring-[#99782b]/30 text-sm resize-none"
-                                />
-                            </div>
-
-                            {/* Purchase limit */}
-                            <div className="space-y-1.5">
-                                <Label htmlFor="purchaseLimit" className="text-xs font-semibold text-[#211e18]">
-                                    Per-user purchase limit
-                                </Label>
-                                <Input
-                                    id="purchaseLimit"
-                                    name="purchaseLimit"
-                                    type="number"
-                                    defaultValue={currentProduct?.purchaseLimit || ""}
-                                    placeholder="0 or empty = unlimited"
-                                    className="h-9 border-[#e7e1d7] focus-visible:ring-[#99782b]/30 text-sm"
-                                />
-                            </div>
-
-                            {/* Flags row */}
-                            <div className="flex flex-wrap gap-4 pt-1">
-                                {[
-                                    { id: "isHot", label: "🔥 Hot", checked: currentProduct?.isHot },
-                                ].map(flag => (
-                                    <label key={flag.id} className="flex items-center gap-2 cursor-pointer select-none">
-                                        <input
-                                            type="checkbox"
-                                            name={flag.id}
-                                            defaultChecked={!!flag.checked}
-                                            value="true"
-                                            className="h-4 w-4 rounded border-[#e7e1d7] accent-[#99782b]"
-                                        />
-                                        <span className="text-xs font-medium text-[#50483d]">{flag.label}</span>
-                                    </label>
-                                ))}
-                            </div>
-
-                            {/* Specs section */}
-                            <div className="pt-3 border-t border-[#f0ebe1]">
-                                <div className="flex items-center justify-between mb-3">
-                                    <span className="text-xs font-bold text-[#211e18] uppercase tracking-wide">
-                                        Specifications
-                                    </span>
-                                    <button
-                                        data-testid="add-spec-row-btn"
-                                        type="button"
-                                        onClick={handleAddSpec}
-                                        className="h-7 px-3 text-xs font-semibold text-[#99782b] border border-[#99782b]/40 rounded-md hover:bg-[#99782b]/5 transition-colors"
-                                    >
-                                        + Add spec
-                                    </button>
-                                </div>
-                                <div data-testid="admin-specs-inputs" className="space-y-2">
-                                    {specs.map((spec, i) => (
-                                        <div key={i} className="flex items-center gap-2">
-                                            <Input
-                                                data-testid={`spec-key-${i}`}
-                                                placeholder="Name (e.g. Material)"
-                                                value={spec.key}
-                                                onChange={e => handleSpecChange(i, "key", e.target.value)}
-                                                className="flex-1 h-8 text-xs border-[#e7e1d7]"
-                                            />
-                                            <Input
-                                                data-testid={`spec-value-${i}`}
-                                                placeholder="Value (e.g. CNC Aluminium)"
-                                                value={spec.value}
-                                                onChange={e => handleSpecChange(i, "value", e.target.value)}
-                                                className="flex-1 h-8 text-xs border-[#e7e1d7]"
-                                            />
-                                            <button
-                                                data-testid={`delete-spec-row-${i}`}
-                                                type="button"
-                                                onClick={() => handleRemoveSpec(i)}
-                                                className="h-8 w-8 flex items-center justify-center text-[#a33b2b] hover:bg-[#fff1f0] rounded-md text-sm font-bold transition-colors"
-                                            >
-                                                ×
-                                            </button>
-                                        </div>
-                                    ))}
-                                    {specs.length === 0 && (
-                                        <p className="text-[11px] text-[#9a9184] py-2 text-center">No specifications added yet.</p>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Save general CTA */}
-                        <div className="flex justify-end pt-4">
-                            <Button
-                                data-testid="save-btn"
-                                type="submit"
-                                disabled={generalSaving}
-                                className="h-9 px-6 bg-[#99782b] hover:bg-[#99782b]/90 text-white border-none rounded-lg text-sm font-semibold"
-                            >
-                                {generalSaving
-                                    ? "Saving..."
-                                    : isCreate ? "Create draft" : "Save general"}
-                            </Button>
-                        </div>
-                    </form>
-                </div>
-
-                {/* RIGHT: Media + Publish checks */}
-                <div className="w-[384px] space-y-5">
-
-                    {/* Media panel */}
-                    <div className="bg-white border border-[#e7e1d7] rounded-lg p-5">
-                        <h3 className="text-sm font-bold text-[#211e18] mb-0.5">Media & content</h3>
-                        <p className="text-[11px] text-[#787774] mb-4">
-                            Primary image is required to publish. Gallery images are optional.
-                        </p>
-
-                        {/* Primary image */}
-                        <div className="mb-4">
-                            <Label className="text-[11px] font-semibold text-[#50483d] mb-2 block">
-                                Primary image
-                            </Label>
-                            {mainImage ? (
-                                <div className="relative w-full aspect-video rounded-lg overflow-hidden border border-[#e7e1d7] bg-[#f8f5ef]">
-                                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                                    <img
-                                        src={mainImage}
-                                        alt="Primary"
-                                        className="w-full h-full object-cover"
-                                    />
-                                    <button
-                                        type="button"
-                                        onClick={() => setMainImage("")}
-                                        className="absolute top-2 right-2 h-6 w-6 rounded-full bg-black/50 text-white text-xs flex items-center justify-center hover:bg-black/70 transition-colors"
-                                    >
-                                        ×
-                                    </button>
-                                </div>
-                            ) : (
-                                <div className="w-full aspect-video rounded-lg border-2 border-dashed border-[#e7e1d7] bg-[#f8f5ef] flex flex-col items-center justify-center text-center gap-1">
-                                    <span className="text-xs text-[#9a9184]">Primary image</span>
-                                    <span className="text-[10px] text-[#b5a99a]">not attached</span>
-                                </div>
-                            )}
-                        </div>
-
-                        {/* Publish blocker notice */}
-                        {!isCreate && !hasPrimaryImage && (
-                            <div className="mb-4 bg-[#fffbe6] border border-[#ffe58f] rounded-lg p-2.5 text-[11px] text-[#d48806] font-medium">
-                                Publish stays blocked until slug, price, and media checks all pass.
-                            </div>
-                        )}
-
-                        {/* Media uploader */}
-                        <MediaUploader
-                            label="Upload primary image"
-                            value={mainImage}
-                            onChange={val => setMainImage(val as string)}
-                        />
-
-                        {/* Gallery */}
-                        <div className="mt-4 pt-4 border-t border-[#f0ebe1]">
-                            <Label className="text-[11px] font-semibold text-[#50483d] mb-2 block">
-                                Gallery images (optional)
-                            </Label>
-                            <MediaUploader
-                                label="Upload gallery images"
-                                value={galleryImages}
-                                onChange={val => setGalleryImages(val as string[])}
-                                multiple
-                                maxFiles={6}
-                            />
-                        </div>
-
-                        {/* Save media button (edit only) */}
-                        {!isCreate && currentProduct?.id && (
-                            <div className="mt-4 pt-4 border-t border-[#f0ebe1] flex justify-end">
-                                <Button
-                                    type="button"
-                                    onClick={handleSaveMedia}
-                                    disabled={mediaSaving}
-                                    className="h-8 px-4 bg-[#99782b] hover:bg-[#99782b]/90 text-white border-none rounded-lg text-xs font-semibold"
-                                >
-                                    {mediaSaving ? "Saving..." : "Save media"}
-                                </Button>
-                            </div>
-                        )}
-                    </div>
-
-                    <div className="bg-white border border-[#e7e1d7] rounded-lg p-5 space-y-4">
-                        <div>
-                            <h3 className="text-sm font-bold text-[#211e18] mb-0.5">Intro article</h3>
-                            <p className="text-[11px] text-[#787774]">
-                                Attach editorial intro content directly from Product Editor and keep the return path inside product context.
-                            </p>
-                        </div>
-
-                        {!currentProduct?.id ? (
-                            <div className="rounded-lg border border-[#ffe58f] bg-[#fffbe6] p-3 text-[11px] text-[#ad6800]">
-                                Create the product first, then link or create an intro article.
-                            </div>
-                        ) : (
-                            <>
-                                <div className="space-y-1.5">
-                                    <Label htmlFor="intro-article-select" className="text-xs font-semibold text-[#211e18]">
-                                        Linked article
-                                    </Label>
-                                    <select
-                                        id="intro-article-select"
-                                        value={linkedArticleId}
-                                        onChange={(e) => setLinkedArticleId(e.target.value)}
-                                        className="h-9 w-full rounded-md border border-[#e7e1d7] bg-transparent px-3 text-sm focus:outline-none focus:ring-1 focus:ring-[#99782b]/50 text-[#211e18]"
-                                    >
-                                        <option value="">No linked article</option>
-                                        {articles.map((article) => (
-                                            <option key={article.id} value={article.id}>
-                                                {article.title} {article.isActive ? "• Published" : "• Draft"}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </div>
-
-                                <div className="rounded-lg border border-[#f0ebe1] bg-[#fbfaf7] p-3 text-xs text-[#50483d] space-y-2">
-                                    {linkedArticle ? (
-                                        <div className="space-y-1">
-                                            <div className="flex items-center justify-between gap-2">
-                                                <p className="font-semibold text-[#211e18] line-clamp-1">{linkedArticle.title}</p>
-                                                <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full shrink-0 ${linkedArticle.isActive ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-amber-50 text-amber-700 border border-amber-200'}`}>
-                                                    {linkedArticle.isActive ? "Published" : "Draft"}
-                                                </span>
-                                            </div>
-                                            <p className="text-[11px] text-[#787774] font-mono">/{linkedArticle.slug}</p>
-                                        </div>
-                                    ) : (
-                                        <p className="text-[#9a9184] text-center py-1">No intro article linked yet.</p>
-                                    )}
-                                    {/* Show a status if the selection is modified and unsaved */}
-                                    {linkedArticleId !== (currentProduct?.introArticleId ?? currentProduct?.introArticle?.id ?? "") && (
-                                        <p className="text-[10px] text-amber-600 font-semibold pt-1 border-t border-[#f0ebe1]">
-                                            ⚠️ Link changes are pending. Click &ldquo;Save link&rdquo; or &ldquo;Clear link&rdquo; to apply.
-                                        </p>
-                                    )}
-                                </div>
-
-                                <div className="grid grid-cols-2 gap-2">
-                                    <Button
-                                        type="button"
-                                        onClick={handleSaveIntroArticle}
-                                        disabled={introSaving}
-                                        className="h-9 bg-[#99782b] hover:bg-[#99782b]/90 text-white rounded-lg text-xs font-semibold"
-                                    >
-                                        {introSaving ? "Saving..." : linkedArticleId ? "Save link" : "Clear link"}
-                                    </Button>
-                                    <Button
-                                        type="button"
-                                        variant="outline"
-                                        onClick={() => setLinkedArticleId("")}
-                                        className="h-9 border-[#e7e1d7] text-[#50483d] hover:bg-[#f8f5ef] rounded-lg text-xs font-semibold"
-                                    >
-                                        Remove selection
-                                    </Button>
-                                </div>
-
-                                <div className="grid grid-cols-1 gap-2 pt-2 border-t border-[#f0ebe1]">
-                                    <Button asChild variant="outline" className="h-9 border-[#e7e1d7] text-[#50483d] hover:bg-[#f8f5ef] rounded-lg text-xs font-semibold justify-center">
-                                        <Link href={createLinkedArticleHref}>
-                                            Create new linked article
-                                        </Link>
-                                    </Button>
-                                    {editLinkedArticleHref && (
-                                        <Button asChild variant="outline" className="h-9 border-[#e7e1d7] text-[#50483d] hover:bg-[#f8f5ef] rounded-lg text-xs font-semibold justify-center">
-                                            <Link href={editLinkedArticleHref}>
-                                                Edit linked article
-                                            </Link>
-                                        </Button>
-                                    )}
-                                </div>
-                            </>
-                        )}
-                    </div>
-
-                    {/* Publish checklist panel */}
-                    <div className="bg-white border border-[#e7e1d7] rounded-lg p-5">
-                        <h3 className="text-sm font-bold text-[#211e18] mb-0.5">
-                            {isCreate ? "Pre-publish checks" : "Validation + state"}
-                        </h3>
-                        <p className="text-[11px] text-[#787774] mb-4">
-                            {isCreate
-                                ? "Slug unique · Price valid · Primary image attached"
-                                : "Slug unique · Price valid · Primary image attached"}
-                        </p>
-
-                        <div className="space-y-2">
-                            {[
-                                { label: "Slug / ID set", ok: hasSlug },
-                                { label: "Price valid (> 0)", ok: hasPrice },
-                                { label: "Primary image attached", ok: hasPrimaryImage },
-                                { label: "Category mapped", ok: hasCategory },
-                            ].map(check => (
-                                <div
-                                    key={check.label}
-                                    className={`flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-medium ${check.ok
-                                        ? "bg-[#f6ffed] border border-[#b7eb8f] text-[#389e0d]"
-                                        : "bg-[#fff1f0] border border-[#ffccc7] text-[#a33b2b]"
-                                        }`}
-                                >
-                                    <span>{check.ok ? "✓" : "○"}</span>
-                                    <span>{check.label}</span>
-                                </div>
-                            ))}
-                        </div>
-
-                        {!isCreate && (
-                            <p className="text-[10px] text-[#9a9184] mt-3">
-                                SEO preview stays in edit scope; it does not invent publish state on the FE.
-                            </p>
-                        )}
-                    </div>
-
-
-
-                    {/* Navigation back */}
-                    <div className="flex gap-2 pt-1">
-                        <Button
-                            variant="outline"
-                            type="button"
-                            onClick={() => router.back()}
-                            className="flex-1 h-8 border-[#e7e1d7] text-[#50483d] hover:bg-[#f8f5ef] text-xs font-medium"
-                        >
-                            ← Back
-                        </Button>
-                        <Button
-                            asChild
-                            variant="outline"
-                            className="flex-1 h-8 border-[#e7e1d7] text-[#50483d] hover:bg-[#f8f5ef] text-xs font-medium"
-                        >
-                            <Link href="/admin/products">All products</Link>
-                        </Button>
-                    </div>
-                </div>
-            </div>
-        </div>
+function initialAttributeInputs(model: CatalogProductModel | null | undefined, definitions: CatalogAttributeDefinition[]) {
+  return Object.fromEntries(definitions.map((definition) => {
+    const stored = rawValue(assignedAttributeValue(model, definition))
+    if (definition.valueKind !== "Enum") return [definition.id, stored]
+    const selected = definition.enumValues.find((option) =>
+      option.id === stored
+      || option.key.toLowerCase() === stored.toLowerCase()
+      || option.label.toLowerCase() === stored.toLowerCase()
     )
+    return [definition.id, selected?.id ?? stored]
+  }))
+}
+
+function initialMeasurements(model: CatalogProductModel | null | undefined): MeasurementRow[] {
+  return Object.entries(model?.measurements ?? {}).map(([key, raw]) => {
+    const value = raw && typeof raw === "object" ? raw as Record<string, unknown> : { value: raw }
+    return { key, value: String(value.value ?? ""), unit: String(value.unit ?? "") }
+  })
+}
+
+function assignedAttributeValue(model: CatalogProductModel | null | undefined, definition: CatalogAttributeDefinition): unknown {
+  return model?.fixedAttributes[definition.id]
+    ?? model?.fixedAttributes[definition.key]
+    ?? model?.fixedAttributes[definition.displayName]
+}
+
+function slugValue(value: string) {
+  return value.trim().toLowerCase().normalize("NFKD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "")
+}
+
+export default function ProductForm({ model, categories, definitions, masters, isCreate = false, onChanged }: ProductFormProps) {
+  const router = useRouter()
+  const [name, setName] = useState(model?.name ?? "")
+  const [categoryId, setCategoryId] = useState(model?.categoryId ?? "")
+  const [description, setDescription] = useState(model?.description ?? "")
+  const [warrantyTerm, setWarrantyTerm] = useState(model?.warrantySummary?.term ?? "")
+  const [warrantyNote, setWarrantyNote] = useState(model?.warrantySummary?.note ?? "")
+  const [attributeInputs, setAttributeInputs] = useState<Record<string, string>>(() => initialAttributeInputs(model, definitions))
+  const [measurements, setMeasurements] = useState<MeasurementRow[]>(() => initialMeasurements(model))
+  const [primaryImage, setPrimaryImage] = useState(model?.images.find((image) => image.primary)?.url ?? "")
+  const [galleryImages, setGalleryImages] = useState(model?.images.filter((image) => !image.primary).map((image) => image.url) ?? [])
+  const [saving, setSaving] = useState(false)
+  const [mediaSaving, setMediaSaving] = useState(false)
+  const [dimensionDefinitionId, setDimensionDefinitionId] = useState("")
+  const [dimensionValues, setDimensionValues] = useState("")
+  const [dimensionSelectedValues, setDimensionSelectedValues] = useState<string[]>([])
+  const [variantSelection, setVariantSelection] = useState<Record<string, string>>({})
+  const [variantSku, setVariantSku] = useState("")
+  const [variantPrice, setVariantPrice] = useState("")
+  const [variantPackId, setVariantPackId] = useState("")
+  const [catalogBusy, setCatalogBusy] = useState(false)
+
+  useEffect(() => {
+    setName(model?.name ?? "")
+    setCategoryId(model?.categoryId ?? "")
+    setDescription(model?.description ?? "")
+    setWarrantyTerm(model?.warrantySummary?.term ?? "")
+    setWarrantyNote(model?.warrantySummary?.note ?? "")
+    setAttributeInputs(initialAttributeInputs(model, definitions))
+    setMeasurements(initialMeasurements(model))
+    setPrimaryImage(model?.images.find((image) => image.primary)?.url ?? "")
+    setGalleryImages(model?.images.filter((image) => !image.primary).map((image) => image.url) ?? [])
+  }, [definitions, model])
+
+  const dimensionDefinitionIds = useMemo(
+    () => new Set(model?.variantDimensions.map((dimension) => dimension.definitionId) ?? []),
+    [model?.variantDimensions],
+  )
+  const fixedDefinitions = definitions.filter((definition) =>
+    !dimensionDefinitionIds.has(definition.id)
+    && (definition.active || assignedAttributeValue(model, definition) != null)
+  )
+  const dimensionCandidates = definitions.filter((definition) => definition.active && !dimensionDefinitionIds.has(definition.id))
+  const selectedDimensionDefinition = dimensionCandidates.find((definition) => definition.id === dimensionDefinitionId)
+  const dimensionVocabulary = (() => {
+    if (selectedDimensionDefinition?.valueKind === "Enum") {
+      return selectedDimensionDefinition.enumValues
+        .filter((value) => value.active)
+        .map((value) => ({ id: value.id, label: value.label }))
+    }
+    if (selectedDimensionDefinition?.valueKind === "Reference") {
+      const kind = selectedDimensionDefinition.referenceTarget?.toLowerCase() as "material" | "finish" | "pack" | undefined
+      return kind
+        ? masters[kind].filter((value) => value.active).map((value) => ({ id: value.id, label: value.name }))
+        : []
+    }
+    return []
+  })()
+  const hasHistoricalAssignments = fixedDefinitions.some((definition) => {
+    const value = attributeInputs[definition.id]?.trim()
+    if (!value) return false
+    if (!definition.active) return true
+    if (definition.valueKind === "Enum") {
+      return definition.enumValues.some((option) => option.id === value && !option.active)
+    }
+    if (definition.valueKind === "Reference") {
+      const kind = definition.referenceTarget?.toLowerCase() as "material" | "finish" | "pack" | undefined
+      return Boolean(kind && masters[kind].some((option) => option.id === value && !option.active))
+    }
+    return false
+  })
+
+  const fixedAttributes = () => Object.fromEntries(
+    fixedDefinitions.flatMap((definition): Array<[string, unknown]> => {
+        const value = attributeInputs[definition.id]?.trim() ?? ""
+        if (!value) return []
+        if (definition.valueKind === "Scalar" && definition.dataType === "Boolean") {
+          return [[definition.id, value === "true"]]
+        }
+        if (definition.valueKind === "Scalar" && definition.dataType === "Number") {
+          return [[definition.id, { value: Number(value), unit: definition.unit }]]
+        }
+        return [[definition.id, value]]
+      }),
+  )
+
+  const measurementPayload = () => Object.fromEntries(
+    measurements
+      .filter((measurement) => measurement.key.trim() && measurement.value.trim())
+      .map((measurement) => [measurement.key.trim(), { value: Number(measurement.value), unit: measurement.unit.trim() }]),
+  )
+
+  const refresh = async () => {
+    if (onChanged) await onChanged()
+    router.refresh()
+  }
+
+  const saveModel = async () => {
+    setSaving(true)
+    try {
+      const saved = await saveCatalogProductModel({
+        id: model?.id,
+        name: name.trim(),
+        categoryId,
+        description: description.trim(),
+        ...(!hasHistoricalAssignments ? { fixedAttributes: fixedAttributes() } : {}),
+        measurements: measurementPayload(),
+        warrantySummary: warrantyTerm.trim() ? { term: warrantyTerm.trim(), note: warrantyNote.trim() } : null,
+      })
+      toast.success(isCreate ? "ProductModel draft created" : "ProductModel saved")
+      if (isCreate) {
+        router.push(buildExportRoutePath("/admin/product/edit", saved.id))
+      } else {
+        await refresh()
+      }
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not save ProductModel")
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const saveMedia = async () => {
+    if (!model) return
+    setMediaSaving(true)
+    try {
+      const images = [
+        ...(primaryImage ? [{ url: primaryImage, ordering: 1, primary: true }] : []),
+        ...galleryImages.filter(Boolean).map((url, index) => ({ url, ordering: index + 2, primary: false })),
+      ]
+      await replaceCatalogProductMedia(model.id, images)
+      toast.success("ProductModel media saved")
+      await refresh()
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not save ProductModel media")
+    } finally {
+      setMediaSaving(false)
+    }
+  }
+
+  const addDimension = async () => {
+    if (!model || !dimensionDefinitionId) return
+    const allowedValues = selectedDimensionDefinition?.valueKind === "Enum" || selectedDimensionDefinition?.valueKind === "Reference"
+      ? dimensionVocabulary
+          .filter((value) => dimensionSelectedValues.includes(value.id))
+          .map((value) => ({ ...value, active: true }))
+      : dimensionValues.split("\n").map((label) => label.trim()).filter(Boolean).map((label) => ({ id: slugValue(label), label, active: true }))
+    if (allowedValues.length === 0) return
+    setCatalogBusy(true)
+    try {
+      await createCatalogVariantDimension(model.id, { definitionId: dimensionDefinitionId, allowedValues })
+      setDimensionDefinitionId("")
+      setDimensionValues("")
+      setDimensionSelectedValues([])
+      toast.success("Variant dimension added")
+      await refresh()
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not add VariantDimension")
+    } finally {
+      setCatalogBusy(false)
+    }
+  }
+
+  const addVariant = async () => {
+    if (!model || !variantSku.trim() || Number(variantPrice) <= 0) return
+    if (model.variantDimensions.some((dimension) => !variantSelection[dimension.key])) return
+    setCatalogBusy(true)
+    try {
+      await createCatalogVariant(model.id, {
+        selectedOptions: variantSelection,
+        sku: variantSku.trim(),
+        sellingPrice: { amount: Number(variantPrice), currency: "VND" },
+        ...(variantPackId ? { packId: variantPackId } : {}),
+      })
+      setVariantSku("")
+      setVariantPrice("")
+      setVariantPackId("")
+      setVariantSelection({})
+      toast.success("Variant created")
+      await refresh()
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not create Variant")
+    } finally {
+      setCatalogBusy(false)
+    }
+  }
+
+  const transitionModel = async (action: "publish" | "unpublish" | "discontinue") => {
+    if (!model) return
+    setCatalogBusy(true)
+    try {
+      await transitionCatalogProductModel(model.id, action)
+      toast.success(`ProductModel ${action} completed`)
+      await refresh()
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : `Could not ${action} ProductModel`)
+    } finally {
+      setCatalogBusy(false)
+    }
+  }
+
+  const transitionVariant = async (variantId: string, action: "activate" | "inactivate") => {
+    setCatalogBusy(true)
+    try {
+      await transitionCatalogVariant(variantId, action)
+      await refresh()
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : `Could not ${action} Variant`)
+    } finally {
+      setCatalogBusy(false)
+    }
+  }
+
+  return (
+    <div className="w-full max-w-[1120px] space-y-7 py-6">
+      <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+        <div>
+          <p className="mb-2 text-xs font-semibold uppercase tracking-[0.2em] text-[#99782b]">Admin / Catalog / ProductModels</p>
+          <div className="flex items-center gap-3"><h1 className="text-3xl font-bold tracking-tight text-[#211e18]">{isCreate ? "Create ProductModel" : model?.name}</h1>{model && <StatusBadge status={model.status} />}</div>
+          <p className="mt-2 text-sm text-[#71685a]">Catalog content and commercial metadata stay separate from stock, warehouse, orders, and warranty claims.</p>
+        </div>
+        <div className="flex gap-2">
+          {model?.status === "Active" && <Button asChild variant="outline"><Link href={`/products/${model.id}`}>View public detail</Link></Button>}
+          <Button data-testid="save-btn" disabled={saving || !name.trim() || !categoryId} onClick={saveModel} className="bg-[#99782b] text-white hover:bg-[#856824]"><Save className="mr-2 h-4 w-4" />{saving ? "Saving…" : isCreate ? "Create draft" : "Save model"}</Button>
+        </div>
+      </div>
+
+      <div className="grid gap-6 xl:grid-cols-[1fr_360px]">
+        <div className="space-y-6">
+          <Section title="Product definition" icon={<Tags className="h-4 w-4" />} description="Identity, classification, content, and warranty summary owned by ProductModel.">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Field label="Name"><Input data-testid="field-title" value={name} onChange={(event) => setName(event.target.value)} /></Field>
+              <Field label="Category">
+                <select value={categoryId} onChange={(event) => setCategoryId(event.target.value)} className="h-10 w-full rounded-md border border-input bg-transparent px-3 text-sm">
+                  <option value="">Select active category</option>
+                  {categories.filter((category) => category.active !== false || String(category.id) === model?.categoryId).map((category) => <option key={String(category.id)} value={String(category.id)}>{category.name}{category.active === false ? " (inactive)" : ""}</option>)}
+                </select>
+              </Field>
+              <div className="sm:col-span-2"><Field label="Description"><Textarea value={description} onChange={(event) => setDescription(event.target.value)} rows={5} /></Field></div>
+              <Field label="Warranty term"><Input value={warrantyTerm} onChange={(event) => setWarrantyTerm(event.target.value)} placeholder="24 tháng" /></Field>
+              <Field label="Warranty note"><Input value={warrantyNote} onChange={(event) => setWarrantyNote(event.target.value)} placeholder="Optional catalog note" /></Field>
+            </div>
+          </Section>
+
+          <Section title="Fixed specifications" icon={<Ruler className="h-4 w-4" />} description="Values use active typed definitions. Definition IDs remain the stored identity; labels are resolved by the backend detail projection.">
+            {hasHistoricalAssignments && <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs leading-relaxed text-amber-800">This ProductModel uses deactivated catalog vocabulary. Its historical fixed specifications stay readable and are left unchanged when the rest of the model is saved.</div>}
+            {fixedDefinitions.length > 0 ? <div data-testid="admin-specs-inputs" className="grid gap-4 sm:grid-cols-2">
+              {fixedDefinitions.map((definition) => <AttributeInput key={definition.id} definition={definition} value={attributeInputs[definition.id] ?? ""} masters={masters} disabled={hasHistoricalAssignments} onChange={(value) => setAttributeInputs((current) => ({ ...current, [definition.id]: value }))} />)}
+            </div> : <EmptyHint href="/admin/attributes" text="Create an active AttributeDefinition before assigning fixed specifications." />}
+          </Section>
+
+          <Section title="Measurements" icon={<Ruler className="h-4 w-4" />} description="Measurements are submitted with value and unit; the backend validates and canonicalizes compatible units.">
+            <div className="space-y-3">
+              {measurements.map((measurement, index) => (
+                <div key={`${measurement.key}-${index}`} className="grid grid-cols-[1fr_1fr_100px_36px] gap-2">
+                  <Input value={measurement.key} onChange={(event) => setMeasurements((rows) => rows.map((row, rowIndex) => rowIndex === index ? { ...row, key: event.target.value } : row))} placeholder="overallLength" />
+                  <Input type="number" value={measurement.value} onChange={(event) => setMeasurements((rows) => rows.map((row, rowIndex) => rowIndex === index ? { ...row, value: event.target.value } : row))} placeholder="200" />
+                  <Input value={measurement.unit} onChange={(event) => setMeasurements((rows) => rows.map((row, rowIndex) => rowIndex === index ? { ...row, unit: event.target.value } : row))} placeholder="mm" />
+                  <Button variant="ghost" size="sm" onClick={() => setMeasurements((rows) => rows.filter((_, rowIndex) => rowIndex !== index))}>×</Button>
+                </div>
+              ))}
+              <Button variant="outline" size="sm" onClick={() => setMeasurements((rows) => [...rows, { key: "", value: "", unit: "" }])}><Plus className="mr-2 h-4 w-4" /> Add measurement</Button>
+            </div>
+          </Section>
+
+          {model && <Section title="Variant configuration" icon={<Boxes className="h-4 w-4" />} description="Dimensions define allowed options; Variants own exact combinations, SKU, current SellingPrice, and Pack reference.">
+            <div className="space-y-5">
+              <div className="rounded-lg border border-[#eee8de] p-4">
+                <h3 className="text-sm font-bold text-[#211e18]">Dimensions</h3>
+                <div className="mt-3 space-y-2">{model.variantDimensions.map((dimension) => <div key={dimension.id} className="flex items-center justify-between rounded-md bg-[#fbfaf7] px-3 py-2 text-xs"><span className="font-semibold">{dimension.key}</span><span className="text-[#71685a]">{dimension.allowedValues.filter((value) => value.active).map((value) => value.label).join(" · ")}</span></div>)}</div>
+                <div className="mt-4 grid gap-3 sm:grid-cols-[220px_1fr_auto]">
+                  <select value={dimensionDefinitionId} onChange={(event) => { setDimensionDefinitionId(event.target.value); setDimensionSelectedValues([]); setDimensionValues("") }} className="h-10 rounded-md border border-input bg-transparent px-3 text-sm"><option value="">Choose definition</option>{dimensionCandidates.map((definition) => <option key={definition.id} value={definition.id}>{definition.displayName}</option>)}</select>
+                  {selectedDimensionDefinition?.valueKind === "Enum" || selectedDimensionDefinition?.valueKind === "Reference" ? (
+                    <div className="flex min-h-10 flex-wrap gap-2 rounded-md border border-input p-2">
+                      {dimensionVocabulary.map((value) => <button key={value.id} type="button" onClick={() => setDimensionSelectedValues((current) => current.includes(value.id) ? current.filter((id) => id !== value.id) : [...current, value.id])} className={`rounded-md border px-2 py-1 text-xs font-semibold ${dimensionSelectedValues.includes(value.id) ? "border-[#99782b] bg-[#fff3d4] text-[#6f5317]" : "border-[#ded8cd] text-[#71685a]"}`}>{value.label}</button>)}
+                      {dimensionVocabulary.length === 0 && <span className="text-xs text-[#8c8274]">No active vocabulary values.</span>}
+                    </div>
+                  ) : <Textarea value={dimensionValues} onChange={(event) => setDimensionValues(event.target.value)} rows={2} placeholder={"One allowed value per line\n200 mm"} />}
+                  <Button variant="outline" disabled={catalogBusy || !dimensionDefinitionId || ((selectedDimensionDefinition?.valueKind === "Enum" || selectedDimensionDefinition?.valueKind === "Reference") ? dimensionSelectedValues.length === 0 : !dimensionValues.trim())} onClick={addDimension}>Add</Button>
+                </div>
+              </div>
+
+              {model.variantDimensions.length > 0 && <div className="rounded-lg border border-[#eee8de] p-4">
+                <h3 className="text-sm font-bold text-[#211e18]">Create exact Variant</h3>
+                <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                  {model.variantDimensions.map((dimension) => <Field key={dimension.id} label={dimension.key}><select value={variantSelection[dimension.key] ?? ""} onChange={(event) => setVariantSelection((current) => ({ ...current, [dimension.key]: event.target.value }))} className="h-10 w-full rounded-md border border-input bg-transparent px-3 text-sm"><option value="">Select</option>{dimension.allowedValues.filter((value) => value.active).map((value) => <option key={value.id} value={value.label}>{value.label}</option>)}</select></Field>)}
+                  <Field label="SKU"><Input value={variantSku} onChange={(event) => setVariantSku(event.target.value)} /></Field>
+                  <Field label="Selling price (VND)"><Input type="number" min="1" value={variantPrice} onChange={(event) => setVariantPrice(event.target.value)} /></Field>
+                  <Field label="Pack (optional)"><select value={variantPackId} onChange={(event) => setVariantPackId(event.target.value)} className="h-10 w-full rounded-md border border-input bg-transparent px-3 text-sm"><option value="">No Pack</option>{masters.pack.filter((pack) => pack.active).map((pack) => <option key={pack.id} value={pack.id}>{pack.name}</option>)}</select></Field>
+                </div>
+                <Button className="mt-4 bg-[#99782b] text-white hover:bg-[#856824]" disabled={catalogBusy || !variantSku.trim() || Number(variantPrice) <= 0} onClick={addVariant}>Create Variant</Button>
+              </div>}
+
+              <div className="space-y-2">{model.variants.map((variant) => <div key={variant.id} className="flex flex-col gap-3 rounded-lg border border-[#eee8de] p-3 sm:flex-row sm:items-center sm:justify-between"><div><div className="flex items-center gap-2"><span className="text-sm font-bold">{variant.sku || "No SKU"}</span><span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${variant.saleReady ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"}`}>{variant.saleReady ? "Sale-ready" : variant.status}</span></div><p className="mt-1 text-xs text-[#71685a]">{Object.entries(variant.selectedOptions).map(([key, value]) => `${key}: ${value}`).join(" · ")} · {variant.sellingPrice ? `${variant.sellingPrice.amount.toLocaleString("vi-VN")} ${variant.sellingPrice.currency}` : "No price"}</p></div><Button size="sm" variant="outline" disabled={catalogBusy} onClick={() => transitionVariant(variant.id, variant.status === "Active" ? "inactivate" : "activate")}>{variant.status === "Active" ? "Inactivate" : "Activate"}</Button></div>)}</div>
+            </div>
+          </Section>}
+        </div>
+
+        <aside className="space-y-5">
+          <Section title="Media" icon={<ImageIcon className="h-4 w-4" />} description="Exactly one primary model image is required for publication.">
+            <div className="space-y-5">
+              <MediaUploader value={primaryImage} onChange={(value) => setPrimaryImage(String(value))} label="Primary image" />
+              <MediaUploader value={galleryImages} onChange={(value) => setGalleryImages(Array.isArray(value) ? value : [value])} multiple maxFiles={8} label="Gallery" />
+              <Button className="w-full" variant="outline" disabled={!model || mediaSaving} onClick={saveMedia}>{mediaSaving ? "Saving media…" : "Save media"}</Button>
+            </div>
+          </Section>
+
+          {model && <Section title="Publication" icon={<ShieldCheck className="h-4 w-4" />} description="The backend checks lifecycle and universal publication invariants.">
+            <div className="space-y-2">
+              <Check label="Primary image" ready={model.images.filter((image) => image.primary).length === 1} />
+              <Check label="Sale-ready Variant" ready={model.variants.some((variant) => variant.saleReady)} />
+              <Check label="Category" ready={Boolean(model.categoryId)} />
+            </div>
+            <div className="mt-4 grid gap-2">
+              {(model.status === "Draft" || model.status === "Inactive") && <Button disabled={catalogBusy} onClick={() => transitionModel("publish")} className="bg-[#99782b] text-white hover:bg-[#856824]">Publish</Button>}
+              {model.status === "Active" && <Button disabled={catalogBusy} variant="outline" onClick={() => transitionModel("unpublish")}>Unpublish before structural edits</Button>}
+              {model.status !== "Discontinued" && <Button disabled={catalogBusy} variant="ghost" className="text-red-600" onClick={() => transitionModel("discontinue")}>Discontinue</Button>}
+            </div>
+          </Section>}
+        </aside>
+      </div>
+    </div>
+  )
+}
+
+function AttributeInput({ definition, value, masters, disabled, onChange }: { definition: CatalogAttributeDefinition; value: string; masters: Record<"material" | "finish" | "pack", CatalogMaster[]>; disabled?: boolean; onChange: (value: string) => void }) {
+  const description = [definition.valueKind, definition.dataType, definition.unit, definition.active ? null : "inactive definition"].filter(Boolean).join(" · ")
+  const referenceKind = definition.referenceTarget?.toLowerCase() as "material" | "finish" | "pack" | undefined
+  return <Field label={definition.displayName} hint={description}>
+    {definition.valueKind === "Enum" ? <select value={value} disabled={disabled} onChange={(event) => onChange(event.target.value)} className="h-10 w-full rounded-md border border-input bg-transparent px-3 text-sm"><option value="">Not set</option>{definition.enumValues.filter((option) => option.active || option.id === value).map((option) => <option key={option.id} value={option.id}>{option.label}{option.active ? "" : " (inactive)"}</option>)}</select>
+      : definition.valueKind === "Reference" ? <select value={value} disabled={disabled} onChange={(event) => onChange(event.target.value)} className="h-10 w-full rounded-md border border-input bg-transparent px-3 text-sm"><option value="">Not set</option>{(referenceKind ? masters[referenceKind] : []).filter((option) => option.active || option.id === value).map((option) => <option key={option.id} value={option.id}>{option.name}{option.active ? "" : " (inactive)"}</option>)}</select>
+      : definition.dataType === "Boolean" ? <select value={value} disabled={disabled} onChange={(event) => onChange(event.target.value)} className="h-10 w-full rounded-md border border-input bg-transparent px-3 text-sm"><option value="">Not set</option><option value="true">Yes</option><option value="false">No</option></select>
+      : <div className="relative"><Input disabled={disabled} type={definition.dataType === "Number" ? "number" : "text"} value={value} onChange={(event) => onChange(event.target.value)} />{definition.unit && <span className="absolute right-3 top-2.5 text-xs font-semibold text-[#807667]">{definition.unit}</span>}</div>}
+  </Field>
+}
+
+function Section({ title, description, icon, children }: { title: string; description: string; icon: ReactNode; children: ReactNode }) {
+  return <section className="rounded-xl border border-[#e7e1d7] bg-white p-5"><div className="mb-5 flex items-start gap-3"><div className="rounded-lg bg-[#f3ead4] p-2 text-[#99782b]">{icon}</div><div><h2 className="text-base font-bold text-[#211e18]">{title}</h2><p className="mt-1 text-xs leading-relaxed text-[#807667]">{description}</p></div></div>{children}</section>
+}
+
+function Field({ label, hint, children }: { label: string; hint?: string; children: ReactNode }) {
+  return <div className="space-y-1.5"><div className="flex items-center justify-between gap-2"><Label className="text-xs font-semibold text-[#50483d]">{label}</Label>{hint && <span className="text-[10px] text-[#9a9184]">{hint}</span>}</div>{children}</div>
+}
+
+function Check({ label, ready }: { label: string; ready: boolean }) {
+  return <div className="flex items-center justify-between rounded-md bg-[#fbfaf7] px-3 py-2 text-xs"><span className="text-[#71685a]">{label}</span><span className={`font-bold ${ready ? "text-emerald-700" : "text-amber-700"}`}>{ready ? "Ready" : "Missing"}</span></div>
+}
+
+function EmptyHint({ href, text }: { href: string; text: string }) {
+  return <div className="rounded-lg border border-dashed border-[#d8c8a4] bg-[#fffaf0] p-5 text-center text-xs text-[#6f5317]">{text}<Link href={href} className="mt-2 block font-bold underline">Open Catalog Data</Link></div>
+}
+
+function StatusBadge({ status }: { status: CatalogProductModel["status"] }) {
+  return <span className="rounded-full bg-[#f3f1ec] px-2.5 py-1 text-[11px] font-bold text-[#5f5649]">{status}</span>
 }

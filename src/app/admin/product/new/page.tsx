@@ -1,10 +1,10 @@
 "use client"
 
 import ProductForm from "@/components/admin/product-form"
-import { useAdminProductForm } from "@/application/hooks/useAdmin"
+import { useCatalogProductModelForm } from "@/application/hooks/useAdmin"
 
 export default function NewProductPage() {
-    const { data, isLoading } = useAdminProductForm()
+    const { data, isLoading } = useCatalogProductModelForm()
 
     if (isLoading) {
         return (
@@ -22,6 +22,8 @@ export default function NewProductPage() {
     return (
         <ProductForm
             categories={data?.categories ?? []}
+            definitions={data?.definitions ?? []}
+            masters={data?.masters ?? { material: [], finish: [], pack: [] }}
             isCreate
         />
     )

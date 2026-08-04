@@ -21,6 +21,11 @@ import {
   getAdminFAQs,
   getAdminLeads,
   getAdminOrderDetails,
+  getCatalogAttributeDefinitions,
+  getCatalogCategories,
+  getCatalogMasters,
+  getCatalogProductModelForm,
+  getCatalogProductModels,
 } from "@/adapters/api/admin.api"
 import { getAdminMedia, type MediaListParams } from "@/adapters/api/media.api"
 import type { AdminArticle } from "@/domain/admin"
@@ -48,3 +53,20 @@ export const useAdminFAQs = () => useSWR("admin-faqs", getAdminFAQs)
 export const useAdminLeads = () => useSWR("admin-leads", getAdminLeads)
 export const useAdminOrderDetails = (id: string) => useSWR(id ? ["admin-order-details", id] : null, () => getAdminOrderDetails(id))
 export const useAdminMedia = (params: MediaListParams) => useSWR(["admin-media", params], () => getAdminMedia(params))
+export const useCatalogProductModels = () => useSWR("catalog-product-models", getCatalogProductModels)
+export const useCatalogProductModelForm = (id?: string) => useSWR(
+  ["catalog-product-model-form", id ?? "new"],
+  () => getCatalogProductModelForm(id),
+)
+export const useCatalogAttributeDefinitions = () => useSWR(
+  "catalog-attribute-definitions",
+  getCatalogAttributeDefinitions,
+)
+export const useCatalogCategories = () => useSWR(
+  "catalog-admin-categories",
+  getCatalogCategories,
+)
+export const useCatalogMasters = (kind: "material" | "finish" | "pack") => useSWR(
+  ["catalog-masters", kind],
+  () => getCatalogMasters(kind),
+)

@@ -1,7 +1,6 @@
 "use client";
 import Link from "next/link";
 import { useCatalog } from "@/application/hooks/useCatalog";
-import { useBrands } from "@/application/hooks/useBrands";
 import { useEffect, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { ChevronDown, Check } from "lucide-react";
@@ -12,15 +11,8 @@ export function ProductSidebar({ currentCategory }: { currentCategory?: string }
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const { categories } = useCatalog();
-  const { brands } = useBrands();
   const minPrice = Number(searchParams.get("minPrice") || 0);
   const maxPrice = Number(searchParams.get("maxPrice") || 10000000);
-  const selectedBrands = new Set(
-    (searchParams.get("brand") || "")
-      .split(",")
-      .map((value) => value.trim())
-      .filter(Boolean)
-  );
   const [priceRange, setPriceRange] = useState([minPrice, maxPrice]);
   useEffect(() => {
     setPriceRange([minPrice, maxPrice]);
@@ -51,16 +43,6 @@ export function ProductSidebar({ currentCategory }: { currentCategory?: string }
     });
   };
 
-  const toggleBrand = (brandKey: string) => {
-    const next = new Set(selectedBrands);
-    if (next.has(brandKey)) {
-      next.delete(brandKey);
-    } else {
-      next.add(brandKey);
-    }
-    updateParams({ brand: Array.from(next).join(",") || null });
-  };
-
   return (
     <aside className="w-full flex flex-col gap-8">
       {/* Category Filter */}
@@ -82,15 +64,15 @@ export function ProductSidebar({ currentCategory }: { currentCategory?: string }
           {tree?.map((category) => (
             <div key={category.id} className="flex flex-col border-b border-[#c0a060] py-3">
               <Link 
-                href={`/products?category=${category.slug || category.id}`}
+                href={`/products?category=${category.id}`}
                 data-testid={`category-filter-${category.slug || category.id}`}
                 className="flex items-center justify-between"
               >
                 <div className="flex items-center gap-2">
-                  <div className={`w-5 h-5 rounded-sm border ${currentCategory === (category.slug || category.id) ? 'border-[#99782b] bg-[#99782b]' : 'border-[#c9cfd2] bg-white'} flex items-center justify-center`}>
-                    {currentCategory === (category.slug || category.id) && <Check className="w-3.5 h-3.5 text-white" />}
+                  <div className={`w-5 h-5 rounded-sm border ${currentCategory === String(category.id) ? 'border-[#99782b] bg-[#99782b]' : 'border-[#c9cfd2] bg-white'} flex items-center justify-center`}>
+                    {currentCategory === String(category.id) && <Check className="w-3.5 h-3.5 text-white" />}
                   </div>
-                  <span className={`text-base font-svn-gilroy ${currentCategory === (category.slug || category.id) ? 'text-[#2b1809] font-bold' : 'text-[#475156] font-semibold'}`}>
+                  <span className={`text-base font-svn-gilroy ${currentCategory === String(category.id) ? 'text-[#2b1809] font-bold' : 'text-[#475156] font-semibold'}`}>
                     {category.name}
                   </span>
                 </div>
@@ -135,29 +117,6 @@ export function ProductSidebar({ currentCategory }: { currentCategory?: string }
         </div>
       </div>
 
-      {/* Brand Filter */}
-      <div className="pt-2">
-        <h3 className="text-[16px] font-bold text-[#99782b] font-svn-gilroy mb-4 uppercase">Lọc theo thương hiệu</h3>
-        <div className="flex flex-col gap-3">
-          {brands?.slice(0, 5).map(brand => (
-            <button
-              key={brand.id}
-              type="button"
-              data-testid={`brand-filter-${brand.slug || brand.id}`}
-              onClick={() => toggleBrand(String(brand.id))}
-              className="flex items-center justify-between cursor-pointer group text-left"
-            >
-              <div className="flex items-center gap-2">
-                <div className={`w-5 h-5 rounded-sm border flex items-center justify-center group-hover:border-[#99782b] ${selectedBrands.has(String(brand.id)) ? "border-[#99782b] bg-[#99782b]" : "border-[#c9cfd2] bg-white"}`}>
-                  {selectedBrands.has(String(brand.id)) && <Check className="w-3.5 h-3.5 text-white" />}
-                </div>
-                <span className="text-base text-[#475156] font-medium font-svn-gilroy">{brand.name}</span>
-              </div>
-              <span className="text-sm text-[#a0a0a0] font-medium font-svn-gilroy">({brand.productCount ?? 0})</span>
-            </button>
-          ))}
-        </div>
-      </div>
     </aside>
   );
 }

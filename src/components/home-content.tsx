@@ -10,10 +10,10 @@ import { useCatalog, usePublicSettings } from "@/application/hooks/useCatalog";
 import { useSiteConfig } from "@/application/hooks/useSiteConfig";
 
 export function HomeContent() {
-  const { products, isLoading } = useCatalog({ limit: 10, sort: "popular" });
+  const { products, isLoading } = useCatalog({ limit: 10, sort: "newest" });
   const { settings } = usePublicSettings();
   const { config } = useSiteConfig();
-  const featuredProducts = products.filter((p) => p.isHot).slice(0, 5);
+  const featuredProducts = products.slice(0, 5);
   const premiumHandles = products.slice(0, 5);
 
   const blocksStr = settings?.homepageBlocks || (settings as any)?.homepage_blocks || "hero,categories,products,latest-news,colors,usp";
@@ -46,7 +46,7 @@ export function HomeContent() {
             return (
               <div key="products" data-testid="homepage-module-products" className="contents">
                 <ProductSection
-                  title="SẢN PHẨM NỔI BẬT"
+                  title="SẢN PHẨM MỚI"
                   products={featuredProducts}
                   viewAllLink="/products?filter=hot"
                   cardTestId="featured-product-card"

@@ -1,10 +1,10 @@
 "use client"
 
 import { AdminProductsContent } from "@/components/admin/products-content"
-import { useAdminProducts } from "@/application/hooks/useAdmin"
+import { useCatalogProductModels } from "@/application/hooks/useAdmin"
 
 export default function AdminPage() {
-    const { data, isLoading } = useAdminProducts()
+    const { data, isLoading, mutate } = useCatalogProductModels()
 
     if (isLoading) {
         return (
@@ -34,8 +34,8 @@ export default function AdminPage() {
 
     return (
         <AdminProductsContent
-            products={data?.products ?? []}
-            lowStockThreshold={data?.lowStockThreshold ?? 5}
+            products={data ?? []}
+            onChanged={mutate}
         />
     )
 }
