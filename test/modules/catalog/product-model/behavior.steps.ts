@@ -485,7 +485,7 @@ When("Catalog Operator removes the last Variant SKU or SellingPrice", async func
 Then("the ProductModel remains publicly valid", async function (this: ScenarioWorld) {
   baseRejected(this);
   const response = await (await baseApi(this)).publicGet(`/v1/catalog/product-models/${await baseModel(this)}`);
-  expect([200, 404]).toContain(response.status);
+  expect(response.status).toBe(200);
 });
 
 When("Catalog Operator requests ProductModel deletion", async function (this: ScenarioWorld) {
