@@ -1,13 +1,13 @@
 "use client"
 
 import ProductForm from "@/components/admin/product-form"
-import { useAdminProductForm } from "@/application/hooks/useAdmin"
+import { useCatalogProductModelForm } from "@/application/hooks/useAdmin"
 import { useResolvedRouteParam } from "@/lib/route-param"
 import Link from "next/link"
 
 export default function EditProductPageClient({ id }: { id: string }) {
     const resolvedId = useResolvedRouteParam(id, "/admin/product/edit")
-    const { data, isLoading } = useAdminProductForm(resolvedId)
+    const { data, isLoading, mutate } = useCatalogProductModelForm(resolvedId)
 
     if (isLoading) {
         return (
@@ -22,7 +22,7 @@ export default function EditProductPageClient({ id }: { id: string }) {
         )
     }
 
-    if (!data?.product) {
+    if (!data?.model) {
         return (
             <div className="w-[1056px] mt-[83px]">
                 <div className="bg-[#fff1f0] border border-[#ffccc7] rounded-lg p-6 text-center space-y-3">
@@ -43,9 +43,12 @@ export default function EditProductPageClient({ id }: { id: string }) {
 
     return (
         <ProductForm
-            product={data.product}
+            model={data.model}
             categories={data.categories ?? []}
+            definitions={data.definitions ?? []}
+            masters={data.masters}
             isCreate={false}
+            onChanged={mutate}
         />
     )
 }
