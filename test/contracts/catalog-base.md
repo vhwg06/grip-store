@@ -42,6 +42,18 @@ ProductModel publication scenarios use the admin product management transport
 surface while asserting the lifecycle rules declared in
 `modules/catalog/product-model/behavior.feature`.
 
+<!-- contract-ref: catalog-master-data -->
+
+## Catalog master data
+
+Category, ProductAttributeDefinition, EnumValue, Material, Finish, and Pack
+are admin-owned catalog masters. Their lifecycle is non-destructive:
+deactivation rejects new assignment while preserving existing references.
+Attribute definitions use one valid typed shape (`Scalar`, `Enum`, or
+`Reference`); definitions that are already in use may change display metadata
+only. The concrete admin operations are intentionally deferred until the
+canonical Catalog Base OpenAPI surface exists.
+
 <!-- contract-ref: catalog-variant-management -->
 
 ## Variant management
@@ -49,6 +61,16 @@ surface while asserting the lifecycle rules declared in
 Variant scenarios use the Catalog Base admin product transport surface while
 asserting selected option, SKU, price, and sale-readiness rules declared in
 `modules/catalog/variant/behavior.feature`.
+
+<!-- contract-ref: catalog-public-variant-resolution -->
+
+## Public Variant resolution
+
+Public catalog discovery filters only by Category, Material, Finish, and
+SellingPrice in this phase. Available options are derived from at least one
+compatible publicly sellable Variant, and resolving a Variant requires the
+exact canonical selected combination. These operations are deferred until
+their canonical public OpenAPI operations are defined.
 
 <!-- contract-ref: catalog-cart-boundary -->
 
