@@ -7,6 +7,14 @@ Feature: Catalog master data
   @UC-CAT-MASTER-CATEGORY
   Rule: Category is classification with a non-destructive lifecycle
 
+    @deferred @api @SC-CAT-MASTER-CATEGORY-002
+    Scenario: Maintain Category hierarchy without assigning product rules
+      Given the Catalog Operator has catalog master-data access
+      When Catalog Operator creates a root Category and a child Category
+      And Catalog Operator changes the root Category position to `9`
+      Then the Category read model preserves classification hierarchy and position
+      And the Category does not own an attribute template or publication rule
+
     @deferred @api @SC-CAT-MASTER-CATEGORY-001
     Scenario: Deactivate Category Without Breaking Existing Model
       Given an existing ProductModel references a Category
@@ -14,8 +22,34 @@ Feature: Catalog master data
       Then new ProductModel assignment to that Category is rejected
       And the existing ProductModel reference remains valid for republishing
 
+    @deferred @api @SC-CAT-MASTER-CATEGORY-003
+    Scenario: Category deactivation is not deletion
+      Given an existing ProductModel references a Category
+      When Catalog Operator deactivates that Category
+      Then Category deletion is rejected
+      And the existing ProductModel reference remains readable
+
   @UC-CAT-MASTER-ATTRIBUTE
   Rule: Attribute definitions have one typed semantic shape
+
+    @deferred @api @SC-CAT-MASTER-ATTRIBUTE-003
+    Scenario: Store a valid Scalar Number definition with a compatible unit
+      Given the Catalog Operator has catalog master-data access
+      When Catalog Operator defines a valid Scalar Number attribute with a compatible unit
+      Then the attribute definition is stored with its typed semantic fields
+
+    @deferred @api @SC-CAT-MASTER-ATTRIBUTE-004
+    Scenario: Store a valid Enum definition and selectable values
+      Given the Catalog Operator has catalog master-data access
+      When Catalog Operator defines a valid Enum attribute with selectable values
+      Then the attribute definition is stored with its typed semantic fields
+      And Enum values can be deactivated without deleting historical references
+
+    @deferred @api @SC-CAT-MASTER-ATTRIBUTE-005
+    Scenario: Store a valid Reference definition with one target
+      Given the Catalog Operator has catalog master-data access
+      When Catalog Operator defines a valid Reference attribute targeting Material, Finish, or Pack
+      Then the definition exposes exactly one reference target
 
     @deferred @api @SC-CAT-MASTER-ATTRIBUTE-001
     Scenario: Reject meaningless attribute type combinations
@@ -32,6 +66,13 @@ Feature: Catalog master data
       When Catalog Operator changes its value kind, data type, reference target, or unit family
       Then the semantic structure change is rejected
 
+    @deferred @api @SC-CAT-MASTER-ATTRIBUTE-006
+    Scenario: Deactivate a used attribute definition without rewriting data
+      Given a numeric attribute definition is used by a ProductModel
+      When Catalog Operator deactivates the used attribute definition
+      Then new ProductModel assignment to the definition is rejected
+      And existing ProductModel values remain readable
+
   @UC-CAT-MASTER-REFERENCE
   Rule: Reference masters are the only assignment source for their values
 
@@ -42,6 +83,12 @@ Feature: Catalog master data
       Then new assignment of that reference is rejected
       And existing ProductModel and Variant references remain valid
 
+    @deferred @api @SC-CAT-MASTER-REFERENCE-002
+    Scenario: Finish owns display metadata and swatch media
+      Given the Catalog Operator has catalog master-data access
+      When Catalog Operator updates Finish display metadata and swatch media
+      Then the Finish master exposes its saved swatch media
+
   @UC-CAT-MASTER-PACK
   Rule: Pack owns selling-unit metadata
 
@@ -50,3 +97,10 @@ Feature: Catalog master data
       Given a Pack has selling unit, quantity, and base unit metadata
       When Catalog Operator updates the Pack display metadata
       Then the Pack keeps its selling-unit metadata as the referenced source of truth
+
+    @deferred @api @SC-CAT-MASTER-PACK-002
+    Scenario: Pack metadata remains distinct from stock and quantity pricing
+      Given a Pack has selling unit, quantity, and base unit metadata
+      When Catalog Operator updates the Pack quantity or base unit
+      Then the Pack projection changes its selling-unit metadata
+      And the Catalog Base does not create stock or quantity-price state
