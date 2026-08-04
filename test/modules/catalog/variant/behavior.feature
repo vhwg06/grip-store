@@ -232,13 +232,13 @@ Feature: Catalog Base Variant
   @UC-CAT-VARIANT-VALUES
   Rule: Variant selections must use active allowed values
 
-    @deferred @api @SC-CAT-VARIANT-VALUES-016
+    @accepted @api @SC-CAT-VARIANT-VALUES-016
     Scenario: Reject a Variant selection outside the dimension value set
       Given a ProductModel has an active VariantDimension with allowed values
       When Catalog Operator creates a Variant using a value outside that set
       Then the Variant command is rejected
 
-    @deferred @api @SC-CAT-VARIANT-VALUES-017
+    @accepted @api @SC-CAT-VARIANT-VALUES-017
     Scenario: Deactivate a selectable value without rewriting existing Variants
       Given an existing Variant uses a selectable value
       When Catalog Operator deactivates that selectable value
@@ -248,21 +248,21 @@ Feature: Catalog Base Variant
   @UC-CAT-VARIANT-IDENTITY
   Rule: Variant option identity is immutable and canonical
 
-    @deferred @api @SC-CAT-VARIANT-IDENTITY-018
+    @accepted @api @SC-CAT-VARIANT-IDENTITY-018
     Scenario: Change a Variant combination by replacement rather than mutation
       Given a Variant exists with an immutable selected combination
       When Catalog Operator requests a different selected combination for that Variant
       Then the selected-combination mutation is rejected
       And a replacement Variant is required before the old Variant is inactivated
 
-    @deferred @api @SC-CAT-VARIANT-IDENTITY-019
+    @accepted @api @SC-CAT-VARIANT-IDENTITY-019
     Scenario: Canonicalize text selections before combination uniqueness checks
       Given a ProductModel has a text VariantDimension
       And a Variant exists with canonical option value "black handle"
       When Catalog Operator creates a Variant with equivalent whitespace and casing
       Then the duplicate canonical combination is rejected
 
-    @deferred @api @SC-CAT-VARIANT-IDENTITY-020
+    @accepted @api @SC-CAT-VARIANT-IDENTITY-020
     Scenario: Use master identity for Reference selections
       Given a ProductModel has Material, Finish, and Pack Reference dimensions
       When Catalog Operator selects a referenced master by display text
@@ -272,7 +272,7 @@ Feature: Catalog Base Variant
   @UC-CAT-VARIANT-PACK
   Rule: Pack can be fixed or dimensional but remains the selling-unit source
 
-    @deferred @api @SC-CAT-VARIANT-PACK-003
+    @accepted @api @SC-CAT-VARIANT-PACK-003
     Scenario: Fixed Pack reference does not become a Variant dimension
       Given a ProductModel has a fixed Pack reference and no Pack VariantDimension
       When Catalog Operator creates a Variant from its selectable dimensions
@@ -282,26 +282,26 @@ Feature: Catalog Base Variant
   @UC-CAT-VARIANT-COMMERCIAL
   Rule: Inactive Variants preserve commercial history
 
-    @deferred @api @SC-CAT-VARIANT-COMMERCIAL-009
+    @accepted @api @SC-CAT-VARIANT-COMMERCIAL-009
     Scenario: Preserve SKU and SellingPrice when a Variant becomes Inactive
       Given an Active Variant has a reserved SKU and current SellingPrice
-      When Catalog Operator inactivates the Variant
+      When Catalog Operator inactivates the Catalog Base Variant
       Then the Variant is excluded from public sellability
       And its SKU, SellingPrice, Pack reference, and history remain readable
 
   @UC-CAT-VARIANT-STRUCTURE
   Rule: Dimension structure cannot be replaced after Variant creation
 
-    @deferred @api @SC-CAT-VARIANT-STRUCTURE-010
+    @accepted @api @SC-CAT-VARIANT-STRUCTURE-010
     Scenario: Reject replacing an existing VariantDimension
       Given a ProductModel has existing Variants and a VariantDimension
       When Catalog Operator replaces that VariantDimension with another definition
-      Then the structural dimension change is rejected
+      Then the Catalog Base structural dimension change is rejected
 
   @UC-CAT-VARIANT-COMMERCIAL
   Rule: Sale readiness is derived and not a separate mutable flag
 
-    @deferred @api @SC-CAT-VARIANT-COMMERCIAL-011
+    @accepted @api @SC-CAT-VARIANT-COMMERCIAL-011
     Scenario: Derive sale readiness from Active state SKU and SellingPrice
       Given an Active Variant has a valid SKU and SellingPrice
       When Catalog Operator removes its SKU or makes its price invalid
