@@ -731,7 +731,7 @@
       "steps": "modules/catalog/master-data/behavior.steps.ts",
       "contract": "contracts/catalog-base.md",
       "title": "Reject meaningless attribute type combinations",
-      "specStatus": "deferred",
+      "specStatus": "accepted",
       "useCase": "UC-CAT-MASTER-ATTRIBUTE",
       "layer": "api",
       "rule": "Attribute definitions have one typed semantic shape"
@@ -743,7 +743,7 @@
       "steps": "modules/catalog/master-data/behavior.steps.ts",
       "contract": "contracts/catalog-base.md",
       "title": "Preserve used attribute semantic structure",
-      "specStatus": "deferred",
+      "specStatus": "accepted",
       "useCase": "UC-CAT-MASTER-ATTRIBUTE",
       "layer": "api",
       "rule": "Attribute definitions have one typed semantic shape"
@@ -755,7 +755,7 @@
       "steps": "modules/catalog/master-data/behavior.steps.ts",
       "contract": "contracts/catalog-base.md",
       "title": "Store a valid Scalar Number definition with a compatible unit",
-      "specStatus": "deferred",
+      "specStatus": "accepted",
       "useCase": "UC-CAT-MASTER-ATTRIBUTE",
       "layer": "api",
       "rule": "Attribute definitions have one typed semantic shape"
@@ -767,7 +767,7 @@
       "steps": "modules/catalog/master-data/behavior.steps.ts",
       "contract": "contracts/catalog-base.md",
       "title": "Store a valid Enum definition and selectable values",
-      "specStatus": "deferred",
+      "specStatus": "accepted",
       "useCase": "UC-CAT-MASTER-ATTRIBUTE",
       "layer": "api",
       "rule": "Attribute definitions have one typed semantic shape"
@@ -779,7 +779,7 @@
       "steps": "modules/catalog/master-data/behavior.steps.ts",
       "contract": "contracts/catalog-base.md",
       "title": "Store a valid Reference definition with one target",
-      "specStatus": "deferred",
+      "specStatus": "accepted",
       "useCase": "UC-CAT-MASTER-ATTRIBUTE",
       "layer": "api",
       "rule": "Attribute definitions have one typed semantic shape"
@@ -791,7 +791,7 @@
       "steps": "modules/catalog/master-data/behavior.steps.ts",
       "contract": "contracts/catalog-base.md",
       "title": "Deactivate a used attribute definition without rewriting data",
-      "specStatus": "deferred",
+      "specStatus": "accepted",
       "useCase": "UC-CAT-MASTER-ATTRIBUTE",
       "layer": "api",
       "rule": "Attribute definitions have one typed semantic shape"
@@ -803,7 +803,7 @@
       "steps": "modules/catalog/master-data/behavior.steps.ts",
       "contract": "contracts/catalog-base.md",
       "title": "Deactivate Category Without Breaking Existing Model",
-      "specStatus": "deferred",
+      "specStatus": "accepted",
       "useCase": "UC-CAT-MASTER-CATEGORY",
       "layer": "api",
       "rule": "Category is classification with a non-destructive lifecycle"
@@ -815,7 +815,7 @@
       "steps": "modules/catalog/master-data/behavior.steps.ts",
       "contract": "contracts/catalog-base.md",
       "title": "Maintain Category hierarchy without assigning product rules",
-      "specStatus": "deferred",
+      "specStatus": "accepted",
       "useCase": "UC-CAT-MASTER-CATEGORY",
       "layer": "api",
       "rule": "Category is classification with a non-destructive lifecycle"
@@ -827,7 +827,7 @@
       "steps": "modules/catalog/master-data/behavior.steps.ts",
       "contract": "contracts/catalog-base.md",
       "title": "Category deactivation is not deletion",
-      "specStatus": "deferred",
+      "specStatus": "accepted",
       "useCase": "UC-CAT-MASTER-CATEGORY",
       "layer": "api",
       "rule": "Category is classification with a non-destructive lifecycle"
@@ -839,7 +839,7 @@
       "steps": "modules/catalog/master-data/behavior.steps.ts",
       "contract": "contracts/catalog-base.md",
       "title": "Maintain Pack as the source of truth for selling unit",
-      "specStatus": "deferred",
+      "specStatus": "accepted",
       "useCase": "UC-CAT-MASTER-PACK",
       "layer": "api",
       "rule": "Pack owns selling-unit metadata"
@@ -851,7 +851,7 @@
       "steps": "modules/catalog/master-data/behavior.steps.ts",
       "contract": "contracts/catalog-base.md",
       "title": "Pack metadata remains distinct from stock and quantity pricing",
-      "specStatus": "deferred",
+      "specStatus": "accepted",
       "useCase": "UC-CAT-MASTER-PACK",
       "layer": "api",
       "rule": "Pack owns selling-unit metadata"
@@ -863,7 +863,7 @@
       "steps": "modules/catalog/master-data/behavior.steps.ts",
       "contract": "contracts/catalog-base.md",
       "title": "Deactivate Material Finish or Pack without rewriting existing references",
-      "specStatus": "deferred",
+      "specStatus": "accepted",
       "useCase": "UC-CAT-MASTER-REFERENCE",
       "layer": "api",
       "rule": "Reference masters are the only assignment source for their values"
@@ -875,7 +875,7 @@
       "steps": "modules/catalog/master-data/behavior.steps.ts",
       "contract": "contracts/catalog-base.md",
       "title": "Finish owns display metadata and swatch media",
-      "specStatus": "deferred",
+      "specStatus": "accepted",
       "useCase": "UC-CAT-MASTER-REFERENCE",
       "layer": "api",
       "rule": "Reference masters are the only assignment source for their values"
@@ -1139,7 +1139,7 @@
       "steps": "modules/catalog/product-model/behavior.steps.ts",
       "contract": "contracts/catalog-base.md",
       "title": "Create a ProductModel Draft with classification and content",
-      "specStatus": "deferred",
+      "specStatus": "accepted",
       "useCase": "UC-CAT-MODEL-AUTHORING",
       "layer": "api",
       "rule": "ProductModel authoring creates a Draft owned by the model boundary"
@@ -1151,7 +1151,7 @@
       "steps": "modules/catalog/product-model/behavior.steps.ts",
       "contract": "contracts/catalog-base.md",
       "title": "ProductModel does not expose stock or order ownership",
-      "specStatus": "deferred",
+      "specStatus": "accepted",
       "useCase": "UC-CAT-MODEL-AUTHORING",
       "layer": "api",
       "rule": "ProductModel authoring creates a Draft owned by the model boundary"
@@ -1163,7 +1163,7 @@
       "steps": "modules/catalog/product-model/behavior.steps.ts",
       "contract": "contracts/catalog-base.md",
       "title": "Reject publication without a primary model image",
-      "specStatus": "deferred",
+      "specStatus": "accepted",
       "useCase": "UC-CAT-MODEL-PUBLICATION-VALIDATION",
       "layer": "api",
       "rule": "Publication validates every universal ProductModel invariant"
@@ -1175,7 +1175,7 @@
       "steps": "modules/catalog/product-model/behavior.steps.ts",
       "contract": "contracts/catalog-base.md",
       "title": "Reject publication without a sale-ready Variant",
-      "specStatus": "deferred",
+      "specStatus": "accepted",
       "useCase": "UC-CAT-MODEL-PUBLICATION-VALIDATION",
       "layer": "api",
       "rule": "Publication validates every universal ProductModel invariant"
@@ -1187,7 +1187,7 @@
       "steps": "modules/catalog/product-model/behavior.steps.ts",
       "contract": "contracts/catalog-base.md",
       "title": "Replace a primary model image without creating two primaries",
-      "specStatus": "deferred",
+      "specStatus": "accepted",
       "useCase": "UC-CAT-MODEL-PUBLICATION-VALIDATION",
       "layer": "api",
       "rule": "Publication validates every universal ProductModel invariant"
@@ -1199,7 +1199,7 @@
       "steps": "modules/catalog/product-model/behavior.steps.ts",
       "contract": "contracts/catalog-base.md",
       "title": "Reject incompatible numeric measurement units",
-      "specStatus": "deferred",
+      "specStatus": "accepted",
       "useCase": "UC-CAT-MODEL-PUBLICATION-VALIDATION",
       "layer": "api",
       "rule": "Publication validates every universal ProductModel invariant"
@@ -1211,7 +1211,7 @@
       "steps": "modules/catalog/product-model/behavior.steps.ts",
       "contract": "contracts/catalog-base.md",
       "title": "Discontinue a ProductModel from a non-terminal publication state",
-      "specStatus": "deferred",
+      "specStatus": "accepted",
       "useCase": "UC-CAT-MODEL-LIFECYCLE",
       "layer": "api",
       "rule": "Discontinuation is a valid terminal transition"
@@ -1223,7 +1223,7 @@
       "steps": "modules/catalog/product-model/behavior.steps.ts",
       "contract": "contracts/catalog-base.md",
       "title": "Reject WarrantySummary without a required term",
-      "specStatus": "deferred",
+      "specStatus": "accepted",
       "useCase": "UC-CAT-MODEL-WARRANTY",
       "layer": "api",
       "rule": "WarrantySummary has no claim workflow"
@@ -1235,7 +1235,7 @@
       "steps": "modules/catalog/product-model/behavior.steps.ts",
       "contract": "contracts/catalog-base.md",
       "title": "Reject removing the last sale-ready commercial field from an Active model",
-      "specStatus": "deferred",
+      "specStatus": "accepted",
       "useCase": "UC-CAT-MODEL-INVARIANTS",
       "layer": "api",
       "rule": "Active ProductModel rejects every mutation that breaks publication invariants"
@@ -1247,7 +1247,7 @@
       "steps": "modules/catalog/product-model/behavior.steps.ts",
       "contract": "contracts/catalog-base.md",
       "title": "Preserve a ProductModel through lifecycle transitions instead of deletion",
-      "specStatus": "deferred",
+      "specStatus": "accepted",
       "useCase": "UC-CAT-MODEL-LIFECYCLE",
       "layer": "api",
       "rule": "ProductModel records are never deleted"
@@ -1499,7 +1499,7 @@
       "steps": "modules/catalog/public-query/behavior.steps.ts",
       "contract": "contracts/catalog-base.md",
       "title": "Public detail exposes catalog-owned Variant and option data only",
-      "specStatus": "deferred",
+      "specStatus": "accepted",
       "useCase": "UC-CAT-PUBLIC-DETAIL",
       "layer": "api",
       "rule": "Public product detail exposes the complete purchasable read model"
@@ -1511,7 +1511,7 @@
       "steps": "modules/catalog/public-query/behavior.steps.ts",
       "contract": "contracts/catalog-base.md",
       "title": "Filter public ProductModels by Material Finish and SellingPrice",
-      "specStatus": "deferred",
+      "specStatus": "accepted",
       "useCase": "UC-CAT-PUBLIC-FILTER",
       "layer": "api",
       "rule": "Catalog Base exposes only the committed discovery filters"
@@ -1523,7 +1523,7 @@
       "steps": "modules/catalog/public-query/behavior.steps.ts",
       "contract": "contracts/catalog-base.md",
       "title": "Filter the public catalog by Material and Finish references",
-      "specStatus": "deferred",
+      "specStatus": "accepted",
       "useCase": "UC-CAT-PUBLIC-FILTER",
       "layer": "api",
       "rule": "Catalog Base exposes only the committed discovery filters"
@@ -1535,7 +1535,7 @@
       "steps": "modules/catalog/public-query/behavior.steps.ts",
       "contract": "contracts/catalog-base.md",
       "title": "Filter the public catalog by SellingPrice range",
-      "specStatus": "deferred",
+      "specStatus": "accepted",
       "useCase": "UC-CAT-PUBLIC-FILTER",
       "layer": "api",
       "rule": "Catalog Base exposes only the committed discovery filters"
@@ -1595,7 +1595,7 @@
       "steps": "modules/catalog/public-query/behavior.steps.ts",
       "contract": "contracts/catalog-base.md",
       "title": "List only Active ProductModels with publicly sellable Variants",
-      "specStatus": "deferred",
+      "specStatus": "accepted",
       "useCase": "UC-CAT-PUBLIC-LIST",
       "layer": "api",
       "rule": "The public product list is an active, paginated server projection"
@@ -1607,7 +1607,7 @@
       "steps": "modules/catalog/public-query/behavior.steps.ts",
       "contract": "contracts/catalog-base.md",
       "title": "Exclude incompatible and non-public Variant options",
-      "specStatus": "deferred",
+      "specStatus": "accepted",
       "useCase": "UC-CAT-PUBLIC-OPTIONS",
       "layer": "api",
       "rule": "Available options are derived from compatible publicly sellable Variants"
@@ -1619,7 +1619,7 @@
       "steps": "modules/catalog/public-query/behavior.steps.ts",
       "contract": "contracts/catalog-base.md",
       "title": "Return an empty option projection when no public Variant is compatible",
-      "specStatus": "deferred",
+      "specStatus": "accepted",
       "useCase": "UC-CAT-PUBLIC-OPTIONS",
       "layer": "api",
       "rule": "Available options are derived from compatible publicly sellable Variants"
@@ -1631,7 +1631,7 @@
       "steps": "modules/catalog/public-query/behavior.steps.ts",
       "contract": "contracts/catalog-base.md",
       "title": "Resolve only the exact publicly sellable selected combination",
-      "specStatus": "deferred",
+      "specStatus": "accepted",
       "useCase": "UC-CAT-PUBLIC-RESOLVE",
       "layer": "api",
       "rule": "Public Variant resolution uses an exact canonical combination"
@@ -1643,7 +1643,7 @@
       "steps": "modules/catalog/public-query/behavior.steps.ts",
       "contract": "contracts/catalog-base.md",
       "title": "Resolve equivalent canonical representations to one public Variant",
-      "specStatus": "deferred",
+      "specStatus": "accepted",
       "useCase": "UC-CAT-PUBLIC-RESOLVE",
       "layer": "api",
       "rule": "Public Variant resolution uses an exact canonical combination"
@@ -1835,7 +1835,7 @@
       "steps": "modules/catalog/variant/behavior.steps.ts",
       "contract": "contracts/catalog-base.md",
       "title": "Preserve SKU and SellingPrice when a Variant becomes Inactive",
-      "specStatus": "deferred",
+      "specStatus": "accepted",
       "useCase": "UC-CAT-VARIANT-COMMERCIAL",
       "layer": "api",
       "rule": "Inactive Variants preserve commercial history"
@@ -1847,7 +1847,7 @@
       "steps": "modules/catalog/variant/behavior.steps.ts",
       "contract": "contracts/catalog-base.md",
       "title": "Derive sale readiness from Active state SKU and SellingPrice",
-      "specStatus": "deferred",
+      "specStatus": "accepted",
       "useCase": "UC-CAT-VARIANT-COMMERCIAL",
       "layer": "api",
       "rule": "Sale readiness is derived and not a separate mutable flag"
@@ -1871,7 +1871,7 @@
       "steps": "modules/catalog/variant/behavior.steps.ts",
       "contract": "contracts/catalog-base.md",
       "title": "Change a Variant combination by replacement rather than mutation",
-      "specStatus": "deferred",
+      "specStatus": "accepted",
       "useCase": "UC-CAT-VARIANT-IDENTITY",
       "layer": "api",
       "rule": "Variant option identity is immutable and canonical"
@@ -1883,7 +1883,7 @@
       "steps": "modules/catalog/variant/behavior.steps.ts",
       "contract": "contracts/catalog-base.md",
       "title": "Canonicalize text selections before combination uniqueness checks",
-      "specStatus": "deferred",
+      "specStatus": "accepted",
       "useCase": "UC-CAT-VARIANT-IDENTITY",
       "layer": "api",
       "rule": "Variant option identity is immutable and canonical"
@@ -1895,7 +1895,7 @@
       "steps": "modules/catalog/variant/behavior.steps.ts",
       "contract": "contracts/catalog-base.md",
       "title": "Use master identity for Reference selections",
-      "specStatus": "deferred",
+      "specStatus": "accepted",
       "useCase": "UC-CAT-VARIANT-IDENTITY",
       "layer": "api",
       "rule": "Variant option identity is immutable and canonical"
@@ -1943,7 +1943,7 @@
       "steps": "modules/catalog/variant/behavior.steps.ts",
       "contract": "contracts/catalog-base.md",
       "title": "Fixed Pack reference does not become a Variant dimension",
-      "specStatus": "deferred",
+      "specStatus": "accepted",
       "useCase": "UC-CAT-VARIANT-PACK",
       "layer": "api",
       "rule": "Pack can be fixed or dimensional but remains the selling-unit source"
@@ -2075,7 +2075,7 @@
       "steps": "modules/catalog/variant/behavior.steps.ts",
       "contract": "contracts/catalog-base.md",
       "title": "Reject replacing an existing VariantDimension",
-      "specStatus": "deferred",
+      "specStatus": "accepted",
       "useCase": "UC-CAT-VARIANT-STRUCTURE",
       "layer": "api",
       "rule": "Dimension structure cannot be replaced after Variant creation"
@@ -2099,7 +2099,7 @@
       "steps": "modules/catalog/variant/behavior.steps.ts",
       "contract": "contracts/catalog-base.md",
       "title": "Reject a Variant selection outside the dimension value set",
-      "specStatus": "deferred",
+      "specStatus": "accepted",
       "useCase": "UC-CAT-VARIANT-VALUES",
       "layer": "api",
       "rule": "Variant selections must use active allowed values"
@@ -2111,7 +2111,7 @@
       "steps": "modules/catalog/variant/behavior.steps.ts",
       "contract": "contracts/catalog-base.md",
       "title": "Deactivate a selectable value without rewriting existing Variants",
-      "specStatus": "deferred",
+      "specStatus": "accepted",
       "useCase": "UC-CAT-VARIANT-VALUES",
       "layer": "api",
       "rule": "Variant selections must use active allowed values"
