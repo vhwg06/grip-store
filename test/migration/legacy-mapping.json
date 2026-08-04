@@ -51,11 +51,11 @@
         "SC-CAT-PUBLIC-RESOLVE-001",
         "SC-CAT-PUBLIC-RESOLVE-002"
       ],
-      "disposition": "deferred",
+      "disposition": "migrated",
       "preserved_assertions": [
         {
           "kind": "gherkin_semantics",
-          "expected": "Markdown typed-attribute, master-data, publication, canonical-identity, public-sellability, and ownership invariants are represented; execution awaits canonical Catalog Base OpenAPI operations"
+          "expected": "Markdown typed-attribute, master-data, publication, canonical-identity, public-sellability, and ownership invariants are represented by accepted API scenarios bound to the canonical Catalog Base contract"
         }
       ]
     },
