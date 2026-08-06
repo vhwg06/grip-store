@@ -13,6 +13,7 @@ type MasterDataState = {
   childCategoryId?: string;
   definitionId?: string;
   enumValueId?: string;
+  valueKind?: string;
   masterKind?: CatalogMasterKind;
   masterId?: string;
   masterIds?: Partial<Record<CatalogMasterKind, string>>;
@@ -78,6 +79,7 @@ async function createDefinition(world: ScenarioWorld, input: JsonRecord): Promis
     displayName,
     ...input,
   });
+  state(world).valueKind = String(input.valueKind ?? "");
   save(world, response);
   expectSuccess(world, [201]);
   return idOrFail(world, response.data, "attribute definition");
@@ -218,8 +220,12 @@ Then("the attribute definition is stored with its typed semantic fields", async 
   const response = await (await api(this)).adminGet<JsonRecord[]>(await adminToken(this), "/v1/admin/catalog/attribute-definitions");
   expect(response.status).toBe(200);
   const definition = response.data.find((item) => item.id === state(this).definitionId);
-  expect(definition?.valueKind).toBeDefined();
-  expect(definition?.dataType).toBeDefined();
+  expect(definition?.valueKind).toBe(state(this).valueKind);
+  if (state(this).valueKind === "Scalar") {
+    expect(definition?.dataType).toBeDefined();
+  } else if (state(this).valueKind === "Enum") {
+    expect(state(this).enumValueId).toBeDefined();
+  }
 });
 
 When("Catalog Operator defines a valid Enum attribute with selectable values", async function (this: ScenarioWorld) {

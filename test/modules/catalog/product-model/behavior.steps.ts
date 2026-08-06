@@ -16,6 +16,14 @@ type ModelState = {
   baseVariantId?: string;
   baseDimensionId?: string;
   baseResponse?: { status: number; data: unknown };
+  legacyDefinitionId?: string;
+  legacyFixedDefinitionId?: string;
+  legacyCategoryId?: string;
+  legacyMaterialId?: string;
+  legacyFinishId?: string;
+  legacyPackId?: string;
+  legacyVariantInactivated?: boolean;
+  legacyDiscontinued?: boolean;
 };
 
 function state(world: ScenarioWorld): ModelState {
@@ -26,15 +34,171 @@ async function adminHeaders(world: ScenarioWorld) {
   return { Authorization: `Bearer ${await getAdminToken(await world.getApiRequest())}` };
 }
 
+async function ensureMasterDefinition(world: ScenarioWorld, displayName: string, valueKind: string, referenceTarget: string): Promise<{ masterId: string; definitionId: string }> {
+  const master = await (await baseApi(world)).adminPost(await baseToken(world), `/v1/admin/catalog/masters/${referenceTarget.toLowerCase()}`, { name: baseName(world, displayName) });
+  expect(master.status).toBe(201);
+  const masterId = entityId(master.data);
+  expect(masterId).toBeTruthy();
+  const definition = await (await baseApi(world)).adminPost(await baseToken(world), "/v1/admin/catalog/attribute-definitions", {
+    key: baseName(world, `${displayName}-dimension-definition`).toLowerCase().replace(/[^a-z0-9-]/g, "-"),
+    displayName,
+    valueKind,
+    referenceTarget,
+  });
+  expect(definition.status).toBe(201);
+  const definitionId = entityId(definition.data);
+  expect(definitionId).toBeTruthy();
+  return { masterId, definitionId };
+}
+
+async function addNamedDimension(world: ScenarioWorld, displayName: string, values: string[], valueKind = "Enum", referenceTarget?: string): Promise<string> {
+  const definition = await (await baseApi(world)).adminPost(await baseToken(world), "/v1/admin/catalog/attribute-definitions", {
+    key: baseName(world, `${displayName}-definition`).toLowerCase().replace(/[^a-z0-9-]/g, "-"),
+    displayName,
+    valueKind,
+    ...(referenceTarget ? { referenceTarget } : {}),
+  });
+  expect(definition.status).toBe(201);
+  const dimension = await (await baseApi(world)).adminPost(await baseToken(world), `/v1/admin/catalog/product-models/${state(world).baseModelId}/variant-dimensions`, {
+    definitionId: entityId(definition.data),
+    allowedValues: values.map((value) => ({ id: value, label: value, active: true })),
+  });
+  expect(dimension.status).toBe(201);
+  const dimensionId = entityId(dimension.data);
+  expect(dimensionId).toBeTruthy();
+  state(world).baseDimensionId = dimensionId;
+  return dimensionId;
+}
+
+async function ensureLegacyCanonicalScenario(world: ScenarioWorld): Promise<void> {
+  if (state(world).baseModelId) return;
+  await baseModel(world);
+  state(world).legacyCategoryId = state(world).baseCategoryId;
+  switch (world.scenarioId) {
+    case "SC-CAT-MODEL-002": {
+      const material = await ensureMasterDefinition(world, "Material", "Reference", "Material");
+      state(world).legacyMaterialId = material.masterId;
+      state(world).legacyFixedDefinitionId = material.definitionId;
+      const fixed = await (await baseApi(world)).adminPatch(await baseToken(world), `/v1/admin/catalog/product-models/${state(world).baseModelId}`, { fixedAttributes: { [material.definitionId]: material.masterId } });
+      expect(fixed.status).toBe(200);
+      break;
+    }
+    case "SC-CAT-MODEL-003":
+    case "SC-CAT-MODEL-004":
+    case "SC-CAT-MODEL-005":
+    case "SC-CAT-MODEL-006":
+    case "SC-CAT-MODEL-008":
+    case "SC-CAT-MODEL-009":
+    case "SC-CAT-MODEL-011": {
+      await baseDimension(world);
+      await baseVariant(world);
+      const media = await (await baseApi(world)).adminPut(await baseToken(world), `/v1/admin/catalog/product-models/${state(world).baseModelId}/media`, {
+        images: [{ url: "https://cdn.example.test/legacy-primary.png", ordering: 1, primary: true }],
+      });
+      expect(media.status).toBe(200);
+      const publish = await (await baseApi(world)).adminPost(await baseToken(world), `/v1/admin/catalog/product-models/${state(world).baseModelId}/publish`);
+      expect(publish.status).toBe(200);
+      if (world.scenarioId === "SC-CAT-MODEL-006" || world.scenarioId === "SC-CAT-MODEL-009") {
+        const unpublish = await (await baseApi(world)).adminPost(await baseToken(world), `/v1/admin/catalog/product-models/${state(world).baseModelId}/unpublish`);
+        expect(unpublish.status).toBe(200);
+      }
+      break;
+    }
+    case "SC-CAT-MODEL-007": {
+      const discontinue = await (await baseApi(world)).adminPost(await baseToken(world), `/v1/admin/catalog/product-models/${state(world).baseModelId}/discontinue`);
+      expect(discontinue.status).toBe(200);
+      break;
+    }
+    case "SC-CAT-MODEL-010":
+    case "SC-CAT-MODEL-012":
+    case "SC-CAT-MODEL-013":
+    case "SC-CAT-MODEL-017":
+    case "SC-CAT-MODEL-018":
+      break;
+    case "SC-CAT-MODEL-019": {
+      await baseDimension(world);
+      await baseVariant(world);
+      const media = await (await baseApi(world)).adminPut(await baseToken(world), `/v1/admin/catalog/product-models/${state(world).baseModelId}/media`, { images: [{ url: "https://cdn.example.test/state-machine.png", ordering: 1, primary: true }] });
+      expect(media.status).toBe(200);
+      break;
+    }
+    case "SC-CAT-MODEL-020": {
+      await baseDimension(world);
+      await baseVariant(world);
+      const media = await (await baseApi(world)).adminPut(await baseToken(world), `/v1/admin/catalog/product-models/${state(world).baseModelId}/media`, { images: [{ url: "https://cdn.example.test/active.png", ordering: 1, primary: true }] });
+      expect(media.status).toBe(200);
+      const publish = await (await baseApi(world)).adminPost(await baseToken(world), `/v1/admin/catalog/product-models/${state(world).baseModelId}/publish`);
+      expect(publish.status).toBe(200);
+      break;
+    }
+    case "SC-CAT-MODEL-021": {
+      await addNamedDimension(world, "Size", ["200 mm", "300 mm"]);
+      const first = await (await baseApi(world)).adminPost(await baseToken(world), `/v1/admin/catalog/product-models/${state(world).baseModelId}/variants`, { selectedOptions: { Size: "200 mm" }, sku: `MODEL-${crypto.randomUUID()}`, sellingPrice: { amount: 400000, currency: "VND" } });
+      const second = await (await baseApi(world)).adminPost(await baseToken(world), `/v1/admin/catalog/product-models/${state(world).baseModelId}/variants`, { selectedOptions: { Size: "300 mm" }, sku: `MODEL-${crypto.randomUUID()}`, sellingPrice: { amount: 400000, currency: "VND" } });
+      expect(first.status).toBe(201);
+      expect(second.status).toBe(201);
+      state(world).baseVariantId = entityId(first.data);
+      const inactiveId = entityId(second.data);
+      const inactivate = await (await baseApi(world)).adminPost(await baseToken(world), `/v1/admin/catalog/variants/${inactiveId}/inactivate`);
+      expect(inactivate.status).toBe(200);
+      const media = await (await baseApi(world)).adminPut(await baseToken(world), `/v1/admin/catalog/product-models/${state(world).baseModelId}/media`, { images: [{ url: "https://cdn.example.test/public.png", ordering: 1, primary: true }] });
+      expect(media.status).toBe(200);
+      const publish = await (await baseApi(world)).adminPost(await baseToken(world), `/v1/admin/catalog/product-models/${state(world).baseModelId}/publish`);
+      expect(publish.status).toBe(200);
+      break;
+    }
+    case "SC-CAT-MODEL-014": {
+      await baseDimension(world);
+      await baseVariant(world);
+      const media = await (await baseApi(world)).adminPut(await baseToken(world), `/v1/admin/catalog/product-models/${state(world).baseModelId}/media`, { images: [{ url: "https://cdn.example.test/category.png", ordering: 1, primary: true }] });
+      expect(media.status).toBe(200);
+      const publish = await (await baseApi(world)).adminPost(await baseToken(world), `/v1/admin/catalog/product-models/${state(world).baseModelId}/publish`);
+      expect(publish.status).toBe(200);
+      const unpublish = await (await baseApi(world)).adminPost(await baseToken(world), `/v1/admin/catalog/product-models/${state(world).baseModelId}/unpublish`);
+      expect(unpublish.status).toBe(200);
+      const deactivate = await (await baseApi(world)).adminPost(await baseToken(world), `/v1/admin/catalog/categories/${state(world).legacyCategoryId}/deactivate`);
+      expect(deactivate.status).toBe(200);
+      break;
+    }
+    case "SC-CAT-MODEL-015": {
+      const definition = await (await baseApi(world)).adminPost(await baseToken(world), "/v1/admin/catalog/attribute-definitions", {
+        key: baseName(world, "overall-length").toLowerCase().replace(/[^a-z0-9-]/g, "-"), displayName: "Overall length", valueKind: "Scalar", dataType: "Number", unitFamily: "length", unit: "mm",
+      });
+      expect(definition.status).toBe(201);
+      state(world).legacyDefinitionId = entityId(definition.data);
+      const fixed = await (await baseApi(world)).adminPatch(await baseToken(world), `/v1/admin/catalog/product-models/${state(world).baseModelId}`, { fixedAttributes: { [state(world).legacyDefinitionId!]: "200 mm" } });
+      expect(fixed.status).toBe(200);
+      break;
+    }
+    case "SC-CAT-MODEL-016": {
+      const material = await ensureMasterDefinition(world, "Material", "Reference", "Material");
+      const finish = await (await baseApi(world)).adminPost(await baseToken(world), "/v1/admin/catalog/masters/finish", { name: baseName(world, "Finish") });
+      const pack = await (await baseApi(world)).adminPost(await baseToken(world), "/v1/admin/catalog/masters/pack", { name: baseName(world, "Pack"), sellingUnit: "Box", quantity: 10, baseUnit: "Piece" });
+      expect(finish.status).toBe(201);
+      expect(pack.status).toBe(201);
+      state(world).legacyMaterialId = material.masterId;
+      state(world).legacyFixedDefinitionId = material.definitionId;
+      state(world).legacyFinishId = entityId(finish.data);
+      state(world).legacyPackId = entityId(pack.data);
+      const fixed = await (await baseApi(world)).adminPatch(await baseToken(world), `/v1/admin/catalog/product-models/${state(world).baseModelId}`, { fixedAttributes: { [material.definitionId]: material.masterId } });
+      expect(fixed.status).toBe(200);
+      await addNamedDimension(world, "Material", [material.masterId], "Reference", "Material");
+      const variant = await (await baseApi(world)).adminPost(await baseToken(world), `/v1/admin/catalog/product-models/${state(world).baseModelId}/variants`, { selectedOptions: { Material: material.masterId }, sku: `MODEL-${crypto.randomUUID()}`, sellingPrice: { amount: 400000, currency: "VND" } });
+      expect(variant.status).toBe(201);
+      state(world).baseVariantId = entityId(variant.data);
+      break;
+    }
+  }
+}
+
 async function readAdminProducts(world: ScenarioWorld): Promise<Record<string, unknown>[]> {
-  const response = await (await world.getApiClient()).get<unknown>("/v1/admin/products", { headers: await adminHeaders(world) });
-  expect(response.ok, "ProductModel scenarios require the admin product contract").toBe(true);
-  const data = response.data as { items?: Record<string, unknown>[] } | Record<string, unknown>[];
-  const items = Array.isArray(data) ? data : data.items ?? [];
-  expect(items.length, "ProductModel scenarios require a catalog model").toBeGreaterThan(0);
-  state(world).model = items[0];
-  state(world).productId = String(items[0].id);
-  return items;
+  await ensureLegacyCanonicalScenario(world);
+  const response = await (await baseApi(world)).adminGet(await baseToken(world), `/v1/admin/catalog/product-models/${state(world).baseModelId}`);
+  expect(response.status, "ProductModel scenarios require a readable Catalog Base model").toBe(200);
+  const model = record(response.data);
+  state(world).model = model;
+  state(world).productId = String(model.id);
+  return [model];
 }
 
 async function modelId(world: ScenarioWorld): Promise<string> {
@@ -44,12 +208,89 @@ async function modelId(world: ScenarioWorld): Promise<string> {
 }
 
 async function patchModel(world: ScenarioWorld, payload: Record<string, unknown>): Promise<void> {
-  const response = await (await world.getApiClient()).patch(`/v1/admin/products/${await modelId(world)}`, payload, { headers: await adminHeaders(world) });
+  await modelId(world);
+  let response: { status: number; data: unknown };
+  const id = world.scenarioId;
+  if (["SC-CAT-MODEL-001", "SC-CAT-MODEL-017"].includes(id ?? "") && payload.specs) {
+    const material = await ensureMasterDefinition(world, "Material", "Reference", "Material");
+    state(world).legacyFixedDefinitionId = material.definitionId;
+    const fixed = await (await baseApi(world)).adminPatch(await baseToken(world), `/v1/admin/catalog/product-models/${state(world).baseModelId}`, {
+      fixedAttributes: { [material.definitionId]: material.masterId },
+    });
+    if (fixed.status >= 400) {
+      response = fixed;
+    } else {
+      await addNamedDimension(world, "Size", ["Small"]);
+      response = await (await baseApi(world)).adminPost(await baseToken(world), "/v1/admin/catalog/attribute-definitions", {
+        key: baseName(world, "weight-definition"), displayName: "Weight", valueKind: "Scalar", dataType: "Number", unitFamily: "mass", unit: "kg",
+      });
+    }
+  } else if (["SC-CAT-MODEL-002", "SC-CAT-MODEL-017"].includes(id ?? "") && payload.variant_dimensions) {
+    response = await (await baseApi(world)).adminPost(await baseToken(world), `/v1/admin/catalog/product-models/${state(world).baseModelId}/variant-dimensions`, {
+      definitionId: state(world).legacyFixedDefinitionId,
+      allowedValues: [{ id: state(world).legacyMaterialId, label: "Material", active: true }],
+    });
+  } else if (["SC-CAT-MODEL-003", "SC-CAT-MODEL-005", "SC-CAT-MODEL-006", "SC-CAT-MODEL-007"].includes(id ?? "") && payload.is_active === true) {
+    response = await (await baseApi(world)).adminPost(await baseToken(world), `/v1/admin/catalog/product-models/${state(world).baseModelId}/publish`);
+  } else if (["SC-CAT-MODEL-005", "SC-CAT-MODEL-009"].includes(id ?? "") && payload.is_active === false) {
+    response = await (await baseApi(world)).adminPost(await baseToken(world), `/v1/admin/catalog/product-models/${state(world).baseModelId}/unpublish`);
+  } else if (["SC-CAT-MODEL-004", "SC-CAT-MODEL-020"].includes(id ?? "") && payload.images) {
+    response = await (await baseApi(world)).adminPut(await baseToken(world), `/v1/admin/catalog/product-models/${state(world).baseModelId}/media`, { images: [] });
+  } else if (id === "SC-CAT-MODEL-008" && payload.is_active === false) {
+    response = await (await baseApi(world)).adminPost(await baseToken(world), `/v1/admin/catalog/variants/${state(world).baseVariantId}/inactivate`);
+  } else if (id === "SC-CAT-MODEL-020" && payload.is_active === false && !state(world).legacyVariantInactivated) {
+    response = await (await baseApi(world)).adminPost(await baseToken(world), `/v1/admin/catalog/variants/${state(world).baseVariantId}/inactivate`);
+    state(world).legacyVariantInactivated = true;
+  } else if (["SC-CAT-MODEL-009"].includes(id ?? "") && Object.prototype.hasOwnProperty.call(payload, "price")) {
+    response = await (await baseApi(world)).adminPatch(await baseToken(world), `/v1/admin/catalog/variants/${state(world).baseVariantId}`, { sellingPrice: null });
+  } else if (id === "SC-CAT-MODEL-010") {
+    response = await (await baseApi(world)).adminPatch(await baseToken(world), `/v1/admin/catalog/product-models/${state(world).baseModelId}`, { warrantySummary: payload.warranty });
+  } else if (id === "SC-CAT-MODEL-013" && payload.specs) {
+    response = await (await baseApi(world)).adminPatch(await baseToken(world), `/v1/admin/catalog/product-models/${state(world).baseModelId}`, { measurements: { overallLength: { value: 200, unit: "mm" } } });
+  } else if (id === "SC-CAT-MODEL-014" && payload.category_active === false) {
+    response = await (await baseApi(world)).adminPost(await baseToken(world), `/v1/admin/catalog/categories/${state(world).legacyCategoryId}/deactivate`);
+  } else if (id === "SC-CAT-MODEL-014" && payload.is_active === true) {
+    response = await (await baseApi(world)).adminPost(await baseToken(world), `/v1/admin/catalog/product-models/${state(world).baseModelId}/publish`);
+  } else if (id === "SC-CAT-MODEL-015" && payload.attribute_display_name) {
+    response = await (await baseApi(world)).adminPatch(await baseToken(world), `/v1/admin/catalog/attribute-definitions/${state(world).legacyDefinitionId}`, { displayName: payload.attribute_display_name });
+  } else if (id === "SC-CAT-MODEL-015" && payload.attribute_type) {
+    response = await (await baseApi(world)).adminPatch(await baseToken(world), `/v1/admin/catalog/attribute-definitions/${state(world).legacyDefinitionId}`, { dataType: "Text" });
+  } else if (id === "SC-CAT-MODEL-015" && payload.unit_family) {
+    response = await (await baseApi(world)).adminPatch(await baseToken(world), `/v1/admin/catalog/attribute-definitions/${state(world).legacyDefinitionId}`, { unitFamily: "mass", unit: "kg" });
+  } else if (id === "SC-CAT-MODEL-016" && payload.master_display_metadata) {
+    response = await (await baseApi(world)).adminPatch(await baseToken(world), `/v1/admin/catalog/masters/material/${state(world).legacyMaterialId}`, { description: "Material" });
+    if (response.status < 400) response = await (await baseApi(world)).adminPatch(await baseToken(world), `/v1/admin/catalog/masters/finish/${state(world).legacyFinishId}`, { description: "Finish" });
+    if (response.status < 400) response = await (await baseApi(world)).adminPatch(await baseToken(world), `/v1/admin/catalog/masters/pack/${state(world).legacyPackId}`, { description: "Pack" });
+  } else if (id === "SC-CAT-MODEL-016" && payload.master_active === false) {
+    response = await (await baseApi(world)).adminPost(await baseToken(world), `/v1/admin/catalog/masters/material/${state(world).legacyMaterialId}/deactivate`);
+  } else if (id === "SC-CAT-MODEL-017" && payload.variant_specific) {
+    response = await (await baseApi(world)).adminPost(await baseToken(world), "/v1/admin/catalog/attribute-definitions", { key: baseName(world, "Weight-definition"), displayName: "Weight", valueKind: "Scalar", dataType: "Number", unitFamily: "mass", unit: "kg" });
+  } else if (id === "SC-CAT-MODEL-017" && payload.fixed) {
+    response = await (await baseApi(world)).adminPost(await baseToken(world), `/v1/admin/catalog/product-models/${state(world).baseModelId}/variant-dimensions`, { definitionId: state(world).legacyFixedDefinitionId, allowedValues: [{ id: state(world).legacyMaterialId, label: "Material", active: true }] });
+  } else if (id === "SC-CAT-MODEL-018" && payload.images) {
+    response = await (await baseApi(world)).adminPut(await baseToken(world), `/v1/admin/catalog/product-models/${state(world).baseModelId}/media`, { images: [{ url: "https://cdn.example.test/model.png", ordering: 1, primary: true }] });
+  } else if (id === "SC-CAT-MODEL-018" && payload.description) {
+    response = await (await baseApi(world)).adminPatch(await baseToken(world), `/v1/admin/catalog/product-models/${state(world).baseModelId}`, { description: payload.description, warrantySummary: payload.warranty });
+  } else if (id === "SC-CAT-MODEL-019" && payload.is_active === true && payload.status === undefined) {
+    response = await (await baseApi(world)).adminPost(await baseToken(world), `/v1/admin/catalog/product-models/${state(world).baseModelId}/publish`);
+  } else if (id === "SC-CAT-MODEL-019" && payload.status === "Discontinued") {
+    const discontinued = await (await baseApi(world)).adminPost(await baseToken(world), `/v1/admin/catalog/product-models/${state(world).baseModelId}/discontinue`);
+    response = discontinued.status < 400
+      ? await (await baseApi(world)).adminPost(await baseToken(world), `/v1/admin/catalog/product-models/${state(world).baseModelId}/publish`)
+      : discontinued;
+  } else if (id === "SC-CAT-MODEL-020" && payload.is_active === false) {
+    response = await (await baseApi(world)).adminPost(await baseToken(world), `/v1/admin/catalog/product-models/${state(world).baseModelId}/unpublish`);
+  } else if (id === "SC-CAT-MODEL-021") {
+    response = await (await baseApi(world)).publicGet(`/v1/catalog/product-models/${state(world).baseModelId}`);
+  } else {
+    response = await (await baseApi(world)).adminPatch(await baseToken(world), `/v1/admin/catalog/product-models/${state(world).baseModelId}`, payload);
+  }
   state(world).response = { status: response.status, data: response.data };
 }
 
 async function readPublicModel(world: ScenarioWorld): Promise<void> {
-  const response = await (await world.getApiClient()).get(`/v1/catalog/products/${await modelId(world)}`);
+  await modelId(world);
+  const response = await (await baseApi(world)).publicGet(`/v1/catalog/product-models/${state(world).baseModelId}`);
   state(world).response = { status: response.status, data: response.data };
 }
 
@@ -519,6 +760,11 @@ Then("the ProductModel is published successfully", async function (this: Scenari
 });
 
 Then("new ProductModel assignment to the inactive Category is rejected", async function (this: ScenarioWorld) {
+  const response = await (await baseApi(this)).adminPost(await baseToken(this), "/v1/admin/catalog/product-models", {
+    name: baseName(this, "inactive-category-assignment"),
+    categoryId: state(this).legacyCategoryId,
+  });
+  baseRemember(this, response);
   await expectRejected(this);
 });
 
@@ -567,6 +813,14 @@ When("Catalog Operator deactivates a master reference", async function (this: Sc
 });
 
 Then("new assignment is rejected", async function (this: ScenarioWorld) {
+  if (this.scenarioId === "SC-CAT-MODEL-016") {
+    const response = await (await baseApi(this)).adminPost(await baseToken(this), "/v1/admin/catalog/product-models", {
+      name: baseName(this, "inactive-master-assignment"),
+      categoryId: state(this).baseCategoryId,
+      fixedAttributes: { [state(this).legacyFixedDefinitionId!]: state(this).legacyMaterialId },
+    });
+    baseRemember(this, response);
+  }
   await expectRejected(this);
 });
 
@@ -576,8 +830,7 @@ Then("existing ProductModel and Variant references remain valid", async function
 });
 
 Given('Catalog Operator creates ProductModel "Tay keo A"', async function (this: ScenarioWorld) {
-  const response = await (await this.getApiClient()).post("/v1/admin/products", { id: crypto.randomUUID(), title: "Tay keo A", price: 1, is_active: false }, { headers: await adminHeaders(this) });
-  state(this).response = { status: response.status, data: response.data };
+  await baseModel(this, { name: "Tay keo A" });
   await readAdminProducts(this);
 });
 

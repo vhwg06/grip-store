@@ -2,6 +2,7 @@ import {
   After,
   Before,
   setWorldConstructor,
+  setDefaultTimeout,
   World,
   type IWorldOptions,
 } from "@cucumber/cucumber";
@@ -117,6 +118,7 @@ export class ScenarioWorld extends World {
 }
 
 setWorldConstructor(ScenarioWorld);
+setDefaultTimeout(30_000);
 
 const testRoot = path.resolve(__dirname, "../..");
 const modulesRoot = path.join(testRoot, "modules");

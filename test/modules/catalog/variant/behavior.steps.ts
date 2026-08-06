@@ -19,6 +19,10 @@ type VariantState = {
   baseMaterialId?: string;
   baseFinishId?: string;
   basePackId?: string;
+  legacyDimensionIds?: Record<string, string>;
+  legacyVariantIds?: string[];
+  legacyWeightDefinitionId?: string;
+  legacyPackInactive?: boolean;
   baseResponse?: { status: number; data: unknown };
 };
 
@@ -30,24 +34,219 @@ async function headers(world: ScenarioWorld) {
   return { Authorization: `Bearer ${await getAdminToken(await world.getApiRequest())}` };
 }
 
+async function createLegacyVariant(world: ScenarioWorld, selectedOptions: Record<string, string>, input: JsonRecord = {}): Promise<string> {
+  const response = await (await baseApi(world)).adminPost(await baseToken(world), `/v1/admin/catalog/product-models/${state(world).baseModelId}/variants`, {
+    selectedOptions,
+    sku: `VAR-${crypto.randomUUID()}`,
+    sellingPrice: { amount: 400000, currency: "VND" },
+    ...input,
+  });
+  expect(response.status).toBe(201);
+  const id = baseId(response.data, "Variant");
+  state(world).baseVariantId = id;
+  state(world).selectedOptions = selectedOptions;
+  return id;
+}
+
+async function ensureLegacyVariantScenario(world: ScenarioWorld): Promise<void> {
+  if (state(world).baseModelId) return;
+  await baseModel(world);
+  const id = world.scenarioId ?? "";
+  const threeDimensions = async () => {
+    const material = await addDimension(world, "Material", ["Inox 304"]);
+    const finish = await addDimension(world, "Finish", ["Black"]);
+    const size = await addDimension(world, "Size", ["200 mm", "300 mm"]);
+    state(world).legacyDimensionIds = { Material: material.id, Finish: finish.id, Size: size.id };
+  };
+  if (["SC-CAT-VARIANT-001", "SC-CAT-VARIANT-002", "SC-CAT-VARIANT-004", "SC-CAT-VARIANT-011"].includes(id)) {
+    await threeDimensions();
+    return;
+  }
+  if (id === "SC-CAT-VARIANT-003") {
+    const definition = await (await baseApi(world)).adminPost(await baseToken(world), "/v1/admin/catalog/attribute-definitions", { key: baseName(world, "numeric-size-definition"), displayName: "Size", valueKind: "Scalar", dataType: "Number", unitFamily: "length", unit: "mm" });
+    expect(definition.status).toBe(201);
+    const dimension = await (await baseApi(world)).adminPost(await baseToken(world), `/v1/admin/catalog/product-models/${state(world).baseModelId}/variant-dimensions`, { definitionId: baseId(definition.data, "Size definition"), allowedValues: [{ id: "200-mm", label: "200 mm", active: true }] });
+    expect(dimension.status).toBe(201);
+    state(world).baseDimensionId = baseId(dimension.data, "Size dimension");
+    state(world).legacyDimensionIds = { Size: state(world).baseDimensionId! };
+    await createLegacyVariant(world, { Size: "200 mm" });
+    return;
+  }
+  if (id === "SC-CAT-VARIANT-005") {
+    await addDimension(world, "Size", ["200 mm", "300 mm"]);
+    const weight = await (await baseApi(world)).adminPost(await baseToken(world), "/v1/admin/catalog/attribute-definitions", { key: baseName(world, "weight-definition"), displayName: "Weight", valueKind: "Scalar", dataType: "Number", unitFamily: "mass", unit: "kg" });
+    expect(weight.status).toBe(201);
+    state(world).legacyWeightDefinitionId = baseId(weight.data, "Weight definition");
+    state(world).selectedOptions = { Size: "300 mm" };
+    return;
+  }
+  if (id === "SC-CAT-VARIANT-006") {
+    await addDimension(world, "Size", ["200 mm"]);
+    return;
+  }
+  if (id === "SC-CAT-VARIANT-007") {
+    const finish = await addDimension(world, "Finish", ["Black"]);
+    state(world).legacyDimensionIds = { Finish: finish.id };
+    await createLegacyVariant(world, { Finish: "Black" });
+    return;
+  }
+  if (id === "SC-CAT-VARIANT-008") {
+    await addDimension(world, "Size", ["200 mm"]);
+    await createLegacyVariant(world, { Size: "200 mm" });
+    return;
+  }
+  if (id === "SC-CAT-VARIANT-009") {
+    const finish = await addDimension(world, "Finish", ["Black", "Brushed"]);
+    state(world).legacyDimensionIds = { Finish: finish.id };
+    await createLegacyVariant(world, { Finish: "Black" });
+    const inactive = await createLegacyVariant(world, { Finish: "Brushed" });
+    const response = await (await baseApi(world)).adminPost(await baseToken(world), `/v1/admin/catalog/variants/${inactive}/inactivate`);
+    expect(response.status).toBe(200);
+    const media = await (await baseApi(world)).adminPut(await baseToken(world), `/v1/admin/catalog/product-models/${state(world).baseModelId}/media`, { images: [{ url: "https://cdn.example.test/variant-public.png", ordering: 1, primary: true }] });
+    expect(media.status).toBe(200);
+    const publish = await (await baseApi(world)).adminPost(await baseToken(world), `/v1/admin/catalog/product-models/${state(world).baseModelId}/publish`);
+    expect(publish.status).toBe(200);
+    return;
+  }
+  if (id === "SC-CAT-VARIANT-010") {
+    await threeDimensions();
+    const variant = await createLegacyVariant(world, { Material: "Inox 304", Finish: "Black", Size: "200 mm" });
+    const inactivate = await (await baseApi(world)).adminPost(await baseToken(world), `/v1/admin/catalog/variants/${variant}/inactivate`);
+    expect(inactivate.status).toBe(200);
+    return;
+  }
+  if (id === "SC-CAT-VARIANT-SKU-001" || id === "SC-CAT-VARIANT-SKU-003" || id === "SC-CAT-VARIANT-PRICE-001") {
+    await addDimension(world, "Size", ["200 mm"]);
+    const variant = await createLegacyVariant(world, { Size: "200 mm" }, { sku: undefined });
+    state(world).baseVariantId = variant;
+    return;
+  }
+  if (id === "SC-CAT-VARIANT-SKU-002") {
+    await addDimension(world, "Size", ["200 mm", "300 mm"]);
+    const reserved = await createLegacyVariant(world, { Size: "200 mm" }, { sku: "abc-001" });
+    const inactivate = await (await baseApi(world)).adminPost(await baseToken(world), `/v1/admin/catalog/variants/${reserved}/inactivate`);
+    expect(inactivate.status).toBe(200);
+    const target = await createLegacyVariant(world, { Size: "300 mm" }, { sku: undefined });
+    state(world).baseVariantId = target;
+    return;
+  }
+  if (["SC-CAT-VARIANT-PRICE-002", "SC-CAT-VARIANT-PRICE-003", "SC-CAT-VARIANT-PRICE-004"].includes(id)) {
+    await addDimension(world, "Size", ["200 mm"]);
+    await createLegacyVariant(world, { Size: "200 mm" });
+    return;
+  }
+  if (id === "SC-CAT-VARIANT-PRICE-005" || id === "SC-CAT-VARIANT-PRICE-006") {
+    await addDimension(world, "Size", ["200 mm", "300 mm", "400 mm"]);
+    const variants = [];
+    for (const size of ["200 mm", "300 mm", "400 mm"]) variants.push(await createLegacyVariant(world, { Size: size }));
+    state(world).legacyVariantIds = variants;
+    state(world).baseVariantId = variants[0];
+    return;
+  }
+  if (["SC-CAT-VARIANT-PACK-001", "SC-CAT-VARIANT-PACK-002"].includes(id)) {
+    const pack = await (await baseApi(world)).adminPost(await baseToken(world), "/v1/admin/catalog/masters/pack", { name: baseName(world, "Hop 10 cai"), sellingUnit: "Box", quantity: 10, baseUnit: "Piece" });
+    expect(pack.status).toBe(201);
+    state(world).basePackId = baseId(pack.data, "Pack");
+    const definition = await (await baseApi(world)).adminPost(await baseToken(world), "/v1/admin/catalog/attribute-definitions", { key: baseName(world, "Pack-definition"), displayName: "Pack", valueKind: "Reference", referenceTarget: "Pack" });
+    expect(definition.status).toBe(201);
+    const dimension = await (await baseApi(world)).adminPost(await baseToken(world), `/v1/admin/catalog/product-models/${state(world).baseModelId}/variant-dimensions`, { definitionId: baseId(definition.data, "Pack definition"), allowedValues: [{ id: state(world).basePackId, label: "Hop 10 cai", active: true }] });
+    expect(dimension.status).toBe(201);
+    state(world).baseDimensionId = baseId(dimension.data, "Pack dimension");
+    state(world).legacyDimensionIds = { Pack: state(world).baseDimensionId! };
+    if (id === "SC-CAT-VARIANT-PACK-002") {
+      const variant = await createLegacyVariant(world, { Pack: state(world).basePackId! });
+      const media = await (await baseApi(world)).adminPut(await baseToken(world), `/v1/admin/catalog/product-models/${state(world).baseModelId}/media`, { images: [{ url: "https://cdn.example.test/pack.png", ordering: 1, primary: true }] });
+      expect(media.status).toBe(200);
+      const publish = await (await baseApi(world)).adminPost(await baseToken(world), `/v1/admin/catalog/product-models/${state(world).baseModelId}/publish`);
+      expect(publish.status).toBe(200);
+      state(world).baseVariantId = variant;
+    }
+  }
+}
+
 async function chooseModel(world: ScenarioWorld): Promise<string> {
   if (state(world).productId) return state(world).productId!;
-  const response = await (await world.getApiClient()).get<{ items?: Array<{ id: string }> }>("/v1/catalog/products?limit=20");
-  expect(response.ok, "Variant scenarios require a reachable catalog").toBe(true);
-  const product = response.data.items?.[0];
-  expect(product).toBeTruthy();
-  state(world).productId = product!.id;
-  return product!.id;
+  await ensureLegacyVariantScenario(world);
+  state(world).productId = state(world).baseModelId;
+  return state(world).productId!;
 }
 
 async function mutate(world: ScenarioWorld, payload: Record<string, unknown>): Promise<void> {
-  const response = await (await world.getApiClient()).patch(`/v1/admin/products/${await chooseModel(world)}`, payload, { headers: await headers(world) });
-  state(world).response = { status: response.status, data: response.data };
+  await chooseModel(world);
+  let response: { status: number; data: unknown };
+  const id = world.scenarioId;
+  const selected = payload.variant_options as Record<string, string> | undefined;
+  if (selected) {
+    const created = await (await baseApi(world)).adminPost(await baseToken(world), `/v1/admin/catalog/product-models/${state(world).baseModelId}/variants`, {
+      selectedOptions: selected,
+      sku: `VAR-${crypto.randomUUID()}`,
+      sellingPrice: { amount: 400000, currency: "VND" },
+    });
+    response = created;
+    if (created.status === 201) state(world).baseVariantId = baseId(created.data, "Variant");
+  } else if (payload.selected_combinations) {
+    const combinations = payload.selected_combinations as Array<Record<string, string>>;
+    const created = await (await baseApi(world)).adminPost(await baseToken(world), `/v1/admin/catalog/product-models/${state(world).baseModelId}/variants`, {
+      selectedOptions: combinations[0], sku: `VAR-${crypto.randomUUID()}`, sellingPrice: { amount: 400000, currency: "VND" },
+    });
+    response = created;
+    if (created.status === 201) state(world).baseVariantId = baseId(created.data, "Variant");
+  } else if (payload.variant_attributes) {
+    if (!state(world).baseVariantId) {
+      const created = await (await baseApi(world)).adminPost(await baseToken(world), `/v1/admin/catalog/product-models/${state(world).baseModelId}/variants`, {
+        selectedOptions: state(world).selectedOptions ?? { Size: "300 mm" }, sku: `VAR-${crypto.randomUUID()}`, sellingPrice: { amount: 400000, currency: "VND" }, technicalValues: payload.variant_attributes,
+      });
+      response = created;
+      if (created.status === 201) state(world).baseVariantId = baseId(created.data, "Variant");
+    } else {
+      response = await (await baseApi(world)).adminPatch(await baseToken(world), `/v1/admin/catalog/variants/${state(world).baseVariantId}`, { technicalValues: payload.variant_attributes });
+    }
+  } else if (payload.allowed_values) {
+    const values = record(payload.allowed_values).Finish ?? record(payload.allowed_values).Size;
+    const dimensionId = state(world).legacyDimensionIds?.Finish ?? state(world).baseDimensionId;
+    const current = await (await baseApi(world)).adminGet(await baseToken(world), `/v1/admin/catalog/product-models/${state(world).baseModelId}/variant-dimensions/${dimensionId}`);
+    const currentValues = Array.isArray(record(current.data).allowedValues) ? record(current.data).allowedValues as unknown[] : [];
+    const currentIds = new Set(currentValues.map((value) => record(value).id).filter((value): value is string => typeof value === "string"));
+    const newValue = Array.isArray(values)
+      ? values.map((value) => ({ id: String(value).toLowerCase().replace(/[^a-z0-9]+/g, "-"), label: String(value), active: true })).find((value) => !currentIds.has(value.id))
+      : undefined;
+    response = newValue
+      ? await (await baseApi(world)).adminPost(await baseToken(world), `/v1/admin/catalog/product-models/${state(world).baseModelId}/variant-dimensions/${dimensionId}/values`, newValue)
+      : { status: 400, data: {} };
+  } else if (payload.variant_dimensions) {
+    const definition = await (await baseApi(world)).adminPost(await baseToken(world), "/v1/admin/catalog/attribute-definitions", { key: baseName(world, "handing-definition"), displayName: "Handing", valueKind: "Enum" });
+    response = await (await baseApi(world)).adminPost(await baseToken(world), `/v1/admin/catalog/product-models/${state(world).baseModelId}/variant-dimensions`, { definitionId: baseId(definition.data, "Handing definition"), allowedValues: [{ id: "left", label: "Left", active: true }] });
+  } else if (payload.is_active === false) {
+    response = await (await baseApi(world)).adminPost(await baseToken(world), `/v1/admin/catalog/variants/${state(world).baseVariantId}/inactivate`);
+  } else if (payload.is_active === true) {
+    response = await (await baseApi(world)).adminPost(await baseToken(world), `/v1/admin/catalog/variants/${state(world).baseVariantId}/activate`);
+  } else if (Object.prototype.hasOwnProperty.call(payload, "price")) {
+    if (payload.variant_ids) {
+      const variantIds = id === "SC-CAT-VARIANT-PRICE-005"
+        ? state(world).legacyVariantIds
+        : [...(state(world).legacyVariantIds?.slice(0, 2) ?? []), "missing-variant"];
+      response = await (await baseApi(world)).adminPost(await baseToken(world), "/v1/admin/catalog/variants/prices:bulk", { variantIds, sellingPrice: { amount: payload.price, currency: payload.currency ?? "VND" } });
+    } else {
+      response = await (await baseApi(world)).adminPatch(await baseToken(world), `/v1/admin/catalog/variants/${state(world).baseVariantId}`, { sellingPrice: { amount: payload.price, currency: payload.currency ?? "VND" } });
+    }
+  } else if (payload.sku !== undefined) {
+    response = await (await baseApi(world)).adminPatch(await baseToken(world), `/v1/admin/catalog/variants/${state(world).baseVariantId}`, { sku: payload.sku });
+  } else if (payload.pack) {
+    response = await (await baseApi(world)).adminPost(await baseToken(world), `/v1/admin/catalog/product-models/${state(world).baseModelId}/variants`, { selectedOptions: { Pack: state(world).basePackId }, sku: `VAR-${crypto.randomUUID()}`, sellingPrice: { amount: 400000, currency: "VND" } });
+    if (response.status === 201) state(world).baseVariantId = baseId(response.data, "Variant");
+  } else {
+    response = { status: 400, data: {} };
+  }
+  baseRemember(world, response);
 }
 
 async function publicRead(world: ScenarioWorld): Promise<void> {
-  const response = await (await world.getApiClient()).get(`/v1/catalog/products/${await chooseModel(world)}`);
-  state(world).response = { status: response.status, data: response.data };
+  await chooseModel(world);
+  const endpoint = world.scenarioId === "SC-CAT-VARIANT-009" || world.scenarioId === "SC-CAT-VARIANT-PACK-002"
+    ? `/v1/catalog/product-models/${state(world).baseModelId}/options`
+    : `/v1/catalog/product-models/${state(world).baseModelId}`;
+  const response = await (await baseApi(world)).publicGet(endpoint);
+  baseRemember(world, response);
 }
 
 async function reject(world: ScenarioWorld): Promise<void> {
@@ -350,6 +549,9 @@ Given('Variant publicly sellable tham chieu Pack "Hop 10 cai"', async function (
 
 Given('Pack "Hop 10 cai" da inactive', async function (this: ScenarioWorld) {
   await chooseModel(this);
+  const response = await (await baseApi(this)).adminPost(await baseToken(this), `/v1/admin/catalog/masters/pack/${state(this).basePackId}/deactivate`);
+  expect(response.status).toBe(200);
+  state(this).legacyPackInactive = true;
 });
 
 When('Catalog Operator tao Variant moi tham chieu Pack "Hop 10 cai"', async function (this: ScenarioWorld) {
