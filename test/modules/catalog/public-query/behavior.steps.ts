@@ -146,7 +146,7 @@ Then("every returned public product belongs to that category", async function (t
 Given("the public catalog contains products with different prices", async function (this: ScenarioWorld) {
   await activeFixture(this, { price: 400000 });
   await createFixture(this, { price: 500000 });
-  const list = await loadProducts(this, { limit: 20, sort: "price_asc" });
+  const list = await loadProducts(this, { limit: 20, sort: "price_asc", category: state(this).baseCategoryId });
   expect(new Set(list.items.map((item) => item.price)).size).toBeGreaterThan(1);
 });
 
@@ -251,6 +251,7 @@ async function createFixture(world: ScenarioWorld, options: {
   values?: string[];
   fixedAttributes?: JsonRecord;
   withReferences?: boolean;
+  measurements?: JsonRecord;
 } = {}): Promise<PublicFixture> {
   const targetStatus = options.status ?? "Active";
   const withVariant = options.withVariant ?? true;
@@ -262,6 +263,7 @@ async function createFixture(world: ScenarioWorld, options: {
     categoryId: await createCategory(world),
     description: "Public Catalog Base projection",
     fixedAttributes: { ...(options.fixedAttributes ?? {}), ...(materialId ? { materialId } : {}), ...(finishId ? { finishId } : {}) },
+    ...(options.measurements ? { measurements: options.measurements } : {}),
   });
   expect(model.status).toBe(201);
   const modelId = baseId(model.data, "ProductModel");
@@ -270,7 +272,7 @@ async function createFixture(world: ScenarioWorld, options: {
   const selectedOptions = { Size: values[0] };
   if (withVariant) {
     const definition = await (await baseApi(world)).adminPost(await baseToken(world), "/v1/admin/catalog/attribute-definitions", {
-      key: baseName(world, "public-size-definition").toLowerCase().replace(/[^a-z0-9-]/g, "-"),
+      key: `${baseName(world, "public-size-definition")}-${crypto.randomUUID()}`.toLowerCase().replace(/[^a-z0-9-]/g, "-"),
       displayName: "Size",
       valueKind: "Enum",
     });
@@ -531,8 +533,8 @@ Given("an active public product exists", async function (this: ScenarioWorld) {
 });
 
 Given("an active public product has public specification data", async function (this: ScenarioWorld) {
-  const product = await chooseProduct(this);
-  const response = await (await baseApi(this)).publicGet(`/v1/catalog/product-models/${product.id}`);
+  await activeFixture(this, { measurements: { overallLength: { value: 200, unit: "mm" } } });
+  const response = await (await baseApi(this)).publicGet(`/v1/catalog/product-models/${state(this).baseModelId}`);
   expect(response.status).toBe(200);
   expect((response.data as unknown as Record<string, unknown>).specs).toBeDefined();
   state(this).product = response.data as Product;
