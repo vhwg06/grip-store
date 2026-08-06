@@ -183,8 +183,8 @@ async function apiLogin(world: ScenarioWorld, email: string, password: string): 
   const response = await (await world.getApiClient()).post<Record<string, unknown>>("/v1/auth/login", { email, password });
   state(world).response = { status: response.status, data: response.data };
   const data = response.data as Record<string, unknown>;
-  state(world).accessToken = String(data.token ?? data.access_token ?? "");
-  state(world).refreshToken = String(data.refresh_token ?? data.refreshToken ?? "");
+  state(world).accessToken = String(data.accessToken ?? data.token ?? data.access_token ?? "");
+  state(world).refreshToken = String(data.refreshToken ?? data.refresh_token ?? "");
 }
 
 Given("the configured shopper credentials are valid", function (this: ScenarioWorld) {
@@ -270,8 +270,8 @@ When("the client posts that refresh token to the refresh API", async function (t
   const response = await (await this.getApiClient()).post<Record<string, unknown>>("/v1/auth/refresh", { refresh_token: state(this).refreshToken });
   state(this).response = { status: response.status, data: response.data };
   const data = response.data as Record<string, unknown>;
-  state(this).accessToken = String(data.token ?? "");
-  state(this).refreshToken = String(data.refresh_token ?? "");
+  state(this).accessToken = String(data.accessToken ?? data.token ?? "");
+  state(this).refreshToken = String(data.refreshToken ?? data.refresh_token ?? "");
 });
 
 Then("the refresh API response status is `200`", function (this: ScenarioWorld) {

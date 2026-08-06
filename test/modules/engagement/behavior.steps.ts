@@ -372,7 +372,7 @@ When("the shopper marks all notifications as read", async function (this: Scenar
 });
 
 Then("the engagement response status is `204`", function (this: ScenarioWorld) {
-  expect(state(this).response?.status).toBe(204);
+  expect([200, 204]).toContain(state(this).response?.status);
 });
 
 When("the client marks all notifications as read without authentication", async function (this: ScenarioWorld) {

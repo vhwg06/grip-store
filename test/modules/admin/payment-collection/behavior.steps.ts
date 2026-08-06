@@ -42,7 +42,7 @@ Given("the operator needs to update who receives funds", async function (this: S
 });
 
 When("the operator saves a new payee identity", async function (this: ScenarioWorld) {
-  await adminPut(this, "/v1/admin/collect", { payee_name: `Cucumber Payee ${Date.now()}` });
+  await adminPut(this, "/v1/admin/collect/setup", { payee_name: `Cucumber Payee ${Date.now()}` });
 });
 
 Then("the selected collection source reflects the new receive-money identity", async function (this: ScenarioWorld) {
@@ -56,7 +56,7 @@ Given("the operator needs to update a QR or transfer instruction", async functio
 });
 
 When("the operator saves the collection setup", async function (this: ScenarioWorld) {
-  await adminPut(this, "/v1/admin/collect", { transfer_instruction: `Cucumber-${Date.now()}` });
+  await adminPut(this, "/v1/admin/collect/setup", { transfer_instruction: `Cucumber-${Date.now()}` });
 });
 
 Then("the selected source becomes the new receive-money instruction", async function (this: ScenarioWorld) {

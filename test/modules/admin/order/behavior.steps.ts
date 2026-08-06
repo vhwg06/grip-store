@@ -142,7 +142,7 @@ async function createPendingOrder(world: ScenarioWorld): Promise<void> {
 function assertOrderRow(row: JsonRecord): void {
   expect(orderId(row), "queue row must expose order identity").toBeTruthy();
   expect(status(row), "queue row must expose server status").toBeTruthy();
-  expect(field(row, "totalAmount", "total_amount", "total"), "queue row must expose total").not.toBeUndefined();
+  expect(field(row, "amount", "totalAmount", "total_amount", "total"), "queue row must expose total").not.toBeUndefined();
   expect(field(row, "customerId", "customer_id", "customerEmail", "customer_email", "customer"), "queue row must expose customer context").not.toBeUndefined();
   expect(actionValues(row), "queue row must expose server action signals").not.toBeUndefined();
 }

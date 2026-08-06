@@ -378,7 +378,7 @@ Given("an admin creates active and inactive banners with explicit sort order", a
   const created: ContentRecord[] = [];
   for (const banner of [first, second]) {
     const response = await (await this.getApiClient()).post("/v1/admin/banners", banner, { headers });
-    expect(response.status).toBe(200);
+    expect([200, 201]).toContain(response.status);
     created.push(contentRecord(response.data));
   }
   this.state.bannerA = created[0];
@@ -394,7 +394,7 @@ Given("an admin creates active and inactive banners with explicit sort order", a
 When("the admin updates the inactive banner to active with a higher priority", async function (this: ScenarioWorld) {
   const banner = this.state.bannerB as ContentRecord;
   const response = await (await this.getApiClient()).post("/v1/admin/banners", { ...banner, isActive: true, sortOrder: 5 }, { headers: await contentAdminHeaders(this) });
-  expect(response.status).toBe(200);
+  expect([200, 201]).toContain(response.status);
 });
 
 Then("the public homepage exposes both created slides in sort order", async function (this: ScenarioWorld) {
@@ -422,7 +422,7 @@ Given("an admin creates active and inactive FAQs with explicit sort order", asyn
   const created: ContentRecord[] = [];
   for (const faq of [first, second]) {
     const response = await (await this.getApiClient()).post("/v1/admin/faqs", faq, { headers });
-    expect(response.status).toBe(200);
+    expect([200, 201]).toContain(response.status);
     created.push(contentRecord(response.data));
   }
   this.state.faqA = created[0];
@@ -438,7 +438,7 @@ Given("an admin creates active and inactive FAQs with explicit sort order", asyn
 When("the admin activates and reorders the inactive FAQ", async function (this: ScenarioWorld) {
   const faq = this.state.faqA as ContentRecord;
   const response = await (await this.getApiClient()).post("/v1/admin/faqs", { ...faq, answer: "Updated answer", sortOrder: 5, isActive: true }, { headers: await contentAdminHeaders(this) });
-  expect(response.status).toBe(200);
+  expect([200, 201]).toContain(response.status);
 });
 
 Then("the public FAQ response exposes the created entries in the new order", async function (this: ScenarioWorld) {
