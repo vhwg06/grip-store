@@ -8,6 +8,7 @@ export interface Product {
   category_id: string;
   images: string[];
   active: boolean;
+  stock?: number;
   sort_order: number;
 }
 

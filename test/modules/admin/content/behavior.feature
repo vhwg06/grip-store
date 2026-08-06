@@ -38,14 +38,14 @@ Feature: Admin content operations
   @UC-CONT-EDITOR
   Rule: Articles support both editorial modes
 
-    @accepted @api @SC-CONT-EDITOR-001
+    @accepted @browser @SC-CONT-EDITOR-001
     Scenario: Soạn thảo bài viết ở chế độ Visual WYSIWYG
       Given the content operator chooses Visual editor mode
       When the content operator types formatted text or pastes an image
       Then the editor displays rich text formatting and inline images directly
       And the content is saved as HTML
 
-    @accepted @api @SC-CONT-EDITOR-002
+    @accepted @browser @SC-CONT-EDITOR-002
     Scenario: Soạn thảo bài viết ở chế độ Markdown
       Given the content operator chooses Markdown editor mode
       When the content operator types Markdown syntax or pastes an image
@@ -102,10 +102,10 @@ Feature: Admin content operations
   @UC-CONT-ARTICLE-PREVIEW
   Rule: Draft articles can be previewed without publication
 
-    @accepted @api @SC-CONT-ARTICLE-PREVIEW-001
-  Scenario: Preview a draft article
-    Given the content operator is composing an article with draft status
-    When the content operator triggers the article preview
+    @accepted @browser @SC-CONT-ARTICLE-PREVIEW-001
+    Scenario: Preview a draft article
+      Given the content operator is composing an article with draft status
+      When the content operator triggers the article preview
       Then a storefront preview modal opens
       And the modal displays the draft article's title, cover image, and body content
 

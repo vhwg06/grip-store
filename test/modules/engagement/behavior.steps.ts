@@ -407,7 +407,7 @@ When("the admin queues an email notification test", async function (this: Scenar
 Then("the notification send response is queued for email", function (this: ScenarioWorld) {
   const data = state(this).response?.data as Record<string, unknown>;
   expect(data.status).toBe("queued");
-  expect(data.channel).toBe("email");
+  expect(data.type).toBe("email");
 });
 
 When("the client queues an email notification test without authentication", async function (this: ScenarioWorld) {

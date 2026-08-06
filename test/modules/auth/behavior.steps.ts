@@ -304,7 +304,7 @@ Then("the logout API response status is `200`, `204`, or `400`", function (this:
 });
 
 When("the client logs out without a token", async function (this: ScenarioWorld) {
-  const response = await (await this.getApiClient()).post("/v1/auth/logout");
+  const response = await (await this.getApiClient()).post("/v1/auth/logout", {});
   state(this).response = { status: response.status, data: response.data };
 });
 

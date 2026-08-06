@@ -214,13 +214,10 @@ async function checkoutToken(world: ScenarioWorld): Promise<string> {
 }
 
 async function apiProduct(world: ScenarioWorld): Promise<string> {
-  // Use the first product returned by the catalog without calling /buy-meta,
-  // which is not wired on this deployment. The shared smoke-test product is
-  // always present in the DB and sufficient for a checkout order request.
   const api = new CatalogApiHelper(new GoBackendClient(await world.getApiRequest()));
-  const products = await api.getProducts({ limit: 20 });
+  const products = await api.getProducts({ limit: 50 });
   expect(products.ok).toBe(true);
-  const product = products.data.items[0];
+  const product = products.data.items.find((candidate) => (candidate.stock ?? 0) > 0 && candidate.active !== false);
   if (!product) {
     throw new Error("Checkout API requires a purchasable product");
   }
@@ -236,7 +233,6 @@ Given("a shopper access token and purchasable product are available", async func
 
 When("the client creates a checkout order with that product", async function (this: ScenarioWorld) {
   const response = await (await this.getApiClient()).post<Record<string, unknown>>("/v1/checkout/orders", {
-    productId: await apiProduct(this),
     product_id: state(this).productId,
     quantity: 1,
     email: requiredEnv("TEST_USER_EMAIL"),
@@ -252,7 +248,7 @@ Then("the checkout order response contains identity, status, and amount", functi
   const data = state(this).response?.data as Record<string, unknown>;
   expect(data.orderId ?? data.id).toBeTruthy();
   expect(data.status).toBeTruthy();
-  expect(data.amount ?? data.total).toBeTruthy();
+  expect(data.amount ?? data.total ?? data.total_amount).toBeTruthy();
 });
 
 When("the client creates a checkout order without authentication", async function (this: ScenarioWorld) {
@@ -270,8 +266,9 @@ Given("a shopper access token is available for checkout", async function (this: 
 
 When("the client creates a checkout order with invalid data", async function (this: ScenarioWorld) {
   const response = await (await this.getApiClient()).post("/v1/checkout/orders", {
-    productId: "non-existent-product",
+    product_id: "non-existent-product",
     quantity: 0,
+    email: requiredEnv("TEST_USER_EMAIL"),
   }, { headers: { Authorization: `Bearer ${await checkoutToken(this)}` } });
   state(this).response = { status: response.status, data: response.data };
 });

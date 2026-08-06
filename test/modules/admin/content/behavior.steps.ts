@@ -1,5 +1,5 @@
 import { Given, When, Then, Before } from "@cucumber/cucumber";
-import { expect } from "@playwright/test";
+import { expect, type Locator, type Page } from "@playwright/test";
 import type { ScenarioWorld } from "../../../shared/cucumber/world";
 import { adminGet, adminPatch, adminPost, adminPut, adminState, assertAccepted, assertReadable, authenticateAdmin, responseData } from "../../../shared/cucumber/admin-runtime";
 import { getAdminToken, getUserToken } from "../../../shared/runtime/api-helpers/auth.helpers";
@@ -99,39 +99,60 @@ Then("inactive banners stop representing that page context", async function (thi
 });
 
 Given("the content operator chooses Visual editor mode", async function (this: ScenarioWorld) {
-  await authenticateAdmin(this);
   this.state.editorMode = "html";
+  await openContentEditor(this, "html");
 });
 
 When("the content operator types formatted text or pastes an image", async function (this: ScenarioWorld) {
-  await adminPost(this, "/v1/content/articles", { title: `Cucumber HTML ${Date.now()}`, body: "<p>Formatted content</p>", content_format: "html", status: "draft" });
+  const current = await contentUi(this);
+  const editor = articleEditor(current.page);
+  await editor.fill("Formatted content");
+  await current.page.keyboard.press("ControlOrMeta+A");
+  await current.page.keyboard.press("ControlOrMeta+B");
+  await insertInlineImage(current.page);
 });
 
 Then("the editor displays rich text formatting and inline images directly", async function (this: ScenarioWorld) {
-  assertAccepted(this);
+  const current = await contentUi(this);
+  const editor = articleEditor(current.page);
+  await expect(editor).toBeVisible();
+  await expect(editor).toContainText("Formatted content");
+  await expect(editor.locator("strong, b")).toHaveCount(1);
+  await expect(editor.locator("img")).toHaveCount(1);
 });
 
 Then("the content is saved as HTML", async function (this: ScenarioWorld) {
-  expect(this.state.editorMode).toBe("html");
-  expect(adminState(this).response?.status).toBeLessThan(300);
+  await saveContentDraft(this);
+  const editor = articleEditor((await contentUi(this)).page);
+  expect(await editor.innerHTML()).toMatch(/Formatted content/);
+  expect(await editor.innerHTML()).toMatch(/<strong|<b>/);
+  expect(await editor.innerHTML()).toContain("cucumber-inline-image.png");
 });
 
 Given("the content operator chooses Markdown editor mode", async function (this: ScenarioWorld) {
-  await authenticateAdmin(this);
   this.state.editorMode = "markdown";
+  await openContentEditor(this, "markdown");
 });
 
 When("the content operator types Markdown syntax or pastes an image", async function (this: ScenarioWorld) {
-  await adminPost(this, "/v1/content/articles", { title: `Cucumber Markdown ${Date.now()}`, body: "# Cucumber\n\n![image](https://example.com/image.png)", content_format: "markdown", status: "draft" });
+  const current = await contentUi(this);
+  const editor = articleEditor(current.page);
+  await editor.fill("# Cucumber\n\n![image](https://example.com/cucumber-inline-image.png)");
 });
 
 Then("the editor displays Markdown code and inserts image syntax automatically", async function (this: ScenarioWorld) {
-  assertAccepted(this);
+  const current = await contentUi(this);
+  const editor = articleEditor(current.page);
+  await expect(editor).toBeVisible();
+  await expect(editor).toContainText("# Cucumber");
+  await expect(editor).toContainText("cucumber-inline-image.png");
 });
 
 Then("the content is saved as Markdown", async function (this: ScenarioWorld) {
-  expect(this.state.editorMode).toBe("markdown");
-  expect(adminState(this).response?.status).toBeLessThan(300);
+  await saveContentDraft(this);
+  const editor = articleEditor((await contentUi(this)).page);
+  expect(await editor.inputValue()).toContain("# Cucumber");
+  expect(await editor.inputValue()).toContain("cucumber-inline-image.png");
 });
 
 Given("an article is ready for public reading", async function (this: ScenarioWorld) {
@@ -228,19 +249,35 @@ Then("the product's commercial state remains owned by the product domain", async
 
 Given("the content operator is composing an article with draft status", async function (this: ScenarioWorld) {
   await authenticateAdmin(this);
-  await adminPost(this, "/v1/content/articles", { title: `Cucumber Draft ${Date.now()}`, body: "Draft body", status: "draft" });
+  const title = `Cucumber Draft ${Date.now()}`;
+  await adminPost(this, "/v1/content/articles", {
+    title,
+    body: "Draft body",
+    image_url: "https://example.com/cucumber-preview.png",
+    status: "draft",
+  });
+  this.state.previewArticleTitle = title;
 });
 
 When("the content operator triggers the article preview", async function (this: ScenarioWorld) {
-  await adminGet(this, `/v1/content/articles/${String(responseData(this).id ?? "")}/preview`);
+  await openDraftArticle(this);
+  const current = await contentUi(this);
+  const preview = current.page.getByRole("button", { name: /preview/i }).first();
+  await expect(preview).toBeVisible();
+  await preview.click();
 });
 
 Then("a storefront preview modal opens", async function (this: ScenarioWorld) {
-  assertReadable(this);
+  const current = await contentUi(this);
+  await expect(articlePreviewModal(current.page)).toBeVisible();
 });
 
 Then("the modal displays the draft article's title, cover image, and body content", async function (this: ScenarioWorld) {
-  expect(responseData(this)).toBeTruthy();
+  const current = await contentUi(this);
+  const modal = articlePreviewModal(current.page);
+  await expect(modal.getByText(String(this.state.previewArticleTitle), { exact: true })).toBeVisible();
+  await expect(modal.locator('img[src*="cucumber-preview.png"]')).toBeVisible();
+  await expect(modal).toContainText("Draft body");
 });
 
 When("an unauthenticated client creates a content article", async function (this: ScenarioWorld) {
@@ -498,6 +535,87 @@ async function loginContentAdmin(world: ScenarioWorld): Promise<void> {
   if (!email || !password) throw new Error("Set ADMIN_USER_EMAIL and ADMIN_USER_PASSWORD for admin content browser scenarios.");
   await current.auth.gotoLogin();
   await current.auth.login(email, password);
+  await current.page.waitForLoadState("domcontentloaded");
+}
+
+function articleEditor(page: Page): Locator {
+  return page.locator(
+    '[data-testid="article-editor"], [data-testid="content-editor"], [contenteditable="true"], textarea[name="body"]',
+  ).first();
+}
+
+function articlePreviewModal(page: Page): Locator {
+  return page.locator('[data-testid="article-preview-modal"], [data-testid="preview-modal"], [role="dialog"]').first();
+}
+
+async function selectEditorMode(page: Page, mode: "html" | "markdown"): Promise<void> {
+  const label = mode === "html" ? /visual|wysiwyg|rich text/i : /markdown/i;
+  const button = page.getByRole("button", { name: label }).first();
+  if (await button.count() > 0) {
+    await button.click();
+    return;
+  }
+  const tab = page.getByRole("tab", { name: label }).first();
+  if (await tab.count() > 0) {
+    await tab.click();
+    return;
+  }
+  const select = page.locator('select[name*="editor" i], select[data-testid*="editor-mode" i]').first();
+  if (await select.count() > 0) {
+    await select.selectOption(mode);
+    return;
+  }
+  throw new Error(`The article editor does not expose a ${mode} mode control.`);
+}
+
+async function openContentEditor(world: ScenarioWorld, mode: "html" | "markdown"): Promise<void> {
+  await loginContentAdmin(world);
+  const current = await contentUi(world);
+  await current.page.goto("/admin/articles");
+  await current.page.waitForLoadState("networkidle");
+  const create = current.page.locator('[data-testid="create-article-btn"], [data-testid="create-btn"]').first();
+  if (await create.count() > 0) await create.click();
+  else await current.page.getByRole("button", { name: /new article|create article|add article/i }).first().click();
+  await current.page.waitForLoadState("domcontentloaded");
+  const title = current.page.locator(
+    '[data-testid="article-title-input"], input[name="title"], input[placeholder*="title" i]',
+  ).first();
+  await expect(title).toBeVisible();
+  const titleValue = `Cucumber ${mode} editor ${Date.now()}`;
+  await title.fill(titleValue);
+  world.state.editorTitle = titleValue;
+  await selectEditorMode(current.page, mode);
+  await expect(articleEditor(current.page)).toBeVisible();
+}
+
+async function insertInlineImage(page: Page): Promise<void> {
+  const imageButton = page.getByRole("button", { name: /image|insert media|media/i }).first();
+  await expect(imageButton).toBeVisible();
+  await imageButton.click();
+  const imageUrl = page.locator(
+    '[data-testid="image-url-input"], input[name="imageUrl"], input[placeholder*="image url" i]',
+  ).first();
+  await expect(imageUrl).toBeVisible();
+  await imageUrl.fill("https://example.com/cucumber-inline-image.png");
+  await page.getByRole("button", { name: /insert|add image|confirm/i }).last().click();
+}
+
+async function saveContentDraft(world: ScenarioWorld): Promise<void> {
+  const current = await contentUi(world);
+  const save = current.page.getByRole("button", { name: /save draft|save article|save/i }).first();
+  await expect(save).toBeVisible();
+  await save.click();
+  await expect(current.page.locator(".toast-success, [data-type='success'], [role='status']").first()).toBeVisible();
+}
+
+async function openDraftArticle(world: ScenarioWorld): Promise<void> {
+  await loginContentAdmin(world);
+  const current = await contentUi(world);
+  await current.page.goto("/admin/articles");
+  await current.page.waitForLoadState("networkidle");
+  const title = current.page.getByText(String(world.state.previewArticleTitle), { exact: true }).first();
+  await expect(title).toBeVisible();
+  await title.click();
   await current.page.waitForLoadState("domcontentloaded");
 }
 

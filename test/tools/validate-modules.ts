@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { execFileSync } from "node:child_process";
+import ts from "typescript";
 
 const testRoot = path.resolve(__dirname, "..");
 const repoRoot = path.resolve(testRoot, "..");
@@ -20,7 +21,9 @@ type FeatureScenario = {
   title: string;
   status: "accepted" | "deferred" | undefined;
   layer: string | undefined;
+  tags: string[];
   useCases: string[];
+  steps: string[];
   rule?: string;
   line: number;
 };
@@ -59,6 +62,7 @@ function featureScenarios(feature: string): Map<string, FeatureScenario> {
   let pendingTags: string[] = [];
   let ruleTags: string[] = [];
   let ruleName: string | undefined;
+  let activeScenario: FeatureScenario | undefined;
 
   for (const [index, line] of feature.split(/\r?\n/).entries()) {
     const trimmed = line.trim();
@@ -72,6 +76,7 @@ function featureScenarios(feature: string): Map<string, FeatureScenario> {
         errors.push(`${index + 1}: UC/SC tags must not be attached to Feature`);
       }
       pendingTags = [];
+      activeScenario = undefined;
       continue;
     }
     const rule = line.match(/^\s*Rule\s*:\s*(.+)$/);
@@ -82,10 +87,16 @@ function featureScenarios(feature: string): Map<string, FeatureScenario> {
       ruleTags = pendingTags;
       ruleName = rule[1].trim();
       pendingTags = [];
+      activeScenario = undefined;
       continue;
     }
     const scenario = line.match(/^\s*Scenario(?: Outline)?\s*:\s*(.+)$/);
     if (!scenario) {
+      const step = line.match(/^\s*(?:Given|When|Then|And|But)\s+(.+)$/);
+      if (step && activeScenario) {
+        activeScenario.steps.push(step[1].trim());
+        continue;
+      }
       if (trimmed && !/^\s*(Examples|\|)/.test(line)) pendingTags = [];
       continue;
     }
@@ -104,18 +115,26 @@ function featureScenarios(feature: string): Map<string, FeatureScenario> {
     if (statuses.length > 1) errors.push(`${index + 1}: Scenario cannot be both accepted and deferred`);
     const layers = unique(pendingTags.filter((tag) => allowedLayers.has(tag)));
     if (layers.length !== 1) errors.push(`${index + 1}: Scenario must have exactly one execution layer tag`);
+    const uiTags = pendingTags.filter((tag) => ["browser", "visual", "ui", "e2e", "dom", "page", "figma"].includes(tag));
+    if (layers[0] === "api" && uiTags.length > 0) {
+      errors.push(`${index + 1}: @api Scenario cannot carry UI layer tags: ${uiTags.join(", ")}`);
+    }
     if (directIds.length === 1) {
       if (result.has(directIds[0])) errors.push(`${index + 1}: duplicate scenario ID ${directIds[0]}`);
       else {
-        result.set(directIds[0], {
+        const metadata: FeatureScenario = {
           id: directIds[0],
           title: scenario[1].trim(),
           status: statuses[0] as FeatureScenario["status"],
           layer: layers[0],
+          tags: unique(pendingTags),
           useCases: effectiveUseCases,
+          steps: [],
           rule: ruleName,
           line: index + 1,
-        });
+        };
+        result.set(directIds[0], metadata);
+        activeScenario = metadata;
       }
     }
     pendingTags = [];
@@ -139,6 +158,83 @@ function stepDefinitions(source: string): Set<string> {
     result.add((match[1] ?? match[2]).replace(/\\(["'])/g, "$1"));
   }
   return result;
+}
+
+type StepDefinitionImplementation = { body: string; line: number };
+
+function stepDefinitionImplementations(source: string, file: string): {
+  implementations: Map<string, StepDefinitionImplementation>;
+  localFunctionBodies: Map<string, string>;
+} {
+  const sourceFile = ts.createSourceFile(file, source, ts.ScriptTarget.Latest, true);
+  const localFunctionBodies = new Map<string, string>();
+  const implementations = new Map<string, StepDefinitionImplementation>();
+
+  function visit(node: ts.Node): void {
+    if (ts.isFunctionDeclaration(node) && node.name && node.body) {
+      localFunctionBodies.set(node.name.text, node.body.getText(sourceFile));
+    }
+    if (
+      ts.isVariableDeclaration(node) &&
+      ts.isIdentifier(node.name) &&
+      node.initializer &&
+      (ts.isArrowFunction(node.initializer) || ts.isFunctionExpression(node.initializer)) &&
+      node.initializer.body
+    ) {
+      localFunctionBodies.set(node.name.text, node.initializer.body.getText(sourceFile));
+    }
+    if (
+      ts.isCallExpression(node) &&
+      ts.isIdentifier(node.expression) &&
+      ["Given", "When", "Then"].includes(node.expression.text)
+    ) {
+      const expression = node.arguments[0];
+      const implementation = node.arguments[node.arguments.length - 1];
+      if (
+        (ts.isStringLiteral(expression) || ts.isNoSubstitutionTemplateLiteral(expression)) &&
+        (ts.isArrowFunction(implementation) || ts.isFunctionExpression(implementation)) &&
+        implementation.body
+      ) {
+        implementations.set(expression.text, {
+          body: implementation.body.getText(sourceFile),
+          line: sourceFile.getLineAndCharacterOfPosition(node.getStart(sourceFile)).line + 1,
+        });
+      }
+    }
+    ts.forEachChild(node, visit);
+  }
+
+  visit(sourceFile);
+
+  return { implementations, localFunctionBodies };
+}
+
+const apiUiStepPattern = /\b(?:browser|DOM|locator|visual|screenshot|Figma|modal|WYSIWYG|rich text|inline images?|editor mode|Markdown editor|types? formatted|pastes? an image|reloads? the .*page)\b/i;
+const apiUiImplementationPatterns = [
+  /getBrowserPage|getCheckoutBrowserDriver/i,
+  /\b(?:BrowserContext|Page|DOM|AuthPage|ProductDetailPage|CartPage|CheckoutPage|AdminPage|ProfilePage|ArticlePage|WishlistPage|OrdersPage)\b/,
+  /\b(?:locator|toHaveScreenshot|toMatchSnapshot|toBeVisible|toBeHidden|toHaveText|toContainText|getBy(?:Role|Text|TestId|Placeholder))\s*\(/,
+  /\b(?:waitForURL|waitForLoadState)\s*\(|\.(?:reload|goto|setViewportSize)\s*\(/,
+  /\.(?:page|locator)\b/,
+  /\b(?:document|window|HTMLElement|getComputedStyle)\b/,
+];
+
+function apiUiImplementationReason(
+  body: string,
+  localFunctionBodies: Map<string, string>,
+  visited = new Set<string>(),
+): string | undefined {
+  const directPattern = apiUiImplementationPatterns.find((pattern) => pattern.test(body));
+  if (directPattern) return directPattern.source;
+  for (const match of body.matchAll(/\b([A-Za-z_$][\w$]*)\s*\(/g)) {
+    const functionName = match[1];
+    const functionBody = localFunctionBodies.get(functionName);
+    if (!functionBody || visited.has(functionName)) continue;
+    visited.add(functionName);
+    const reason = apiUiImplementationReason(functionBody, localFunctionBodies, visited);
+    if (reason) return reason;
+  }
+  return undefined;
 }
 
 type ManifestScenario = { id: string; body: string };
@@ -214,6 +310,23 @@ for (const modulePath of findModules(modulesRoot)) {
     const localDefinitions = stepDefinitions(stepsSource);
     for (const step of featureStepTexts(featureSource)) {
       if (!localDefinitions.has(step)) errors.push(`${moduleRelative}: unbound local step: ${step}`);
+    }
+    const { implementations, localFunctionBodies } = stepDefinitionImplementations(stepsSource, stepsPath);
+    for (const [id, scenario] of featureMeta) {
+      if (scenario.layer !== "api") continue;
+      for (const step of scenario.steps) {
+        if (apiUiStepPattern.test(step)) {
+          errors.push(`${moduleRelative}/${id}: @api step describes UI behavior: ${step}`);
+        }
+        const implementation = implementations.get(step);
+        if (!implementation) continue;
+        const reason = apiUiImplementationReason(implementation.body, localFunctionBodies);
+        if (reason) {
+          errors.push(
+            `${moduleRelative}/${id}: @api step uses browser/UI implementation at step line ${implementation.line}: ${step}`,
+          );
+        }
+      }
     }
     if (/executors?\s*\[.*(?:scenarioId|scenarioBinding)|switch\s*\(.*(?:scenarioId|scenarioBinding)/s.test(stepsSource)) {
       errors.push(`${moduleRelative}: implementation dispatch by scenario identity is forbidden`);

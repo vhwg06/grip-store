@@ -119,12 +119,12 @@ async function createPendingOrder(world: ScenarioWorld): Promise<void> {
   const api = new CatalogApiHelper(await client(world));
   const products = await api.getProducts({ page: 1, limit: 20 });
   expect(products.ok, "creating an order requires a reachable public catalog").toBe(true);
-  const product = products.data.items[0];
+  const product = products.data.items.find((candidate) => (candidate.stock ?? 0) > 0 && candidate.active !== false);
   expect(product, "creating an order requires an available product").toBeTruthy();
 
   const userToken = await getUserToken(await world.getApiRequest());
   const response = await (await client(world)).post("/v1/checkout/orders", {
-    productId: product.id,
+    product_id: product.id,
     quantity: 1,
     email: requiredEnv("TEST_USER_EMAIL"),
     external_reference: isolatedReference(world, "order"),
@@ -474,10 +474,10 @@ Given("an operations admin is processing an order with a pending refund request"
   assertAccepted(this);
 
   const userToken = await getUserToken(await this.getApiRequest());
-  const refund = await (await client(this)).post(`/v1/orders/${state(this).orderId}/refund-request`, {
+  const refund = await (await client(this)).post(`/v1/orders/${state(this).orderId}/refund`, {
     reason: `Cucumber refund relevance ${Date.now()}`,
   }, { headers: { Authorization: `Bearer ${userToken}` } });
-  expect(refund.status).toBe(201);
+  expect(refund.status).toBe(200);
 
   await adminGet(this, `/v1/admin/orders/${state(this).orderId}`);
   assertReadable(this);

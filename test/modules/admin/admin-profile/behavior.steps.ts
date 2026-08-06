@@ -88,7 +88,13 @@ When("the system presents recent device and access context", async function (thi
 Then("the admin can distinguish expected access from suspicious access", async function (this: ScenarioWorld) {
   assertReadable(this);
   const payload = responseData(this);
-  const rows = Array.isArray(payload) ? payload : Array.isArray(payload.sessions) ? payload.sessions : [];
+  const rows = Array.isArray(payload)
+    ? payload
+    : Array.isArray(payload.items)
+      ? payload.items
+      : Array.isArray(payload.sessions)
+        ? payload.sessions
+        : [];
   expect(rows.length).toBeGreaterThan(0);
   const first = rows[0] as Record<string, unknown>;
   const device = first.device ?? first.userAgent ?? first.ip;

@@ -1,10 +1,18 @@
 {
   "git.ignoreLimitWarning": true,
+  "cucumber.stepDefinitions": [
+    "**/test/modules/**/*.steps.ts",
+    "**/test/modules/**/*.step.ts"
+  ],
+  "cucumber.features": [
+    "**/test/modules/**/*.feature"
+  ],
   "cucumberautocomplete.steps": [
     "test/modules/**/*.steps.ts",
-    "test/modules/**/*.step.ts"
+    "test/modules/**/*.step.ts",
+    "**/test/modules/**/*.steps.ts"
   ],
-  "cucumberautocomplete.syncfeatures": "test/modules/**/*.feature",
+  "cucumberautocomplete.syncfeatures": "**/test/modules/**/*.feature",
   "cucumberautocomplete.strictGherkinCompletion": true,
   "cucumberautocomplete.strictGherkinValidation": true,
   "editor.quickSuggestions": {

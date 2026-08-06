@@ -65,7 +65,15 @@ export class ScenarioWorld extends World {
     return new GoBackendClient(await this.getApiRequest());
   }
 
+  private assertBrowserAccessAllowed(): void {
+    if (this.scenarioBinding?.layer !== "api") return;
+    throw new Error(
+      `Scenario @${this.scenarioBinding.id} is tagged @api and may only use REST; browser access is forbidden.`,
+    );
+  }
+
   async getCheckoutBrowserDriver(): Promise<CheckoutBrowserDriver> {
+    this.assertBrowserAccessAllowed();
     this.browser ??= await chromium.launch({ headless: true });
     const webBaseUrl = process.env.TEST_WEB_BASE_URL?.trim();
     if (!webBaseUrl) throw new Error("Set TEST_WEB_BASE_URL before running browser scenarios.");
@@ -82,6 +90,7 @@ export class ScenarioWorld extends World {
   }
 
   async getBrowserPage(): Promise<Page> {
+    this.assertBrowserAccessAllowed();
     await this.getCheckoutBrowserDriver();
     return this.page as Page;
   }

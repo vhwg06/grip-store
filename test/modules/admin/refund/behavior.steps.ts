@@ -33,7 +33,7 @@ async function createBrowserRefund(world: ScenarioWorld, note: string): Promise<
   const catalog = new CatalogApiHelper(client);
   const products = await catalog.getProducts({ page: 1, limit: 20 });
   expect(products.ok).toBe(true);
-  const product = products.data.items[0];
+  const product = products.data.items.find((candidate) => (candidate.stock ?? 0) > 0 && candidate.active !== false);
   expect(product).toBeTruthy();
   const userToken = await getUserToken(await world.getApiRequest());
   const orderResponse = await client.post("/v1/checkout/orders", {

@@ -13,4 +13,4 @@
 - `generated/**` is build output and must not be edited by hand. Gherkin is
   executed directly by Cucumber; no generated Playwright-BDD source is the
   acceptance source.
-- Use `https://grip.vn/api` for real API steps; do not use mocks or localhost.
+- *Always follow: `Spec / Use Case → Test → Implementation → Verification`.
