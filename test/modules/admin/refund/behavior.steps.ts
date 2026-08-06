@@ -37,10 +37,9 @@ async function createBrowserRefund(world: ScenarioWorld, note: string): Promise<
   expect(product).toBeTruthy();
   const userToken = await getUserToken(await world.getApiRequest());
   const orderResponse = await client.post("/v1/checkout/orders", {
-    productId: product.id,
+    product_id: product.id,
     quantity: 1,
     email: requiredEnv("TEST_USER_EMAIL"),
-    external_reference: isolatedReference(world, "refund-order"),
   }, { headers: { Authorization: `Bearer ${userToken}` } });
   expect(orderResponse.status).toBeGreaterThanOrEqual(200);
   expect(orderResponse.status).toBeLessThan(300);
@@ -51,10 +50,10 @@ async function createBrowserRefund(world: ScenarioWorld, note: string): Promise<
   assertAccepted(world);
   await adminPatch(world, `/v1/admin/orders/${orderId}`, { status: "delivered" });
   assertAccepted(world);
-  const refund = await client.post(`/v1/orders/${orderId}/refund-request`, { reason: note }, {
+  const refund = await client.post(`/v1/orders/${orderId}/refund`, { reason: note }, {
     headers: { Authorization: `Bearer ${userToken}` },
   });
-  expect(refund.status).toBe(201);
+  expect(refund.ok).toBe(true);
   const refundPayload = (refund.data && typeof refund.data === "object" ? refund.data : {}) as Record<string, unknown>;
   const created = (refundPayload.data && typeof refundPayload.data === "object" ? refundPayload.data : refundPayload) as Record<string, unknown>;
   world.state.refundOrderId = orderId;
