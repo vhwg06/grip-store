@@ -9,9 +9,10 @@ import { GoBackendClient } from "../../../shared/runtime/api-helpers/go-backend.
 import { isolatedReference } from "../../../shared/data/test-isolation";
 
 function refundId(world: ScenarioWorld): string {
-  const data = responseData(world);
-  const items = (Array.isArray(data) ? data : data.items) as Array<Record<string, unknown>> | undefined;
-  return String(items?.[0]?.id ?? items?.[0]?.refundId ?? "missing-refund");
+  const id = world.state.refundId;
+  expect(id).toBeDefined();
+  expect(String(id)).not.toBe("");
+  return String(id);
 }
 
 async function refundBrowser(world: ScenarioWorld) {
@@ -68,7 +69,7 @@ Before(function (this: ScenarioWorld) {
 });
 
 Given("the admin needs to choose a refund request to process", async function (this: ScenarioWorld) {
-  await authenticateAdmin(this);
+  await createBrowserRefund(this, `process refund ${Date.now()}`);
 });
 
 When("the admin opens the refund queue", async function (this: ScenarioWorld) {
@@ -117,8 +118,7 @@ Then("an unavailable request ends the review without a false decision", async fu
 });
 
 Given("evidence supports a positive refund outcome", async function (this: ScenarioWorld) {
-  await authenticateAdmin(this);
-  await adminGet(this, "/v1/admin/refunds?status=pending");
+  await createBrowserRefund(this, `positive refund ${Date.now()}`);
 });
 
 When("the admin reads order linkage, customer context, payment evidence, and prior notes", async function (this: ScenarioWorld) {
@@ -138,8 +138,7 @@ Then("the linked order context is updated correspondingly", async function (this
 });
 
 Given("evidence does not support a positive refund outcome", async function (this: ScenarioWorld) {
-  await authenticateAdmin(this);
-  await adminGet(this, "/v1/admin/refunds?status=pending");
+  await createBrowserRefund(this, `negative refund ${Date.now()}`);
 });
 
 When("the admin reads the full context", async function (this: ScenarioWorld) {
