@@ -9,6 +9,8 @@ import { GoBackendClient } from "../../../shared/runtime/api-helpers/go-backend.
 import { isolatedReference } from "../../../shared/data/test-isolation";
 
 function reviewId(world: ScenarioWorld): string {
+  // Prefer a fixture id set by createReviewViaApi over the queue list's first item.
+  if (world.state.reviewId) return world.state.reviewId;
   const data = responseData(world);
   const items = (Array.isArray(data) ? data : data.items) as Array<Record<string, unknown>> | undefined;
   return String(items?.[0]?.id ?? "missing-review");
@@ -70,6 +72,45 @@ async function createReviewForBrowser(world: ScenarioWorld, initialStatus: "PEND
   }
 }
 
+/**
+ * Creates a review via the REST API without opening a browser page.
+ * Stores the review id in world.state.reviewId and registers cleanup.
+ * Uses the legacy /v1/catalog/products endpoint which is guaranteed to have
+ * a shared smoke-test product seeded in the DB.
+ */
+async function createReviewViaApi(
+  world: ScenarioWorld,
+  label: string,
+): Promise<void> {
+  const client = new GoBackendClient(await world.getApiRequest());
+  const catalog = new CatalogApiHelper(client);
+  const products = await catalog.getProducts({ page: 1, limit: 20 });
+  expect(products.ok).toBe(true);
+  const product = products.data.items[0];
+  expect(product).toBeTruthy();
+  const comment = `${label}-${Date.now()}-${crypto.randomUUID().slice(0, 8)}`;
+  const token = await getUserToken(await world.getApiRequest());
+  const created = await client.post("/v1/reviews", {
+    product_id: product.id,
+    rating: 5,
+    content: comment,
+    external_reference: isolatedReference(world, label),
+  }, { headers: { Authorization: `Bearer ${token}` } });
+  expect([200, 201]).toContain(created.status);
+  const payload = (created.data && typeof created.data === "object" ? created.data : {}) as Record<string, unknown>;
+  const data = (payload.data && typeof payload.data === "object" ? payload.data : payload) as Record<string, unknown>;
+  world.state.reviewId = String(data.id ?? "");
+  world.state.reviewComment = comment;
+  expect(world.state.reviewId).not.toBe("");
+  world.registerCleanup(async () => {
+    const adminToken = await getAdminToken(await world.getApiRequest());
+    const response = await client.delete(`/v1/admin/reviews/${world.state.reviewId}`, {
+      headers: { Authorization: `Bearer ${adminToken}` },
+    });
+    if (response.status !== 404 && (response.status < 200 || response.status >= 300)) throw new Error(`Review cleanup failed with ${response.status}`);
+  });
+}
+
 async function openReviewList(world: ScenarioWorld): Promise<void> {
   const current = await reviewBrowser(world);
   await current.page.goto("/admin/reviews");
@@ -88,6 +129,7 @@ function reviewCard(world: ScenarioWorld) {
 
 Given("the admin needs to choose a review for moderation", async function (this: ScenarioWorld) {
   await authenticateAdmin(this);
+  await createReviewViaApi(this, "queue-scan-fixture");
 });
 
 When("the admin opens the moderation queue", async function (this: ScenarioWorld) {
@@ -144,6 +186,7 @@ Then("the queue payload preserves review context references", function (this: Sc
 
 Given("a moderator has enough review context to allow public visibility", async function (this: ScenarioWorld) {
   await authenticateAdmin(this);
+  await createReviewViaApi(this, "approve-fixture");
   await adminGet(this, "/v1/admin/reviews");
 });
 
@@ -161,6 +204,7 @@ Then("the approval outcome is distinct from hide, feature, or delete", async fun
 
 Given("a moderator has enough review context to remove public visibility", async function (this: ScenarioWorld) {
   await authenticateAdmin(this);
+  await createReviewViaApi(this, "hide-fixture");
   await adminGet(this, "/v1/admin/reviews");
 });
 
@@ -178,6 +222,7 @@ Then("the hide outcome is distinct from approve, feature, or delete", async func
 
 Given("a review is already suitable for public visibility", async function (this: ScenarioWorld) {
   await authenticateAdmin(this);
+  await createReviewViaApi(this, "feature-fixture");
   await adminGet(this, "/v1/admin/reviews");
 });
 
@@ -195,6 +240,7 @@ Then("the feature outcome does not replace the underlying moderation decision", 
 
 Given("the admin wants to process multiple pending reviews", async function (this: ScenarioWorld) {
   await authenticateAdmin(this);
+  await createReviewViaApi(this, "bulk-fixture");
   await adminGet(this, "/v1/admin/reviews");
 });
 
@@ -212,6 +258,7 @@ Then("the system applies the outcome to eligible reviews without bypassing indiv
 
 Given("a moderator determines a review should no longer remain as a review artifact", async function (this: ScenarioWorld) {
   await authenticateAdmin(this);
+  await createReviewViaApi(this, "delete-fixture");
   await adminGet(this, "/v1/admin/reviews");
 });
 

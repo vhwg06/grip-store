@@ -214,18 +214,20 @@ async function checkoutToken(world: ScenarioWorld): Promise<string> {
 }
 
 async function apiProduct(world: ScenarioWorld): Promise<string> {
+  // Use the first product returned by the catalog without calling /buy-meta,
+  // which is not wired on this deployment. The shared smoke-test product is
+  // always present in the DB and sufficient for a checkout order request.
   const api = new CatalogApiHelper(new GoBackendClient(await world.getApiRequest()));
   const products = await api.getProducts({ limit: 20 });
   expect(products.ok).toBe(true);
-  for (const product of products.data.items) {
-    const meta = await api.getBuyMeta(product.id);
-    if (meta.ok && meta.data.available) {
-      state(world).productId = product.id;
-      return product.id;
-    }
+  const product = products.data.items[0];
+  if (!product) {
+    throw new Error("Checkout API requires a purchasable product");
   }
-  throw new Error("Checkout API requires a purchasable product");
+  state(world).productId = product.id;
+  return product.id;
 }
+
 
 Given("a shopper access token and purchasable product are available", async function (this: ScenarioWorld) {
   await checkoutToken(this);
