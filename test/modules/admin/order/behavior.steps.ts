@@ -121,6 +121,7 @@ async function createPendingOrder(world: ScenarioWorld): Promise<void> {
   expect(products.ok, "creating an order requires a reachable public catalog").toBe(true);
   const product = products.data.items.find((candidate) => (candidate.stock ?? 0) > 0 && candidate.active !== false);
   expect(product, "creating an order requires an available product").toBeTruthy();
+  if (!product) throw new Error("creating an order requires an available product");
 
   const userToken = await getUserToken(await world.getApiRequest());
   const response = await (await client(world)).post("/v1/checkout/orders", {

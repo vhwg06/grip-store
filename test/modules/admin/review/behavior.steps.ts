@@ -10,7 +10,7 @@ import { isolatedReference } from "../../../shared/data/test-isolation";
 
 function reviewId(world: ScenarioWorld): string {
   // Prefer a fixture id set by createReviewViaApi over the queue list's first item.
-  if (world.state.reviewId) return world.state.reviewId;
+  if (world.state.reviewId) return String(world.state.reviewId);
   const data = responseData(world);
   const items = (Array.isArray(data) ? data : data.items) as Array<Record<string, unknown>> | undefined;
   return String(items?.[0]?.id ?? "missing-review");

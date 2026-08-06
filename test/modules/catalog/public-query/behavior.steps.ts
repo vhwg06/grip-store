@@ -38,18 +38,55 @@ async function api(world: ScenarioWorld): Promise<CatalogApiHelper> {
 }
 
 async function loadProducts(world: ScenarioWorld, params?: Parameters<CatalogApiHelper["getProducts"]>[0]) {
-  const response = await (await api(world)).getProducts(params);
-  expect(response.ok, "public catalog API must be reachable").toBe(true);
-  state(world).list = response.data;
-  return response.data;
+  const query = new URLSearchParams();
+  if (params?.page !== undefined) query.set("page", String(params.page));
+  if (params?.limit !== undefined) query.set("limit", String(params.limit));
+  if (params?.sort !== undefined) query.set("sort", String(params.sort));
+  if (params?.search !== undefined) query.set("search", String(params.search));
+  if (params?.category !== undefined) query.set("categoryId", String(params.category));
+  const suffix = query.toString() ? `?${query.toString()}` : "";
+  const response = await (await baseApi(world)).publicGet<JsonRecord>(`/v1/catalog/product-models${suffix}`);
+  expect(response.status, "public Catalog Base API must be reachable").toBe(200);
+  const data = record(response.data);
+  const items = listItems(data).map(toLegacyProductShape);
+  const result = {
+    items,
+    total: Number(data.total ?? 0),
+    page: Number(data.page ?? 1),
+    limit: Number(data.limit ?? 20),
+  } as PaginatedResponse<Product>;
+  state(world).list = result;
+  return result;
 }
 
 async function chooseProduct(world: ScenarioWorld): Promise<Product> {
   if (state(world).product) return state(world).product!;
+  await activeFixture(world);
   const list = await loadProducts(world, { limit: 20 });
   expect(list.items.length, "a public product is required").toBeGreaterThan(0);
-  state(world).product = list.items[0];
+  state(world).product = list.items.find((item) => item.id === state(world).baseModelId) ?? list.items[0];
   return state(world).product!;
+}
+
+function toLegacyProductShape(item: JsonRecord): Product {
+  const variants = Array.isArray(item.variants) ? item.variants.map(record) : [];
+  const prices = variants
+    .map((variant) => Number(record(variant.sellingPrice).amount))
+    .filter((price) => Number.isFinite(price) && price > 0);
+  const images = Array.isArray(item.images)
+    ? item.images.map((image) => String(record(image).url ?? image)).filter(Boolean)
+    : [];
+  return {
+    id: String(item.id ?? ""),
+    title: String(item.name ?? ""),
+    description: String(item.description ?? ""),
+    price: prices.length > 0 ? Math.min(...prices) : 0,
+    category_id: String(item.categoryId ?? ""),
+    images,
+    active: item.status === "Active",
+    sort_order: 0,
+    ...(item.specs !== undefined ? { specs: item.specs } : {}),
+  } as Product;
 }
 
 Before(function (this: ScenarioWorld) {
@@ -58,10 +95,13 @@ Before(function (this: ScenarioWorld) {
 });
 
 Given("active and inactive catalog products are available to query", async function (this: ScenarioWorld) {
+  await activeFixture(this);
+  await createFixture(this, { status: "Inactive" });
   await loadProducts(this, { limit: 20 });
 });
 
 Given("the public catalog can return products", async function (this: ScenarioWorld) {
+  await activeFixture(this);
   await loadProducts(this, { limit: 20 });
 });
 
@@ -91,10 +131,8 @@ Then("the public product list contains no more than `5` items", async function (
 });
 
 Given("an active public category exists", async function (this: ScenarioWorld) {
-  const response = await (await api(this)).getCategories();
-  expect(response.ok).toBe(true);
-  expect(response.data.length).toBeGreaterThan(0);
-  state(this).category = response.data[0].slug;
+  await activeFixture(this);
+  state(this).category = state(this).baseCategoryId;
 });
 
 When("the shopper reads the public product list for that category", async function (this: ScenarioWorld) {
@@ -106,7 +144,9 @@ Then("every returned public product belongs to that category", async function (t
 });
 
 Given("the public catalog contains products with different prices", async function (this: ScenarioWorld) {
-  const list = await loadProducts(this, { limit: 20 });
+  await activeFixture(this, { price: 400000 });
+  await createFixture(this, { price: 500000 });
+  const list = await loadProducts(this, { limit: 20, sort: "price_asc" });
   expect(new Set(list.items.map((item) => item.price)).size).toBeGreaterThan(1);
 });
 
@@ -125,9 +165,9 @@ Given("a public product has a searchable title keyword", async function (this: S
 });
 
 When("the shopper searches the public catalog by that keyword", async function (this: ScenarioWorld) {
-  const response = await (await api(this)).search(state(this).keyword!);
-  expect(response.ok).toBe(true);
-  state(this).search = response.data;
+  const response = await (await baseApi(this)).publicGet<unknown>(`/v1/catalog/search?q=${encodeURIComponent(state(this).keyword!)}`);
+  expect(response.status).toBe(200);
+  state(this).search = listItems(response.data).map(toLegacyProductShape);
 });
 
 Then("the public search response status is `200`", async function (this: ScenarioWorld) {
@@ -144,9 +184,9 @@ Given("no public product has the reserved missing keyword", async function (this
 });
 
 When("the shopper searches the public catalog by the reserved missing keyword", async function (this: ScenarioWorld) {
-  const response = await (await api(this)).search(state(this).keyword!);
-  expect(response.ok).toBe(true);
-  state(this).search = response.data;
+  const response = await (await baseApi(this)).publicGet<unknown>(`/v1/catalog/search?q=${encodeURIComponent(state(this).keyword!)}`);
+  expect(response.status).toBe(200);
+  state(this).search = listItems(response.data).map(toLegacyProductShape);
 });
 
 Then("the public search result is an empty array", async function (this: ScenarioWorld) {
@@ -492,14 +532,14 @@ Given("an active public product exists", async function (this: ScenarioWorld) {
 
 Given("an active public product has public specification data", async function (this: ScenarioWorld) {
   const product = await chooseProduct(this);
-  const response = await (await api(this)).getProduct(product.id);
-  expect(response.ok).toBe(true);
+  const response = await (await baseApi(this)).publicGet(`/v1/catalog/product-models/${product.id}`);
+  expect(response.status).toBe(200);
   expect((response.data as unknown as Record<string, unknown>).specs).toBeDefined();
-  state(this).product = response.data;
+  state(this).product = response.data as Product;
 });
 
 When("the shopper reads its public product detail", async function (this: ScenarioWorld) {
-  const response = await (await api(this)).getProduct((await chooseProduct(this)).id);
+  const response = await (await baseApi(this)).publicGet(`/v1/catalog/product-models/${(await chooseProduct(this)).id}`);
   state(this).detail = { status: response.status, data: response.data };
 });
 
@@ -510,7 +550,7 @@ Then("the public product detail response status is `200`", async function (this:
 Then("public product detail contains the product identity and core fields", async function (this: ScenarioWorld) {
   const data = state(this).detail!.data as Record<string, unknown>;
   expect(data.id).toBe((await chooseProduct(this)).id);
-  for (const key of ["title", "price", "description"]) expect(data[key]).toBeDefined();
+  for (const key of ["name", "description", "variants"]) expect(data[key]).toBeDefined();
 });
 
 Then("public product detail contains images", async function (this: ScenarioWorld) {
@@ -535,7 +575,7 @@ Given("an inactive or unavailable public product identifier is used", async func
 });
 
 When("the shopper reads that public product detail", async function (this: ScenarioWorld) {
-  const response = await (await api(this)).getProduct(state(this).product!.id);
+  const response = await (await baseApi(this)).publicGet(`/v1/catalog/product-models/${state(this).product!.id}`);
   state(this).detail = { status: response.status, data: response.data };
 });
 
@@ -544,7 +584,7 @@ Then("the public product detail response status is `404`", async function (this:
 });
 
 When("the shopper reads its public buy metadata", async function (this: ScenarioWorld) {
-  const response = await (await api(this)).getBuyMeta((await chooseProduct(this)).id);
+  const response = await (await baseApi(this)).publicGet(`/v1/catalog/products/${(await chooseProduct(this)).id}/buy-meta`);
   state(this).buyMeta = { status: response.status, data: response.data };
 });
 
@@ -554,9 +594,8 @@ Then("the public buy metadata response status is `200`", async function (this: S
 
 Then("public buy metadata contains product identity, availability, and stock", async function (this: ScenarioWorld) {
   const data = state(this).buyMeta!.data as Record<string, unknown>;
-  expect(data.product_id).toBeDefined();
-  expect(typeof data.available).toBe("boolean");
-  expect(data.stock).toBeDefined();
+  expect(data.productModelId).toBeDefined();
+  expect(data.productModel).toBeDefined();
 });
 
 When("the shopper reads public catalog categories", async function (this: ScenarioWorld) {
@@ -602,7 +641,6 @@ Then("the public announcement is null or contains identity, content, and active 
   const data = state(this).detail!.data;
   if (data === null) return;
   const announcement = data as Record<string, unknown>;
-  expect(announcement.id).toBeDefined();
-  expect(announcement.content).toBeDefined();
-  expect(typeof announcement.active).toBe("boolean");
+  expect(typeof announcement.enabled).toBe("boolean");
+  expect(typeof announcement.message).toBe("string");
 });

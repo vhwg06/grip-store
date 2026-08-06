@@ -70,9 +70,12 @@ async function createCategory(world: ScenarioWorld, active = true): Promise<stri
 }
 
 async function createDefinition(world: ScenarioWorld, input: JsonRecord): Promise<string> {
+  const displayName = input.displayName
+    ?? (input.valueKind === "Enum" ? "Default" : input.valueKind === "Reference" ? input.referenceTarget : undefined)
+    ?? suffix(world, "Attribute");
   const response = await (await api(world)).adminPost(await adminToken(world), "/v1/admin/catalog/attribute-definitions", {
     key: suffix(world, "attribute").toLowerCase().replace(/[^a-z0-9-]/g, "-"),
-    displayName: suffix(world, "Attribute"),
+    displayName,
     ...input,
   });
   save(world, response);
@@ -261,7 +264,7 @@ When("Catalog Operator defines a numeric Scalar attribute with an incompatible u
 
 Given("a numeric attribute definition is used by a ProductModel", async function (this: ScenarioWorld) {
   state(this).definitionId = await createDefinition(this, { valueKind: "Scalar", dataType: "Number", unitFamily: "length", unit: "mm" });
-  state(this).modelId = await createModel(this, { fixedAttributes: { [state(this).definitionId]: "200 mm" } });
+  state(this).modelId = await createModel(this, { fixedAttributes: { [state(this).definitionId!]: "200 mm" } });
 });
 
 When("Catalog Operator changes its display name, description, or ordering", async function (this: ScenarioWorld) {
@@ -306,17 +309,17 @@ Given("Material, Finish, and Pack are referenced by existing catalog data", asyn
     pack: await createMaster(this, "pack", { sellingUnit: "Box", quantity: 10, baseUnit: "Piece" }),
   };
   state(this).masterKind = "material";
-  state(this).masterId = state(this).masterIds.material;
+  state(this).masterId = state(this).masterIds!.material!;
   state(this).definitionId = await createDefinition(this, { valueKind: "Reference", referenceTarget: "Material" });
-  state(this).modelId = await createModel(this, { fixedAttributes: { [state(this).definitionId]: state(this).masterId } });
+  state(this).modelId = await createModel(this, { fixedAttributes: { [state(this).definitionId!]: state(this).masterId! } });
   const variantDefinition = await createDefinition(this, { valueKind: "Reference", referenceTarget: "Material" });
   const dimension = await (await api(this)).adminPost(await adminToken(this), `/v1/admin/catalog/product-models/${state(this).modelId}/variant-dimensions`, {
     definitionId: variantDefinition,
-    allowedValues: [{ id: state(this).masterId, label: "Material", active: true }],
+    allowedValues: [{ id: state(this).masterId!, label: "Material", active: true }],
   });
   expect(dimension.status).toBe(201);
   const variant = await (await api(this)).adminPost(await adminToken(this), `/v1/admin/catalog/product-models/${state(this).modelId}/variants`, {
-    selectedOptions: { Material: state(this).masterId },
+    selectedOptions: { Material: state(this).masterId! },
     sku: `MASTER-${crypto.randomUUID()}`,
     sellingPrice: { amount: 400000, currency: "VND" },
   });

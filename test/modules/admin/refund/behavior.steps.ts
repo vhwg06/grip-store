@@ -35,6 +35,7 @@ async function createBrowserRefund(world: ScenarioWorld, note: string): Promise<
   expect(products.ok).toBe(true);
   const product = products.data.items.find((candidate) => (candidate.stock ?? 0) > 0 && candidate.active !== false);
   expect(product).toBeTruthy();
+  if (!product) throw new Error("creating a refund requires an available product");
   const userToken = await getUserToken(await world.getApiRequest());
   const orderResponse = await client.post("/v1/checkout/orders", {
     product_id: product.id,
