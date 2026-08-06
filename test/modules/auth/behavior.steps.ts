@@ -340,12 +340,12 @@ Then("the shopper profile response status is `404`", function (this: ScenarioWor
 });
 
 When("the client updates shopper email without authentication", async function (this: ScenarioWorld) {
-  const response = await (await this.getApiClient()).put("/v1/profile/email", { email: "cucumber@example.com" });
+  const response = await (await this.getApiClient()).patch("/v1/profile/email", { email: "cucumber@example.com" });
   state(this).response = { status: response.status, data: response.data };
 });
 
 When("the client updates shopper notifications without authentication", async function (this: ScenarioWorld) {
-  const response = await (await this.getApiClient()).put("/v1/profile/notifications", { enabled: true });
+  const response = await (await this.getApiClient()).patch("/v1/profile/notifications", { enabled: true });
   state(this).response = { status: response.status, data: response.data };
 });
 

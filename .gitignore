@@ -88,3 +88,4 @@ test-results/
 /test/node_modules/
 package.json
 !/test/package.json
+!/test/artifacts/

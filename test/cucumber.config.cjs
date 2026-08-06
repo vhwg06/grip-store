@@ -3,7 +3,7 @@ module.exports = {
     paths: ["modules/**/*.feature"],
     requireModule: ["tsx/cjs"],
     require: ["shared/cucumber/**/*.ts", "modules/**/*.steps.ts"],
-    format: ["progress"],
+    format: ["progress", "json:artifacts/report.json", "html:artifacts/report.html"],
     publishQuiet: true,
   },
 };

@@ -14,6 +14,7 @@
     "test:acceptance": "npm --prefix test run test:acceptance --",
     "test:all": "npm --prefix test run test:all --",
     "test:scenario": "npm --prefix test run test:scenario --",
+    "test:module": "npm --prefix test run test:module --",
     "test:api": "npm --prefix test run test:api --",
     "test:api:non-catalog": "npm --prefix test run test:api:non-catalog --",
     "test:catalog": "npm --prefix test run test:catalog --",

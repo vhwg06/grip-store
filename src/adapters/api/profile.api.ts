@@ -98,18 +98,29 @@ export async function getProfileSessions(): Promise<ProfileSessionView[]> {
   }))
 }
 
-export async function updateProfile(email: string, displayName: string, desktopNotificationsEnabled: boolean): Promise<ProfileActionResult> {
+export async function updateProfile(email?: string, displayName?: string, desktopNotificationsEnabled?: boolean): Promise<ProfileActionResult> {
+  const body: Record<string, unknown> = {}
+  if (typeof desktopNotificationsEnabled === "boolean") {
+    body.desktopNotificationsEnabled = desktopNotificationsEnabled
+  }
+  if (email && email.trim()) {
+    body.email = email.trim()
+  }
+  if (displayName && displayName.trim()) {
+    body.displayName = displayName.trim()
+  }
+
   const payload = await apiFetch<unknown>("/api/profile", {
     method: "PATCH",
-    body: JSON.stringify({ email, displayName, desktopNotificationsEnabled }),
+    body: JSON.stringify(body),
   })
   return normalizeActionResult(payload)
 }
 
 export async function updateProfileEmail(email: string): Promise<ProfileActionResult> {
-  return updateProfile(email, "", false)
+  return updateProfile(email, undefined, undefined)
 }
 
 export async function updateDesktopNotifications(enabled: boolean): Promise<ProfileActionResult> {
-  return updateProfile("test_admin@example.com", "", enabled)
+  return updateProfile(undefined, undefined, enabled)
 }

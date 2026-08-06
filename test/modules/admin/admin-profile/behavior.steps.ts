@@ -32,7 +32,17 @@ Given("the current admin wants to update display identity", async function (this
 });
 
 When("the admin submits a new display identity through the profile API", async function (this: ScenarioWorld) {
-  await adminPatch(this, "/v1/profile", { display_name: `Cucumber Admin ${Date.now()}` });
+  const adminEmail = requiredEnv("ADMIN_USER_EMAIL");
+  await adminPatch(this, "/v1/profile", {
+    email: adminEmail,
+    display_name: `Cucumber Admin ${Date.now()}`,
+  });
+  this.registerCleanup(async () => {
+    await adminPatch(this, "/v1/profile", {
+      email: adminEmail,
+      display_name: "test_admin",
+    }).catch(() => undefined);
+  });
 });
 
 Then("the current admin profile reflects the new identity", async function (this: ScenarioWorld) {
