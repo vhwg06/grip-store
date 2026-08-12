@@ -1,10 +1,13 @@
-# Catalog public query
+# Catalog / Public Query
 
-This vertical slice owns the public catalog read model: product listing,
-search, category filtering, product detail, buy metadata, settings, and the
-announcement projection. Product administration belongs to
-`catalog.product`; storefront interactions belong to `browse` or
-`product-flow`.
+This slice owns the public ProductModel projection:
 
-The feature is the executable specification. The colocated steps use the real
-API configured by `TEST_API_BASE_URL` and do not use fixture-only responses.
+- deterministic listing with Category filtering and pagination;
+- Active ProductModel detail by stable slug;
+- explicit Default Variant initial state;
+- compatible public options and exact canonical Variant resolution;
+- Variant-image priority with ProductModel-gallery fallback.
+
+Only Active ProductModels with at least one sale-ready Variant are public.
+Draft and Discontinued aggregates, inactive Variants, inventory, warehouse,
+order, purchase-limit, and warranty-claim state are excluded by the SRS.

@@ -1,10 +1,13 @@
 # Catalog / Master Data
 
-This module owns Catalog Base vocabulary and classification: Category,
-ProductAttributeDefinition, EnumValue, Material, Finish, and Pack.
+This slice owns the greenfield Catalog vocabulary defined by
+`test/docs/srs/srs_001_product.md`:
 
-Its scenarios preserve the non-destructive lifecycle and typed-definition
-rules from the former Catalog Base Markdown. They are accepted API scenarios
-bound to the canonical operations in `test/contracts/openapi.yaml`; the
-module must not reuse legacy product writes as a substitute transport
-contract.
+- Category hierarchy, ordering, activation, and non-destructive lifecycle;
+- typed Attribute Definitions and stable Enum Options;
+- Material, Finish, and Pack Master Data.
+
+`behavior.feature` is the acceptance contract. Category is classification only;
+it does not own Attribute schema, ProductModel templates, publication rules, or
+Variant rules. Deactivated definitions, options, and masters block new
+assignments while keeping existing references readable.

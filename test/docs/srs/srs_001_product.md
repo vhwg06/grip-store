@@ -1,548 +1,600 @@
-**Big-bang rewrite toàn bộ Catalog & Product theo Domain và Specification mới. Không kế thừa semantic, contract, schema, API, UI hoặc test của luồng cũ.**
+# Catalog & Product — Greenfield Domain and Feature Specification
 
-Code cũ chỉ được đọc để xác định **phạm vi cần xóa**, không được dùng làm source of truth hay constraint cho thiết kế mới.
+**Specification ID**: srs_001_product
+**Status**: Canonical Step 1 specification
+**Scope**: Big-bang rewrite of Catalog & Product
 
-# Step 1 — Greenfield Domain & Specification
+> This document is the business and domain source of truth for the new Catalog & Product flow. Existing implementation artifacts are audit evidence only. They are not design constraints.
 
-````md
----
-name: catalog-product-greenfield-spec
-description: Design and finalize a new Catalog & Product domain and feature specification from first principles, replacing all existing Catalog Base and Legacy Product behavior without migration or compatibility.
----
+## 1. Purpose
 
-# Catalog & Product — Greenfield Domain and Specification
+Grip will replace the existing Catalog and Product implementations with one greenfield domain. This specification defines the business vocabulary, aggregate ownership, invariants, lifecycle commands, derived projections, error contract, and acceptance behavior for the replacement.
 
-## Context
+The later implementation sequence is:
 
-Hệ thống hiện có nhiều implementation Catalog/Product:
+Business requirements and approved discovery decisions
+→ New domain and feature specification
+→ Acceptance features
+→ Database and OpenAPI design
+→ Backend and frontend implementation
+→ Verification
 
-- Legacy flat Product.
-- Catalog Base.
-- Các API, schema, UI và test được xây theo những semantic khác nhau.
+Step 1 does not implement API, database, frontend, migration, or test bindings.
 
-Toàn bộ các implementation này được coi là legacy.
+## 2. Scope
 
-Task này là một **big-bang rewrite**.
+### In scope
 
-Không tiếp tục, mở rộng, merge hoặc refactor luồng hiện tại.
+- Category classification, hierarchy, ordering, and activation.
+- Typed Attribute Definitions and rich Attribute Options.
+- Material, Finish, and Pack Master Data.
+- ProductModel authoring and lifecycle.
+- Fixed attributes, Variant Dimensions, Variant technical values, and measurements.
+- ProductModel media and Variant media assignments.
+- Variant identity, SKU, commercial values, status, and sale readiness.
+- Default Variant and ProductModel publish readiness.
+- Variant combination preview, selected generation, and manual creation.
+- Bulk Variant price, status, Pack, and media operations.
+- Admin storefront preview for Draft ProductModels.
+- Public ProductModel listing, detail, option projection, and Variant resolution.
 
-Không lấy `catalogbase`, Legacy Product, OpenAPI hiện tại, database schema hiện tại hoặc Figma hiện tại làm nền thiết kế.
+### Big-bang rewrite policy
 
----
+The later implementation cutover will:
 
-## 1. Mục tiêu
+- Delete the old Catalog and Product flow.
+- Drop the old Catalog and Product schema.
+- Create the new domain.
+- Expose the new contract.
+- Build the new administration and storefront flow.
+- Replace the old acceptance suite.
 
-Thiết kế lại toàn bộ Catalog & Product từ đầu, bao gồm:
+The cutover will not migrate, backfill, map, preserve, dual-read, dual-write, adapt, or provide compatibility for old Catalog/Product data or semantics. Existing Catalog/Product data is not preserved by this specification.
 
-- Domain model.
-- Aggregate boundaries.
-- Business invariants.
-- Lifecycle.
-- Feature behavior.
-- Error contracts.
-- Acceptance scenarios.
-- Public catalog semantics.
-- Administration semantics.
+### Out of scope
 
-Output của bước này sẽ trở thành source of truth mới cho:
+- Inventory, warehouse, stock count, or availability ownership.
+- Pricing rules, price lists, promotions, or discount engines.
+- Product Type, Family, Family Variant, Attribute Set, or Category-owned schemas.
+- Multi-level ProductModel structures.
+- Full staged/current publishing, revisions, scheduling, partial publish, or revert workflows.
+- Cart, checkout, order, payment, warranty claim, return, or refund behavior.
+- Database schema design, OpenAPI design, UI layout, Figma, and implementation.
 
-```text
-Domain
-→ Database
-→ OpenAPI
-→ Backend
-→ Frontend
-→ BDD/API/E2E tests
-````
+## 3. Terminology
 
-Không implementation trong bước này.
+| Term | Meaning |
+| --- | --- |
+| Catalog | The bounded capability containing classification, reusable definitions, master references, and ProductModels. |
+| Category | Classification and ordering data. It does not own product rules or an Attribute schema. |
+| Attribute Definition | A reusable typed definition that can be assigned to one ProductModel scope. |
+| Attribute Option | A stable selectable option belonging to an Enum Attribute Definition. |
+| Master Data | Shared reference values limited to Material, Finish, and Pack. |
+| ProductModel | The customer-visible product aggregate and Aggregate Root. |
+| Variant | The actual sellable unit within a ProductModel. |
+| SKU | The commercial identity of a Variant. SKU uniqueness is global. |
+| Fixed Attribute | A ProductModel value shared by all Variants. |
+| Variant Dimension | A selectable Attribute Definition whose values participate in Variant identity. |
+| Technical Value | A Variant-specific value that does not participate in Variant identity. |
+| Canonical Combination | The normalized identity of the complete set of Variant Dimension values. |
+| Sale-ready Variant | A derived Variant state eligible for public selling information. |
+| Default Variant | The explicitly selected Variant used for the initial public projection. |
+| Publish Readiness | A derived evaluation of whether a ProductModel can become Active. |
+| Public Projection | A read-only representation containing only Active ProductModel and public Variant data. |
 
----
+## 4. Actors
 
-## 2. Source of Truth
+- Catalog Operator: configures vocabulary, authors ProductModels, manages Variants, and performs lifecycle commands.
+- Catalog Administrator: performs the same business operations with the required administration permission.
+- Shopper: reads public ProductModel projections, selects options, and resolves a public Variant.
+- Catalog Domain: validates invariants, computes derived state, owns transitions, and guarantees uniqueness/concurrency behavior.
 
-Thứ tự duy nhất:
+Permission matrices and transport authentication are outside this specification. Every operation assumes the actor has the required permission.
 
-```text
-Approved business requirements
-→ Approved product discovery decisions
-→ New Domain design
-→ New Feature Specification
-```
+## 5. Domain model
 
-Không dùng làm source of truth:
+Catalog owns:
 
-```text
-Existing Catalog Base code
-Existing Legacy Product code
-Existing database schema
-Existing OpenAPI
-Existing UI/Figma
-Existing tests
-Existing production behavior
-```
+- Category.
+- AttributeDefinition with AttributeOption children.
+- MasterData limited to Material, Finish, and Pack.
+- ProductModel as Aggregate Root.
 
-Các artifact cũ chỉ được audit để:
+ProductModel owns:
 
-* xác định những gì phải xóa;
-* phát hiện consumer liên quan;
-* lập removal plan cho bước triển khai sau.
+- FixedAttributeValues.
+- ProductImage collection.
+- VariantImageAssignment collection.
+- VariantDimension collection.
+- Variant collection.
+- Default Variant reference.
 
-Chúng không được ảnh hưởng đến thiết kế mới.
+The following are derived projections or calculations, not persisted entities:
 
----
+- VariantIdentity.
+- VariantReadiness.
+- ProductReadiness.
+- CombinationPreview.
+- PublicProductProjection.
 
-## 3. Rewrite policy
+Required semantic separation:
 
-Không thực hiện:
+- ProductModel is the product shown to the shopper.
+- Variant is the actual sellable unit.
+- SKU is the commercial identity of the Variant.
 
-```text
-Migration dữ liệu
-Backfill
-Mapping legacy Product sang ProductModel
-Mapping Catalog Base sang model mới
-Dual-read
-Dual-write
-Compatibility API
-Legacy adapter
-Fallback
-Deprecation bridge
-Schema conversion
-Behavior preservation
-```
+There is no second flat Product concept in the new domain.
 
-Khi triển khai:
+## 6. Aggregate boundaries
 
-```text
-Delete old flow
-Drop old schema
-Create new schema
-Expose new API
-Build new frontend
-Replace old tests
-```
+- ProductModel is the Aggregate Root for name, slug, description, Category reference, fixed values, measurements, warranty summary, media, Dimensions, Variants, and Default Variant.
+- A ProductModel command validates all affected children and aggregate readiness rules before committing.
+- Category, Attribute Definition, Attribute Option, and each Master Data kind are reusable configuration records with their own identity and lifecycle.
+- ProductModel stores references to reusable Catalog records; it does not mutate their global definitions.
+- ProductImage belongs to one ProductModel. VariantImageAssignment may reference only images and Variants of that ProductModel.
+- Public projections are derived from the ProductModel aggregate and current public Variant state; they are not a second source of truth.
 
-Dữ liệu Catalog/Product cũ không được bảo toàn.
+## 7. Approved discovery decisions
 
----
+The new domain absorbs only discovery patterns that fit Grip's approved scope:
 
-## 4. Domain direction
+- Product-centric administration is organized around ProductModel responsibilities and supports inline Variant work.
+- Common/fixed attributes are distinct from Variant Dimensions and Variant technical values.
+- Attribute Options have stable identity and readiness is continuously inspectable as derived state.
+- ProductModel and sellable Variant are distinct concepts, with an explicit Default Variant and task-oriented lifecycle commands.
+- Dimension configuration is separate from combination generation; operators can preview and generate only a selected subset.
+- Bulk Variant operations apply semantic commands to selected Variants and return item-level results.
 
-Thiết kế Domain mới theo semantic:
+The following discovery concepts are intentionally not adopted: Product Type, Family, Family Variant, Attribute Set, Category-owned schemas, multi-level ProductModels, full staged/current publishing, Inventory inside Catalog, and pricing rule engines.
 
-```text
-Catalog
-├── Category
-├── AttributeDefinition
-│   └── AttributeOption[]
-├── MasterData
-└── ProductModel
-    ├── FixedAttributeValues
-    ├── ProductMedia[]
-    ├── VariantDimension[]
-    ├── Variant[]
-    └── DefaultVariant
-```
+## 8. Entity semantics
 
-Derived behavior:
+### Category
 
-```text
-VariantIdentity
-SaleReadiness
-PublishReadiness
-CombinationPreview
-PublicProductProjection
-```
+Category supports hierarchy, display metadata, position, activation, and deactivation.
 
-Semantic bắt buộc:
+- Category is classification only.
+- Category does not own Attribute schema, Product Template, publication rules, or Variant rules.
+- Deactivation blocks new ProductModel assignment and blocks a Draft from publishing into that Category.
+- An already Active ProductModel remains publicly readable when its Category is later deactivated.
+- Category is never hard-deleted.
 
-```text
-ProductModel = sản phẩm được khách hàng nhìn thấy
-Variant      = đơn vị bán thực tế
-SKU          = commercial identity của Variant
-```
+### Attribute Definition
 
-Không tồn tại flat Product.
+An Attribute Definition has a stable semantic key, display metadata, active state, and exactly one Value Kind:
 
----
+- Text.
+- Number.
+- Boolean.
+- Enum.
+- MasterReference.
 
-## 5. Domain capabilities phải được thiết kế
+Rules:
 
-### Catalog classification
+- Number uses a unit family and canonical unit. Version 1 supports the approved length unit registry.
+- Boolean has no unit or Master target.
+- Enum owns AttributeOption records and never uses a raw string array as identity.
+- MasterReference targets exactly one of Material, Finish, or Pack.
+- Display name, description, and display position are mutable metadata.
+- Value Kind, unit family, canonical unit, reference target, and semantic key become immutable after first use.
+- Deactivation blocks new assignment but leaves existing values readable.
 
-* Category hierarchy.
-* Ordering.
-* Activation/deactivation.
-* Category chỉ classification.
-* Category không sở hữu Attribute schema.
-* Không Product Template.
-* Không Category Template.
+### Attribute Option
 
-### Attribute schema
+An Attribute Option belongs to one Enum Attribute Definition and contains:
 
-Attribute Definition phải hỗ trợ:
+- Code.
+- Label.
+- Position.
+- Optional swatch media.
+- Active state.
 
-```text
-Text
-Number
-Boolean
-Enum
-MasterReference
-```
+Rules:
 
-Enum phải dùng stable option:
-
-```text
-code
-label
-position
-swatch
-active
-```
-
-Không dùng raw string array làm identity.
+- Code is unique within its Definition and is the stable option identity.
+- Code may be corrected before first use; after use it is immutable.
+- Label, position, swatch media, and active state are mutable metadata.
+- An inactive option cannot be selected for new data.
+- Existing references to an inactive option remain readable.
+- A used option cannot be hard-deleted.
 
 ### Master Data
 
-Scope ban đầu:
+Master Data is limited to Material, Finish, and Pack.
 
-```text
-Material
-Finish
-Pack
-```
-
-Master Data chỉ chứa shared reference values.
+- The pair of kind and name is unique.
+- Kind is immutable.
+- Finish may contain swatch media.
+- Pack contains shared selling-unit metadata such as selling unit, quantity, and base unit.
+- An inactive Master cannot be assigned to new ProductModel or Variant data.
+- Existing references remain readable after deactivation.
+- A Master reference must match the target kind of its Attribute Definition.
+- Master Data does not contain Variant-specific data, stock, or quantity pricing.
 
 ### ProductModel
 
-Phải thiết kế rõ:
+ProductModel owns:
 
-```text
-name
-slug
-description
-category
-fixed attributes
-fixed pack
-measurements
-warranty summary
-media
-variant dimensions
-variants
-default variant
-lifecycle
-```
+- Name.
+- Slug.
+- Description.
+- Category.
+- Fixed Attribute values.
+- Optional fixed Pack.
+- Measurements.
+- Optional warranty summary.
+- ProductImage collection.
+- VariantDimension collection.
+- Variant collection.
+- Default Variant reference.
+- Lifecycle status.
+- Optimistic version.
 
-Lifecycle tối thiểu:
+Rules:
 
-```text
-Draft → Active → Discontinued
-```
-
-Mỗi transition là business command, không phải generic status patch.
-
-### Attribute scopes
-
-Mỗi Attribute Definition chỉ được dùng tại một scope trên cùng ProductModel:
-
-```text
-Fixed Attribute
-Variant Dimension
-Variant Technical Value
-```
-
-Scope conflict là Domain error.
+- A new ProductModel is Draft.
+- Name is required for publication and cannot be blank after normalization.
+- Slug is system-wide unique.
+- Slug may be generated from name when a Draft is created.
+- Slug may be edited only while Draft.
+- Changing name never changes slug automatically.
+- Slug is the public identifier and is immutable after publication.
+- A Discontinued slug remains reserved.
+- ProductModel does not own inventory, warehouse, order, purchase-limit, or warranty-claim state.
+- ProductModel is never deleted; lifecycle commands remove it from public availability.
 
 ### Variant Dimension
 
-Phải có:
+A Variant Dimension contains:
 
-```text
-definition
-position
-allowed values
-```
+- Attribute Definition.
+- Position.
+- Typed, display-ordered allowed values.
 
-Display order không được ảnh hưởng Variant identity.
+Rules:
+
+- The pair of ProductModel and Definition is unique.
+- Position controls display order only.
+- Allowed values preserve display ordering.
+- Display ordering never participates in Variant identity.
+- Every allowed value must match the Definition Value Kind and stable reference identity.
+- Draft may change Dimension structure only when every existing Variant remains valid under the new exact Dimension set.
+- Active cannot add/remove a Dimension, replace its Definition, or make a structural change that invalidates an existing Variant.
+- Active may add a valid new allowed value and reorder display values.
+- A value used by an existing Variant cannot be removed from the Dimension.
+- Invalid structural changes return VARIANT_DIMENSION_LOCKED.
 
 ### Variant
 
-Phải có:
+Variant owns:
 
-```text
-SKU
-selected options
-technical values
-current selling price
-currency
-pack
-status
-canonical identity
-media assignment
-```
+- SKU.
+- Selected options.
+- Technical values.
+- Current selling amount.
+- Current selling currency.
+- Pack reference.
+- Status, either Active or Inactive.
+- Derived canonical combination.
+- Variant image assignments.
 
-Variant phải chọn đủ đúng tập Dimension của ProductModel.
+Rules:
 
-### Canonical identity
+- A Variant selects exactly one valid value for every ProductModel Dimension.
+- It contains no value outside the ProductModel Dimension schema.
+- Selected options are immutable from creation. A different combination requires a replacement Variant.
+- Technical values are permitted only for Definitions declared as Variant Technical Value.
+- Technical values never participate in canonical identity.
+- CreateVariant and GenerateVariants create Inactive Variants.
+- Variant status supports Inactive to Active and Active to Inactive with Default Variant and last sale-ready guards.
+- SKU is normalized before uniqueness checks and remains reserved while Inactive.
+- Client-supplied canonical identity is never authoritative.
 
-Backend tự tính canonical combination.
+### ProductImage and VariantImageAssignment
 
-Client không cung cấp canonical value làm source of truth.
+- Every ProductImage belongs to one ProductModel.
+- ProductModel gallery has explicit ordering and at most one primary image.
+- Active ProductModel must have one valid primary image.
+- Variant may have an optional gallery and at most one primary Variant image.
+- One ProductImage may be assigned to multiple Variants of the same ProductModel.
+- Cross-ProductModel assignment is invalid.
+- A public Variant without a primary Variant image falls back to ProductModel gallery and primary image.
 
-Identity phải ổn định trước các thay đổi:
+## 9. Value objects and normalization
 
-* label;
-* display order;
-* casing;
-* whitespace;
-* measurement representation.
+### Slug
 
-Enum dùng option code.
+Slug is a normalized public identifier. It is globally unique, generated from name only when needed, editable only in Draft, and reserved after publication including after Discontinued.
 
-Master reference dùng stable identity.
+### Attribute values
 
-Number quy đổi về canonical unit.
+- Text: trim, normalize whitespace, and case-fold for identity.
+- Number: parse a supported length unit and convert to canonical length unit.
+- Boolean: canonical true or false.
+- Enum: stable Attribute Option code, never label.
+- MasterReference: stable Master identity, never display name.
 
-### Default Variant
+### Money
 
-ProductModel phải có Variant mặc định để storefront không tự đoán:
+Version 1 selling currency is VND. Selling amount must be greater than zero for sale readiness. This is current selling price only, not a pricing rule engine.
 
-* option ban đầu;
-* giá mặc định;
-* media mặc định;
-* SKU mặc định.
+### Measurement
 
-### Product và Variant media
+Equivalent supported length values, such as 20 cm and 200 mm, resolve to one canonical value. Incompatible units are rejected.
 
-Media thuộc ProductModel.
+### Version
 
-Media có thể được assign cho nhiều Variant cùng ProductModel.
+Every successful ProductModel mutation increments optimistic version. A command using an older version returns STALE_PRODUCT_MODEL and makes no change.
 
-ProductModel có primary media chung.
+## 10. Attribute scopes
 
-Variant có thể có primary media riêng.
+On one ProductModel, an Attribute Definition belongs to exactly one scope:
 
-Không có Variant media thì fallback về Product media.
+- Fixed Attribute.
+- Variant Dimension.
+- Variant Technical Value.
 
-### Readiness
+The domain derives scope from the ProductModel association:
 
-Phải thiết kế:
+- A Definition in fixed_attribute_values is Fixed Attribute.
+- A Definition in VariantDimension is Variant Dimension.
+- A Definition allowed in per-Variant technical_values is Variant Technical Value.
 
-```text
-Variant sale readiness
-Product publish readiness
-```
+Reusing a Definition in the same scope is allowed. Assigning it to another scope returns ATTRIBUTE_SCOPE_CONFLICT, even when the value or label is identical.
 
-Readiness là derived state, không phải percentage persisted.
+Deactivating a Definition or Option after use does not rewrite historical data. It blocks new assignments and new combinations that require the inactive reference.
 
-Mỗi issue phải có stable code và target rõ ràng.
+## 11. Product lifecycle
 
----
+ProductModel lifecycle is exactly:
 
-## 6. Product discovery additions phải được hấp thụ
+- Draft to Active.
+- Active to Discontinued.
 
-Thiết kế mới phải chủ động xem xét và chốt các pattern sau:
+The only lifecycle commands are PublishProductModel and DiscontinueProductModel.
 
-### Từ Shopify
+- PublishProductModel is valid only from Draft and performs fresh readiness evaluation.
+- DiscontinueProductModel is valid only from Active and is terminal.
+- Active to Draft, Active to an unpublished state, Discontinued to Active, and Discontinued to Draft are unsupported.
+- Generic ProductModel status update is not a capability.
+- Active allows safe content, media, commercial, and technical edits only when all Active invariants remain valid.
+- Discontinued remains operator-readable but is absent from public projections.
 
-* Product-centric administration workspace.
-* Inline Variant operations.
-* Bulk Variant operations.
-* Variant-specific media.
-* Friendly operator terminology.
+## 12. Variant lifecycle
 
-### Từ Akeneo
+Variant status is Active or Inactive.
 
-* Phân biệt common attributes và Variant attributes.
-* Stable Attribute Option identity.
-* Continuous readiness/completeness feedback.
-* Reusable catalog configuration.
+- CreateVariant and GenerateVariants create Inactive Variants.
+- Activation validates references, selected values, and commercial invariants.
+- Inactivation is rejected when the Variant is Default without a sale-ready replacement.
+- Inactivation is rejected when it would remove the last sale-ready Variant from an Active ProductModel.
+- Inactive Variants retain SKU, selections, commercial values, references, and history.
+- Inactive Variants are excluded from public options and resolution.
 
-### Từ commercetools
+## 13. Canonical Variant identity
 
-* ProductModel và sellable Variant phân biệt rõ.
-* Default/master Variant.
-* Combination uniqueness.
-* Task-oriented lifecycle operations.
-* Storefront projection rõ ràng.
+The domain calculates canonical combination for creation, generation, and public resolution:
 
-### Từ Adobe Commerce
+1. Resolve ProductModel Dimension definitions.
+2. Validate exactly one value for every Dimension and no unexpected key.
+3. Normalize each Attribute key using stable semantic key, not display name or position.
+4. Validate and normalize the value by Value Kind.
+5. Convert Number values to canonical length unit.
+6. Use option code for Enum and stable Master identity for MasterReference.
+7. Sort normalized pairs by canonical Attribute key.
+8. Serialize as key=value|key=value.
 
-* Tách Dimension configuration khỏi Variant generation.
-* Preview combinations trước khi persist.
-* Cho phép generate một phần Cartesian product.
-* Bulk apply common values sau khi generate.
-
-Không copy:
-
-```text
-Product Type
-Family
-Family Variant
-Attribute Set
-Multi-level Product Model
-Full staged/current publishing engine
-Inventory inside Catalog
-Pricing rule engine
-```
-
----
-
-## 7. Feature Specification phải được viết từ đầu
-
-Không sửa hoặc merge spec cũ.
-
-Tạo một specification mới hoàn toàn.
-
-Cấu trúc bắt buộc:
-
-```text
-1. Purpose
-2. Scope
-3. Terminology
-4. Actors
-5. Domain model
-6. Aggregate boundaries
-7. Entity semantics
-8. Value objects
-9. Attribute scopes
-10. Product lifecycle
-11. Variant lifecycle
-12. Canonical Variant identity
-13. Variant generation
-14. Combination limit policy
-15. Media behavior
-16. Default Variant behavior
-17. Sale readiness
-18. Publish readiness
-19. Catalog administration
-20. Product administration
-21. Public Catalog behavior
-22. Concurrency guarantees
-23. Error contracts
-24. Acceptance scenarios
-25. Non-goals
-```
-
-Không dùng wording, ID hoặc scenario cũ nếu chúng mang semantic legacy.
-
----
-
-## 8. Feature set bắt buộc
-
-### Catalog configuration
-
-* Manage Category.
-* Manage Attribute Definition.
-* Manage Attribute Option.
-* Manage Material.
-* Manage Finish.
-* Manage Pack.
-* Activate/deactivate without breaking historical references.
+Changing label, display position, casing, whitespace, or equivalent unit representation cannot create a second identity.
 
-### Product administration
+The domain guarantees one canonical combination per ProductModel, one SKU globally, and semantic duplicate errors rather than raw persistence errors.
 
-* Create Draft ProductModel.
-* Update ProductModel information.
-* Assign fixed attributes.
-* Configure Variant Dimensions.
-* Preview combinations.
-* Generate selected Variants.
-* Create individual Variant.
-* Configure SKU, price, currency, pack and status.
-* Select Default Variant.
-* Manage Product and Variant media.
-* Preview storefront projection.
-* Evaluate publish readiness.
-* Publish ProductModel.
-* Discontinue ProductModel.
+## 14. Variant generation
 
-### Variant operations
+There are three separate capabilities:
 
-* Bulk set price.
-* Bulk set status.
-* Bulk set pack.
-* Bulk assign media.
-* Partial batch result with explicit success/failure semantics.
+- PreviewVariantCombinations.
+- GenerateVariants.
+- CreateVariant.
 
-### Public Catalog
+### PreviewVariantCombinations
 
-* List Active ProductModels.
-* Get ProductModel detail.
-* Render ordered Dimensions and Options.
-* Resolve Variant from selected options.
-* Use Default Variant as initial projection.
-* Return current selling information.
-* Switch media based on Variant selection.
+- Does not persist.
+- Calculates the Cartesian product of valid active allowed values.
+- Classifies results as existing, new, or excluded.
+- Returns total Cartesian count and canonical representation.
+- Returns a non-blocking warning above the warning threshold.
+- Rejects above the hard limit.
 
-Inventory availability is outside this Domain.
+### GenerateVariants
 
----
+- Persists only operator-selected combinations.
+- Never creates the entire Cartesian product automatically.
+- Validates each selected combination independently.
+- Retries for an existing canonical combination return existing and do not fail the batch.
+- Valid new combinations are created as Inactive Variants.
+- Invalid combinations return item-level failed results without rolling back valid items.
+- Refuses new persistence when the maximum persisted count would be exceeded.
+- Is idempotent by ProductModel and canonical combination.
 
-## 9. Variant generation behavior
+### CreateVariant
 
-Tách thành ba use case:
+- Creates exactly one Variant.
+- Validates complete Dimension set, values, scopes, references, and canonical uniqueness.
+- Does not accept client canonical identity as authoritative.
+- Duplicate identity returns DUPLICATE_VARIANT_COMBINATION.
+- Does not create sibling combinations.
 
-```text
-PreviewVariantCombinations
-GenerateVariants
-CreateVariant
-```
+## 15. Combination limit policy
 
-### Preview
+Approved version 1 defaults:
 
-* Không persist.
-* Tính Cartesian product.
-* Trả existing/new/excluded combinations.
-* Trả canonical preview.
-* Trả warning hoặc limit violation.
+- Warning threshold: 100 Cartesian combinations.
+- Cartesian hard limit: 1000 combinations.
+- Maximum persisted Variants: 500 per ProductModel.
 
-### Generate
+The policy distinguishes Cartesian total, selected combinations, and already persisted Variants.
 
-* Chỉ persist combinations được chọn.
-* Không bắt buộc tạo toàn bộ Cartesian product.
-* Retry phải idempotent.
-* Existing combination không làm fail cả batch.
-* Mỗi Variant vẫn được validate độc lập.
+- Up to 100 combinations proceed without a warning.
+- 101 to 1000 proceed with VARIANT_COMBINATION_WARNING.
+- More than 1000 returns VARIANT_COMBINATION_LIMIT_EXCEEDED and persists nothing.
+- A GenerateVariants request exceeding 500 persisted Variants is rejected before new creation.
 
-### Manual create
+## 16. Media behavior
 
-* Tạo một Variant cụ thể.
-* Trùng canonical identity trả Domain error.
+- ProductModel gallery ordering is explicit and independent from primary selection.
+- ProductModel has at most one primary image.
+- Replacing a primary clears the old primary and assigns exactly one new primary.
+- Active ProductModel cannot remove its last primary image.
+- Variant assignments have explicit ordering and at most one primary.
+- One ProductImage may belong to many Variants of its ProductModel.
+- Cross-ProductModel assignments return INVALID_VARIANT_MEDIA_ASSIGNMENT.
+- Public Variant media uses its primary image when present, otherwise ProductModel media.
 
----
+## 17. Default Variant behavior
 
-## 10. Combination policy
+- Draft may have no Default Variant.
+- Publish requires an explicit Default Variant and returns DEFAULT_VARIANT_REQUIRED when absent.
+- Default Variant must belong to the ProductModel and be sale-ready.
+- Default Variant cannot be inactivated, made non-sale-ready, or removed without a sale-ready replacement in the same valid command.
+- Active ProductModel always has a sale-ready Default Variant.
+- Storefront uses Default Variant for initial options, price, SKU, and media priority.
+- Storefront never chooses the first or cheapest Variant implicitly.
 
-Thiết kế configurable policy:
+## 18. Sale readiness
 
-```text
-warning threshold
-hard limit
-maximum persisted Variants
-```
+Sale readiness is derived, not a lifecycle status or persisted percentage. A Variant is sale-ready only when:
 
-Spec phải phân biệt:
+- Status is Active.
+- Selling amount is greater than zero.
+- Selling currency is VND.
+- Selected options contain exactly one valid value for every Dimension.
+- Selected options contain no unexpected value.
 
-* số Cartesian combinations;
-* số combinations được chọn;
-* số Variants đã persist.
+Active does not imply sale-ready. A non-sale-ready Variant is excluded from public options and resolution.
 
-Không lấy giới hạn của product khác làm mặc định mà không có quyết định business.
+## 19. Publish readiness
 
----
+Publish readiness is a derived projection containing:
 
-## 11. Error contracts
+- ready.
+- passed_count.
+- total_count.
+- blockers.
+- warnings.
 
-Định nghĩa error code mới từ Domain mới.
+Every issue contains code, scope, target_id, section, field, and message.
 
-Tối thiểu:
+Minimum blockers:
 
-```text
+- MISSING_NAME.
+- INVALID_CATEGORY.
+- INVALID_FIXED_ATTRIBUTE.
+- ATTRIBUTE_SCOPE_CONFLICT.
+- INVALID_VARIANT_DIMENSION.
+- MISSING_PRIMARY_MEDIA.
+- NO_SALE_READY_VARIANT.
+- DEFAULT_VARIANT_REQUIRED.
+- DEFAULT_VARIANT_NOT_SALE_READY.
+
+VARIANT_COMBINATION_WARNING is non-blocking.
+
+Readiness is evaluated on explicit request, after readiness-affecting mutations, in the admin ProductModel list/workspace, and again inside PublishProductModel. It is never persisted as a percentage. Publish returns PRODUCT_NOT_PUBLISHABLE with issues and keeps Draft when any blocker remains.
+
+## 20. Catalog administration
+
+### Category
+
+Create, update display metadata, reorder, activate, and deactivate. Validate hierarchy and uniqueness. Hard delete is never available.
+
+### Attribute Definition and Option
+
+Create Definitions, update mutable display metadata, add/update/reorder Options, and deactivate Definitions or Options. Semantic fields become immutable after use. Used Options cannot be hard-deleted. New assignment validates active state, Value Kind, and scope.
+
+### Master Data
+
+Manage Material, Finish, and Pack, update mutable metadata, and activate/deactivate them. New references require an active Master of the matching kind. Historical references remain readable.
+
+## 21. Product administration
+
+ProductModel administration is grouped by business responsibility:
+
+- Overview.
+- Attributes.
+- Variants.
+- Media.
+- Preview.
+- Publish Readiness.
+- Lifecycle.
+
+Capabilities:
+
+- Create Draft ProductModel.
+- Update name, slug while Draft, description, Category, fixed values, fixed Pack, measurements, and warranty summary.
+- Configure Dimension definitions, positions, and allowed values.
+- Create one Variant manually.
+- Preview and generate selected combinations.
+- Configure SKU, current selling price, currency, Pack, technical values, status, and media.
+- Select and replace Default Variant under its guards.
+- Manage ProductModel and Variant media.
+- Evaluate readiness and inspect blockers/warnings.
+- Preview the Draft storefront projection.
+- Publish and discontinue through semantic lifecycle commands.
+
+No generic patch may bypass validation or lifecycle semantics.
+
+## 22. Public Catalog behavior
+
+### ListPublicProductModels
+
+- Returns only Active ProductModels with at least one sale-ready Variant.
+- Supports deterministic pagination and Category filtering.
+- Returns ProductModel projections, not Variants as independent products.
+- Excludes Draft and Discontinued ProductModels.
+- Excludes Inventory and warehouse state.
+
+### GetPublicProductModel
+
+- Uses stable ProductModel slug as public identifier.
+- Returns ProductModel content, Category, gallery, ordered Dimensions, ordered options, public sale-ready Variant information, Default Variant projection, and current selling information.
+- Missing, Draft, and Discontinued slugs have no public detail projection.
+- Public technical values belonging to sale-ready Variants may be returned in their typed canonical form; stock, warehouse, order, purchase-limit, and warranty-claim state are never returned.
+
+### ResolveVariant
+
+- Accepts selected Dimension values and calculates the canonical combination.
+- Returns only an exact matching sale-ready Variant of the Active ProductModel.
+- Equivalent numeric representations resolve to the same Variant.
+- Missing, incomplete, unexpected, inactive, or non-sale-ready combinations return no public Variant.
+- Available options derive from compatible public sale-ready Variants and preserve Dimension/Option order.
+- Resolved Variant media uses Variant primary image, otherwise ProductModel media.
+
+### Admin storefront preview
+
+- Catalog Operator may preview a Draft before publication.
+- Preview is not public and does not change lifecycle state.
+- Preview uses the same projection rules as public detail with Draft data.
+- Preview includes name, media, fixed attributes, ordered Dimensions/options, Default Variant when present, current price, Variant selection behavior, and suitable technical values.
+- Preview does not introduce revisions, staged/current state, scheduling, or partial publishing.
+
+## 23. Concurrency and uniqueness guarantees
+
+- ProductModel commands use optimistic version checks.
+- A stale command returns STALE_PRODUCT_MODEL and performs no mutation.
+- Publish re-reads the aggregate and evaluates readiness in the same transaction.
+- A concurrent Variant, media, price, or Default Variant update is either detected as stale or observed by fresh readiness evaluation.
+- Slug uniqueness is global across Draft, Active, and Discontinued.
+- SKU uniqueness is global across Active and Inactive Variants.
+- Canonical combination uniqueness is scoped to one ProductModel.
+- Attribute Option code uniqueness is scoped to one Definition.
+- Master kind/name uniqueness is global within Catalog.
+- Domain/application layers translate uniqueness conflicts to semantic errors.
+
+## 24. Error contracts
+
+Minimum stable semantic codes:
+
 CATEGORY_NOT_FOUND
 CATEGORY_INACTIVE
-
 ATTRIBUTE_DEFINITION_NOT_FOUND
 ATTRIBUTE_DEFINITION_INACTIVE
 ATTRIBUTE_DEFINITION_SEMANTIC_IMMUTABLE
@@ -550,191 +602,125 @@ ATTRIBUTE_OPTION_NOT_FOUND
 ATTRIBUTE_OPTION_INACTIVE
 ATTRIBUTE_OPTION_IN_USE
 ATTRIBUTE_SCOPE_CONFLICT
-
 MASTER_NOT_FOUND
 MASTER_INACTIVE
 MASTER_KIND_MISMATCH
-
 PRODUCT_MODEL_NOT_FOUND
 PRODUCT_MODEL_NOT_DRAFT
 PRODUCT_MODEL_NOT_ACTIVE
 INVALID_PRODUCT_LIFECYCLE_TRANSITION
 PRODUCT_SLUG_ALREADY_EXISTS
-
 VARIANT_DIMENSION_DUPLICATED
 VARIANT_DIMENSION_LOCKED
 INVALID_DIMENSION_VALUE
 MISSING_DIMENSION_VALUE
 UNEXPECTED_DIMENSION_VALUE
-
+INVALID_VARIANT_TECHNICAL_VALUE
 SKU_ALREADY_EXISTS
 DUPLICATE_VARIANT_COMBINATION
 VARIANT_NOT_SALE_READY
 DEFAULT_VARIANT_REQUIRED
 DEFAULT_VARIANT_NOT_SALE_READY
-
 MISSING_PRIMARY_MEDIA
 INVALID_VARIANT_MEDIA_ASSIGNMENT
-
+VARIANT_COMBINATION_WARNING
 VARIANT_COMBINATION_LIMIT_EXCEEDED
 PRODUCT_NOT_PUBLISHABLE
 STALE_PRODUCT_MODEL
-```
 
-Không map từ error code legacy.
+Raw persistence constraint names and legacy error codes are never public contracts.
 
----
+## 25. Acceptance scenarios
 
-## 12. Acceptance scenarios
+Acceptance behavior is defined by new greenfield feature files under test/modules/catalog. Scenario IDs are new and must not reuse legacy IDs.
 
-Acceptance scenarios phải được viết mới từ business journey.
+| Priority | Journey | Feature file | Scenario IDs |
+| --- | --- | --- | --- |
+| P1 | Catalog configuration | catalog/master-data/behavior.feature | SC-GREEN-MASTER-001 through 008 |
+| P1 | ProductModel authoring, readiness, lifecycle | catalog/product-model/behavior.feature | SC-GREEN-MODEL-001 through 016 |
+| P1 | Dimensions, Variants, identity, readiness | catalog/variant/behavior.feature | SC-GREEN-VARIANT-001 through 013 |
+| P1 | Public listing, detail, resolution | catalog/public-query/behavior.feature | SC-GREEN-PUBLIC-001 through 008 |
+| P1 | Combination preview and generation | catalog/variant-generation/behavior.feature | SC-GREEN-GENERATION-001 through 008 |
+| P2 | Bulk Variant operations | catalog/bulk-variant/behavior.feature | SC-GREEN-BULK-001 through 005 |
+| P2 | Admin storefront preview | catalog/product-preview/behavior.feature | SC-GREEN-PREVIEW-001 through 004 |
 
-Ưu tiên:
+### Traceability matrix
 
-```text
-P1 — Manage Catalog configuration
-P1 — Create Draft ProductModel
-P1 — Configure fixed attributes
-P1 — Configure Variant Dimensions
-P1 — Preview Variant combinations
-P1 — Generate selected Variants
-P1 — Configure sale-ready Variant
-P1 — Configure Default Variant
-P1 — Manage Product and Variant media
-P1 — Publish ProductModel
-P1 — Public Product detail and Variant resolution
+| Requirement ID | Business requirement | Domain rule | Acceptance scenarios |
+| --- | --- | --- | --- |
+| BR-001 | Reusable typed Catalog vocabulary | Category, Definition, Option, and Master ownership | MASTER-001 to MASTER-008 |
+| BR-002 | Safe deactivation with historical readability | Active-state and historical-reference rules | MASTER-002, MASTER-007, MASTER-008, MODEL-011, VARIANT-013 |
+| BR-003 | ProductModel is the only visible product | ProductModel ownership and public projection | MODEL-001, MODEL-004, PUBLIC-001, PUBLIC-002 |
+| BR-004 | Stable public identity | Slug generation, uniqueness, and immutability | MODEL-001, MODEL-002, MODEL-014, PUBLIC-002 |
+| BR-005 | Definitions cannot cross scopes | Scope map and conflict rule | MODEL-003 |
+| BR-006 | Dimensions define complete combinations | Exact Dimension set and allowed values | VARIANT-001 to VARIANT-004, GENERATION-001 |
+| BR-007 | Variant identity is canonical and unique | Canonical algorithm and uniqueness | VARIANT-005, VARIANT-006, GENERATION-006, PUBLIC-004, PUBLIC-005 |
+| BR-008 | Technical values do not alter identity | Technical scope rule | VARIANT-007, PREVIEW-004 |
+| BR-009 | Status and sale readiness are distinct | Variant lifecycle and derived readiness | VARIANT-009, VARIANT-010, MODEL-010, PUBLIC-003 |
+| BR-010 | Default Variant controls initial state | Default ownership and sale-ready guard | MODEL-006, MODEL-008, MODEL-016, PUBLIC-002, PUBLIC-003, PREVIEW-003 |
+| BR-011 | Product and Variant media are distinct | Media ownership, primary, and fallback rules | MODEL-005, MODEL-010, VARIANT-012, PUBLIC-007, BULK-004 |
+| BR-012 | Publication is readiness-gated | Readiness projection and publish transaction | MODEL-007, MODEL-008, MODEL-012, MODEL-016 |
+| BR-013 | Generation is previewable, partial, and idempotent | Preview/Generate/Create separation and limits | GENERATION-001 to GENERATION-008 |
+| BR-014 | Operators can update many Variants | Partial batch result | BULK-001 to BULK-005 |
+| BR-015 | Drafts can be previewed safely | Shared projection behavior | PREVIEW-001 to PREVIEW-004 |
+| BR-016 | Public Catalog exposes only valid Active data | Public filtering and resolution | PUBLIC-001 to PUBLIC-008 |
+| BR-017 | Concurrent updates cannot publish stale state | Optimistic version and fresh readiness | MODEL-012 |
+| BR-018 | Lifecycle is explicit and terminal | Publish and discontinue commands | MODEL-008, MODEL-009, MODEL-013, MODEL-015 |
 
-P2 — Bulk Variant operations
-P2 — Admin storefront preview
-P2 — Discontinue ProductModel
+Every scenario must independently verify its outcome and semantic error where applicable. Feature files are the acceptance contract; bindings are a later phase.
 
-P3 — Reordering and operational enhancements
-```
+## 26. Non-goals
 
-Scenario không được dựa trên endpoint hoặc screen hiện tại.
+The new domain and Step 1 do not include:
 
----
+- Legacy Product mapping.
+- Catalog Base mapping.
+- Data migration or backfill.
+- Data preservation.
+- Dual-read or dual-write.
+- Compatibility endpoint or adapter.
+- Database schema implementation.
+- OpenAPI implementation.
+- Backend implementation.
+- Frontend implementation.
+- Figma or screen layout.
+- Product Type, Family, Family Variant, or Attribute Set.
+- Category-owned Attribute schema.
+- Multi-level ProductModel.
+- Full staged/current publishing engine.
+- Inventory, warehouse, or stock count.
+- Pricing rule engine.
+- Cart, checkout, order, payment, warranty, return, or refund workflows.
 
-## 13. Audit legacy artifacts
+## 27. Open decisions
 
-Agent vẫn phải đọc code/spec/API/UI cũ, nhưng chỉ sau khi Domain và Spec mới đã được draft độc lập.
+No business decision required for the Step 1 contract remains open.
 
-Mục đích audit:
+The following are intentionally deferred to later design phases and cannot change the business semantics:
 
-```text
-Identify files to delete
-Identify routes to remove
-Identify tables to drop
-Identify consumers that will break
-Identify test suites to replace
-Identify unrelated modules referencing legacy Product
-```
+- Exact database tables, indexes, and transaction implementation.
+- Exact OpenAPI paths, payload shapes, and transport status mapping.
+- Exact permission matrix and authentication mechanism.
+- Exact UI workspace layout and visual design.
+- Deployment mechanism for the approved combination-limit configuration.
 
-Không tạo capability matrix kiểu:
+## 28. Legacy removal impact report
 
-```text
-Current behavior → preserve or adapt
-```
+This is the only section that records old implementation artifacts. It records removal scope, not behavior to preserve.
 
-Chỉ tạo:
+| Legacy artifact category | Known impact | Required later action |
+| --- | --- | --- |
+| Flat Product domain and products persistence | Storefront cards/detail, cart/review/engagement references, admin Product flow | Delete old model and rewrite consumers against ProductModel/Variant |
+| Legacy product routes and public identifiers | Storefront routes, runtime page objects, API helpers, admin pages | Remove old routes and build the slug-based flow |
+| Existing Catalog Base domain and contract | Catalog adapters, API helpers, feature modules, admin Catalog UI | Delete as an implementation and replace with the greenfield domain |
+| Existing Catalog/Product migrations and schema | Current persistence and uniqueness assumptions | Drop old schema and create new schema; do not convert old rows |
+| Existing OpenAPI and generated contract | Old endpoint names, status shapes, and field semantics | Replace with a contract derived from this SRS |
+| Existing Catalog/Product scenarios and bindings | Current manifests, step adapters, traceability, and CI selection | Replace after approval; do not preserve legacy semantics |
+| Existing Product UI/Figma flow | Admin editor/list and storefront Product pages | Replace with ProductModel workspace and public projection |
+| Downstream modules referring to old Product identity | Cart, reviews, engagement, browse, search, and buy flows | Audit and rewrite at implementation boundary; no adapter or fallback |
 
-```text
-Legacy artifact → removal impact
-```
-
-Ví dụ:
-
-| Legacy artifact        | Current consumers | Required action            |
-| ---------------------- | ----------------- | -------------------------- |
-| `products` table       | cart, review      | Drop and rewrite consumers |
-| legacy `/products` API | storefront        | Remove and replace         |
-| `catalogbase` schema   | admin FE          | Drop and replace           |
-| legacy product tests   | CI                | Delete and replace         |
-
----
-
-## 14. Non-goals
-
-Không thực hiện trong Step 1:
-
-```text
-Database design chi tiết
-OpenAPI design
-Backend implementation
-Frontend implementation
-Figma
-Migration
-Data preservation
-Compatibility
-Test implementation
-```
-
-Step 1 chỉ chốt Domain và Feature Specification mới.
-
----
-
-## 15. Expected output
-
-Agent phải trả:
-
-1. New Domain model.
-2. Aggregate and ownership decisions.
-3. Domain invariants.
-4. Lifecycle contracts.
-5. Feature Specification mới hoàn toàn.
-6. Stable error contracts.
-7. Acceptance scenario set.
-8. Traceability từ business requirement đến scenario.
-9. Open decisions cần phê duyệt.
-10. Legacy removal impact report.
-
-Không trả:
-
-```text
-Spec delta
-Compatibility plan
-Migration plan
-Mapping plan
-Reuse plan
-Existing API gap analysis
-```
-
----
-
-## 16. Completion criteria
-
-Step 1 chỉ hoàn thành khi:
-
-* Có một Domain Catalog & Product mới hoàn toàn.
-* Không có semantic Legacy Product.
-* Không có dependency vào Catalog Base hiện tại.
-* Không có behavior được giữ chỉ vì code hiện tại đã implement.
-* Discovery additions đã được chốt thành Domain hoặc Feature behavior cụ thể.
-* Tất cả invariant có acceptance scenario.
-* Mọi điểm chưa quyết định được liệt kê để review.
-* Legacy artifacts chỉ xuất hiện trong removal impact report.
-* Chưa có thay đổi code, API, DB, UI hoặc test.
-
----
+The removal report does not authorize implementation in Step 1 and does not create a mapping or compatibility requirement.
 
 ## Final rule
 
-> Thiết kế hệ thống mà team sẽ xây nếu hôm nay chưa tồn tại bất kỳ Catalog hoặc Product implementation nào. Sau khi Domain và Spec mới được duyệt, xóa toàn bộ implementation cũ và xây lại theo specification mới.
-
-````
-
-Chốt lại bản chất:
-
-```text
-Không phải:
-Catalog Base + bổ sung discovery + bỏ Legacy Product
-
-Mà là:
-Business requirements + discovery
-→ Domain mới
-→ Spec mới
-→ xóa cả Catalog Base lẫn Legacy Product
-→ xây lại toàn bộ
-````
-
-`catalogbase` hiện tại cũng là legacy trong scope này, không phải canonical foundation.
+Design the system the team would build if no Catalog or Product implementation existed today. Once this specification and its acceptance features are approved, delete the old implementations and build the new flow from this document.

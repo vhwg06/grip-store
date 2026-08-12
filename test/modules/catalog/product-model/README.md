@@ -1,8 +1,10 @@
-# Catalog / Product Model
+# Catalog / ProductModel
 
-This module owns the executable Gherkin behavior for the catalog.product-model capability.
+This slice owns ProductModel authoring, derived publish readiness, media,
+Default Variant guards, optimistic version checks, and the explicit lifecycle:
+Draft → Active → Discontinued.
 
-- behavior.feature is the Gherkin source of truth and contains every accepted scenario for this slice.
-- behavior.steps.ts is the colocated Cucumber binding boundary and calls the real API or browser lifecycle.
-- manifest.yaml maps scenario IDs to this feature and step file.
-- shared/ contains only cross-module plumbing.
+`behavior.feature` is the acceptance contract for the ProductModel aggregate.
+ProductModel is the only customer-visible product concept; inventory,
+warehouse, order, purchase-limit, and warranty-claim state are outside this
+slice. Publication is readiness-gated and Discontinued is terminal.

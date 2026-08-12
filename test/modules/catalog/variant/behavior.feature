@@ -1,309 +1,120 @@
-@catalog @variant
-Feature: Catalog Base Variant
+@catalog @greenfield @variant
+Feature: Quản trị Variant greenfield
   As a Catalog Operator
-  I want to configure Variant combinations and commercial data
-  So that every sellable unit has a stable identity and valid price
+  I want duy trì identity và commercial data hợp lệ của Variant
+  So that mỗi sellable unit có thể được nhận diện duy nhất
 
-  @UC-CAT-VARIANT-COMBINATION
-  Rule: Variant selects every required dimension
+  @UC-GREEN-VARIANT-DIMENSIONS
+  Rule: Variant Dimension định nghĩa selection space đầy đủ và có thứ tự
 
-    @accepted @api @SC-CAT-VARIANT-001
-    Scenario: Variant duoc tao voi mot value cho moi dimension
-      Given ProductModel co VariantDimensions Material, Finish va Size
-      When Catalog Operator tao Variant chon mot value hop le cho moi dimension
-      Then he thong tao Variant voi selected option values day du
+    @accepted @api @smoke @SC-GREEN-VARIANT-001
+    Scenario: Cấu hình Variant Dimension và allowed value có thứ tự
+      Given Draft ProductModel có các Attribute Definition dùng lại được
+      When Operator thêm Color ở position 1 và Size ở position 2 làm Dimension
+      Then ProductModel lưu hai Dimension cùng allowed value theo display order
+      And display order không tham gia Variant identity
+      And thêm lại cùng một Definition vào Dimension bị từ chối với VARIANT_DIMENSION_DUPLICATED
 
-    @accepted @api @SC-CAT-VARIANT-002
-    Scenario: Variant thieu Size khong duoc tao
-      Given ProductModel co VariantDimensions Material, Finish va Size
-      When Catalog Operator tao Variant khong chon Size
-      Then he thong tu choi incomplete combination
+    @accepted @api @regression @SC-GREEN-VARIANT-002
+    Scenario: Từ chối Variant có Dimension thiếu hoặc ngoài schema
+      Given ProductModel có Dimension Color và Size
+      When Operator tạo Variant không có giá trị Size
+      Then command bị từ chối với MISSING_DIMENSION_VALUE
+      And giá trị của Dimension không thuộc schema bị từ chối với UNEXPECTED_DIMENSION_VALUE
 
-  @UC-CAT-VARIANT-CANONICAL
-  Rule: Canonical combination is unique within a ProductModel
+    @accepted @api @regression @SC-GREEN-VARIANT-003
+    Scenario: Từ chối Variant value ngoài allowed value Active
+      Given ProductModel có Size Dimension với allowed value Active là M và L
+      When Operator tạo Variant với Size XL
+      Then command bị từ chối với INVALID_DIMENSION_VALUE
+      And Variant mới dùng Size L sau khi L bị vô hiệu hóa bị từ chối với ATTRIBUTE_OPTION_INACTIVE
 
-    @accepted @api @SC-CAT-VARIANT-003
-    Scenario: Hai representation length tuong duong khong tao hai combinations
-      Given ProductModel co Numeric VariantDimension Size voi unit family "length"
-      And Variant da ton tai voi Size "200 mm"
-      When Catalog Operator tao Variant chon Size "20 cm"
-      Then he thong tu choi duplicate canonical combination
+    @accepted @api @regression @SC-GREEN-VARIANT-004
+    Scenario: Khóa Dimension structure của ProductModel Active nhưng vẫn thêm value hợp lệ
+      Given ProductModel Active có Color Dimension và các Variant hiện có
+      When Operator xóa Dimension hoặc thay Definition của Dimension
+      Then command bị từ chối với VARIANT_DIMENSION_LOCKED
+      And thêm Color value hợp lệ không làm thay đổi identity của Variant hiện có
+      And reorder allowed value chỉ thay đổi display order
+      And xóa allowed value đang được Variant hiện có sử dụng bị từ chối với VARIANT_DIMENSION_LOCKED
 
-    @accepted @api @SC-CAT-VARIANT-004
-    Scenario: Cung option co the ton tai tren ProductModel khac
-      Given ProductModel A co Variant Material "Inox 304", Finish "Black" va Size "200 mm"
-      And ProductModel B co cung ba VariantDimensions
-      When Catalog Operator tao Variant tren ProductModel B voi cung selected values
-      Then he thong tao Variant tren ProductModel B
+  @UC-GREEN-VARIANT-IDENTITY
+  Rule: Variant identity là canonical và duy nhất trong một ProductModel
 
-    @accepted @api @SC-CAT-VARIANT-011
-    Scenario: Generate Variant chi tao selected subset khong tao Cartesian product
-      Given ProductModel co VariantDimensions Material, Finish va Size voi nhieu allowed values
-      When Catalog Operator generate mot subset selected combinations
-      Then he thong chi tao cac Variant duoc chon
-      And he thong khong tu tao toan bo Cartesian product
+    @accepted @api @smoke @SC-GREEN-VARIANT-005
+    Scenario: Từ chối text selection tương đương là duplicate combination
+      Given ProductModel có text Color Dimension
+      And Variant tồn tại với Color canonical là "black handle"
+      When Operator tạo Variant với Color " Black  Handle "
+      Then command bị từ chối với DUPLICATE_VARIANT_COMBINATION
 
-  @UC-CAT-VARIANT-TECHNICAL
-  Rule: Variant technical values do not change identity
+    @accepted @api @regression @SC-GREEN-VARIANT-006
+    Scenario: Từ chối numeric selection tương đương là duplicate combination
+      Given ProductModel có length Size Dimension
+      And Variant tồn tại với Size canonical là "200 mm"
+      When Operator tạo Variant với Size "20 cm"
+      Then command bị từ chối với DUPLICATE_VARIANT_COMBINATION
+      And canonical identity độc lập với display order và cách biểu diễn unit
+      And canonical identity được tính từ selection đã normalize, không dùng giá trị client cung cấp làm authoritative
 
-    @accepted @api @SC-CAT-VARIANT-005
-    Scenario: Variant luu Weight rieng sau khi chon Size
-      Given ProductModel khai bao Weight la variant-specific technical attribute
-      And Variant co Size selected option "300 mm"
-      When Catalog Operator set Weight "1.2 kg" tren Variant
-      Then he thong luu VariantAttributeValue Weight
-      And combination identity cua Variant khong thay doi
+    @accepted @api @regression @SC-GREEN-VARIANT-007
+    Scenario: Giữ technical value bên ngoài Variant identity
+      Given HandleLength là Variant Technical Value và Size là Variant Dimension
+      When Operator tạo Variant với Size 300 mm và gán HandleLength 1200 mm
+      Then HandleLength đọc được như technical value
+      And canonical combination chỉ dựa trên Dimension selection
+      And selected Dimension options không bị mutate sau khi Variant được tạo
+      And gán technical value cho Definition không thuộc technical scope bị từ chối với INVALID_VARIANT_TECHNICAL_VALUE
 
-    @accepted @api @SC-CAT-VARIANT-006
-    Scenario: Variant khong tu gan attribute chua khai bao variant-specific
-      Given ProductModel khong khai bao Projection la variant-specific attribute
-      When Catalog Operator set Projection "60 mm" tren Variant
-      Then he thong tu choi VariantAttributeValue
+    @accepted @api @regression @SC-GREEN-VARIANT-008
+    Scenario: Normalize và reserve SKU trên toàn Catalog
+      Given không có Variant nào sở hữu SKU normalized "abc-001"
+      When Operator gán SKU " ABC-001 " cho một Variant
+      Then SKU canonical được lưu là "abc-001"
+      And Variant khác không thể dùng "ABC-001" vì command trả về SKU_ALREADY_EXISTS
 
-  @UC-CAT-VARIANT-DIMENSIONS
-  Rule: Dimension structure is stable after Variants exist
+  @UC-GREEN-VARIANT-READINESS
+  Rule: Variant status và sale readiness là hai khái niệm derived khác nhau
 
-    @accepted @api @SC-CAT-VARIANT-007
-    Scenario: Model co Variant duoc them selectable value moi
-      Given ProductModel da co Variant va co VariantDimension Finish
-      When Catalog Operator them Finish value moi vao dimension
-      Then he thong chap nhan selectable value moi
+    @accepted @api @smoke @SC-GREEN-VARIANT-009
+    Scenario: Variant Active chỉ sale-ready khi commercial data hợp lệ
+      Given Variant Inactive có selected Dimension value hợp lệ
+      When Operator activate Variant mà không có price VND dương
+      Then Variant trở thành Active nhưng chưa sale-ready
+      And khi gán price VND dương thì Variant trở thành sale-ready
 
-    @accepted @api @SC-CAT-VARIANT-008
-    Scenario: Model co Variant khong duoc them dimension moi
-      Given ProductModel da co it nhat mot Variant
-      When Catalog Operator them VariantDimension Handing
-      Then he thong tu choi structural dimension change
+    @accepted @api @regression @SC-GREEN-VARIANT-010
+    Scenario: Bảo vệ Default Variant khi đổi status
+      Given ProductModel Active có một Default Variant sale-ready và một Variant sale-ready khác
+      When Operator inactivate Default Variant mà chưa chọn replacement
+      Then command bị từ chối với DEFAULT_VARIANT_NOT_SALE_READY
+      And chọn Variant còn lại làm Default cho phép Variant cũ trở thành Inactive
 
-  @UC-CAT-VARIANT-AVAILABILITY
-  Rule: Inactive Variants are not public options
+    @accepted @api @regression @SC-GREEN-VARIANT-013
+    Scenario: Bảo toàn commercial history của Variant Inactive
+      Given Variant Active có SKU, price, Pack và selected options
+      When Operator inactivate Variant
+      Then Variant bị loại khỏi public options và resolution
+      And SKU, price, Pack, selected options và history vẫn đọc được
+      And SKU của Variant Inactive vẫn được reserve và không thể gán cho Variant khác
 
-    @accepted @api @SC-CAT-VARIANT-009
-    Scenario: Inactive Variant bi loai khoi available options
-      Given ProductModel Active co Variant Active va Variant Inactive khac nhau o Finish
-      When customer lay available options
-      Then he thong khong tra Finish chi co tren Variant Inactive
+  @UC-GREEN-VARIANT-PACK
+  Rule: Pack là source of truth của selling unit
 
-    @accepted @api @SC-CAT-VARIANT-010
-    Scenario: Variant inactive co the reactivate ma khong doi selected options
-      Given Variant dang "Inactive" voi selected options bat bien
-      When Catalog Operator reactivate Variant
-      Then Variant chuyen sang "Active"
-      And selected options van giu nguyen
+    @accepted @api @regression @SC-GREEN-VARIANT-011
+    Scenario: Dùng Pack làm fixed reference hoặc Dimension reference
+      Given ProductModel có fixed Pack reference và không có Pack Dimension
+      When Operator tạo Variant từ các Dimension khác
+      Then Variant kế thừa fixed Pack và Pack không làm đổi combination identity
+      And khi Pack là Dimension, mỗi Variant dùng Pack Active được phép và đúng kind Pack
+      And canonical identity của MasterReference dùng stable Master identity thay vì display name
 
-  @UC-CAT-VARIANT-SKU
-  Rule: SKU is normalized and unique
+  @UC-GREEN-VARIANT-MEDIA
+  Rule: Variant media chỉ được tham chiếu trong ProductModel aggregate
 
-    @accepted @api @SC-CAT-VARIANT-SKU-001
-    Scenario: SKU duoc trim va case-fold truoc khi luu
-      Given khong co Variant nao da dung SKU canonical "abc-001"
-      When Catalog Operator gan SKU " ABC-001 " cho Variant
-      Then Variant luu SKU canonical "abc-001"
-
-    @accepted @api @SC-CAT-VARIANT-SKU-002
-    Scenario: SKU da duoc Inactive Variant su dung khong duoc tai su dung
-      Given Variant Inactive da reserve SKU canonical "abc-001"
-      When Catalog Operator gan SKU "ABC-001" cho Variant khac
-      Then he thong tu choi duplicate SKU
-
-    @accepted @api @SC-CAT-VARIANT-SKU-003
-    Scenario: SKU trim thanh empty duoc coi la absent
-      Given Variant dang Active chua co SKU
-      When Catalog Operator gan SKU "   " cho Variant
-      Then Variant van khong co SKU
-
-  @UC-CAT-VARIANT-READINESS
-  Rule: Active Variant is not automatically sale-ready
-
-    @accepted @api @SC-CAT-VARIANT-PRICE-001
-    Scenario: Active Variant chua co SKU chua sale-ready
-      Given Variant dang "Active" va chua co SKU
-      When he thong danh gia commercial readiness
-      Then Variant khong sale-ready
-
-    @accepted @api @SC-CAT-VARIANT-PRICE-002
-    Scenario: Variant Active co SKU va SellingPrice hop le la sale-ready
-      Given Variant dang "Active" voi SKU hop le
-      When Catalog Operator set SellingPrice "400000 VND"
-      Then Variant la sale-ready
-
-  @UC-CAT-VARIANT-PRICE
-  Rule: SellingPrice is positive and uses catalog currency
-
-    @accepted @api @SC-CAT-VARIANT-PRICE-003
-    Scenario: Variant nhan SellingPrice dung currency catalog
-      Given catalog currency la "VND"
-      When Catalog Operator set SellingPrice "400000 VND"
-      Then he thong luu current SellingPrice cua Variant
-
-    @accepted @api @SC-CAT-VARIANT-PRICE-004
-    Scenario: SellingPrice bang khong hoac sai currency bi tu choi
-      Given catalog currency la "VND"
-      When Catalog Operator set SellingPrice "0 USD"
-      Then he thong tu choi SellingPrice
-
-    @accepted @api @SC-CAT-VARIANT-PRICE-005
-    Scenario: Nhieu Variant duoc cap nhat cung SellingPrice hop le
-      Given Catalog Operator chon ba Variant hop le
-      When Catalog Operator set SellingPrice "400000 VND" cho nhom
-      Then ca ba Variant deu co SellingPrice "400000 VND"
-
-    @accepted @api @SC-CAT-VARIANT-PRICE-006
-    Scenario: Batch invalid khong cap nhat Variant nao
-      Given Catalog Operator chon hai Variant
-      And mot Variant trong batch khong the nhan gia yeu cau
-      When Catalog Operator set SellingPrice cho nhom
-      Then he thong tu choi batch
-      And SellingPrice cua ca hai Variant khong thay doi
-
-  @UC-CAT-VARIANT-PACK
-  Rule: Pack is the source of truth for the selling unit
-
-    @accepted @api @SC-CAT-VARIANT-PACK-001
-    Scenario: Pack dimension xac dinh unit va quantity cua Variant
-      Given Pack "Hop 10 cai" co selling unit Box, quantity 10 va base unit Piece
-      And ProductModel co Pack la VariantDimension
-      When Catalog Operator tao Variant chon Pack "Hop 10 cai"
-      Then Variant tham chieu Pack "Hop 10 cai"
-      And projection cua Variant la "Box", 10 "Piece"
-
-    @accepted @api @SC-CAT-VARIANT-PACK-002
-    Scenario: Pack inactive khong duoc gan moi nhung Variant cu van ban
-      Given Variant publicly sellable tham chieu Pack "Hop 10 cai"
-      And Pack "Hop 10 cai" da inactive
-      When Catalog Operator tao Variant moi tham chieu Pack "Hop 10 cai"
-      Then he thong tu choi Pack reference moi
-      And Variant cu van publicly sellable
-
-  @UC-CAT-VARIANT-HIGH-LEVEL
-  Rule: Catalog Base high-level behavior remains traceable
-
-    @accepted @api @SC-CAT-VARIANT-COMBINATION-012
-    Scenario: Generate Selected Canonical Combinations
-      Given a ProductModel has Material, Finish, and Size dimensions
-      When Catalog Operator previews the available combinations
-      And Catalog Operator selects a valid subset
-      Then the system creates one Variant with one value for every dimension per selected combination
-      When the selected subset contains an existing canonical combination
-      Then the duplicate combination record is rejected
-
-    @accepted @api @SC-CAT-VARIANT-DIMENSIONS-013
-    Scenario: Configure Variant Dimensions and Values
-      Given a ProductModel has a valid Variant dimension definition
-      When Catalog Operator adds an allowed selectable value
-      Then the value can participate in new combinations
-      When Catalog Operator tries to add or remove a VariantDimension after Variants exist
-      Then the structural dimension change is rejected
-
-    @accepted @api @SC-CAT-VARIANT-LIFECYCLE-014
-    Scenario: Create and Maintain Variants
-      Given a ProductModel has valid Variant dimensions
-      When Catalog Operator creates a Variant from one selected value per dimension
-      Then the selected option identity is immutable
-      When Catalog Operator inactivates the Variant
-      Then the Variant is excluded from public option availability
-      And its selected options remain unchanged
-
-    @accepted @api @SC-CAT-VARIANT-TECHNICAL-015
-    Scenario: Keep Variant Technical Values Outside Identity
-      Given Size "300 mm" is a selected option and Weight is a variant-specific definition
-      When Catalog Operator creates a Variant with Size "300 mm"
-      And Catalog Operator sets Weight to "1.2 kg" on the Variant
-      Then the Weight value is stored
-      And the canonical combination identity is unchanged
-
-    @accepted @api @SC-CAT-VARIANT-PRICE-007
-    Scenario: Apply Bulk Selling Price Atomically
-      Given Catalog Operator selects multiple Variants
-      When Catalog Operator sets one valid SellingPrice for the group
-      Then every selected Variant is updated
-      When one selected Variant is invalid or the amount is not positive
-      Then no selected Variant is updated
-
-    @accepted @api @SC-CAT-VARIANT-COMMERCIAL-008
-    Scenario: Maintain SKU SellingPrice and Pack Reference
-      Given a Variant exists
-      When Catalog Operator assigns a non-empty SKU, valid SellingPrice, and Pack reference
-      Then the Variant is sale-ready when Active
-      And SKU normalization and uniqueness are enforced
-      When Catalog Operator assigns a non-positive price or a non-catalog currency
-      Then the commercial update is rejected
-
-  @UC-CAT-VARIANT-VALUES
-  Rule: Variant selections must use active allowed values
-
-    @accepted @api @SC-CAT-VARIANT-VALUES-016
-    Scenario: Reject a Variant selection outside the dimension value set
-      Given a ProductModel has an active VariantDimension with allowed values
-      When Catalog Operator creates a Variant using a value outside that set
-      Then the Variant command is rejected
-
-    @accepted @api @SC-CAT-VARIANT-VALUES-017
-    Scenario: Deactivate a selectable value without rewriting existing Variants
-      Given an existing Variant uses a selectable value
-      When Catalog Operator deactivates that selectable value
-      Then new Variant creation using that value is rejected
-      And the existing Variant selection remains readable
-
-  @UC-CAT-VARIANT-IDENTITY
-  Rule: Variant option identity is immutable and canonical
-
-    @accepted @api @SC-CAT-VARIANT-IDENTITY-018
-    Scenario: Change a Variant combination by replacement rather than mutation
-      Given a Variant exists with an immutable selected combination
-      When Catalog Operator requests a different selected combination for that Variant
-      Then the selected-combination mutation is rejected
-      And a replacement Variant is required before the old Variant is inactivated
-
-    @accepted @api @SC-CAT-VARIANT-IDENTITY-019
-    Scenario: Canonicalize text selections before combination uniqueness checks
-      Given a ProductModel has a text VariantDimension
-      And a Variant exists with canonical option value "black handle"
-      When Catalog Operator creates a Variant with equivalent whitespace and casing
-      Then the duplicate canonical combination is rejected
-
-    @accepted @api @SC-CAT-VARIANT-IDENTITY-020
-    Scenario: Use master identity for Reference selections
-      Given a ProductModel has Material, Finish, and Pack Reference dimensions
-      When Catalog Operator selects a referenced master by display text
-      Then the Variant stores the master identity rather than display text
-      And equivalent display labels cannot create a duplicate combination
-
-  @UC-CAT-VARIANT-PACK
-  Rule: Pack can be fixed or dimensional but remains the selling-unit source
-
-    @accepted @api @SC-CAT-VARIANT-PACK-003
-    Scenario: Fixed Pack reference does not become a Variant dimension
-      Given a ProductModel has a fixed Pack reference and no Pack VariantDimension
-      When Catalog Operator creates a Variant from its selectable dimensions
-      Then every Variant uses the ProductModel Pack reference
-      And the fixed Pack reference does not change combination identity
-
-  @UC-CAT-VARIANT-COMMERCIAL
-  Rule: Inactive Variants preserve commercial history
-
-    @accepted @api @SC-CAT-VARIANT-COMMERCIAL-009
-    Scenario: Preserve SKU and SellingPrice when a Variant becomes Inactive
-      Given an Active Variant has a reserved SKU and current SellingPrice
-      When Catalog Operator inactivates the Catalog Base Variant
-      Then the Variant is excluded from public sellability
-      And its SKU, SellingPrice, Pack reference, and history remain readable
-
-  @UC-CAT-VARIANT-STRUCTURE
-  Rule: Dimension structure cannot be replaced after Variant creation
-
-    @accepted @api @SC-CAT-VARIANT-STRUCTURE-010
-    Scenario: Reject replacing an existing VariantDimension
-      Given a ProductModel has existing Variants and a VariantDimension
-      When Catalog Operator replaces that VariantDimension with another definition
-      Then the Catalog Base structural dimension change is rejected
-
-  @UC-CAT-VARIANT-COMMERCIAL
-  Rule: Sale readiness is derived and not a separate mutable flag
-
-    @accepted @api @SC-CAT-VARIANT-COMMERCIAL-011
-    Scenario: Derive sale readiness from Active state SKU and SellingPrice
-      Given an Active Variant has a valid SKU and SellingPrice
-      When Catalog Operator removes its SKU or makes its price invalid
-      Then the Variant is no longer sale-ready
-      And no independent sale-ready flag is stored
+    @accepted @api @regression @SC-GREEN-VARIANT-012
+    Scenario: Gán ProductImage cho Variant cùng ProductModel
+      Given ProductModel có ProductImage và Variant
+      When Operator gán một ProductImage cho nhiều Variant của ProductModel đó
+      Then mỗi assignment giữ ordering riêng và mỗi Variant có tối đa một primary image
+      And gán image từ ProductModel khác bị từ chối với INVALID_VARIANT_MEDIA_ASSIGNMENT
