@@ -6,7 +6,11 @@ This inventory is derived only from `AGENTS.md` and the published handoffs in `t
 
 `admin-account-context.md`, `admin-content.md`, `admin-notifications.md`, `admin-operations.md`, `admin-product-catalog.md`, `admin-refund.md`, `admin-review.md`, `catalog-domain.md`, `public-auth.md`, `public-browse.md`, `public-checkout.md`, `public-content.md`, and `public-engagement.md`.
 
-No raw module sources, frontend, backend, or Figma sources were inspected. The handoffs remain the source of truth; this document aggregates their accepted behavior and traceability without extending the contracts.
+No raw module sources, frontend, or backend sources were inspected. Figma was
+audited to classify the previous artifact as non-canonical and to verify the
+current foundation/Catalog/Public rebuild evidence. The handoffs remain
+derived execution context; canonical semantic specifications remain the
+authority for their owned domains.
 
 ## Catalog baseline
 
@@ -22,7 +26,13 @@ The behavior trace is the accepted user goal, domain, data, state, transition, e
 
 ### Design trace inputs
 
-The design trace may use the user-visible information responsibilities, interaction/information pattern candidates, and visual scenario IDs below as inputs only. It must not turn them into screen, component, layout, or visual-composition requirements. Figma visual contracts were not analyzed.
+The design trace starts from applicable domain semantics, actor goals and
+product intent. It may use the user-visible information responsibilities and
+interaction/information candidates below as synthesis inputs. It must not turn
+scenario IDs into screen, component, layout or visual-composition requirements.
+The previous Figma artifact is audit evidence only. The current foundation and
+Public rebuild are separately traced, while semantic/behavior validation gates
+remain explicit in the coverage matrix and QA evidence.
 
 Named visual trace IDs:
 

@@ -4,6 +4,15 @@
 
 Derived only from `AGENTS.md` and `test/modules/auth/{README.md,behavior.feature,manifest.yaml,behavior.steps.ts}`. The feature is the behavioral source of truth; the step bindings expose the browser/API observation boundary. This is a behavior handoff, not a screen blueprint.
 
+## Semantic authority status
+
+No separate canonical Auth semantic specification was located. This handoff
+is behavioral evidence for authentication/session outcomes, not a source for
+new account, role, OAuth or profile semantics. Those semantics remain a
+`semantic source gap` until an applicable canonical specification is
+published. API token shapes and status assertions do not imply user-facing
+controls.
+
 ## User goals and tasks
 
 Primary goal: a shopper/account holder authenticates and maintains an explicit identity so protected flows are available. A visitor can register a new account.
@@ -99,3 +108,19 @@ Interaction candidates: credential submission; inline validation/auth/duplicate-
 Information candidates: identity (`id`, email, username, role); authenticated/unauthenticated state; access/refresh token pair at the API boundary; validation versus authentication versus duplicate-email errors; OAuth redirect destination; shopper profile identity; legacy-profile exclusion of loyalty points; `401` permission boundary and `404` removed-surface boundary.
 
 These candidates describe reusable behavior/information units only; placement, hierarchy, navigation, and visual composition are intentionally unspecified.
+
+## Canonical Figma rebuild
+
+The behavior-preserved Auth slice is represented by top-level frames on
+`00 — Index`:
+
+- Login ready/error: `561:146`, `561:147` desktop; `561:727` representative mobile.
+- Signup duplicate-email state: `561:148`.
+- Authenticated session and logout boundary: `561:149`.
+
+Prototype wiring covers login → authenticated session, signup → authenticated
+session, login/error recovery, and logout → login. OAuth is intentionally kept
+as a provider-redirect boundary; no provider UI or callback semantics are
+invented. Auth has no canonical semantic specification in the repository, so
+these frames preserve the accepted browser outcomes while the semantic source
+gap remains open.

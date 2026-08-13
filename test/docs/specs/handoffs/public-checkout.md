@@ -11,6 +11,19 @@ This handoff is derived only from:
 
 The checkout README declares `behavior.feature` as the executable source of truth and `behavior.steps.ts` as the browser/API binding boundary. No frontend, backend, Figma, or designer artifacts were used.
 
+## Semantic authority status
+
+No separate canonical Checkout semantic specification was located. This
+handoff records user goals and observable browser/API evidence; it does not
+make Gherkin the semantic authority for cart, order, payment or history.
+
+Cart/order ownership, item identity, quantity rules, payment outcomes,
+durability and shopper order-history routing remain a `semantic source gap`.
+Do not strengthen permissive assertions or invent those meanings during UX
+synthesis. If a later canonical semantic specification conflicts with a
+scenario, the semantic specification wins and the scenario is marked
+`conflicting` or `stale`.
+
 ## Capability goal
 
 Checkout is the public shopper capability for managing a cart and completing a purchase that produces a durable order result. The accepted coverage has three connected goals:
@@ -164,3 +177,19 @@ Wave A discovery is ready for implementation planning when the team can answer, 
 - the validation/error schema and status for each invalid input;
 - the authenticated behavior and postconditions of payment, preview, status, and cancellation; and
 - how catalog, auth, email, cart isolation, and serial execution fixtures are provided.
+
+## Canonical Figma rebuild
+
+The current behavior-preserved Checkout slice is represented by top-level
+frames on `00 — Index`:
+
+- Cart loaded/empty: `561:150`, `561:151` desktop; `561:728` representative mobile.
+- Checkout form: `561:152`.
+- Confirmation and orders-list boundary: `561:153`, `561:154`.
+
+Prototype wiring covers cart → checkout → confirmation → orders and remove →
+empty cart. The screens expose only the accepted cart/order observations; they
+do not claim payment success, durable order identity, order status, or shopper
+order-history semantics beyond the current permissive scenarios. Checkout has
+no canonical semantic specification in the repository, so the semantic source
+gap remains an explicit completion blocker.

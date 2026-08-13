@@ -1,6 +1,9 @@
 # GRIP visual tone migration guide
 
-This is an execution guide for the greenfield Design System and all canonical application UI. It is subordinate to behavior/spec/use cases and `.agents/designer.md`.
+This is an execution guide for validated visual foundations and canonical
+application UI. It is subordinate to applicable canonical semantic
+specifications, product intent and `.agents/designer.md`. It must not turn
+visual or Design System preferences into product behavior.
 
 ## Approved direction
 

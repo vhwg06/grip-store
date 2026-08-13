@@ -2,6 +2,14 @@
 
 Source boundary: `test/modules/engagement/{README.md,manifest.yaml,behavior.feature}` only. No implementation or design sources.
 
+## Semantic authority status
+
+No separate canonical Engagement semantic specification was located. This
+handoff preserves observable review, wishlist, vote and notification evidence
+without promoting Gherkin/API scenarios into domain meaning. Ownership and
+eligibility semantics not defined by a canonical specification are a
+`semantic source gap`.
+
 ## Coverage
 
 - 32 accepted scenarios; 7 browser; 25 API-tagged; 13 security.
@@ -41,3 +49,19 @@ Reusable candidates: rating input, review visibility/status, wishlist add/remove
 ## Verification
 
 Handoff is compact and preserves the distinction between behavioral evidence and UX composition. No screen blueprint is derived here.
+
+## Canonical Figma rebuild
+
+The behavior-preserved Engagement slice is represented by top-level frames on
+`00 — Index`:
+
+- Reviews loaded/submit/accepted after reload: `561:155`, `561:156`, `562:1011` desktop.
+- Wishlist loaded, vote-recorded and empty: `561:157`, `561:159`, `561:686` desktop; `561:729` representative mobile.
+
+Prototype wiring covers review read → submit → accepted/reloaded visibility,
+wishlist remove → empty, and wishlist vote → recorded. Notification API scenarios remain reference-only
+for this public artifact. Engagement has no canonical semantic specification,
+so ownership/eligibility meaning remains a semantic source gap rather than an
+invitation to infer extra controls.
+
+Review reload evidence: `evidence/public-review-accepted-reload-v2.png`.

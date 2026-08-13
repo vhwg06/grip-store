@@ -2,6 +2,14 @@
 
 Source boundary: `test/modules/content/README.md` and `test/modules/content/behavior.feature`. This is a compact execution handoff, not a screen blueprint.
 
+## Semantic authority status
+
+No separate canonical Content semantic specification was located. This
+handoff records backend-owned content/contact outcomes as behavioral evidence;
+it does not define additional editorial, publication or contact semantics.
+Unspecified meaning is a `semantic source gap` rather than permission to
+infer behavior from a generic storefront pattern.
+
 ## User goals and visible information
 
 - Understand the store through the About narrative and configured gallery.
@@ -25,10 +33,22 @@ Source boundary: `test/modules/content/README.md` and `test/modules/content/beha
 
 ## Figma artifact handoff
 
-- About desktop/mobile: `528:2822`, `528:2827`.
-- Article list/detail/pagination desktop/mobile: `528:2823`, `528:2824`, `528:2828`, `528:2829`, `528:3506`, `528:3507`.
-- Contact default/success desktop/mobile: `528:2825`, `528:2826`, `528:2830`, `528:2831`.
-- Structural verification confirmed non-empty frames, Vietnamese copy, 1440×900/390×844 geometry and light-neutral tokens. Screenshot export is not claimed as passed for this handoff.
+- The former `528:*` frames are historical audit material and are not the
+  canonical rebuild.
+- About: `561:158` desktop.
+- Article list/detail/page 2: `561:160`, `561:162`, `561:657` desktop; `561:730`
+  representative mobile.
+- Contact ready/submitted: `561:161`, `561:163` desktop; `561:731`
+  representative mobile.
+- Current screenshot evidence includes `evidence/public-about-loaded.png`,
+  `evidence/public-articles-list-v2.png`,
+  `evidence/public-article-detail-v2.png`,
+  `evidence/public-contact-ready.png`, and
+  `evidence/public-contact-mobile-v2.png`.
+- The current slice has light-neutral tokens, Vietnamese copy and explicit
+  content/detail/contact states. It is behavior-preserved evidence under the
+  Content semantic source gap, not a claim that unspecified editorial meaning
+  has been resolved.
 
 ## Open evidence
 

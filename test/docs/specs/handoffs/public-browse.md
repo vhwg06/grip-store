@@ -11,6 +11,19 @@ This handoff is derived only from:
 
 The feature file is the accepted behavior source of truth. The step file is used here only to identify the observable contract, data prerequisites, and navigation assertions. This is a discovery handoff, not a screen inventory or an implementation specification.
 
+## Semantic authority status
+
+This domain has no separate canonical semantic specification in the current
+repository. `behavior.feature` is therefore behavioral evidence only, not a
+replacement semantic authority. Catalog/Product meaning comes from
+`test/docs/srs/srs_001_product.md` and `handoffs/catalog-domain.md`; any browse
+behavior that would treat Variant as an independent ProductModel or expose
+excluded operational state is a contract conflict, not a UX requirement.
+
+The remaining browse-specific meaning is a `semantic source gap`. Preserve
+only observable browser outcomes compatible with the applicable semantic
+owners, and resolve the gap before claiming semantic completion.
+
 ## User goals
 
 The public-browse guest wants to:
@@ -168,3 +181,25 @@ The accepted behavior is sufficient to define the Wave A goals and observable st
 - What are the detail tab names/content boundaries, gallery behavior, and specification presentation?
 - How should a successful add-to-cart action be acknowledged while keeping the guest's discovery context understandable?
 
+## Canonical Figma rebuild
+
+The current top-level prototype evidence is on `00 — Index`:
+
+- Home loaded: `561:142` desktop, `561:724` mobile.
+- Catalog query, empty search and page 2: `561:143`, `561:144`, `561:614` desktop; `561:725` representative mobile.
+- ProductModel detail with an available purchase path: `561:145` desktop, `561:726` mobile.
+- SRS-owned Catalog/ProductModel states remain represented by `561:47`, `561:48`, `561:49`, and `561:123`.
+
+The prototype preserves the browse outcomes that the current behavior evidence
+supports: discovery-only homepage entry, catalog narrowing/search/sort/page
+movement, no-match feedback, ProductModel navigation, and explicit add-to-cart
+from catalog/detail. The Catalog SRS remains authoritative where generic browse
+language would otherwise flatten Variant into an independent public product.
+Browse-specific semantics remain a source gap; this is a behavior-preserved
+slice, not a semantic-completion claim.
+
+Latest visual evidence: `evidence/public-catalog-query-v2.png`,
+`evidence/public-catalog-page2-v2.png`, and
+`evidence/public-catalog-empty-v2.png`. The query controls were reflowed below
+the subtitle after export review found a real overlap; the corrected frames
+were re-exported and inspected.

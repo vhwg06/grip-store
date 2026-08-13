@@ -1,3 +1,11 @@
+## Semantic authority
+
+`test/docs/srs/srs_001_product.md` is the canonical semantic authority for
+Catalog/Product. This handoff is derived execution context. If any legacy or
+current Gherkin scenario treats `Variant` as an independent public Product,
+that scenario is conflicting/stale and must not be encoded into UX until the
+contract is resolved.
+
 ## 1. Current Catalog concepts and user goals/tasks
 
 - `ProductModel` is the sole customer-visible product concept. A Catalog Operator authors it, maintains content and media, configures its Dimensions and Variants, evaluates readiness, publishes it, and can discontinue it.

@@ -1,4 +1,9 @@
-# Figma handoff — Public Storefront Engagement + Content
+# Historical Figma handoff — Public Storefront Engagement + Content
+
+> Historical artifact: the `528:*` frames below belong to the rejected Public
+> storefront and are retained for audit only. The current canonical slice is
+> recorded in `public-engagement.md`, `public-content.md`, and
+> `figma-qa-evidence.md` using the top-level `561:*` rebuild frames.
 
 Scope: Figma file `GRIP-Website Design`, section `521:1052`, ownership region `y >= 27500` only.
 
@@ -50,21 +55,22 @@ Figma rejected self-navigation attempts for actions inside terminal/post-state f
 - Visual tone acceptance: representative exports are light/neutral first, warm second; no clay/beige monochromatic wash.
 - Scenario/traceability text scan: `SC-*` count 0; `Traceability` count 0 within `521:1052`.
 
-## Evidence
+## Historical evidence disposition
 
-Successful screenshot exports exist for:
+The old `528:*` export filenames are not current evidence and are not carried
+forward as links. Current representative exports for the rebuilt scope are
+indexed in `figma-qa-evidence.md`, including:
 
-- `evidence/public-engagement-wishlist-loaded.png`
-- `evidence/public-engagement-reviews.png` (captured before final text-boundary correction; structural correction is recorded above)
-- `evidence/public-content-articles.png`
-- `evidence/public-content-contact.png`
-- `evidence/public-content-about.png`
-- `evidence/public-content-contact-success.png`
-- `evidence/public-engagement-notifications-after-read.png`
-- `evidence/public-engagement-notifications-empty-final.png`
-- `evidence/public-engagement-vote-mobile-final.png`
+- `evidence/public-wishlist-loaded.png`
+- `evidence/public-reviews-loaded-v2.png`
+- `evidence/public-articles-list-v2.png`
+- `evidence/public-about-loaded.png`
+- `evidence/public-contact-ready.png`
+- `evidence/public-wishlist-vote-recorded.png`
 
-The final export attempts for `528:3073` (reviews desktop) and `528:4279` (notifications read desktop) timed out. They are explicitly not claimed as visual-export passes. Structural/reaction verification remains available from node inspection.
+The final export attempts for the old `528:*` reviews/notifications frames
+timed out and are explicitly not claimed as visual-export passes. Current
+structural and reaction evidence is recorded from the `561:*` rebuild.
 
 ## Handoff status
 

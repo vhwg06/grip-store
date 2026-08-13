@@ -2,6 +2,11 @@
 
 This audit records the layout repair for the greenfield Figma artifact. It is a geometry/containment check only; it does not redefine behavior, IA or screen composition.
 
+This audit keeps the pre-redesign hierarchy as historical evidence and records
+the current canonical anchor/slice separately. Historical geometry does not
+make a rejected artifact canonical; current frame results are reported only
+from the current node/property audit.
+
 ## Invariant
 
 For every parent with direct layout children:
@@ -20,16 +25,53 @@ The audit also checks that children are contained by the parent in the correct c
 
 | Root | Node | Audited scope |
 |---|---|---|
-| Public | `521:1052` | canonical module → use-case/responsive wrapper → viewport tree; recursive frame/component/instance tree |
-| Admin | `521:1053` | canonical module → use-case/responsive wrapper → viewport tree; recursive frame/component/instance tree |
-| Design System | `519:862` | 16 major board frames; recursive frame/component/instance tree |
+| Rejected Public | `521:1052` | historical module → use-case/responsive wrapper → viewport tree; recursive frame/component/instance tree |
+| Canonical Public rebuild | `561:142`–`561:163`, `561:614`, `561:657`, `561:686`, `561:724`–`561:731`, `562:1011` | current top-level behavior-preserved Public frames; recursive local node/property audit captured |
+| Canonical Catalog anchor | `561:47`, `561:48`, `561:49`, `561:123` | SRS-owned Catalog/ProductModel production frames; node/property and screenshot evidence captured |
+| Rejected Admin | `521:1053` | historical module → use-case/responsive wrapper → viewport tree; recursive frame/component/instance tree |
+| Rejected Design System | `519:862` | historical board hierarchy; not a canonical foundation source |
 
-The canonical product sections do not use a flat screen list. Their direct children are module containers:
+## Canonical rebuild status
+
+The current Catalog/ProductModel anchor and the 34-frame Public
+behavior-preserved slice were created with explicit viewport bounds and
+reparented to the Index so prototype navigation can target top-level frames.
+The node/property audit confirms the bounds, ownership names, content and
+top-level parentage. A recursive local containment scan reports:
 
 ```text
-10 — Public Storefront / Greenfield
+frames = 33
+descendants = 636
+overflowCount = 0
+```
+
+This scan checks every descendant against its immediate parent. It does not
+classify intentional visual layering as a sibling-overlap failure, and it is
+not a substitute for final visual review of timed-out exports. The historical
+rejected artifact's passing geometry does not transfer to these frames.
+
+The same current audit includes the validated foundation board `561:2`:
+
+```text
+Public frames:       34 roots / 655 descendants / overflow 0
+Foundation + Public: 35 roots / 714 descendants / overflow 0
+Layout-parent checks: 1 / positive-area layout overlap 0
+```
+
+### Current Index topology
+
+The current `00 — Index` page intentionally keeps the canonical Public
+production frames top-level so Figma `NAVIGATE` reactions can reach them. The
+page also contains the rejected Public/Admin archives, the IA map, the Catalog
+scope frame and the validated-foundation scope. This is a deliberate prototype
+topology, not an orphan-screen finding; the rejected archive hierarchy remains
+separately marked historical.
+The historical rejected product sections did not use a flat screen list. Their direct children were module containers:
+
+```text
+90 — Archive / Rejected Public Storefront / Pending Rebuild
   → Public / Browse, Auth, Checkout, Engagement, Content
-20 — Admin Console / Greenfield
+90 — Archive / Rejected Admin Console / Pending Rebuild
   → Admin / Operations, Catalog, Content, Account, Profile, Settings, Payments, Notifications
 module
   → use-case or responsive-state wrapper
@@ -47,7 +89,7 @@ The initial direct-child audit found four Public sibling intersections:
 3. `523:1787` Auth logout intersected `527:2310` Checkout cart empty by 440px.
 4. `527:2433` Checkout quantity state intersected `528:2980` Wishlist loaded by 83px.
 
-The Admin section itself was empty while its 35 canonical frames lived outside it. The Public quantity state `527:2433` also lived outside the Public section. This was corrected by reparenting the frames before relayout. The initially flat section layout was then replaced by the canonical module → use-case/responsive wrapper → viewport hierarchy; no product viewport remains a direct child of either greenfield section.
+The historical Admin section itself was empty while its 35 historical frames lived outside it. The Public quantity state `527:2433` also lived outside the Public section. This was corrected by reparenting the frames before relayout. The initially flat section layout was then replaced by the historical module → use-case/responsive wrapper → viewport hierarchy; no product viewport remains a direct child of either rejected greenfield section.
 
 The recursive audit then found two genuine nested intersections in duplicate-email auth forms:
 
@@ -68,7 +110,10 @@ The recursive audit then found two genuine nested intersections in duplicate-ema
 - Created canonical Public module containers for Browse, Auth, Checkout, Engagement and Content.
 - Created canonical Admin module containers for Operations, Catalog, Content, Account, Profile, Settings, Payments and Notifications.
 - Reparented each screen/use-case wrapper under its owning module and placed applicable Desktop/Mobile viewport frames inside the same responsive wrapper.
-- Reparented the stray mobile checkout layers back into `528:2550` and verified the page root contains only the Index frame and the two greenfield sections.
+- Reparented the stray mobile checkout layers back into `528:2550` and verified
+  the historical page root contained only the Index frame and the two
+  greenfield sections. The current Index intentionally adds top-level
+  canonical Public frames for prototype navigation.
 
 ## Coordinate-space evidence
 
@@ -145,17 +190,20 @@ The field specimens were corrected as canonical component anatomy: labels and va
 
 ## Visual evidence
 
-Earlier successful exports retained as representative screen evidence:
+Current representative exports retained under `evidence/` include:
 
-- `evidence/geometry-public-section-final.png`
-- `evidence/geometry-admin-section-final.png`
-- `evidence/geometry-public-browse-home.png`
-- `evidence/geometry-public-content.png`
-- `evidence/geometry-admin-orders.png`
-- `evidence/geometry-admin-content.png`
-- `evidence/geometry-ds-states.png`
+- `public-home-loaded.png`
+- `public-catalog-query.png`
+- `public-product-detail-purchase.png`
+- `public-about-loaded.png`
+- `public-cart-loaded-v2.png`
+- `public-reviews-loaded-v2.png`
+- `public-contact-ready.png`
 
-These representative PNGs were captured before the final module-local coordinate normalization; they remain useful for screen composition but are not final hierarchy evidence. Auth and post-reparent viewport exports timed out in the Figma renderer. The final hierarchy is accepted from node/property inspection and geometry audit, not from a successful post-reparent screenshot.
+The final hierarchy is accepted from current node/property inspection and the
+recursive geometry audit. Any historical geometry-export names from the
+rejected artifact are not treated as current evidence; timed-out exports remain
+unverified.
 
 ## Hierarchy evidence after restructure
 
@@ -167,7 +215,7 @@ Admin section: 8 module children, outside=0, overlap=0
 Public modules: 5/5 outside=0, overlap=0
 Admin modules: 8/8 outside=0, overlap=0
 Public Auth: 10 use-case wrappers, outside=0, overlap=0, gap=80
-Page root: Index + Public section + Admin section only
+Historical page root: Index + Public section + Admin section only
 ```
 
 The Admin ownership audit was rerun after the coordinate-space repair and IA cleanup:
@@ -178,7 +226,8 @@ Admin module local y sequence: 80, 12050, 18372, 35210, 37668, 39234, 40800, 423
 Admin use-case wrappers: 21, each under exactly one module owner
 Viewport mapping: paired wrappers explicitly named `Desktop + Mobile`; single contracts explicitly named `Desktop only` or `Mobile only`
 Admin map: `546:5053` is an Index navigation/ownership artifact, not an Admin product screen
-Page root: Index + Public section + Admin section only
+Historical page root: Index + Public section + Admin section only; current
+canonical Public frames are intentionally top-level on the Index.
 Direct-child overlap: 0
 Direct-child outside-parent: 0 using Section canvas bounds and nested parent-local bounds
 ```
