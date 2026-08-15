@@ -89,3 +89,4 @@ test-results/
 package.json
 !/test/package.json
 !/test/artifacts/
+/test/artifacts/figma-harness/
