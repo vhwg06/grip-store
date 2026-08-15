@@ -71,7 +71,7 @@ When a gate fails, report the originating gate rather than only its visual sympt
 
 ## Behavior / Flow Completeness Review
 
-This gate is mandatory for every in-scope user-visible capability.
+This gate is mandatory for every in-scope user-visible capability and is **binary/blocking**. It is not merely another taste score.
 
 Trace the actual design from each relevant entry point.
 
