@@ -150,6 +150,58 @@ Use typography, whitespace, scale, alignment, grouping, color, and component tre
 
 Do not use visual polish to hide a failed UX or composition decision.
 
+## Visual Skills
+
+Available visual lenses:
+
+```text
+$design-taste-frontend
+$gpt-taste
+$redesign-existing-projects
+```
+
+Skill authority is subordinate to the shared design contract:
+
+```text
+Product semantics
+→ project rules / accepted decisions
+→ approved visual direction
+→ applicable skill
+→ generic convention
+```
+
+Skills MUST NOT invent or override:
+
+```text
+business behavior
+flow
+state
+IA
+screen boundary
+field
+action
+navigation
+```
+
+Routing:
+
+```text
+existing/reference audit
+→ $redesign-existing-projects [audit only]
+
+after Composition + Design Context are coherent
+→ $design-taste-frontend [default visual lens]
+
+result becomes generic / repetitive / weakly product-specific
+→ $gpt-taste [challenge pass]
+```
+
+Do not use skill output to rescue failed semantics, UX, screen responsibility, composition, responsive structure, or geometry.
+
+A skill may challenge visual execution, but it MUST NOT weaken any gate in `.agents/design-base.md`.
+
+Persist only materially influential skill decisions when persistence is actually required by the task. Do not create a new intermediate design artifact merely to record skill reasoning.
+
 ## Harness Feedback
 
 When the harness returns reviewer defects:
