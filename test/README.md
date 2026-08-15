@@ -32,3 +32,40 @@ while Catalog is not implemented; `test:catalog` is run separately as an
 explicitly expected failure. Use `tools/validate-modules.ts` and
 `tools/validate-openapi.ts` for structural checks; those commands do not call
 the backend.
+
+## Figma design harness
+
+The Figma phase is driven by upstream design documents only: SRS, canonical
+domain/business documents, UX research, and UI/design research. Feature/Gherkin
+belongs to the later acceptance phase and is deliberately not an input to the
+Figma harness.
+
+The harness runs one persistent Figma writer session and fresh independent
+review sessions. Reviewer defects are routed back to the writer until the
+artifact passes the configured thresholds or the iteration limit is reached.
+
+Example:
+
+```bash
+npm run figma:harness -- \
+  --scope "Checkout admin" \
+  --figma "<Figma file/page/node reference>" \
+  --doc docs/specs/checkout/checkout_srs.md \
+  --doc docs/specs/checkout/checkout-admin-ui-ux-research.md \
+  --max-iterations 3
+```
+
+Requirements:
+
+- authenticated `codex` CLI available on `PATH` (or set `CODEX_BIN`);
+- the local Codex configuration exposes the Figma tooling required by the
+  writer and reviewer;
+- each `--doc` path exists under this test repository.
+
+Optional deterministic geometry enforcement can be plugged in through
+`FIGMA_GEOMETRY_CHECK_CMD`. The command runs before each independent review;
+exit code `0` means geometry is clean. A non-zero result is sent back to the
+writer as a geometry repair request before review continues.
+
+Run outputs are kept under `artifacts/figma-harness/` for inspection. They are
+execution evidence, not new canonical design artifacts.
