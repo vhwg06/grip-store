@@ -18,6 +18,7 @@ canonical hierarchy
 quality pipeline
 semantic / UX gate
 screen-responsibility gate
+behavior / flow completeness gate
 composition gate
 design-context gate
 responsive gate
@@ -51,7 +52,7 @@ Reasoning may remain session-local.
 
 ## Before Mutation
 
-Apply the shared quality pipeline through Composition before high-fidelity mutation.
+Apply the shared quality pipeline through Behavior / Flow Completeness and Composition before high-fidelity mutation.
 
 Be able to state internally:
 
@@ -61,12 +62,17 @@ Screen responsibility
 Primary decision / action
 Information priority
 Critical states
+Required reachable flows
 Composition thesis
 ```
 
 Do not jump directly from prose documents to generic component assembly.
 
 Design from the user task, not from available components.
+
+Before exposing an actionable control, know what documented destination, state transition, overlay, confirmation, or outcome it leads to.
+
+Do not create orphan CTAs or dead-end actions.
 
 ## Figma Execution
 
@@ -95,6 +101,32 @@ inspect page-level root bounds
 ```
 
 Correct ownership does not imply correct placement.
+
+## Behavior / Flow Coverage During Writing
+
+The shared Behavior / Flow Completeness Gate is authoritative.
+
+For every in-scope documented or visibly exposed action, ensure the canonical Figma scope represents its reachable path:
+
+```text
+entry point
+→ action / decision
+→ destination / state change
+→ required intermediate steps
+→ meaningful outcome
+```
+
+Examples:
+
+```text
+“Thêm mới” exists
+→ creation flow/state must exist when creation is in scope
+
+Delete exists and confirmation is required
+→ confirmation state must exist
+```
+
+Do not manufacture one frame per behavior step. Represent the behavior with the smallest coherent set of screens/states/interactions that preserves the documented flow.
 
 ## Incremental Mutation
 
@@ -140,7 +172,7 @@ Use the shared Responsive Gate as the invariant.
 
 Responsive work is recomposition of the same task, not scaling.
 
-Recompute grouping, placement, density, progressive disclosure, and interaction mechanics according to available space while preserving the shared semantic priorities.
+Recompute grouping, placement, density, progressive disclosure, and interaction mechanics according to available space while preserving the shared semantic priorities and required reachable behavior.
 
 ## Visual Execution
 
@@ -148,7 +180,7 @@ Run visual treatment only after the shared upstream gates are coherent.
 
 Use typography, whitespace, scale, alignment, grouping, color, and component treatment to reinforce already-resolved semantic priority.
 
-Do not use visual polish to hide a failed UX or composition decision.
+Do not use visual polish to hide a failed UX, behavior-coverage, or composition decision.
 
 ## Visual Skills
 
@@ -196,7 +228,7 @@ result becomes generic / repetitive / weakly product-specific
 → $gpt-taste [challenge pass]
 ```
 
-Do not use skill output to rescue failed semantics, UX, screen responsibility, composition, responsive structure, or geometry.
+Do not use skill output to rescue failed semantics, UX, screen responsibility, behavior / flow completeness, composition, responsive structure, or geometry.
 
 A skill may challenge visual execution, but it MUST NOT weaken any gate in `.agents/design-base.md`.
 
@@ -212,7 +244,7 @@ When the harness returns reviewer defects:
 4. re-check applicable upstream gates before polishing downstream details;
 5. leave the actual Figma ready for a fresh independent review.
 
-Do not patch a downstream visual symptom when the defect originates in semantics, UX, composition, responsive structure, or geometry.
+Do not patch a downstream visual symptom when the defect originates in semantics, UX, behavior coverage, composition, responsive structure, or geometry.
 
 ## Writer Boundary
 
