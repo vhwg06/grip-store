@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "status": {
+      "type": "string",
+      "enum": ["pass", "fail"]
+    },
+    "scores": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "ux": { "type": "integer", "minimum": 1, "maximum": 10 },
+        "design_quality": { "type": "integer", "minimum": 1, "maximum": 10 },
+        "composition": { "type": "integer", "minimum": 1, "maximum": 10 },
+        "originality": { "type": "integer", "minimum": 1, "maximum": 10 },
+        "craft": { "type": "integer", "minimum": 1, "maximum": 10 }
+      },
+      "required": ["ux", "design_quality", "composition", "originality", "craft"]
+    },
+    "defects": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "origin": {
+            "type": "string",
+            "enum": ["product_semantics", "ux", "composition", "visual", "responsive", "geometry"]
+          },
+          "severity": {
+            "type": "string",
+            "enum": ["blocking", "non_blocking"]
+          },
+          "target": { "type": "string" },
+          "problem": { "type": "string" },
+          "evidence": { "type": "string" }
+        },
+        "required": ["origin", "severity", "target", "problem", "evidence"]
+      }
+    },
+    "summary": { "type": "string" }
+  },
+  "required": ["status", "scores", "defects", "summary"]
+}
