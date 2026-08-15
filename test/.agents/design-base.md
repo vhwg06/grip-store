@@ -83,6 +83,7 @@ Apply applicable gates in this order:
 Product semantics
 → UX / task model
 → Screen responsibility
+→ Behavior / flow completeness
 → Composition
 → Responsive recomposition
 → Design context
@@ -97,6 +98,7 @@ Examples:
 
 ```text
 visual polish must not rescue failed UX
+strong composition must not hide an incomplete flow
 larger containers must not hide bad geometry
 canonical components must not justify incorrect task structure
 ```
@@ -151,7 +153,62 @@ Reject screens that merely aggregate available entities, endpoints, or component
 
 ---
 
-## 6. Composition Gate
+## 6. Behavior / Flow Completeness Gate
+
+The actual Figma scope must completely represent the documented user-visible behavior that the design exposes or is responsible for.
+
+This gate checks **coverage and continuity**, not visual quality.
+
+For every documented or visibly exposed user action, determine:
+
+```text
+entry point
+→ user action / decision
+→ resulting screen / state / overlay / transition
+→ meaningful next step or terminal outcome
+```
+
+PASS requires:
+
+- every in-scope documented user-visible behavior has a representation in canonical Figma;
+- every visible actionable control has a corresponding destination, state change, overlay, confirmation, or explicitly documented external outcome;
+- required intermediate steps are represented when the user must pass through them;
+- required success, empty, error, validation, confirmation, or destructive states are represented when canonical documents make them behaviorally meaningful;
+- alternate paths that materially change user decisions or outcomes are represented;
+- no CTA, navigation item, row action, menu action, or interactive affordance points to a missing canonical flow;
+- no required flow ends at an unexplained dead end;
+- the full path can be traced from its entry point to a meaningful outcome without inventing behavior.
+
+Example failure:
+
+```text
+The product-list screen exposes “Thêm mới”.
+Canonical documents define product creation as an in-scope capability.
+No create screen/state/flow exists in Figma.
+→ Behavior / Flow Completeness FAIL
+```
+
+Another failure:
+
+```text
+A destructive action exists in the UI and canonical documents require confirmation,
+but no confirmation state is represented.
+→ Behavior / Flow Completeness FAIL
+```
+
+Important:
+
+```text
+behavior step ≠ frame by default
+```
+
+One screen/state may satisfy multiple behavior steps when the interaction is genuinely represented there. Do not manufacture frames merely to increase coverage.
+
+Likewise, this gate MUST NOT invent downstream Feature/Gherkin scenarios. It verifies the behavior already defined by the upstream Figma-phase documents.
+
+---
+
+## 7. Composition Gate
 
 Composition must solve:
 
@@ -201,7 +258,7 @@ If the composition could trivially belong to many unrelated products, it require
 
 ---
 
-## 7. Design Context Gate
+## 8. Design Context Gate
 
 Before final visual treatment, inspect only relevant:
 
@@ -227,7 +284,7 @@ Do not promote speculative patterns merely because they were used once.
 
 ---
 
-## 8. Responsive Gate
+## 9. Responsive Gate
 
 Desktop and mobile are different compositions of the same task.
 
@@ -240,6 +297,7 @@ reading order
 critical information
 primary action
 required capability
+behavior / flow completeness
 ```
 
 Recompute when space changes:
@@ -252,13 +310,13 @@ progressive disclosure
 interaction mechanics
 ```
 
-PASS requires responsive variants to preserve task priority and capability.
+PASS requires responsive variants to preserve task priority, capability, and the reachable behavior required for that viewport.
 
 Mobile is never desktop shrunk down.
 
 ---
 
-## 9. Geometry & Structural Gate
+## 10. Geometry & Structural Gate
 
 Never build on or approve known-broken geometry.
 
@@ -337,9 +395,9 @@ Screenshots may reveal suspicious geometry but do not prove exact geometry when 
 
 ---
 
-## 10. Visual Quality & Craft Gate
+## 11. Visual Quality & Craft Gate
 
-Run only after upstream UX, composition, and applicable geometry are valid.
+Run only after upstream semantics, UX, behavior coverage, composition, and applicable geometry are valid.
 
 Evaluate:
 
@@ -363,7 +421,7 @@ Correct semantics alone do not make the design production-quality.
 
 ---
 
-## 11. Final Artifact Gate
+## 12. Final Artifact Gate
 
 The actual Figma artifact is the evidence.
 
@@ -377,6 +435,9 @@ Never approve while any of these remain:
 semantic / UX gap silently guessed
 wrong canonical ownership
 unclear screen responsibility
+missing required behavior / flow step
+orphan CTA / action with no represented outcome
+required state or transition absent
 failed composition hierarchy
 computed unintended overlap
 spacing violation
@@ -393,6 +454,7 @@ Final principles:
 ```text
 Product semantics > Canvas convenience
 User goal > Implementation structure
+Behavior completeness > Pretty dead ends
 Composition > Decoration
 
 Correct ownership ≠ Correct placement
