@@ -3,7 +3,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 interface ReviewDefect {
-  origin: "product_semantics" | "ux" | "composition" | "visual" | "responsive" | "geometry";
+  origin: "product_semantics" | "ux" | "behavior_coverage" | "composition" | "visual" | "responsive" | "geometry";
   severity: "blocking" | "non_blocking";
   target: string;
   problem: string;
