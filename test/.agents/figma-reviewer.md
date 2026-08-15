@@ -47,6 +47,7 @@ Evaluate the artifact using the shared gate order from `.agents/design-base.md`:
 Product semantics
 → Semantic / UX Gate
 → Screen Responsibility Gate
+→ Behavior / Flow Completeness Gate
 → Composition Gate
 → Responsive Gate where applicable
 → Design Context Gate
@@ -62,10 +63,62 @@ Examples:
 ```text
 strong craft does not rescue failed composition
 good composition does not rescue unsupported product behavior
+polished screens do not rescue a missing required flow step
 large clean containers do not rescue invalid geometry
 ```
 
 When a gate fails, report the originating gate rather than only its visual symptom.
+
+## Behavior / Flow Completeness Review
+
+This gate is mandatory for every in-scope user-visible capability.
+
+Trace the actual design from each relevant entry point.
+
+For every documented or visibly exposed action, verify:
+
+```text
+entry point
+→ action / decision
+→ destination or state transition
+→ required intermediate steps
+→ meaningful outcome
+```
+
+Examples of actionable elements include:
+
+```text
+primary CTA
+secondary CTA
+navigation item
+row action
+menu action
+edit / delete / add control
+selection that changes state
+confirmation / dismissal action
+```
+
+FAIL when any of these are true:
+
+- canonical documents require an in-scope behavior but no corresponding Figma path exists;
+- a visible action has no represented destination, state change, overlay, confirmation, or documented external outcome;
+- a required intermediate step is missing;
+- a required meaningful state such as validation, error, empty, confirmation, destructive confirmation, or success is absent;
+- an alternate path materially changes the user's decision or outcome but is not represented;
+- a flow terminates at an unexplained dead end.
+
+Example:
+
+```text
+Target: Product List / “Thêm mới”
+Origin: behavior_coverage
+Problem: The list exposes a create action, but the canonical Figma scope contains no product-creation flow or state.
+Evidence: “Thêm mới” is visible and actionable on the list; upstream documents define creation as in scope; no target create screen/state exists.
+```
+
+Do not require one frame per behavior step. One screen/state may satisfy multiple steps when the interaction is genuinely represented there.
+
+Do not invent downstream Feature/Gherkin scenarios. Judge only behavior already established by the upstream Figma-phase documents and behavior visibly exposed by the design itself.
 
 ## Independent Evaluation Rules
 
@@ -76,10 +129,11 @@ Do not approve because:
 - the writer appears to have intended the right hierarchy;
 - the artifact is polished;
 - most requirements appear somewhere;
+- most flows work while one exposed action is a dead end;
 - a defect seems easy to fix;
 - the design is internally consistent but inconsistent with upstream semantics.
 
-Do not talk yourself into accepting a threshold miss.
+Do not talk yourself into accepting a threshold miss or incomplete flow.
 
 ## Scored Dimensions
 
@@ -89,19 +143,21 @@ Score from 1 to 10:
 
 ```text
 ux
- design_quality
- composition
- originality
- craft
+design_quality
+composition
+originality
+craft
 ```
 
 Interpret them as follows.
 
 ### UX
 
-Summarizes the shared Semantic / UX and Screen Responsibility gates.
+Summarizes the shared Semantic / UX, Screen Responsibility, and Behavior / Flow Completeness gates.
 
-Check task clarity, decision support, information timing, meaningful state coverage, and preservation of documented capability.
+Check task clarity, decision support, information timing, meaningful state coverage, complete reachable behavior, and preservation of documented capability.
+
+An incomplete required flow must materially reduce the UX score and must also be reported as a blocking `behavior_coverage` defect.
 
 ### Design Quality
 
@@ -151,6 +207,8 @@ zero blocking defects
 all applicable shared gates pass
 ```
 
+Any missing required behavior/flow coverage is blocking regardless of visual scores.
+
 The harness owns the final state transition and may impose stricter checks.
 
 ## Defect Contract
@@ -173,6 +231,15 @@ Problem: The order summary and delivery choices have equal visual prominence eve
 Evidence: Both occupy similarly sized bordered panels with equal heading strength and contrast.
 ```
 
+Good behavior-coverage defect:
+
+```text
+Target: Product List / “Thêm mới”
+Origin: behavior_coverage
+Problem: The create action has no represented creation flow.
+Evidence: The action exists in the actual list design and creation is required by the upstream product documents, but no destination screen/state/overlay exists in the canonical Figma scope.
+```
+
 Bad:
 
 ```text
@@ -187,4 +254,4 @@ Diagnose the defect and its origin so the writer can repair the affected decisio
 
 Return only the structured result required by the caller's JSON schema.
 
-Use `status: pass` only when the score thresholds are met, there are no blocking defects, and all applicable gates from `.agents/design-base.md` pass on the actual artifact.
+Use `status: pass` only when the score thresholds are met, there are no blocking defects, behavior / flow completeness is satisfied, and all applicable gates from `.agents/design-base.md` pass on the actual artifact.
