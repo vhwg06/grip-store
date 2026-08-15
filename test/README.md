@@ -40,9 +40,49 @@ domain/business documents, UX research, and UI/design research. Feature/Gherkin
 belongs to the later acceptance phase and is deliberately not an input to the
 Figma harness.
 
-The harness runs one persistent Figma writer session and fresh independent
-review sessions. Reviewer defects are routed back to the writer until the
-artifact passes the configured thresholds or the iteration limit is reached.
+Shared design correctness is defined once in:
+
+```text
+.agents/design-base.md
+```
+
+That contract owns the common authority, canonical hierarchy, gate order, and
+PASS meaning for semantics/UX, screen responsibility, composition, responsive,
+design context, geometry/structure, visual craft, and final artifact quality.
+
+Role files inherit that contract rather than duplicating it:
+
+```text
+.agents/design-base.md
+        /        \
+       /          \
+ designer.md   figma-reviewer.md
+   WRITE           READ
+       \            /
+        \          /
+         harness runner
+```
+
+`designer.md` explains how the writer produces and repairs Figma against the
+shared contract. `figma-reviewer.md` explains how a fresh read-only reviewer
+judges the actual Figma against the same gates. Neither role may redefine or
+weaken the base contract.
+
+The runner owns orchestration and state transitions:
+
+```text
+upstream docs
+→ persistent writer session
+→ actual Figma
+→ optional deterministic geometry gate
+→ fresh independent reviewer session
+→ structured PASS / FAIL
+→ FAIL defects resume the writer
+→ repeat until PASS or iteration limit
+```
+
+A gate is therefore shared design policy; whether execution may advance is a
+harness decision.
 
 Example:
 
