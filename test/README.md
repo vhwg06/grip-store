@@ -46,9 +46,10 @@ Shared design correctness is defined once in:
 .agents/design-base.md
 ```
 
-That contract owns the common authority, canonical hierarchy, gate order, and
-PASS meaning for semantics/UX, screen responsibility, composition, responsive,
-design context, geometry/structure, visual craft, and final artifact quality.
+That contract owns the common authority, canonical hierarchy, canonical
+representation invariant, gate order, and PASS meaning for semantics/UX, screen
+responsibility, composition, responsive, design context, geometry/structure,
+visual craft, and final artifact quality.
 
 Role files inherit that contract rather than duplicating it:
 
@@ -68,30 +69,42 @@ shared contract. `figma-reviewer.md` explains how a fresh read-only reviewer
 judges the actual Figma against the same gates. Neither role may redefine or
 weaken the base contract.
 
-The runner owns orchestration and state transitions. A run is bounded by a
-repair budget, and every writer mutation is followed by a fresh independent
-review before the run can terminate:
+### Write / repair lifecycle
+
+`npm run figma:harness -- ...` is the canonical mutation lifecycle.
+
+The runner starts the initial writer exactly once. The invocation then owns one
+global repair budget. Every repair — including a deterministic geometry repair
+when that check is configured — consumes that same budget and must be followed
+by verification before the run may terminate.
 
 ```text
 upstream docs
-→ persistent writer session
+→ initial writer exactly once
 → actual Figma
-→ optional deterministic geometry gate
-→ fresh independent reviewer
-   ├─ PASS → terminal PASS
-   └─ FAIL + repair budget remaining
-        → writer repair
+→ deterministic geometry verification when configured
+   ├─ FAIL + repair budget remaining
+   │    → writer geometry repair
+   │    → geometry verification again
+   └─ CLEAN
         → fresh independent reviewer
+             ├─ PASS → terminal PASS
+             └─ FAIL + repair budget remaining
+                  → writer repair
+                  → verification again
 
-final failed review after repair budget is exhausted
+verification failure after repair budget is exhausted
 → terminal FAIL_BUDGET
 → no further writer mutation
-→ no automatic new harness run
+→ no automatic new write harness run
 ```
 
-A repair budget of `N` therefore allows at most `N` writer repairs and `N + 1`
-independent reviews. The harness must terminate from a reviewer/verifier state,
-never immediately after mutation.
+A repair budget of `N` allows at most `N` writer repairs. Reviewer count is at
+most `N + 1`; it may be lower when deterministic geometry failures consume part
+of the repair budget first.
+
+The invocation must terminate from a reviewer/verifier state, never immediately
+after mutation.
 
 Example:
 
@@ -107,6 +120,61 @@ npm run figma:harness -- \
 `--max-iterations` is retained as a deprecated compatibility alias and is
 interpreted as the repair budget.
 
+### Verification-only lifecycle
+
+When the goal is to verify the canonical artifact as it already exists, do not
+start another normal harness run. Use:
+
+```bash
+npm run figma:verify -- \
+  --scope "Checkout admin" \
+  --figma "<Figma file/page/node reference>" \
+  --doc docs/specs/checkout/checkout_srs.md \
+  --doc docs/specs/checkout/checkout-admin-ui-ux-research.md
+```
+
+Verification-only mode:
+
+```text
+existing canonical Figma
+→ no writer session
+→ no repair session
+→ deterministic geometry verification when configured
+→ one fresh independent reviewer
+→ PASS | FAIL_VERIFICATION
+→ STOP
+```
+
+Verification MUST NOT mutate the artifact being verified. A failed verification
+is reported; it is not converted into a hidden writer pass.
+
+### Canonical reconciliation / idempotency
+
+Writer re-entry and repair must reconcile the existing canonical artifact before
+creating or duplicating screens/states.
+
+Semantic identity is determined by:
+
+```text
+owning Module
++ Use Case
++ Screen responsibility
++ State responsibility
+```
+
+Repeated execution over unchanged upstream semantics must converge on the same
+canonical representation rather than append another one.
+
+Different frame names alone do not establish different states. If semantics
+require different user-visible states, the rendered artifact must contain the
+meaningful observable difference required by that distinction.
+
+Pixel-identical screenshots/hashes are evidence of a possible duplicate, not an
+automatic deletion rule. The writer and reviewer must establish semantic
+identity before reconciling or classifying duplicates.
+
+### Tool routing and execution controls
+
 Harness sessions pin Figma access to `figma-mcp-go`. They must not fall back to
 another Figma MCP server when the canonical server is unavailable or
 rate-limited.
@@ -120,7 +188,7 @@ Requirements:
 
 Optional execution controls:
 
-- `FIGMA_GEOMETRY_CHECK_CMD`: deterministic geometry check before review;
+- `FIGMA_GEOMETRY_CHECK_CMD`: deterministic geometry verification before review;
 - `FIGMA_PHASE_TIMEOUT_MS`: per-Codex-phase timeout (default 45 minutes);
 - `FIGMA_HARNESS_TIMEOUT_MS`: whole-run timeout (default 4 hours);
 - `FIGMA_HARNESS_HEARTBEAT_MS`: progress heartbeat interval (default 1 minute).
@@ -135,13 +203,14 @@ one of:
 ```text
 PASS
 FAIL_BUDGET
+FAIL_VERIFICATION
 TIMEOUT
 ERROR
 ```
 
-`FAIL_BUDGET`, `TIMEOUT`, and `ERROR` are terminal for that invocation. The
-caller must report the result instead of automatically starting a fresh harness
-with a reset repair budget.
+`FAIL_BUDGET`, `FAIL_VERIFICATION`, `TIMEOUT`, and `ERROR` are terminal for that
+invocation. The caller must report the result instead of automatically starting
+a fresh normal harness with a reset repair budget.
 
 Run the lifecycle regression test with:
 
