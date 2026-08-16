@@ -14,6 +14,7 @@
     "test:catalog": "tsx tools/run-cucumber.ts catalog",
     "test:browser": "tsx tools/run-cucumber.ts browser",
     "test:browser:non-catalog": "tsx tools/run-cucumber.ts browser-non-catalog",
+    "test:figma-harness": "tsx --test tools/figma-harness/lifecycle.test.ts",
     "figma:harness": "tsx tools/run-figma-harness.ts",
     "report": "open artifacts/report.html",
     "validate:modules": "tsx tools/validate-modules.ts",
