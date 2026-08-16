@@ -52,6 +52,9 @@ jobs:
       - name: Install test dependencies
         run: npm ci --prefix test
 
+      - name: Run Figma harness lifecycle regression tests
+        run: npm --prefix test run test:figma-harness
+
       - name: Validate modules and OpenAPI contract
         run: npm --prefix test run validate
 
