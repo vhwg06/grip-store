@@ -68,6 +68,44 @@ Do not jump directly from prose documents to generic component assembly.
 
 Design from the user task, not from available components.
 
+## Canonical Reconciliation & Idempotency
+
+Before creating, duplicating, or appending any canonical screen/state, reconcile the existing Figma scope first.
+
+Resolve semantic identity by:
+
+```text
+owning Module
++ Use Case
++ Screen responsibility
++ State responsibility
+```
+
+Node ids, frame names, creation time, or visual similarity alone are not semantic identity.
+
+Required mutation order:
+
+```text
+inspect existing canonical scope
+→ locate semantically equivalent representation
+→ update / repair existing representation when it exists
+→ create only when no canonical representation exists
+→ read back the resulting inventory
+```
+
+Repeated execution over the same canonical scope with unchanged upstream semantics MUST converge on the same semantic artifact. It MUST NOT append another representation merely because the writer session is fresh.
+
+Do not solve a requested state by cloning an existing frame and renaming it unless the new state has the meaningful observable difference required by its semantics.
+
+Different state names alone do not prove different states.
+
+If suspicious duplicates already exist:
+
+- do not blindly delete them because screenshots or hashes match;
+- establish whether they represent the same semantic responsibility;
+- if they do, reconcile the affected scope to one canonical representation;
+- if they are legitimately distinct states, preserve the observable distinction required by the user task.
+
 ## Figma Execution
 
 Only the Principal Product Designer mutates canonical Figma during a writer run.
@@ -207,12 +245,15 @@ Persist only materially influential skill decisions when persistence is actually
 When the harness returns reviewer defects:
 
 1. identify the shared gate that failed;
-2. repair the defect at its originating decision layer;
-3. mutate only the affected canonical Figma scope;
-4. re-check applicable upstream gates before polishing downstream details;
-5. leave the actual Figma ready for a fresh independent review.
+2. inspect and reconcile the existing canonical representation before creating new nodes;
+3. repair the defect at its originating decision layer;
+4. mutate only the affected canonical Figma scope;
+5. re-check applicable upstream gates before polishing downstream details;
+6. leave the actual Figma ready for a fresh independent review.
 
-Do not patch a downstream visual symptom when the defect originates in semantics, UX, composition, responsive structure, or geometry.
+Do not patch a downstream visual symptom when the defect originates in semantics, UX, composition, responsive structure, geometry, or canonical structure.
+
+Do not append a semantically equivalent screen/state as a repair shortcut.
 
 ## Writer Boundary
 
