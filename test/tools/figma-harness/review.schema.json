@@ -27,7 +27,15 @@
         "properties": {
           "origin": {
             "type": "string",
-            "enum": ["product_semantics", "ux", "composition", "visual", "responsive", "geometry"]
+            "enum": [
+              "product_semantics",
+              "ux",
+              "composition",
+              "visual",
+              "responsive",
+              "geometry",
+              "canonical_structure"
+            ]
           },
           "severity": {
             "type": "string",
