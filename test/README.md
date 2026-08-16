@@ -68,21 +68,30 @@ shared contract. `figma-reviewer.md` explains how a fresh read-only reviewer
 judges the actual Figma against the same gates. Neither role may redefine or
 weaken the base contract.
 
-The runner owns orchestration and state transitions:
+The runner owns orchestration and state transitions. A run is bounded by a
+repair budget, and every writer mutation is followed by a fresh independent
+review before the run can terminate:
 
 ```text
 upstream docs
 → persistent writer session
 → actual Figma
 → optional deterministic geometry gate
-→ fresh independent reviewer session
-→ structured PASS / FAIL
-→ FAIL defects resume the writer
-→ repeat until PASS or iteration limit
+→ fresh independent reviewer
+   ├─ PASS → terminal PASS
+   └─ FAIL + repair budget remaining
+        → writer repair
+        → fresh independent reviewer
+
+final failed review after repair budget is exhausted
+→ terminal FAIL_BUDGET
+→ no further writer mutation
+→ no automatic new harness run
 ```
 
-A gate is therefore shared design policy; whether execution may advance is a
-harness decision.
+A repair budget of `N` therefore allows at most `N` writer repairs and `N + 1`
+independent reviews. The harness must terminate from a reviewer/verifier state,
+never immediately after mutation.
 
 Example:
 
@@ -92,20 +101,53 @@ npm run figma:harness -- \
   --figma "<Figma file/page/node reference>" \
   --doc docs/specs/checkout/checkout_srs.md \
   --doc docs/specs/checkout/checkout-admin-ui-ux-research.md \
-  --max-iterations 3
+  --max-repairs 3
 ```
+
+`--max-iterations` is retained as a deprecated compatibility alias and is
+interpreted as the repair budget.
+
+Harness sessions pin Figma access to `figma-mcp-go`. They must not fall back to
+another Figma MCP server when the canonical server is unavailable or
+rate-limited.
 
 Requirements:
 
 - authenticated `codex` CLI available on `PATH` (or set `CODEX_BIN`);
-- the local Codex configuration exposes the Figma tooling required by the
-  writer and reviewer;
+- the local Codex configuration exposes `figma-mcp-go` to the writer and
+  reviewer;
 - each `--doc` path exists under this test repository.
 
-Optional deterministic geometry enforcement can be plugged in through
-`FIGMA_GEOMETRY_CHECK_CMD`. The command runs before each independent review;
-exit code `0` means geometry is clean. A non-zero result is sent back to the
-writer as a geometry repair request before review continues.
+Optional execution controls:
+
+- `FIGMA_GEOMETRY_CHECK_CMD`: deterministic geometry check before review;
+- `FIGMA_PHASE_TIMEOUT_MS`: per-Codex-phase timeout (default 45 minutes);
+- `FIGMA_HARNESS_TIMEOUT_MS`: whole-run timeout (default 4 hours);
+- `FIGMA_HARNESS_HEARTBEAT_MS`: progress heartbeat interval (default 1 minute).
+
+The Codex child process is asynchronous, so the harness can emit heartbeat
+messages and terminate a phase that exceeds its timeout rather than blocking
+silently until the child exits.
+
+Terminal state is written to `terminal-state.json` under the run directory with
+one of:
+
+```text
+PASS
+FAIL_BUDGET
+TIMEOUT
+ERROR
+```
+
+`FAIL_BUDGET`, `TIMEOUT`, and `ERROR` are terminal for that invocation. The
+caller must report the result instead of automatically starting a fresh harness
+with a reset repair budget.
+
+Run the lifecycle regression test with:
+
+```bash
+npm run test:figma-harness
+```
 
 Run outputs are kept under `artifacts/figma-harness/` for inspection. They are
 execution evidence, not new canonical design artifacts.
