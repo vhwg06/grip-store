@@ -16,7 +16,11 @@ test("a failed final review stops instead of scheduling an unverified repair", (
   assert.equal(decideAfterVerification(false, "write", 3, maxRepairs), "fail_budget");
 });
 
-test("three repair opportunities imply four independent reviews in write mode", () => {
+test("the shared repair budget stops any verifier from scheduling repair N+1", () => {
+  assert.equal(decideAfterVerification(false, "write", 3, 3), "fail_budget");
+});
+
+test("three repair opportunities imply at most four independent reviews in write mode", () => {
   assert.equal(maximumReviewCount("write", 3), 4);
 });
 
