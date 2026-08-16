@@ -67,6 +67,24 @@ large clean containers do not rescue invalid geometry
 
 When a gate fails, report the originating gate rather than only its visual symptom.
 
+## Canonical Structure Review
+
+Inspect the active Module / Use Case / Screen / State inventory for competing canonical representations.
+
+Use semantic responsibility, not frame name or node age, to decide whether two representations are duplicates.
+
+Treat these as blocking `canonical_structure` defects when evidenced:
+
+```text
+same semantic responsibility represented by multiple competing canonical frames
+repair/re-entry appended a second canonical representation instead of reconciling the first
+states have different names but no meaningful observable difference despite semantics requiring one
+```
+
+Pixel-identical screenshots or hashes are strong evidence that two states may be duplicates, but they are not sufficient proof by themselves. Check the required user-visible meaning, behavior, information, and state responsibility before classifying them.
+
+Do not demand deletion merely because two renders match if the upstream semantics legitimately require separate canonical contexts.
+
 ## Independent Evaluation Rules
 
 Be skeptical.
@@ -77,7 +95,8 @@ Do not approve because:
 - the artifact is polished;
 - most requirements appear somewhere;
 - a defect seems easy to fix;
-- the design is internally consistent but inconsistent with upstream semantics.
+- the design is internally consistent but inconsistent with upstream semantics;
+- differently named frames appear to represent different states without observable semantic evidence.
 
 Do not talk yourself into accepting a threshold miss.
 
@@ -89,10 +108,10 @@ Score from 1 to 10:
 
 ```text
 ux
- design_quality
- composition
- originality
- craft
+design_quality
+composition
+originality
+craft
 ```
 
 Interpret them as follows.
@@ -171,6 +190,15 @@ Target: Checkout / Delivery
 Origin: composition
 Problem: The order summary and delivery choices have equal visual prominence even though delivery selection is the active decision.
 Evidence: Both occupy similarly sized bordered panels with equal heading strength and contrast.
+```
+
+Good canonical-structure example:
+
+```text
+Target: Catalog Admin / Categories
+Origin: canonical_structure
+Problem: Two canonical frames claim the same loaded-state responsibility.
+Evidence: Their task responsibility and observable UI are equivalent; the newer frame does not introduce a distinct required state.
 ```
 
 Bad:
