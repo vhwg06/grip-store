@@ -73,6 +73,31 @@ Correct ownership does not imply correct placement.
 
 Each canonical artifact has one canonical location.
 
+### Canonical Representation Invariant
+
+Semantic identity is determined by:
+
+```text
+owning Module
++ Use Case
++ Screen responsibility
++ State responsibility
+```
+
+Node id, frame name, creation time, or visual similarity alone does not define semantic identity.
+
+For one semantic identity there must be one canonical representation in the active scope.
+
+Repeated generation or repair over unchanged upstream semantics MUST reconcile the existing representation rather than append another canonical copy.
+
+Different names alone do not make two frames different semantic states.
+
+When two states are legitimately distinct because their semantics require different user-visible behavior or information, the artifact must contain the meaningful observable difference required by that distinction.
+
+Pixel-identical rendering is evidence of possible duplication, not proof by itself. Review semantic responsibility before classifying or removing a duplicate.
+
+Competing canonical representations for the same semantic responsibility are a structural failure.
+
 ---
 
 ## 3. Shared Quality Pipeline
@@ -148,6 +173,8 @@ Critical states
 ```
 
 Reject screens that merely aggregate available entities, endpoints, or components without a coherent user responsibility.
+
+Reject competing screen/state representations that claim the same semantic responsibility without a documented reason for coexistence.
 
 ---
 
@@ -302,6 +329,7 @@ Geometry / Structural PASS requires:
 ```text
 correct canonical ownership
 correct parent hierarchy
+one canonical representation per semantic identity
 zero unintended sibling overlap
 zero unintended cross-root overlap
 required spacing satisfied
@@ -376,6 +404,9 @@ Never approve while any of these remain:
 ```text
 semantic / UX gap silently guessed
 wrong canonical ownership
+competing canonical representation for the same semantic identity
+semantically equivalent duplicate state with no justified coexistence
+named distinct state with no meaningful observable difference when semantics require one
 unclear screen responsibility
 failed composition hierarchy
 computed unintended overlap
@@ -394,6 +425,10 @@ Final principles:
 Product semantics > Canvas convenience
 User goal > Implementation structure
 Composition > Decoration
+
+One semantic identity → one canonical representation
+Different state name ≠ different state
+Repeated execution → reconcile, not append
 
 Correct ownership ≠ Correct placement
 Inside parent ≠ Valid layout
