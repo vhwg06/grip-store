@@ -14,3 +14,17 @@
   executed directly by Cucumber; no generated Playwright-BDD source is the
   acceptance source.
 - *Always follow: `Spec / Use Case → Test → Implementation → Verification`.
+
+## Figma harness execution
+
+- Canonical Figma harness sessions MUST use `figma-mcp-go` for Figma operations.
+  Do not fall back to another Figma MCP server when `figma-mcp-go` is unavailable
+  or rate-limited.
+- A `figma:harness` invocation owns its complete review/repair budget and MUST
+  terminate from an independent reviewer state, never immediately after writer
+  mutation.
+- `PASS`, `FAIL_BUDGET`, `TIMEOUT`, and `ERROR` are terminal results for the
+  current harness invocation.
+- Do not automatically start a new `figma:harness` invocation after
+  `FAIL_BUDGET`, `TIMEOUT`, or `ERROR`. Report the terminal result and its
+  artifact directory instead. A new run requires an explicit new instruction.
