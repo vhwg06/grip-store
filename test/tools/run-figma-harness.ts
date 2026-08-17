@@ -8,6 +8,7 @@ import {
   initialWriterRequired,
   maximumReviewCount,
 } from "./figma-harness/lifecycle";
+import { codexInvocation, terminationPlan } from "./figma-harness/process";
 import { codexTerminalFailure, supervisionTimeoutReason } from "./figma-harness/supervision";
 
 interface ReviewDefect {
@@ -183,7 +184,7 @@ function parseArgs(argv: string[]): Options {
     }
 
     if (arg === "--help" || arg === "-h") {
-      console.log(`Usage:\n  # canonical write / repair lifecycle\n  npm run figma:harness -- \\\n    --scope "Checkout admin" \\\n    --figma "<Figma file/page/node reference>" \\\n    --doc docs/specs/checkout/checkout_srs.md \\\n    --doc docs/specs/checkout/checkout_ui_ux_research.md \\\n    --max-repairs 3\n\n  # read-only verification of the artifact as it already exists\n  npm run figma:verify -- \\\n    --scope "Checkout admin" \\\n    --figma "<Figma file/page/node reference>" \\\n    --doc docs/specs/checkout/checkout_srs.md \\\n    --doc docs/specs/checkout/checkout_ui_ux_research.md\n\nWrite mode starts one writer session, then permits at most N repairs and N+1 independent reviews.\nVerify mode starts no writer, performs no repair, and terminates after verification.\nThe harness always terminates from a reviewer/verifier state, never immediately after mutation.\n\nInputs to this Figma phase are upstream documents only. Feature/Gherkin is not a Figma-phase input.\n\nExecution supervision:\n- No default per-phase wall-clock timeout is applied. Long active phases are allowed.\n- The whole-run timeout is the hard safety ceiling.\n- An idle timeout is opt-in and resets only on child stdout/stderr activity; harness heartbeat logs do not reset it.\n- Every Codex phase persists stdout/stderr diagnostics in the run artifact directory.\n\nOptional environment:\n  CODEX_BIN=<path>                       Codex CLI binary/shim (default: codex; Windows resolves codex.cmd via cmd.exe).\n  FIGMA_GEOMETRY_CHECK_CMD=<command>     Deterministic geometry command. Exit 0 = CLEAN.\n  FIGMA_PHASE_IDLE_TIMEOUT_MS=<ms>       Optional inactivity timeout (default: 0 / disabled).\n  FIGMA_HARNESS_TIMEOUT_MS=<ms>          Whole-run safety ceiling (default: 14400000 / 4h).\n  FIGMA_HARNESS_HEARTBEAT_MS=<ms>        Heartbeat interval (default: 60000 / 1m).\n  FIGMA_PHASE_TIMEOUT_MS=<ms>            Deprecated and ignored.\n`);
+      console.log(`Usage:\n  # canonical write / repair lifecycle\n  npm run figma:harness -- \\\n    --scope "Checkout admin" \\\n    --figma "<Figma file/page/node reference>" \\\n    --doc docs/specs/checkout/checkout_srs.md \\\n    --doc docs/specs/checkout/checkout_ui_ux_research.md \\\n    --max-repairs 3\n\n  # read-only verification of the artifact as it already exists\n  npm run figma:verify -- \\\n    --scope "Checkout admin" \\\n    --figma "<Figma file/page/node reference>" \\\n    --doc docs/specs/checkout/checkout_srs.md \\\n    --doc docs/specs/checkout/checkout_ui_ux_research.md\n\nWrite mode starts one writer session, then permits at most N repairs and N+1 independent reviews.\nVerify mode starts no writer, performs no repair, and terminates after verification.\nThe harness always terminates from a reviewer/verifier state, never immediately after mutation.\n\nInputs to this Figma phase are upstream documents only. Feature/Gherkin is not a Figma-phase input.\n\nExecution supervision:\n- No default per-phase wall-clock timeout is applied. Long active phases are allowed.\n- The whole-run timeout is the hard safety ceiling.\n- An idle timeout is opt-in and resets only on child stdout/stderr activity; harness heartbeat logs do not reset it.\n- Every Codex phase persists stdout/stderr diagnostics in the run artifact directory.\n- Windows resolves npm codex.cmd to its JavaScript entry point and runs it with node.exe, avoiding cmd.exe parsing of prompts.\n- Windows forced cancellation uses taskkill /T; macOS/Linux run Codex in a dedicated process group and signal the whole group.\n\nOptional environment:\n  CODEX_BIN=<path>                       Codex CLI executable/shim (default: codex; Windows resolves codex.cmd safely).\n  FIGMA_GEOMETRY_CHECK_CMD=<command>     Deterministic geometry command. Exit 0 = CLEAN.\n  FIGMA_PHASE_IDLE_TIMEOUT_MS=<ms>       Optional inactivity timeout (default: 0 / disabled).\n  FIGMA_HARNESS_TIMEOUT_MS=<ms>          Whole-run safety ceiling (default: 14400000 / 4h).\n  FIGMA_HARNESS_HEARTBEAT_MS=<ms>        Heartbeat interval (default: 60000 / 1m).\n  FIGMA_PHASE_TIMEOUT_MS=<ms>            Deprecated and ignored.\n`);
       process.exit(0);
     }
 
@@ -224,24 +225,30 @@ function remainingRunMs(runDeadline: number): number {
   return runDeadline - Date.now();
 }
 
-function codexInvocation(args: string[]): { command: string; args: string[] } {
-  const configured = process.env.CODEX_BIN;
-  if (process.platform !== "win32") return { command: configured ?? "codex", args };
+function killProcessTree(pid: number, force: boolean): void {
+  const plan = terminationPlan(pid, force);
 
-  const bin = configured ?? "codex.cmd";
-  if (/\.(?:cmd|bat)$/i.test(bin) || !configured) {
-    return {
-      command: process.env.ComSpec ?? "cmd.exe",
-      args: ["/d", "/s", "/c", bin, ...args],
-    };
+  try {
+    if (plan.kind === "windows-tree") {
+      spawnSync(plan.command, plan.args, {
+        stdio: "ignore",
+        windowsHide: true,
+      });
+      return;
+    }
+
+    process.kill(plan.pid, plan.signal);
+  } catch {
+    // The process may already have exited between supervision and termination.
   }
-
-  return { command: bin, args };
 }
 
-function terminateChild(child: ReturnType<typeof spawn>): void {
-  child.kill("SIGTERM");
-  const forceKill = setTimeout(() => child.kill("SIGKILL"), 5_000);
+function terminateChildTree(child: ReturnType<typeof spawn>): void {
+  if (!child.pid) return;
+  killProcessTree(child.pid, false);
+  const forceKill = setTimeout(() => {
+    if (child.exitCode === null && child.signalCode === null) killProcessTree(child.pid!, true);
+  }, 5_000);
   forceKill.unref();
 }
 
@@ -262,152 +269,105 @@ async function runCodex(
   writeFileSync(stdoutPath, "", "utf8");
   writeFileSync(stderrPath, "", "utf8");
 
+  const invocation = codexInvocation(args);
   const startedAt = Date.now();
   let lastActivityAt = startedAt;
+  let timeoutKind: TimeoutKind | null = null;
+  let stdout = "";
+  let outputBytes = 0;
+  let outputExceeded = false;
+
   console.log(`[figma-harness] ${label}`);
+  const child = spawn(invocation.command, invocation.args, {
+    cwd: root,
+    stdio: ["ignore", "pipe", "pipe"],
+    detached: invocation.detached,
+    windowsHide: invocation.windowsHide,
+  });
 
   return await new Promise<CodexRunResult>((resolvePromise, reject) => {
-    const invocation = codexInvocation(args);
-    const child = spawn(invocation.command, invocation.args, {
-      cwd: root,
-      stdio: ["ignore", "pipe", "pipe"],
-      windowsHide: true,
-    });
-
-    let stdout = "";
-    let outputBytes = 0;
-    let timeoutKind: TimeoutKind | null = null;
-    let outputExceeded = false;
-    let settled = false;
-    let idleTimer: ReturnType<typeof setTimeout> | undefined;
-
-    const evidence = [stdoutPath, stderrPath];
-
-    const clearTimers = (): void => {
-      clearInterval(heartbeat);
-      clearTimeout(runTimer);
-      if (idleTimer) clearTimeout(idleTimer);
-    };
-
-    const rejectOnce = (failure: HarnessFailure): void => {
-      if (settled) return;
-      settled = true;
-      clearTimers();
-      reject(failure);
-    };
-
-    const resolveOnce = (result: CodexRunResult): void => {
-      if (settled) return;
-      settled = true;
-      clearTimers();
-      resolvePromise(result);
-    };
-
-    const triggerTimeout = (kind: TimeoutKind): void => {
-      if (timeoutKind || settled) return;
-      timeoutKind = kind;
-      const detail =
-        kind === "idle"
-          ? `${label} had no child stdout/stderr activity for ${phaseIdleTimeoutMs}ms`
-          : `whole-run timeout reached while ${label} was running`;
-      console.error(`[figma-harness] ${detail}; terminating child process`);
-      terminateChild(child);
-    };
-
-    const evaluateTimeout = (): void => {
-      const reason = supervisionTimeoutReason(
-        Date.now(),
-        lastActivityAt,
-        runDeadline,
-        phaseIdleTimeoutMs,
-      );
-      if (reason) triggerTimeout(reason);
-    };
-
-    const scheduleIdleTimeout = (): void => {
-      if (phaseIdleTimeoutMs <= 0 || settled) return;
-      if (idleTimer) clearTimeout(idleTimer);
-      idleTimer = setTimeout(evaluateTimeout, phaseIdleTimeoutMs);
-      idleTimer.unref();
-    };
-
-    const markActivity = (): void => {
-      lastActivityAt = Date.now();
-      scheduleIdleTimeout();
-    };
-
     const heartbeat = setInterval(() => {
       const now = Date.now();
       const elapsedSeconds = Math.floor((now - startedAt) / 1000);
       const idleSeconds = Math.floor((now - lastActivityAt) / 1000);
-      console.log(
-        `[figma-harness] ${label} still running (${elapsedSeconds}s elapsed, ${idleSeconds}s since child activity)`,
-      );
+      console.log(`[figma-harness] ${label} still running (${elapsedSeconds}s, child idle ${idleSeconds}s)`);
     }, heartbeatMs);
     heartbeat.unref();
 
-    const runTimer = setTimeout(evaluateTimeout, remaining);
-    runTimer.unref();
-    scheduleIdleTimeout();
+    const supervision = setInterval(() => {
+      const reason = supervisionTimeoutReason(Date.now(), lastActivityAt, runDeadline, phaseIdleTimeoutMs);
+      if (!reason || timeoutKind) return;
+
+      timeoutKind = reason;
+      if (reason === "idle") {
+        console.error(
+          `[figma-harness] ${label} had no child stdout/stderr activity for ${phaseIdleTimeoutMs}ms; terminating process tree`,
+        );
+      } else {
+        console.error(`[figma-harness] ${label} reached whole-run timeout; terminating process tree`);
+      }
+      terminateChildTree(child);
+    }, Math.min(heartbeatMs, 1_000));
+    supervision.unref();
 
     child.stdout?.on("data", (chunk: Buffer | string) => {
+      lastActivityAt = Date.now();
       const text = chunk.toString();
-      markActivity();
       appendFileSync(stdoutPath, text, "utf8");
       outputBytes += Buffer.byteLength(text);
       if (outputBytes > maxCodexOutputBytes) {
         outputExceeded = true;
-        terminateChild(child);
+        terminateChildTree(child);
         return;
       }
       stdout += text;
     });
 
     child.stderr?.on("data", (chunk: Buffer | string) => {
+      lastActivityAt = Date.now();
       const text = chunk.toString();
-      markActivity();
       appendFileSync(stderrPath, text, "utf8");
       process.stderr.write(text);
-      outputBytes += Buffer.byteLength(text);
-      if (outputBytes > maxCodexOutputBytes) {
-        outputExceeded = true;
-        terminateChild(child);
-      }
     });
 
     child.on("error", (error) => {
-      rejectOnce(new HarnessFailure("ERROR", `${label} failed to start: ${error.message}`, evidence));
+      clearInterval(heartbeat);
+      clearInterval(supervision);
+      reject(
+        new HarnessFailure("ERROR", `${label} failed to start: ${error.message}`, [stdoutPath, stderrPath]),
+      );
     });
 
     child.on("close", (code, signal) => {
-      if (settled) return;
+      clearInterval(heartbeat);
+      clearInterval(supervision);
 
       if (timeoutKind) {
-        const message =
+        const detail =
           timeoutKind === "idle"
-            ? `${label} timed out after ${phaseIdleTimeoutMs}ms without child stdout/stderr activity`
-            : `whole-run timeout reached while ${label} was running`;
-        rejectOnce(new HarnessFailure("TIMEOUT", message, evidence));
+            ? `${label} stalled with no child activity for ${phaseIdleTimeoutMs}ms`
+            : `${label} reached the whole-run timeout`;
+        reject(new HarnessFailure("TIMEOUT", detail, [stdoutPath, stderrPath]));
         return;
       }
 
       if (outputExceeded) {
-        rejectOnce(
+        reject(
           new HarnessFailure(
             "ERROR",
-            `${label} exceeded ${maxCodexOutputBytes} bytes of captured Codex output`,
-            evidence,
+            `${label} exceeded ${maxCodexOutputBytes} bytes of captured stdout`,
+            [stdoutPath, stderrPath],
           ),
         );
         return;
       }
 
       if (code !== 0) {
-        rejectOnce(
+        reject(
           new HarnessFailure(
             "ERROR",
             `${label} exited with status ${String(code)}${signal ? ` (signal ${signal})` : ""}`,
-            evidence,
+            [stdoutPath, stderrPath],
           ),
         );
         return;
@@ -415,16 +375,22 @@ async function runCodex(
 
       const streamFailure = codexTerminalFailure(stdout);
       if (streamFailure) {
-        rejectOnce(new HarnessFailure("ERROR", `${label} reported ${streamFailure}`, evidence));
+        reject(
+          new HarnessFailure(
+            "ERROR",
+            `${label} reported terminal Codex event ${streamFailure}`,
+            [stdoutPath, stderrPath],
+          ),
+        );
         return;
       }
 
-      resolveOnce({ stdout, stdoutPath, stderrPath });
+      resolvePromise({ stdout, stdoutPath, stderrPath });
     });
   });
 }
 
-function extractThreadId(jsonl: string, evidence: string[] = []): string {
+function extractThreadId(jsonl: string): string {
   for (const line of jsonl.split(/\r?\n/)) {
     if (!line.trim()) continue;
     try {
@@ -435,7 +401,7 @@ function extractThreadId(jsonl: string, evidence: string[] = []): string {
     }
   }
 
-  throw new HarnessFailure("ERROR", "writer run did not expose a Codex thread_id", evidence);
+  throw new HarnessFailure("ERROR", "writer run did not expose a Codex thread_id");
 }
 
 function figmaToolBoundary(): string {
@@ -503,6 +469,7 @@ function runGeometryCheck(runDeadline: number): GeometryCheckResult | null {
     encoding: "utf8",
     maxBuffer: 16 * 1024 * 1024,
     timeout: Math.min(5 * 60 * 1000, remaining),
+    windowsHide: true,
   });
 
   if (result.error) {
@@ -513,7 +480,10 @@ function runGeometryCheck(runDeadline: number): GeometryCheckResult | null {
   const details = [result.stdout, result.stderr].filter(Boolean).join("\n").trim();
   if (result.status === 0) return { passed: true, details };
 
-  return { passed: false, details: details || "Geometry command exited non-zero without output." };
+  return {
+    passed: false,
+    details: details || "Geometry command exited non-zero without output.",
+  };
 }
 
 function formatGeometryFeedback(details: string): string {
@@ -563,7 +533,16 @@ function finishFailedVerification(
   summary: string,
   lastReviewPath?: string,
 ): void {
-  writeTerminalState(runDir, options, "FAIL_VERIFICATION", reviews, repairsUsed, startedAt, summary, lastReviewPath);
+  writeTerminalState(
+    runDir,
+    options,
+    "FAIL_VERIFICATION",
+    reviews,
+    repairsUsed,
+    startedAt,
+    summary,
+    lastReviewPath,
+  );
   console.error(`[figma-harness] FAIL_VERIFICATION: ${summary}`);
   console.error(`[figma-harness] run artifacts: ${runDir}`);
   process.exitCode = 2;
@@ -578,7 +557,16 @@ function finishBudgetFailure(
   summary: string,
   lastReviewPath?: string,
 ): void {
-  writeTerminalState(runDir, options, "FAIL_BUDGET", reviews, repairsUsed, startedAt, summary, lastReviewPath);
+  writeTerminalState(
+    runDir,
+    options,
+    "FAIL_BUDGET",
+    reviews,
+    repairsUsed,
+    startedAt,
+    summary,
+    lastReviewPath,
+  );
   console.error(`[figma-harness] FAIL_BUDGET: ${summary}`);
   console.error(`[figma-harness] run artifacts: ${runDir}`);
   process.exitCode = 2;
@@ -610,7 +598,7 @@ async function main(): Promise<void> {
         runDeadline,
       );
       lastPhaseEvidence = [writerRun.stdoutPath, writerRun.stderrPath];
-      writerThreadId = extractThreadId(writerRun.stdout, lastPhaseEvidence);
+      writerThreadId = extractThreadId(writerRun.stdout);
       writeFileSync(resolve(runDir, "writer-thread.txt"), `${writerThreadId}\n`, "utf8");
     } else {
       console.log("[figma-harness] verification-only mode: skipping writer creation and all mutation/repair steps");
@@ -769,7 +757,8 @@ async function main(): Promise<void> {
       repairsUsed += 1;
     }
   } catch (error) {
-    const failure = error instanceof HarnessFailure ? error : new HarnessFailure("ERROR", String(error), lastPhaseEvidence);
+    const failure = error instanceof HarnessFailure ? error : new HarnessFailure("ERROR", String(error));
+    const evidence = failure.evidence.length ? failure.evidence : lastPhaseEvidence;
     const summary = `${failure.status}: ${failure.message}. This invocation is terminal; do not automatically restart the harness.`;
     writeTerminalState(
       runDir,
@@ -780,10 +769,10 @@ async function main(): Promise<void> {
       startedAt,
       summary,
       lastReviewPath,
-      failure.evidence,
+      evidence,
     );
     console.error(`[figma-harness] ${summary}`);
-    if (failure.evidence.length > 0) console.error(`[figma-harness] evidence: ${failure.evidence.join(", ")}`);
+    if (evidence.length) console.error(`[figma-harness] diagnostic evidence: ${evidence.join(", ")}`);
     console.error(`[figma-harness] run artifacts: ${runDir}`);
     process.exitCode = 1;
   }
