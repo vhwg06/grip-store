@@ -4,7 +4,7 @@ import { join } from "node:path";
 import { tmpdir } from "node:os";
 import test from "node:test";
 
-import { codexInvocation, terminationPlan } from "./process";
+import { codexInvocation, mcpApprovalConfigArgs, shellInvocation, terminationPlan } from "./process";
 
 test("macOS/Linux Codex phases start in their own process group", () => {
   const mac = codexInvocation(["exec", "--json"], "darwin", { CODEX_BIN: "/usr/local/bin/codex" });
@@ -42,25 +42,53 @@ test("Windows termination uses taskkill /T and escalates with /F", () => {
   });
 });
 
-test("Windows npm Codex shim is resolved to its JS entry point instead of cmd.exe", () => {
+test("Windows Codex shell launcher runs through Git Bash", () => {
   const root = join(tmpdir(), `figma-harness-codex-${process.pid}-${Date.now()}`);
   const bin = join(root, "npm");
-  const target = join(bin, "node_modules", "@openai", "codex", "bin", "codex.js");
-  mkdirSync(join(bin, "node_modules", "@openai", "codex", "bin"), { recursive: true });
-  writeFileSync(target, "console.log('codex fixture');\n", "utf8");
-  writeFileSync(
-    join(bin, "codex.cmd"),
-    '@ECHO off\r\n"%dp0%\\node.exe"  "%dp0%\\node_modules\\@openai\\codex\\bin\\codex.js" %*\r\n',
-    "utf8",
-  );
+  const target = join(bin, "codex");
+  const bash = join(bin, "bash.exe");
+  mkdirSync(bin, { recursive: true });
+  writeFileSync(target, "#!/bin/sh\n", "utf8");
+  writeFileSync(bash, "", "utf8");
 
   const invocation = codexInvocation(["exec", "prompt & still an argv"], "win32", {
     PATH: bin,
+    GIT_BASH_BIN: bash,
   });
 
-  assert.equal(invocation.command, process.execPath);
+  assert.equal(invocation.command, bash);
   assert.equal(invocation.detached, false);
   assert.equal(invocation.windowsHide, true);
   assert.equal(invocation.args[0], target);
   assert.deepEqual(invocation.args.slice(1), ["exec", "prompt & still an argv"]);
+});
+
+test("Windows shell commands use the configured Git Bash executable", () => {
+  const root = join(tmpdir(), `figma-harness-git-bash-${process.pid}-${Date.now()}`);
+  const bash = join(root, "bash.exe");
+  mkdirSync(root, { recursive: true });
+  writeFileSync(bash, "", "utf8");
+
+  const invocation = shellInvocation("npm run figma:verify", "win32", {
+    GIT_BASH_BIN: bash,
+  });
+
+  assert.equal(invocation.command, bash);
+  assert.deepEqual(invocation.args, ["-lc", "npm run figma:verify"]);
+});
+
+test("Windows shell resolution fails clearly when Git Bash is unavailable", () => {
+  assert.throws(
+    () => shellInvocation("npm run figma:verify", "win32", { PATH: "" }),
+    /Git Bash executable could not be resolved/,
+  );
+});
+
+test("Codex MCP approval overrides are emitted as repeatable config flags", () => {
+  assert.deepEqual(mcpApprovalConfigArgs("figma-mcp-go", ["get_metadata", "create_section"]), [
+    "--config",
+    'mcp_servers.figma-mcp-go.tools.get_metadata.approval_mode="approve"',
+    "--config",
+    'mcp_servers.figma-mcp-go.tools.create_section.approval_mode="approve"',
+  ]);
 });

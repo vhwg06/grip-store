@@ -8,7 +8,12 @@ import {
   initialWriterRequired,
   maximumReviewCount,
 } from "./figma-harness/lifecycle";
-import { codexInvocation, terminationPlan } from "./figma-harness/process";
+import {
+  codexInvocation,
+  mcpApprovalConfigArgs,
+  shellInvocation,
+  terminationPlan,
+} from "./figma-harness/process";
 import { codexTerminalFailure, supervisionTimeoutReason } from "./figma-harness/supervision";
 
 interface ReviewDefect {
@@ -45,6 +50,8 @@ interface Options {
   figma: string;
   docs: string[];
   maxRepairs: number;
+  resumeThreadFile?: string;
+  reviewArtifact?: string;
 }
 
 type TerminalStatus = "PASS" | "FAIL_BUDGET" | "FAIL_VERIFICATION" | "TIMEOUT" | "ERROR";
@@ -78,6 +85,107 @@ const thresholds = {
   originality: 7,
   craft: 8,
 } as const;
+
+const figmaMcpServer = "figma-mcp-go";
+const figmaMcpCommand = "npx";
+const figmaMcpPackage = "@vkhanhqui/figma-mcp-go@latest";
+
+const writerFigmaMcpTools = [
+  "add_page",
+  "add_variable_mode",
+  "apply_style_to_node",
+  "batch_rename_nodes",
+  "bind_variable_to_node",
+  "clone_node",
+  "create_component",
+  "create_effect_style",
+  "create_ellipse",
+  "create_frame",
+  "create_grid_style",
+  "create_paint_style",
+  "create_section",
+  "create_text",
+  "create_text_style",
+  "create_variable",
+  "create_variable_collection",
+  "delete_nodes",
+  "delete_page",
+  "delete_style",
+  "delete_variable",
+  "detach_instance",
+  "export_frames_to_pdf",
+  "export_tokens",
+  "find_replace_text",
+  "get_annotations",
+  "get_design_context",
+  "get_document",
+  "get_fonts",
+  "get_local_components",
+  "get_metadata",
+  "get_node",
+  "get_nodes_info",
+  "get_pages",
+  "get_reactions",
+  "get_screenshot",
+  "get_selection",
+  "get_styles",
+  "get_variable_defs",
+  "get_viewport",
+  "group_nodes",
+  "import_image",
+  "lock_nodes",
+  "move_nodes",
+  "navigate_to_page",
+  "remove_reactions",
+  "rename_node",
+  "rename_page",
+  "reorder_nodes",
+  "reparent_nodes",
+  "resize_nodes",
+  "rotate_nodes",
+  "save_screenshots",
+  "scan_nodes_by_types",
+  "scan_text_nodes",
+  "search_nodes",
+  "set_auto_layout",
+  "set_blend_mode",
+  "set_constraints",
+  "set_corner_radius",
+  "set_effects",
+  "set_fills",
+  "set_opacity",
+  "set_reactions",
+  "set_strokes",
+  "set_text",
+  "set_variable_value",
+  "set_visible",
+  "swap_component",
+  "ungroup_nodes",
+  "unlock_nodes",
+  "update_paint_style",
+] as const;
+
+const reviewerFigmaMcpTools = [
+  "get_annotations",
+  "get_design_context",
+  "get_document",
+  "get_fonts",
+  "get_local_components",
+  "get_metadata",
+  "get_node",
+  "get_nodes_info",
+  "get_pages",
+  "get_reactions",
+  "get_screenshot",
+  "get_selection",
+  "get_styles",
+  "get_variable_defs",
+  "get_viewport",
+  "save_screenshots",
+  "scan_nodes_by_types",
+  "scan_text_nodes",
+  "search_nodes",
+] as const;
 
 const root = process.cwd();
 const reviewerPath = resolve(root, ".agents/figma-reviewer.md");
@@ -132,6 +240,8 @@ function parseArgs(argv: string[]): Options {
   let scope = "";
   let figma = "";
   let maxRepairs = 3;
+  let resumeThreadFile = "";
+  let reviewArtifact = "";
   let repairBudgetWasExplicit = false;
 
   for (let i = 0; i < argv.length; i += 1) {
@@ -140,7 +250,9 @@ function parseArgs(argv: string[]): Options {
 
     if (arg === "--mode") {
       if (!value) die("--mode requires a value");
-      if (value !== "write" && value !== "verify") die("--mode must be either write or verify");
+      if (value !== "write" && value !== "repair" && value !== "verify") {
+        die("--mode must be write, repair, or verify");
+      }
       mode = value;
       i += 1;
       continue;
@@ -156,6 +268,20 @@ function parseArgs(argv: string[]): Options {
     if (arg === "--figma") {
       if (!value) die("--figma requires a value");
       figma = value;
+      i += 1;
+      continue;
+    }
+
+    if (arg === "--resume-thread-file") {
+      if (!value) die("--resume-thread-file requires a value");
+      resumeThreadFile = value;
+      i += 1;
+      continue;
+    }
+
+    if (arg === "--review-artifact") {
+      if (!value) die("--review-artifact requires a value");
+      reviewArtifact = value;
       i += 1;
       continue;
     }
@@ -184,7 +310,7 @@ function parseArgs(argv: string[]): Options {
     }
 
     if (arg === "--help" || arg === "-h") {
-      console.log(`Usage:\n  # canonical write / repair lifecycle\n  npm run figma:harness -- \\\n    --scope "Checkout admin" \\\n    --figma "<Figma file/page/node reference>" \\\n    --doc docs/specs/checkout/checkout_srs.md \\\n    --doc docs/specs/checkout/checkout_ui_ux_research.md \\\n    --max-repairs 3\n\n  # read-only verification of the artifact as it already exists\n  npm run figma:verify -- \\\n    --scope "Checkout admin" \\\n    --figma "<Figma file/page/node reference>" \\\n    --doc docs/specs/checkout/checkout_srs.md \\\n    --doc docs/specs/checkout/checkout_ui_ux_research.md\n\nWrite mode starts one writer session, then permits at most N repairs and N+1 independent reviews.\nVerify mode starts no writer, performs no repair, and terminates after verification.\nThe harness always terminates from a reviewer/verifier state, never immediately after mutation.\n\nInputs to this Figma phase are upstream documents only. Feature/Gherkin is not a Figma-phase input.\n\nExecution supervision:\n- No default per-phase wall-clock timeout is applied. Long active phases are allowed.\n- The whole-run timeout is the hard safety ceiling.\n- An idle timeout is opt-in and resets only on child stdout/stderr activity; harness heartbeat logs do not reset it.\n- Every Codex phase persists stdout/stderr diagnostics in the run artifact directory.\n- Windows resolves npm codex.cmd to its JavaScript entry point and runs it with node.exe, avoiding cmd.exe parsing of prompts.\n- Windows forced cancellation uses taskkill /T; macOS/Linux run Codex in a dedicated process group and signal the whole group.\n\nOptional environment:\n  CODEX_BIN=<path>                       Codex CLI executable/shim (default: codex; Windows resolves codex.cmd safely).\n  FIGMA_GEOMETRY_CHECK_CMD=<command>     Deterministic geometry command. Exit 0 = CLEAN.\n  FIGMA_PHASE_IDLE_TIMEOUT_MS=<ms>       Optional inactivity timeout (default: 0 / disabled).\n  FIGMA_HARNESS_TIMEOUT_MS=<ms>          Whole-run safety ceiling (default: 14400000 / 4h).\n  FIGMA_HARNESS_HEARTBEAT_MS=<ms>        Heartbeat interval (default: 60000 / 1m).\n  FIGMA_PHASE_TIMEOUT_MS=<ms>            Deprecated and ignored.\n`);
+      console.log(`Usage:\n  # canonical write / repair lifecycle\n  npm run figma:harness -- \\\n    --scope "Checkout admin" \\\n    --figma "<Figma file/page/node reference>" \\\n    --doc docs/specs/checkout/checkout_srs.md \\\n    --doc docs/specs/checkout/checkout_ui_ux_research.md \\\n    --max-repairs 3\n\n  # read-only verification of the artifact as it already exists\n  npm run figma:verify -- \\\n    --scope "Checkout admin" \\\n    --figma "<Figma file/page/node reference>" \\\n    --doc docs/specs/checkout/checkout_srs.md \\\n    --doc docs/specs/checkout/checkout_ui_ux_research.md\n\nWrite mode starts one writer session, then permits at most N repairs and N+1 independent reviews.\nVerify mode starts no writer, performs no repair, and terminates after verification.\nThe harness always terminates from a reviewer/verifier state, never immediately after mutation.\n\nInputs to this Figma phase are upstream documents only. Feature/Gherkin is not a Figma-phase input.\n\nExecution supervision:\n- No default per-phase wall-clock timeout is applied. Long active phases are allowed.\n- The whole-run timeout is the hard safety ceiling.\n- An idle timeout is opt-in and resets only on child stdout/stderr activity; harness heartbeat logs do not reset it.\n- Every Codex phase persists stdout/stderr diagnostics in the run artifact directory.\n- Windows runs the extensionless Codex launcher through Git Bash, avoiding PowerShell and cmd.exe parsing of prompts.\n- Windows forced cancellation uses taskkill /T; macOS/Linux run Codex in a dedicated process group and signal the whole group.\n\nOptional environment:\n  CODEX_BIN=<path>                       Git Bash Codex launcher or native executable (default: codex).\n  GIT_BASH_BIN=<path>                    Git Bash executable (auto-detected from PATH/standard install paths).\n  FIGMA_GEOMETRY_CHECK_CMD=<command>     Deterministic geometry command. Exit 0 = CLEAN.\n  FIGMA_PHASE_IDLE_TIMEOUT_MS=<ms>       Optional inactivity timeout (default: 0 / disabled).\n  FIGMA_HARNESS_TIMEOUT_MS=<ms>          Whole-run safety ceiling (default: 14400000 / 4h).\n  FIGMA_HARNESS_HEARTBEAT_MS=<ms>        Heartbeat interval (default: 60000 / 1m).\n  FIGMA_PHASE_TIMEOUT_MS=<ms>            Deprecated and ignored.\n`);
       process.exit(0);
     }
 
@@ -195,6 +321,16 @@ function parseArgs(argv: string[]): Options {
   if (!figma) die("--figma is required");
   if (docs.length === 0) die("at least one --doc is required");
 
+  if (mode === "repair") {
+    if (!resumeThreadFile) die("--resume-thread-file is required in repair mode");
+    if (!reviewArtifact) die("--review-artifact is required in repair mode");
+    if (maxRepairs < 1) die("repair mode requires at least one repair budget");
+  }
+
+  if (mode !== "repair" && (resumeThreadFile || reviewArtifact)) {
+    die("--resume-thread-file and --review-artifact are only valid in repair mode");
+  }
+
   if (mode === "verify") {
     if (repairBudgetWasExplicit && maxRepairs !== 0) {
       die("--max-repairs is not valid in verify mode; verification is read-only and has no repair budget");
@@ -202,7 +338,15 @@ function parseArgs(argv: string[]): Options {
     maxRepairs = 0;
   }
 
-  return { mode, scope, figma, docs, maxRepairs };
+  return {
+    mode,
+    scope,
+    figma,
+    docs,
+    maxRepairs,
+    resumeThreadFile: resumeThreadFile || undefined,
+    reviewArtifact: reviewArtifact || undefined,
+  };
 }
 
 function validateInputs(options: Options): string[] {
@@ -212,6 +356,13 @@ function validateInputs(options: Options): string[] {
 
   for (const path of required) {
     if (!existsSync(path)) die(`required harness file not found: ${path}`);
+  }
+
+  if (options.mode === "repair") {
+    const threadFile = resolve(root, options.resumeThreadFile!);
+    const reviewFile = resolve(root, options.reviewArtifact!);
+    if (!existsSync(threadFile)) die(`resume thread file not found: ${options.resumeThreadFile}`);
+    if (!existsSync(reviewFile)) die(`review artifact not found: ${options.reviewArtifact}`);
   }
 
   return options.docs.map((doc) => {
@@ -408,16 +559,70 @@ function figmaToolBoundary(): string {
   return `Figma tool routing is strict:\n- Use only the figma-mcp-go server (mcp__figma_mcp_go__*) for Figma operations.\n- Never use the legacy mcp__figma__* server.\n- If figma-mcp-go cannot perform a required operation, do not fall back to another Figma MCP server.`;
 }
 
+function windowsGitBashBoundary(): string {
+  if (process.platform !== "win32") return "";
+
+  return `Windows shell boundary:\n- Use Git Bash for repository commands.\n- Run shell commands through bash.exe -lc when a shell is required.\n- Do not invoke PowerShell, pwsh, cmd.exe, *.ps1, npm.ps1, npm.cmd, or codex.cmd.\n- Use npm and codex from the Git Bash environment.\n- If Git Bash is not on PATH, use the configured GIT_BASH_BIN executable.`;
+}
+
+function figmaApprovalArgs(tools: readonly string[]): string[] {
+  return [
+    "--config",
+    `mcp_servers.${figmaMcpServer}.command=${JSON.stringify(figmaMcpCommand)}`,
+    "--config",
+    `mcp_servers.${figmaMcpServer}.args=${JSON.stringify(["-y", figmaMcpPackage])}`,
+    ...mcpApprovalConfigArgs(figmaMcpServer, tools),
+  ];
+}
+
+function writerCodexArgs(prompt: string): string[] {
+  return [
+    "exec",
+    "--json",
+    "--sandbox",
+    "workspace-write",
+    ...figmaApprovalArgs(writerFigmaMcpTools),
+    prompt,
+  ];
+}
+
+function writerResumeCodexArgs(threadId: string, prompt: string): string[] {
+  return [
+    "exec",
+    "resume",
+    "--json",
+    ...figmaApprovalArgs(writerFigmaMcpTools),
+    threadId,
+    prompt,
+  ];
+}
+
+function reviewerCodexArgs(schemaPath: string, reviewPath: string, prompt: string): string[] {
+  return [
+    "exec",
+    "--ephemeral",
+    "--json",
+    "--sandbox",
+    "read-only",
+    ...figmaApprovalArgs(reviewerFigmaMcpTools),
+    "--output-schema",
+    schemaPath,
+    "-o",
+    reviewPath,
+    prompt,
+  ];
+}
+
 function canonicalReconciliationBoundary(): string {
   return `Canonical reconciliation is mandatory:\n- Resolve semantic identity by owning Module + Use Case + Screen + State responsibility, not by node id or display name alone.\n- Before creating or duplicating a screen/state, inspect the existing canonical scope for an equivalent representation.\n- If the semantic representation already exists, update/reconcile it in place instead of appending another copy.\n- Repeated execution over the same scope with unchanged semantics must converge on the same canonical artifact.\n- Different state names alone do not justify different frames. When semantics require distinct user-visible states, their rendered behavior/content must contain a meaningful observable difference.\n- Do not blindly delete suspicious duplicates. Reconcile only when semantic identity is established, preserving one canonical representation.`;
 }
 
 function writerPrompt(options: Options, docs: string[]): string {
-  return `You are the Figma writer for scope: ${options.scope}.\n\nRead and follow .agents/designer.md.\n\n${figmaToolBoundary()}\n\n${canonicalReconciliationBoundary()}\n\nFigma target:\n${options.figma}\n\nCanonical upstream inputs for this Figma phase:\n${docs.map((doc) => `- ${doc}`).join("\n")}\n\nImportant pipeline boundary:\n- Use these upstream documents as the design inputs.\n- Do NOT use Feature/Gherkin as an input to this Figma phase; that artifact belongs to a later phase.\n- Do not create intermediate design-state/strategy/skeleton artifacts.\n\nTask:\nComplete the canonical Figma scope to production quality. Inspect and reconcile the real target before mutation, reason about task hierarchy and composition, mutate Figma through figma-mcp-go, and leave the requested scope ready for an independent review.\n\nDo not self-approve the result. The harness will run a fresh reviewer after this writer turn.`;
+  return `You are the Figma writer for scope: ${options.scope}.\n\nRead and follow .agents/designer.md.\n\nVisual skill lenses required for this turn:\n- Read .agents/skills/gpt-taste/SKILL.md and use it as a product-specific originality and craft challenge.\n- Read .agents/skills/redesign-existing-projects/SKILL.md and apply its audit-first, targeted-upgrade discipline to the existing Figma scope.\n- Read .agents/skills/design-taste-frontend/SKILL.md and use its anti-slop and pre-flight checks selectively. This is an admin/product workspace, so its stated exclusions and the SRS/UI research override landing-page defaults such as AIDA hero composition, marketing CTAs, or invented motion.\n- These skills must not invent or override business behavior, screen boundaries, states, fields, actions, navigation, or domain semantics.\n\n${figmaToolBoundary()}\n\n${windowsGitBashBoundary()}\n\n${canonicalReconciliationBoundary()}\n\nFigma target:\n${options.figma}\n\nCanonical upstream inputs for this Figma phase:\n${docs.map((doc) => `- ${doc}`).join("\n")}\n\nImportant pipeline boundary:\n- Use these upstream documents as the design inputs.\n- Do NOT use Feature/Gherkin as an input to this Figma phase; that artifact belongs to a later phase.\n- Do not create intermediate design-state/strategy/skeleton artifacts.\n\nTask:\nComplete the canonical Figma scope to production quality. Inspect and reconcile the real target before mutation, reason about task hierarchy and composition, apply the relevant skill challenges after semantic/UX/composition gates are coherent, mutate Figma through figma-mcp-go, and leave the requested scope ready for an independent review.\n\nDo not self-approve the result. The harness will run a fresh reviewer after this writer turn.`;
 }
 
 function reviewerPrompt(options: Options, docs: string[]): string {
-  return `You are a fresh independent reviewer for scope: ${options.scope}.\n\nRead and follow .agents/figma-reviewer.md.\n\n${figmaToolBoundary()}\n\nFigma target to inspect:\n${options.figma}\n\nCanonical upstream inputs for this Figma phase:\n${docs.map((doc) => `- ${doc}`).join("\n")}\n\nImportant boundaries:\n- Feature/Gherkin is NOT an input to this Figma phase.\n- Inspect the actual rendered Figma artifact, not the writer's rationale.\n- Use figma-mcp-go only.\n- Do not mutate Figma.\n- Inspect canonical screen/state inventory for competing semantic representations or renamed clones.\n- Pixel-identical rendering is evidence of possible duplication, not proof by itself; judge semantic responsibility and observable state difference.\n- Report competing canonical representations or unjustified duplicate states with origin canonical_structure.\n- Return only the JSON object required by the supplied output schema.\n\nEvaluate the current Figma now.`;
+  return `You are a fresh independent reviewer for scope: ${options.scope}.\n\nRead and follow .agents/figma-reviewer.md.\n\nVisual review lenses required for this turn:\n- Read .agents/skills/gpt-taste/SKILL.md for originality and craft challenges.\n- Read .agents/skills/redesign-existing-projects/SKILL.md for audit-first diagnosis of generic or weak existing patterns.\n- Read .agents/skills/design-taste-frontend/SKILL.md for anti-slop/pre-flight checks, applying only the parts relevant to an admin/product workspace. Do not penalize the artifact for correctly avoiding landing-page AIDA/hero patterns, and do not accept visual polish that conflicts with the SRS or Catalog UI/UX research.\n\n${figmaToolBoundary()}\n\n${windowsGitBashBoundary()}\n\nFigma target to inspect:\n${options.figma}\n\nCanonical upstream inputs for this Figma phase:\n${docs.map((doc) => `- ${doc}`).join("\n")}\n\nImportant boundaries:\n- Feature/Gherkin is NOT an input to this Figma phase.\n- Inspect the actual rendered Figma artifact, not the writer's rationale.\n- Use figma-mcp-go only.\n- Do not mutate Figma.\n- Inspect canonical screen/state inventory for competing semantic representations or renamed clones.\n- Pixel-identical rendering is evidence of possible duplication, not proof by itself; judge semantic responsibility and observable state difference.\n- Report competing canonical representations or unjustified duplicate states with origin canonical_structure.\n- Return only the JSON object required by the supplied output schema.\n\nEvaluate the current Figma now.`;
 }
 
 function reviewPasses(review: ReviewResult): boolean {
@@ -452,6 +657,24 @@ function formatReviewFeedback(review: ReviewResult): string {
   return `Independent Figma review failed.\n\nScore gaps:\n${gaps.length ? gaps.map((gap) => `- ${gap}`).join("\n") : "- none"}\n\nReviewer defects:\n${defects || "- none"}\n\nReviewer summary:\n${review.summary}\n\nRepair the actual Figma artifact. Fix the originating design decision rather than masking a structural UX/composition defect with decoration. Reconcile existing canonical screen/state representations before creating new nodes; do not solve a defect by appending a semantically equivalent clone. Do not create intermediate design documents. When finished, leave Figma ready for another fresh review.`;
 }
 
+function loadRepairInputs(options: Options): { threadId: string; review: ReviewResult } {
+  const threadId = readFileSync(resolve(root, options.resumeThreadFile!), "utf8").trim();
+  if (!threadId) die(`resume thread file is empty: ${options.resumeThreadFile}`);
+
+  let review: ReviewResult;
+  try {
+    review = JSON.parse(readFileSync(resolve(root, options.reviewArtifact!), "utf8")) as ReviewResult;
+  } catch (error) {
+    die(`could not parse review artifact ${options.reviewArtifact}: ${String(error)}`);
+  }
+
+  if (review.status !== "fail") {
+    die(`repair mode requires a failed review artifact: ${options.reviewArtifact}`);
+  }
+
+  return { threadId, review };
+}
+
 function runGeometryCheck(runDeadline: number): GeometryCheckResult | null {
   const command = process.env.FIGMA_GEOMETRY_CHECK_CMD;
   if (!command) return null;
@@ -462,9 +685,8 @@ function runGeometryCheck(runDeadline: number): GeometryCheckResult | null {
   }
 
   console.log("[figma-harness] running deterministic geometry verification");
-  const shell = process.platform === "win32" ? process.env.ComSpec ?? "cmd.exe" : "/bin/sh";
-  const shellArgs = process.platform === "win32" ? ["/d", "/s", "/c", command] : ["-lc", command];
-  const result = spawnSync(shell, shellArgs, {
+  const shell = shellInvocation(command);
+  const result = spawnSync(shell.command, shell.args, {
     cwd: root,
     encoding: "utf8",
     maxBuffer: 16 * 1024 * 1024,
@@ -591,7 +813,7 @@ async function main(): Promise<void> {
   try {
     if (initialWriterRequired(options.mode)) {
       const writerRun = await runCodex(
-        ["exec", "--json", "--sandbox", "workspace-write", writerPrompt(options, docs)],
+        writerCodexArgs(writerPrompt(options, docs)),
         "starting writer session",
         "writer-initial",
         runDir,
@@ -600,6 +822,20 @@ async function main(): Promise<void> {
       lastPhaseEvidence = [writerRun.stdoutPath, writerRun.stderrPath];
       writerThreadId = extractThreadId(writerRun.stdout);
       writeFileSync(resolve(runDir, "writer-thread.txt"), `${writerThreadId}\n`, "utf8");
+    } else if (options.mode === "repair") {
+      const repairInputs = loadRepairInputs(options);
+      writerThreadId = repairInputs.threadId;
+      const feedback = formatReviewFeedback(repairInputs.review);
+      writeFileSync(resolve(runDir, "prior-review-feedback.txt"), feedback, "utf8");
+      const repairRun = await runCodex(
+        writerResumeCodexArgs(writerThreadId, feedback),
+        `writer repair from prior review 1/${options.maxRepairs}`,
+        "writer-repair-from-prior-review",
+        runDir,
+        runDeadline,
+      );
+      lastPhaseEvidence = [repairRun.stdoutPath, repairRun.stderrPath];
+      repairsUsed += 1;
     } else {
       console.log("[figma-harness] verification-only mode: skipping writer creation and all mutation/repair steps");
     }
@@ -647,7 +883,7 @@ async function main(): Promise<void> {
         const feedback = formatGeometryFeedback(geometry.details);
         writeFileSync(resolve(runDir, `geometry-feedback-${repairNumber}.txt`), feedback, "utf8");
         const repairRun = await runCodex(
-          ["exec", "resume", "--json", writerThreadId, feedback],
+          writerResumeCodexArgs(writerThreadId, feedback),
           `writer geometry repair ${repairNumber}/${options.maxRepairs}`,
           `writer-geometry-repair-${repairNumber}`,
           runDir,
@@ -663,18 +899,7 @@ async function main(): Promise<void> {
       lastReviewPath = reviewPath;
 
       const reviewRun = await runCodex(
-        [
-          "exec",
-          "--ephemeral",
-          "--json",
-          "--sandbox",
-          "read-only",
-          "--output-schema",
-          schemaPath,
-          "-o",
-          reviewPath,
-          reviewerPrompt(options, docs),
-        ],
+        reviewerCodexArgs(schemaPath, reviewPath, reviewerPrompt(options, docs)),
         `fresh review ${reviewNumber}/${maxReviews}`,
         `review-${reviewNumber}`,
         runDir,
@@ -747,7 +972,7 @@ async function main(): Promise<void> {
       const feedback = formatReviewFeedback(review);
       writeFileSync(resolve(runDir, `feedback-${reviews}.txt`), feedback, "utf8");
       const repairRun = await runCodex(
-        ["exec", "resume", "--json", writerThreadId, feedback],
+        writerResumeCodexArgs(writerThreadId, feedback),
         `writer repair ${repairNumber}/${options.maxRepairs}`,
         `writer-repair-${repairNumber}`,
         runDir,

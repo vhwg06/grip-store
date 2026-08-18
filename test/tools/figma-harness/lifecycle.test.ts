@@ -39,3 +39,10 @@ test("verification-only mode never starts a writer or schedules a repair", () =>
 test("write mode starts the initial writer lifecycle", () => {
   assert.equal(initialWriterRequired("write"), true);
 });
+
+test("repair mode resumes an existing writer thread instead of starting a fresh writer", () => {
+  assert.equal(initialWriterRequired("repair"), false);
+  assert.equal(maximumReviewCount("repair", 3), 4);
+  assert.equal(decideAfterVerification(false, "repair", 0, 3), "repair");
+  assert.equal(decideAfterVerification(false, "repair", 3, 3), "fail_budget");
+});

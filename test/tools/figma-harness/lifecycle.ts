@@ -1,4 +1,4 @@
-export type HarnessMode = "write" | "verify";
+export type HarnessMode = "write" | "repair" | "verify";
 
 export type VerificationDecision = "pass" | "repair" | "fail_budget" | "fail_verification";
 

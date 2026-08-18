@@ -1,5 +1,5 @@
-import { existsSync, readFileSync } from "node:fs";
-import { delimiter, dirname, extname, isAbsolute, join, resolve } from "node:path";
+import { existsSync } from "node:fs";
+import { delimiter, extname, isAbsolute, join, resolve } from "node:path";
 
 export interface ProcessEnvironment {
   [key: string]: string | undefined;
@@ -10,6 +10,11 @@ export interface CodexInvocation {
   args: string[];
   detached: boolean;
   windowsHide: boolean;
+}
+
+export interface ShellInvocation {
+  command: string;
+  args: string[];
 }
 
 export type TerminationPlan =
@@ -31,64 +36,81 @@ export function findExecutableOnPath(name: string, env: ProcessEnvironment = pro
   return null;
 }
 
-function resolveNpmCmdNodeTarget(shimPath: string): string | null {
-  let source: string;
-  try {
-    source = readFileSync(shimPath, "utf8");
-  } catch {
-    return null;
+function resolveGitBash(env: ProcessEnvironment): string | null {
+  const configured = env.GIT_BASH_BIN;
+  if (configured) {
+    const resolved = isAbsolute(configured) ? configured : findExecutableOnPath(configured, env);
+    return resolved && existsSync(resolved) ? resolved : null;
   }
 
-  // npm's Windows command shim embeds the JS entry point relative to %dp0%.
-  // Resolve that target and execute it with Node directly so arbitrary harness
-  // prompts never pass through cmd.exe parsing.
-  const match = source.match(/%dp0%[\\/]([^"\r\n]+?\.js)/i);
-  if (!match) return null;
+  const knownPaths = [
+    env.ProgramFiles ? join(env.ProgramFiles, "Git", "usr", "bin", "bash.exe") : null,
+    env["ProgramFiles(x86)"]
+      ? join(env["ProgramFiles(x86)"], "Git", "usr", "bin", "bash.exe")
+      : null,
+    env.LOCALAPPDATA ? join(env.LOCALAPPDATA, "Programs", "Git", "usr", "bin", "bash.exe") : null,
+  ];
 
-  const relativeTarget = match[1].replace(/[\\/]+/g, process.platform === "win32" ? "\\" : "/");
-  const target = resolve(dirname(shimPath), relativeTarget);
-  return existsSync(target) ? target : null;
+  return knownPaths.find((candidate): candidate is string => Boolean(candidate && existsSync(candidate))) ?? null;
 }
 
 function resolveWindowsCodex(configured: string | undefined, env: ProcessEnvironment): CodexInvocation {
-  const requested = configured ?? "codex.cmd";
+  const requested = configured ?? "codex";
   const extension = extname(requested).toLowerCase();
 
   if (extension === ".exe") {
     return { command: requested, args: [], detached: false, windowsHide: true };
   }
 
-  if (extension !== ".cmd" && extension !== ".bat") {
-    const direct = findExecutableOnPath(requested, env);
-    if (direct && extname(direct).toLowerCase() === ".exe") {
-      return { command: direct, args: [], detached: false, windowsHide: true };
-    }
-  }
-
-  const shim = findExecutableOnPath(requested, env);
-  if (!shim) {
+  const requestedScript = extension === ".cmd" || extension === ".bat" || extension === ".ps1"
+    ? requested.slice(0, -extension.length)
+    : requested;
+  const script = findExecutableOnPath(requestedScript, env);
+  if (!script) {
     throw new Error(
-      `could not resolve Windows Codex launcher ${requested}; set CODEX_BIN to codex.cmd, a native codex.exe, or another executable path`,
+      `could not resolve the Windows Codex shell script ${requestedScript}; set CODEX_BIN to the Git Bash codex launcher`,
     );
   }
 
-  if (extname(shim).toLowerCase() === ".exe") {
-    return { command: shim, args: [], detached: false, windowsHide: true };
-  }
-
-  const nodeTarget = resolveNpmCmdNodeTarget(shim);
-  if (!nodeTarget) {
+  const bash = resolveGitBash(env);
+  if (!bash) {
     throw new Error(
-      `resolved ${shim}, but could not locate its npm JavaScript entry point; set CODEX_BIN to a native executable instead of launching arbitrary prompts through cmd.exe`,
+      "Git Bash executable could not be resolved; set GIT_BASH_BIN to bash.exe or add Git Bash to PATH",
     );
   }
 
   return {
-    command: process.execPath,
-    args: [nodeTarget],
+    command: bash,
+    args: [script],
     detached: false,
     windowsHide: true,
   };
+}
+
+export function shellInvocation(
+  command: string,
+  platform: NodeJS.Platform = process.platform,
+  env: ProcessEnvironment = process.env,
+): ShellInvocation {
+  if (platform !== "win32") {
+    return { command: "/bin/sh", args: ["-lc", command] };
+  }
+
+  const bash = resolveGitBash(env);
+  if (!bash) {
+    throw new Error(
+      "Git Bash executable could not be resolved; set GIT_BASH_BIN to bash.exe or add Git Bash to PATH",
+    );
+  }
+
+  return { command: bash, args: ["-lc", command] };
+}
+
+export function mcpApprovalConfigArgs(server: string, tools: readonly string[]): string[] {
+  return tools.flatMap((tool) => [
+    "--config",
+    `mcp_servers.${server}.tools.${tool}.approval_mode="approve"`,
+  ]);
 }
 
 export function codexInvocation(

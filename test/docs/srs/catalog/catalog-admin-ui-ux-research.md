@@ -1,9 +1,9 @@
 # GRIP — Catalog Admin UI/UX Research
 
-**Status:** Final  
-**Scope:** Admin surface of the Catalog module  
-**Primary admin job:** Create, configure, preview, publish, and maintain a Product  
-**Design philosophy:** Simple surface over a richer Catalog domain  
+**Status:** Final
+**Scope:** Admin surface of the Catalog module
+**Primary admin job:** Create, configure, preview, publish, and maintain a Product
+**Design philosophy:** Simple surface over a richer Catalog domain
 **Research mode:** UI/UX reference research, not domain authority
 
 ---
@@ -63,6 +63,13 @@ Variant Dimensions
 Master Data
 → Material / Finish / Pack
 
+Pack
+→ shared selling-unit metadata
+→ selling unit / quantity / base unit
+
+Variant
+→ owns SKU / price / currency / Pack reference / technical values / status / media
+
 Variant Generation
 → combination preview + selected generation/manual creation
 
@@ -70,6 +77,7 @@ Bulk Variant
 → price / status / Pack / media
 
 SKU
+→ Variant-owned commercial identity
 → globally unique
 ```
 
@@ -164,6 +172,7 @@ Useful characteristics:
 - relatively restrained visual hierarchy.
 
 References:
+
 - Squarespace Help — Add products to your store
 - Squarespace Help — Adding product variants
 - Squarespace Help — Product images
@@ -193,6 +202,7 @@ Additional information
 The user is not forced to understand PIM/catalog terminology.
 
 Reference:
+
 - Wix Stores — Adding a physical product
 - Wix Stores — Adding product options
 
@@ -233,6 +243,7 @@ generated variations
 Square also supports reviewing generated combinations.
 
 Reference:
+
 - Square Support — Item options
 
 ### GRIP lesson
@@ -257,6 +268,7 @@ column-based editing
 ```
 
 Reference:
+
 - Shopify Help — Editing variants
 
 ### GRIP lesson
@@ -285,6 +297,7 @@ WooCommerce provides a useful reference for:
 - variation-specific media when a variation is selected.
 
 Reference:
+
 - WooCommerce — Variable Product documentation
 
 ### GRIP lesson
@@ -392,6 +405,22 @@ These responsibilities do not necessarily require tabs/pages.
 
 A simple editor with clear section hierarchy is preferred until complexity proves otherwise.
 
+Secondary setup/edit flows should remain attached to this workspace as **popup-contained branch pipelines**.
+
+Example:
+
+```text
+Product Workspace
+→ Setup Pack
+→ open "Setup Pack" popup
+→ complete the Pack setup pipeline inside the popup
+→ save / cancel
+→ close popup
+→ return to the unchanged Product Workspace context
+```
+
+The popup may contain multiple internal states or steps when the branch itself has a real workflow. The existence of those states does not justify navigating to another application screen.
+
 ---
 
 # 13. Do not create a setup dashboard
@@ -473,7 +502,7 @@ The user should not need a navigation destination named:
 Variant Generation
 ```
 
-The generation behavior can remain inside the Options/Variants interaction.
+The generation behavior should be opened from the Options/Variants context as a popup branch pipeline rather than navigating to a separate screen.
 
 Conceptual flow:
 
@@ -531,23 +560,104 @@ Once variants exist, they should appear in the Product Workspace.
 Recommended representation:
 
 ```text
-Các phiên bản                                  6
+Các phiên bản                                  6
 
-☐ Trắng / 120       12.990.000   Đang bán
-☐ Trắng / 160       13.990.000   Đang bán
-☐ Đen / 120         12.990.000   Đang bán
+☐ Trắng / 120       12.990.000   Đang bán
+☐ Trắng / 160       13.990.000   Đang bán
+☐ Đen / 120         12.990.000   Đang bán
 ...
 ```
 
 The row should expose only the most important scannable properties.
 
-Deep editing can happen in a row detail, drawer, or focused editor when necessary.
+Deep variant editing should normally open a dedicated variant-edit popup so the user can complete that branch pipeline without leaving the Product Workspace.
+
+The focused Variant edit pipeline should expose only Variant-owned or Variant-referenced commercial data supported by the SRS:
+
+```text
+Variant
+├── SKU
+├── Current selling price
+├── Currency
+├── Pack
+├── Technical values
+├── Status
+└── Media
+```
+
+Do not introduce stock quantity, warehouse quantity, or inventory fields.
+
+### SKU setup
+
+SKU is the Variant's commercial identity and is globally unique.
+
+Recommended branch:
+
+```text
+Product Workspace
+→ Variant
+→ [Setup / Edit SKU]
+→ Popup: SKU
+   ├── SKU
+   ├── uniqueness validation
+   └── save
+→ popup closes
+→ Variant row/detail reflects the SKU
+```
+
+SKU is not Pack quantity and is not inventory quantity.
+
+### Pack assignment
+
+A Variant references a Pack. The Variant does not own Pack quantity directly.
+
+Recommended branch:
+
+```text
+Product Workspace
+→ Variant
+→ [Choose Pack]
+→ Popup: Choose Pack
+   ├── existing Pack options
+   ├── merchant-readable selling-unit summary
+   └── choose
+→ popup closes
+→ Variant references the selected Pack
+```
+
+When the operator needs a new Pack, creation remains a nested branch of the current task:
+
+```text
+Choose Pack popup
+→ [Create Pack]
+→ Popup state: Create Pack
+   ├── Name
+   ├── Selling unit
+   ├── Quantity
+   ├── Base unit
+   └── Save
+→ return to Choose Pack
+→ newly created Pack is available for selection
+```
+
+The UI must make the semantics clear:
+
+```text
+Pack quantity
+→ shared selling-unit metadata
+
+Variant Pack
+→ reference to that Pack
+
+Inventory / stock quantity
+→ out of scope
+```
 
 ---
 
 # 18. Bulk Variant
 
-Bulk Variant should appear contextually after selection.
+Bulk Variant should appear contextually after selection and open its editing pipeline in a dedicated popup.
 
 Example:
 
@@ -563,7 +673,18 @@ Example:
 
 Only expose operations supported by the actual GRIP contract.
 
-Do not copy inventory, shipping, fulfillment, or other Shopify actions.
+Version 1 bulk operations are limited to:
+
+```text
+price
+status
+Pack
+media
+```
+
+Do not add bulk SKU editing. SKU is globally unique per Variant and is not part of the approved Bulk Variant contract.
+
+Do not copy inventory, shipping, fulfillment, quantity, or other Shopify actions.
 
 ---
 
@@ -608,6 +729,16 @@ Finish
 Pack
 ```
 
+Pack is shared Master Data. It contains selling-unit metadata such as:
+
+```text
+selling unit
+quantity
+base unit
+```
+
+Quantity here describes the Pack composition/selling unit. It is not stock, inventory, warehouse availability, or a Variant-owned quantity.
+
 User-facing grouping:
 
 ```text
@@ -620,10 +751,28 @@ Bề mặt
 [...]
 
 Đóng gói
-[...]
+[Pack hiện tại / Chọn Pack / Tạo Pack]
 ```
 
-Do not create a standalone `Master Data` destination.
+Do not create a standalone `Master Data` destination in the Product authoring flow.
+
+When Pack setup is needed from Product or Variant work, keep it as a branch popup:
+
+```text
+Product / Variant context
+→ [Choose / Setup Pack]
+→ Popup: Pack
+   ├── choose existing Pack
+   └── create Pack
+       ├── name
+       ├── selling unit
+       ├── quantity
+       └── base unit
+→ save / choose
+→ return to Product Workspace
+```
+
+Creating or selecting Pack must not be represented as setting Variant inventory quantity.
 
 ---
 
@@ -677,7 +826,7 @@ Example:
 ```text
 Phiên bản hiển thị đầu tiên
 
-Xám / 3 chỗ                         [Đổi]
+Xám / 3 chỗ                         [Đổi]
 
 Khách sẽ thấy phiên bản này
 khi mở sản phẩm.
@@ -688,7 +837,8 @@ Rules:
 - only choose from existing variants;
 - explain the customer-facing consequence;
 - keep the control close to variant/public-preview context;
-- do not create a separate Default Variant management screen.
+- do not create a separate Default Variant management screen;
+- when selection needs a focused flow, open it as a popup from the Product Workspace.
 
 ---
 
@@ -705,9 +855,9 @@ Therefore Preview should be available directly from the Product Workspace.
 Example header:
 
 ```text
-KIVIK Sofa                            Nháp
+KIVIK Sofa                            Nháp
 
-                              [Xem trước]
+                              [Xem trước]
 ```
 
 Preview should represent the actual public behavior:
@@ -888,28 +1038,107 @@ Examples:
 
 ---
 
-# 30. No one-screen-per-use-case mapping
+# 30. Branch pipelines should open as popups
 
-The domain contains:
+The domain contains branch capabilities such as:
 
 ```text
 Variant Generation
 Bulk Variant
-Master Data
-Preview
+Pack setup
+Default Variant selection
+Product information setup
 ```
 
-This does **not** imply:
+These may have their own real pipeline and multiple internal states.
+
+That does **not** mean they should become separate application screens.
+
+The default interaction model is:
 
 ```text
-four sidebar pages
+Primary screen / workspace
+→ user starts a branch task
+→ open popup for that branch
+→ run the complete branch pipeline inside the popup
+→ save / confirm / cancel
+→ close popup
+→ return to the same primary screen and context
 ```
 
-These capabilities may all live contextually inside one Product Workspace.
+Example:
+
+```text
+Product Workspace
+→ Variant
+→ [Choose / Setup Pack]
+→ Popup: Pack
+   ├── choose an existing Pack
+   └── or create Pack
+       ├── name
+       ├── selling unit
+       ├── quantity
+       └── base unit
+→ validate
+→ save / choose
+→ popup closes
+→ Variant references the selected Pack
+```
+
+Another example:
+
+```text
+Product Workspace
+→ Variant
+→ [Setup SKU]
+→ Popup: SKU
+   ├── enter / edit SKU
+   ├── validate global uniqueness
+   └── save
+→ popup closes
+→ Variant reflects the SKU
+```
+
+SKU setup is a Variant branch. It is not a new screen and it must not be conflated with Pack quantity or inventory quantity.
+
+Another example:
+
+```text
+Product Workspace
+→ [Generate variants]
+→ Popup: Generate Variants
+   ├── preview combinations
+   ├── select valid combinations
+   ├── review result
+   └── create
+→ popup closes
+→ generated variants appear in Product Workspace
+```
+
+The important distinction is:
+
+```text
+new pipeline
+≠ new screen
+
+branch pipeline
+→ popup
+
+new primary user context
+→ screen
+```
+
+A popup is not limited to one trivial form. It may contain several states or a short step sequence when that is the natural shape of the branch pipeline.
+
+Do not flatten a real branch workflow into inline fields merely to avoid navigation.
+
+Do not navigate away from the primary workspace merely because the branch has several steps.
 
 Rule:
 
-> Use case boundaries are behavioral boundaries, not automatic navigation boundaries.
+> **Keep the primary pipeline on the primary screen. Run secondary branch pipelines inside dedicated popups.**
+
+A new standalone screen is justified only when the user intentionally leaves the current primary object/task and enters another primary context.
 
 ---
 
@@ -918,8 +1147,8 @@ Rule:
 Conceptual, not canonical screen geometry:
 
 ```text
-KIVIK Sofa                              Nháp
-                              [Xem trước]
+KIVIK Sofa                              Nháp
+                              [Xem trước]
 
 ────────────────────────────────────────────
 
@@ -946,7 +1175,7 @@ Bề mặt
 
 ────────────────────────────────────────────
 
-                    [Hiển thị trên cửa hàng]
+                    [Hiển thị trên cửa hàng]
 ```
 
 This should remain one coherent object-editing experience unless usability evidence demands stronger decomposition.
@@ -983,7 +1212,12 @@ Do not:
 - show fake completeness percentages;
 - create a mandatory long wizard;
 - mirror every domain use case into a screen;
+- navigate to a new screen for a branch pipeline that can complete in a popup;
+- flatten a multi-state branch pipeline into awkward inline controls when a popup is the clearer container;
 - invent data inheritance not owned by the domain;
+- treat Pack quantity as stock or inventory quantity;
+- add Batch as a Catalog concept when it does not exist in the SRS;
+- add bulk SKU editing outside the approved Bulk Variant contract;
 - mix inventory/promotion/order concerns into Catalog;
 - hide Preview far away from editing;
 - use enterprise commerce vocabulary when plain Vietnamese exists.
@@ -1002,13 +1236,23 @@ Product Workspace
 ├── Thông tin cơ bản
 ├── Hình ảnh
 ├── Lựa chọn
-│   └── combination preview / selected generation
+│   └── Generate variants → popup pipeline
 ├── Các phiên bản
-│   ├── individual edit
-│   ├── contextual bulk edit
-│   └── phiên bản hiển thị đầu tiên
+│   ├── Edit variant → popup pipeline
+│   │   ├── SKU
+│   │   ├── price / currency
+│   │   ├── Pack reference
+│   │   ├── technical values
+│   │   ├── status
+│   │   └── media
+│   ├── Setup SKU → popup pipeline
+│   ├── Choose / Setup Pack → popup pipeline
+│   │   └── Pack: selling unit / quantity / base unit
+│   ├── Bulk edit → popup pipeline
+│   │   └── price / status / Pack / media only
+│   └── Chọn phiên bản hiển thị đầu tiên → popup when focused selection is needed
 ├── Thông tin sản phẩm
-│   └── Material / Finish / Pack
+│   └── Material / Finish / fixed Pack
 ├── Xem trước
 └── Hiển thị trên cửa hàng
 ```
@@ -1016,6 +1260,8 @@ Product Workspace
 This is an interaction responsibility map.
 
 It is not a mandatory page structure.
+
+The Product Workspace remains the primary screen. Named branch pipelines open as dedicated popups and complete without replacing the primary screen.
 
 ---
 
@@ -1028,6 +1274,9 @@ Tôi đang sửa sản phẩm nào?
 Sản phẩm có những lựa chọn nào?
 Những phiên bản nào sẽ được bán?
 Tôi sửa nhiều phiên bản cùng lúc ở đâu?
+Tôi đặt SKU của từng phiên bản ở đâu?
+Pack của phiên bản là gì và tôi chọn/tạo Pack ở đâu?
+Quantity trong Pack có nghĩa là gì?
 Khách sẽ thấy phiên bản nào đầu tiên?
 Nếu phiên bản không có ảnh riêng thì khách thấy gì?
 Thông tin chất liệu / bề mặt / đóng gói ở đâu?
@@ -1062,8 +1311,20 @@ Product Workspace
 Complexity strategy
 Contextual + progressive disclosure
 
+Branch pipelines
+Dedicated popup over the current Product Workspace
+
+Variant commercial setup
+SKU / price / currency / Pack / technical values / status / media
+
+Pack
+Shared Master Data with selling unit / quantity / base unit
+
+Quantity semantics
+Pack composition only; never inventory
+
 Variants
-Inline within Product
+Visible within Product; focused edit/generation flows open as popups
 
 Bulk operations
 Contextual after selection
@@ -1099,33 +1360,41 @@ WooCommerce
 
 The final UI must preserve GRIP's own domain semantics while remaining simpler than the commerce tools used as research references.
 
+Interaction architecture rule:
+
+```text
+primary pipeline → primary screen
+branch pipeline  → dedicated popup
+new primary context → new screen
+```
+
 ---
 
 # 37. Sources used
 
-- Squarespace Help — Add products to your store  
-  https://support.squarespace.com/hc/en-us/articles/205811338-Add-products-to-your-store
+- Squarespace Help — Add products to your store
+      https://support.squarespace.com/hc/en-us/articles/205811338-Add-products-to-your-store
 
-- Squarespace Help — Adding product variants  
-  https://support.squarespace.com/hc/en-us/articles/206540687-Adding-product-variants
+- Squarespace Help — Adding product variants
+      https://support.squarespace.com/hc/en-us/articles/206540687-Adding-product-variants
 
-- Squarespace Help — Product images  
-  https://support.squarespace.com/hc/en-us/articles/115013631487-Add-and-style-product-images
+- Squarespace Help — Product images
+      https://support.squarespace.com/hc/en-us/articles/115013631487-Add-and-style-product-images
 
-- Wix Stores — Adding a physical product  
-  https://support.wix.com/en/article/wix-stores-adding-a-physical-product
+- Wix Stores — Adding a physical product
+      https://support.wix.com/en/article/wix-stores-adding-a-physical-product
 
-- Wix Stores — Adding product options  
-  https://support.wix.com/en/article/wix-stores-adding-product-options
+- Wix Stores — Adding product options
+      https://support.wix.com/en/article/wix-stores-adding-product-options
 
-- Square Support — Item options  
-  https://squareup.com/help/us/en/article/6689-item-options
+- Square Support — Item options
+      https://squareup.com/help/us/en/article/6689-item-options
 
-- Shopify Help — Editing variants  
-  https://help.shopify.com/en/manual/products/variants/edit-variants
+- Shopify Help — Editing variants
+      https://help.shopify.com/en/manual/products/variants/edit-variants
 
-- Shopify Help — Add/update products / preview  
-  https://help.shopify.com/en/manual/products/add-update-products
+- Shopify Help — Add/update products / preview
+      https://help.shopify.com/en/manual/products/add-update-products
 
-- WooCommerce — Variable Product  
-  https://woocommerce.com/document/variable-product/
+- WooCommerce — Variable Product
+      https://woocommerce.com/document/variable-product/

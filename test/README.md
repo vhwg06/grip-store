@@ -186,6 +186,12 @@ Requirements:
   reviewer;
 - each `--doc` path exists under this test repository.
 
+On Windows, run the harness from Git Bash. The runner invokes the extensionless
+Codex launcher through Git Bash and uses Git Bash for deterministic command
+checks. Set `GIT_BASH_BIN` when Git Bash is not discoverable automatically.
+Non-interactive writer/reviewer phases also pass explicit per-tool approval
+overrides for `figma-mcp-go`, so MCP calls do not wait on unavailable stdin.
+
 Optional execution controls:
 
 - `FIGMA_GEOMETRY_CHECK_CMD`: deterministic geometry verification before review;
