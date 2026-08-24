@@ -7,6 +7,7 @@ import {
   type HarnessMode,
   initialWriterRequired,
   maximumReviewCount,
+  reviewerVisualFallbackPolicy,
 } from "./figma-harness/lifecycle";
 import {
   codexInvocation,
@@ -556,7 +557,8 @@ function extractThreadId(jsonl: string): string {
 }
 
 function figmaToolBoundary(): string {
-  return `Figma tool routing is strict:\n- Use only the figma-mcp-go server (mcp__figma_mcp_go__*) for Figma operations.\n- Never use the legacy mcp__figma__* server.\n- If figma-mcp-go cannot perform a required operation, do not fall back to another Figma MCP server.`;
+  const boundary = `Figma tool routing is strict:\n- Use only the figma-mcp-go server (mcp__figma_mcp_go__*) for Figma operations.\n- Never use the legacy mcp__figma__* server.\n- If figma-mcp-go cannot perform a required operation, do not fall back to another Figma MCP server.`;
+  return `${boundary}\n\n${reviewerVisualFallbackPolicy}`;
 }
 
 function windowsGitBashBoundary(): string {

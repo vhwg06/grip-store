@@ -5,6 +5,7 @@ import {
   decideAfterVerification,
   initialWriterRequired,
   maximumReviewCount,
+  reviewerVisualFallbackPolicy,
 } from "./lifecycle";
 
 test("a failed final review stops instead of scheduling an unverified repair", () => {
@@ -45,4 +46,13 @@ test("repair mode resumes an existing writer thread instead of starting a fresh 
   assert.equal(maximumReviewCount("repair", 3), 4);
   assert.equal(decideAfterVerification(false, "repair", 0, 3), "repair");
   assert.equal(decideAfterVerification(false, "repair", 3, 3), "fail_budget");
+});
+
+test("reviewer visual sampling falls back after a screenshot timeout", () => {
+  assert.match(reviewerVisualFallbackPolicy, /do not retry/i);
+  assert.match(reviewerVisualFallbackPolicy, /node inspection/i);
+  assert.match(reviewerVisualFallbackPolicy, /independent review/i);
+  assert.match(reviewerVisualFallbackPolicy, /bounded review/i);
+  assert.match(reviewerVisualFallbackPolicy, /repo-wide searches/i);
+  assert.match(reviewerVisualFallbackPolicy, /return the JSON/i);
 });
