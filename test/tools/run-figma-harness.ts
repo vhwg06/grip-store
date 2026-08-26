@@ -220,7 +220,7 @@ function envNonNegativeInt(name: string, fallback: number): number {
 const runTimeoutMs = envPositiveInt("FIGMA_HARNESS_TIMEOUT_MS", 4 * 60 * 60 * 1000);
 const heartbeatMs = envPositiveInt("FIGMA_HARNESS_HEARTBEAT_MS", 60 * 1000);
 const phaseIdleTimeoutMs = envNonNegativeInt("FIGMA_PHASE_IDLE_TIMEOUT_MS", 0);
-const maxCodexOutputBytes = 32 * 1024 * 1024;
+const maxCodexOutputBytes = envPositiveInt("FIGMA_MAX_CODEX_OUTPUT_BYTES", 32 * 1024 * 1024);
 
 if (process.env.FIGMA_PHASE_TIMEOUT_MS) {
   console.warn(
