@@ -10,888 +10,549 @@
 
 # 1. Purpose
 
-This file translates the approved Aftersales SRS into customer-facing interaction guidance.
+This file converts the approved Aftersales SRS into public interaction guidance while preserving the IKEA evidence boundary.
 
-It does **not** expand domain scope.
-
-Design rule:
+Rule:
 
 ```text
-SRS decides capability + semantics.
-This file decides how customers understand and complete those capabilities.
+IKEA evidence tells us what observable customer behavior exists.
+GRIP SRS decides which behavior GRIP supports.
+UI/UX must not invent missing domain/workflow semantics.
 ```
-
-Where a suggested UI pattern conflicts with the SRS or an implemented backend contract, the SRS/backend contract wins.
 
 ---
 
-# 2. Existing GRIP surfaces this design must compose with
+# 2. IKEA public behavior that is safe to design from
 
-Public Aftersales is not a standalone service portal detached from commerce.
+## Return
 
-It composes with:
+IKEA publicly supports:
+
+```text
+change-of-mind return
+proof-of-purchase based policy
+online Express Return preparation
+item selection / requested return information
+return barcode
+physical store return
+refund after accepted return conditions
+```
+
+Normal exchange is described as:
+
+```text
+return old item
+→ make a new purchase
+```
+
+Sources:
+
+- https://www.ikea.com/us/en/customer-service/knowledge/articles/426ef947-4a4d-42f4-b940-dd12970a04f5.html
+- https://www.ikea.com/us/en/customer-service/knowledge/articles/f41bb8c6-dab2-44c9-b6a7-a9f84be811b6.html
+
+## Missing delivery item
+
+IKEA tells customers to:
+
+```text
+check order confirmation
+check all boxes
+check split deliveries in Track & manage my order
+→ contact Customer Service if still missing
+```
+
+Source:
+
+https://www.ikea.com/us/en/customer-service/knowledge/articles/74d6d65a-df6f-4f7f-90c3-f779ea35383d.html
+
+## Damaged item
+
+IKEA publicly exposes Customer Service handling and possible outcomes such as:
+
+```text
+replace at store
+home-delivered replacement
+refund
+```
+
+Source:
+
+https://www.ikea.com/us/en/customer-service/knowledge/articles/9ef5ebf8-c4bf-449d-97f4-a0cef573807b.html
+
+## Missing product part
+
+IKEA may let the customer:
+
+```text
+order coded part online
+pick up part in store
+arrange part delivery through Customer Service
+```
+
+Source:
+
+https://www.ikea.com/us/en/customer-service/knowledge/articles/93d34e4a-3b1c-4989-812e-acdcfaf56ee8.html
+
+## Quality / warranty
+
+IKEA asks for purchase evidence and may require photos/inspection. Warranty decision is made after evaluation; covered issues can lead to replacement or refund depending on the situation.
+
+Sources:
+
+- https://www.ikea.com/us/en/customer-service/knowledge/articles/1c5gdc7d-3c3b-41cf-gd78-45b061b644f8.html
+- https://www.ikea.com/us/en/customer-service/knowledge/articles/e180645a-7a2f-4c30-99ce-e340dd1118b3.html
+- https://www.ikea.com/us/en/customer-service/knowledge/articles/1323d2b0-48c2-4e01-bc3e-egcfd19f0e60.html
+
+---
+
+# 3. What must NOT be copied as if IKEA does it
+
+There is no sufficient public evidence for an IKEA customer UI with a universal flow such as:
+
+```text
+Create claim
+→ Reviewing
+→ Additional info required
+→ Approved
+→ Resolution in progress
+→ Resolved
+```
+
+There is also no public evidence that IKEA exposes one unified self-service claim wizard covering every problem type.
+
+Therefore GRIP design must not use those structures unless the GRIP backend/SRS explicitly adds them.
+
+---
+
+# 4. Compose with existing GRIP Order
+
+The strongest GRIP entry remains:
 
 ```text
 Account
 → My Orders
-→ Order detail
-→ Aftersales entry
-
-Order
-→ historical item + fulfillment truth
-
-Aftersales
-→ return / claim case
-
-Catalog
-→ optional current product navigation
+→ Order Detail
+→ aftersales intent
 ```
 
-Strongest entry point:
+Reason:
 
-> Start from the customer's existing Order whenever possible.
-
-This avoids asking the customer to rediscover:
-
-- order reference;
-- purchased product;
-- variant;
-- purchase date;
-- price;
-- quantity;
-- delivery identity.
-
-Those facts already exist in Order.
-
----
-
-# 3. Reference observations that matter for UX
-
-## IKEA — Express return
-
-IKEA lets customers prepare a return online by providing purchase information, selecting items, giving a reason and receiving a return barcode before the physical store step.
-
-Useful interaction lesson:
+Order already owns:
 
 ```text
-prepare request
-→ clearly explain next operational step
+order reference
+purchase-time product identity
+quantity
+purchase date
+fulfillment/tracking truth
 ```
 
-Do not make request submission look like completed refund.
-
-Source:  
-https://www.ikea.com/us/en/customer-service/knowledge/articles/f41bb8c6-dab2-44c9-b6a7-a9f84be811b6.html
-
-## IKEA — Missing delivery
-
-IKEA asks customers to check split delivery/tracking before escalating a missing-item issue.
-
-Useful interaction lesson:
-
-> Show known Order truth before asking users to file a case.
-
-Source:  
-https://www.ikea.com/us/en/customer-service/knowledge/articles/74d6d65a-df6f-4f7f-90c3-f779ea35383d.html
-
-## IKEA — Claim/warranty
-
-Claims can require purchase evidence, description, photo evidence or inspection depending on issue/policy.
-
-Useful interaction lesson:
-
-> Ask only for evidence required for this case, not one giant universal form.
-
-Sources:  
-https://www.ikea.com/us/en/customer-service/knowledge/articles/1c5gdc7d-3c3b-41cf-gd78-45b061b644f8.html  
-https://www.ikea.com/us/en/customer-service/knowledge/articles/1323d2b0-48c2-4e01-bc3e-egcfd19f0e60.html
+Do not ask the customer to type those facts again when they are already authenticated and inside the Order.
 
 ---
 
-# 4. Public design principles
+# 5. Customer intent navigation
 
-## P1 — Begin with customer intent, not internal case vocabulary
+Use customer language, not internal domain vocabulary.
 
-The customer should see language such as:
+Recommended semantic choices:
 
 ```text
 Return an item
-Something is missing
+Something is missing from my order
 Item arrived damaged
+Product is missing a part
 Product has a quality problem
 Warranty help
 ```
 
-Avoid starting with:
+Avoid making `Claim` the first choice merely because IKEA uses the word in Customer Service documentation.
+
+The customer should choose the problem they actually recognize.
+
+---
+
+# 6. Return UI
+
+This is the strongest candidate for genuine self-service because IKEA publicly exposes Express Return preparation.
+
+Canonical GRIP shape:
 
 ```text
-Create ReturnCase
-Open Claim
-Claim Type = D02
-RMA
-Disposition
+Order detail
+→ Return an item
+→ select backend-eligible item(s) + quantity
+→ return reason, if required
+→ supported method/instructions
+→ review
+→ submit / prepare return
+→ actual next step
 ```
 
-`Return` and `Claim` remain important domain semantics, but the initial UI should use customer goals.
+## Item selection
 
-## P2 — Never ask twice for known facts
-
-If the flow starts from Order, do not ask customer to type:
+Render historical Order snapshot information:
 
 ```text
-order number
-product name
-SKU
-purchase date
-purchase price
+purchase-time product title
+variant/selection
+quantity purchased
+quantity currently returnable
 ```
 
-unless verification is required by a separate secure lookup contract.
+Do not silently replace historical facts with current Catalog values.
 
-## P3 — Current truth before action
+## Return eligibility
 
-Before a missing-item claim, show relevant delivery truth.
+UI consumes backend eligibility.
 
-Before a return, show actual eligible item/quantity.
-
-Before a warranty claim, show only what the backend can safely assert about eligibility.
-
-## P4 — One question per decision layer
-
-Do not build a 20-field Aftersales mega-form.
-
-Use progressive steps:
+Do not hard-code:
 
 ```text
-What do you need help with?
-→ Which item?
-→ What happened / why return?
-→ Required evidence only if needed
-→ Return/resolution next step
-→ Review
+if purchase_date < 180 days → eligible
 ```
 
-## P5 — Submitted is not solved
+The IKEA policy has conditions/exclusions and GRIP policy may differ.
 
-Case success language must reflect actual state.
+## Return reason
+
+Show only when required by the GRIP contract.
+
+Do not invent a reason taxonomy in Figma.
+
+## Return method
+
+If backend provides one method, show it as instruction rather than a fake choice.
+
+If backend provides multiple methods, show only the information needed to choose among them.
+
+## Confirmation
+
+Use precise state language.
 
 Good:
 
 ```text
-Your request was submitted
-Case AFS-123
-We'll review it / Bring the item to...
+Return request prepared
+Bring these items to...
 ```
 
 Bad:
 
 ```text
-Done!
-Refund complete
+Return complete
+Refunded
 ```
 
-when refund/assessment has not happened.
-
-## P6 — Put the next customer task above history
-
-On an existing case:
-
-```text
-CURRENT STATE
-NEXT ACTION
-
-then
-case details / timeline
-```
-
-The timeline is explanation, not the primary CTA.
-
-## P7 — Make partial-item semantics visible
-
-If an Order contains multiple items or quantity >1, the user must always understand which specific quantity the case affects.
+when the physical return/refund has not completed.
 
 ---
 
-# 5. Canonical Public IA
+# 7. Missing-order-item UI
 
-Aftersales should not become a large top-level navigation tree initially.
+Follow IKEA's observable troubleshooting order.
 
-Recommended semantic IA:
+Canonical shape:
 
 ```text
-My Account
-└── My Orders
-    └── Order Detail
-        ├── Return an item
-        └── Report a problem
-
-My Account
-└── Returns & claims
-    ├── Case list
-    └── Case detail
+Something is missing
+→ show purchased item / expected quantity
+→ show fulfillment groups / split delivery
+→ item still on the way?
+   ├── yes → continue tracking
+   └── no  → supported Customer Service/case path
 ```
 
-The standalone `Returns & claims` destination is useful for tracking existing cases.
+Do not begin with a large evidence form.
 
-Case creation should still prefer Order context.
+The Order information may resolve the customer's concern without opening a case.
+
+If GRIP does not yet support self-service issue submission, the correct outcome is a contextual support route, not a fake submit button.
 
 ---
 
-# 6. Order Detail integration
+# 8. Damaged-item UI
 
-The Order page is the highest-value Aftersales entry.
+IKEA publicly routes this through delivery reporting / Customer Service and exposes several possible remedies.
 
-Do not add a giant generic `Support` area disconnected from line items.
-
-For each eligible Order or line, the owning Order surface can expose a compact semantic entry:
+GRIP should therefore structure the UI around:
 
 ```text
-Need help with this order?
-[Return an item]
-[Report a problem]
+identify affected purchased item
+→ explain damage / supply required evidence if backend asks
+→ show actual available next action or support route
 ```
 
-Eligibility rules:
+Do not assume every damaged item must first be returned.
 
-- if no returnable item exists, hide/disable Return according to product convention;
-- if no supported claim path exists, use approved help/support link rather than fake self-service;
-- do not derive eligibility from visual order status only.
+Do not display all of these permanently:
 
-### Placement
+```text
+Replace
+Refund
+Home delivery
+```
 
-The entry should appear after the customer has seen current fulfillment status and purchased items, not before the order identity/status header.
-
-Reason:
-
-For “missing item,” the existing delivery state can resolve the question without a case.
+The action set must come from actual GRIP capability/state.
 
 ---
 
-# 7. Entry chooser — Return vs problem
+# 9. Missing-part UI
 
-First screen should answer one question:
+A missing part is not the same customer task as a missing entire Order item.
 
-> What do you need help with?
-
-Suggested semantic grouping:
+Recommended entry copy:
 
 ```text
-Return
-- Return an item
-
-Problem with an order/item
-- Something is missing
-- Item arrived damaged
-- Product has a quality problem
-- Warranty help
+Product is missing a part
 ```
 
-Do not show unsupported choices merely because they exist in the SRS as possible semantics.
+If GRIP has a supported part-reference system:
 
-### Card vs list pattern
+```text
+identify product
+→ identify part/code
+→ show supported obtain-part option
+```
 
-Use simple tappable rows/cards with:
+If GRIP does not have that contract:
 
-- short label;
-- one explanatory line where ambiguity exists;
-- no decorative marketing copy;
-- no internal status/code.
+```text
+show product/order context
+→ route to Customer Service
+```
 
-At mobile width, one-column list is sufficient.
+Do not invent a spare-parts picker from IKEA screenshots/text alone.
 
 ---
 
-# 8. Return flow
+# 10. Quality-problem UI
 
-Canonical UX:
-
-```text
-Order detail
-→ Return an item
-→ Choose item(s) + quantity
-→ Reason, if required
-→ Return method / next-step option, if supported
-→ Review request
-→ Submit
-→ Case confirmation
-```
-
-## 8.1 Item selection
-
-Each selectable line should show Order-owned snapshot context:
+Canonical minimal shape:
 
 ```text
-thumbnail if available
-purchase-time product title
-variant/selection label
-quantity purchased
-quantity still eligible
-purchase-time amount only when useful
+Product has a quality problem
+→ identify purchased item
+→ explain problem
+→ collect only backend-required evidence
+→ show coverage/support path
 ```
 
-Do not replace historical item name/price with current Catalog values.
+The customer should not need to diagnose an internal defect code.
 
-### Quantity
-
-For quantity >1, use explicit quantity control bounded by backend-provided returnable quantity.
-
-Do not let the customer choose an impossible value and then fail late.
-
-### Ineligible line
-
-If some lines are ineligible while others are eligible:
-
-- keep the Order understandable;
-- explain ineligible line using customer-safe backend reason when available;
-- do not block eligible siblings.
-
-## 8.2 Return reason
-
-Only show if required.
-
-Good control:
-
-```text
-Why are you returning this?
-[backend-supported options]
-```
-
-Optional free text appears only if contract supports it.
-
-Do not create a taxonomy inside Figma that backend does not have.
-
-## 8.3 Return method
-
-If exactly one method exists:
-
-- show it as the next step;
-- do not make the user “select” a single fake choice.
-
-If multiple methods are eligible:
-
-Each option should expose decision-relevant differences actually provided by backend, for example:
-
-```text
-method name
-where/how to return
-fee, if applicable
-important timing / instruction
-```
-
-Do not invent carrier labels, store inventory or pickup slots.
-
-## 8.4 Review
-
-Before submit show a compact immutable summary:
-
-```text
-Order
-Items + quantity
-Reason
-Return method / next step
-Known refund expectation only if backend can state it
-```
-
-The primary CTA should describe the consequence:
-
-```text
-Submit return request
-```
-
-not generic `Continue` on the final step.
-
-## 8.5 Confirmation
-
-Confirmation must include:
-
-```text
-case reference
-actual case state
-next required action
-return instructions / deadline if supplied
-link to case detail
-link back to Order
-```
-
-Avoid celebratory success styling for an unresolved case.
-
----
-
-# 9. Missing-item flow
-
-This flow has a critical pre-check.
-
-```text
-Customer says missing
-→ show current fulfillment truth
-→ is item still in legitimate split/in-progress delivery?
-```
-
-## 9.1 Still on the way
-
-If Order says the item is in another active fulfillment:
-
-Show:
-
-```text
-This item is in another delivery
-current status
-estimate/tracking if available
-```
-
-Primary action should be Order tracking, not `Submit claim`.
-
-Offer claim/support only when backend still permits escalation.
-
-## 9.2 Delivery says it should be present
-
-Then continue:
-
-```text
-select affected item + quantity
-→ minimal description if required
-→ evidence only if contract requests it
-→ review
-→ submit
-```
-
-This prevents duplicate or premature support work.
-
----
-
-# 10. Damaged / quality / warranty flow
-
-These issue types share layout grammar but not necessarily eligibility/evidence rules.
-
-Canonical skeleton:
-
-```text
-Issue kind
-→ affected item + quantity
-→ describe problem
-→ required evidence
-→ policy/eligibility result where safe
-→ review
-→ submit
-```
-
-## 10.1 Description
-
-Ask for customer language:
+Ask in customer language:
 
 ```text
 Tell us what happened
 ```
 
-Avoid forcing customers to diagnose internal failure categories.
+If photos are required:
 
-## 10.2 Photo evidence
+- explain why;
+- show actual count/size/type constraints;
+- show upload progress/failure honestly;
+- preserve the rest of the form on failure.
 
-When required:
-
-- state why photos are needed;
-- show count/type constraints returned by product contract;
-- show upload progress/failure clearly;
-- allow retry/remove;
-- never show a successful file state before upload completion.
-
-When not required, omit the whole media section.
-
-## 10.3 Warranty
-
-Do not make customers browse warranty PDF/legal detail before starting.
-
-If eligibility can be resolved:
-
-```text
-This purchase may be covered
-```
-
-or equivalent safe language can be shown according to backend result.
-
-If assessment is required, say so.
-
-Never promise approval solely because date appears inside a warranty window.
+If photos are not required, omit the upload section entirely.
 
 ---
 
-# 11. Existing case list
+# 11. Warranty-help UI
 
-Semantic destination:
+Do not imply warranty approval from date alone.
+
+Useful information hierarchy:
 
 ```text
-Returns & claims
+purchased item
+purchase date / order reference
+known warranty information if authoritative
+what information IKEA/GRIP needs next
+inspection/photo requirement if any
 ```
 
-List should optimize recognition and next action.
+Use cautious copy when evaluation is still required.
 
-Each case row/card:
+Good:
+
+```text
+This product may be covered. We'll need to review the issue.
+```
+
+Bad:
+
+```text
+Your warranty claim is approved
+```
+
+before actual decision.
+
+---
+
+# 12. Existing case/reference UI
+
+IKEA publicly refers to an existing claim by case or order number, so a GRIP case reference is reasonable when the backend implements persistent cases.
+
+If a case exists, its detail may show:
 
 ```text
 case reference
-Return / Problem label
-source order reference
-created date
-affected item summary
-current customer-facing state
-next-action badge only if customer action exists
+source order
+customer-safe current status
+affected item(s)
+latest instruction / outcome
+supported downstream refund/replacement reference
 ```
 
-Default order: most recently updated/created according to product contract; choose one consistent rule.
+But the UI must not fabricate a fixed lifecycle or stepper.
 
-No need for advanced filters at low case volume.
-
-Candidate minimal filter only if needed:
+If backend only provides:
 
 ```text
 Open
 Resolved
 ```
 
-Do not copy Admin filter complexity to Public.
+then design those states honestly instead of inventing five intermediate phases.
 
 ---
 
-# 12. Public case detail
+# 13. Do we need a standalone “Returns & claims” page?
 
-Recommended hierarchy:
+Not automatically.
 
-```text
-1. Case reference + source order
-2. Current state
-3. Next customer action / important instruction
-4. Affected items
-5. Resolution / refund / replacement projection
-6. Submitted issue / reason / evidence summary
-7. Timeline
-8. Help route
-```
+IKEA evidence proves that an existing claim has a case/order reference, but it does not prove the exact account IA GRIP should use.
 
-## 12.1 State language
+GRIP decision:
 
-Translate domain state into plain customer language without changing meaning.
+- Order detail is sufficient as the primary creation/entry point now.
+- Add a standalone Aftersales case list only when backend/product requirements justify repeated case tracking.
 
-Examples:
+Do not create extra navigation simply because the domain has a name.
 
-```text
-requested / submitted        → Request submitted
-awaiting_return              → Waiting for your return
-received                     → Item received
-assessing / reviewing        → We're reviewing it
-additional_info_required     → We need more information
-resolution_in_progress       → Resolution in progress
-resolved                     → Resolved
-rejected                     → Not approved
-```
+---
 
-Final copy should use product language chosen globally.
+# 14. Status language
 
-Do not show backend enums verbatim.
+Status copy must come from real backend semantics.
 
-## 12.2 Next action card
+Do not design a universal vocabulary first and force backend behavior into it.
 
-If customer action is needed, use a compact high-priority task area.
-
-Examples:
+Translation principle:
 
 ```text
-Return the item by [date]
-Provide requested photos
-Review replacement details
+backend state
+→ customer-safe plain language
 ```
 
-Only show data actually provided by backend.
+not:
 
-## 12.3 Refund projection
+```text
+Figma stepper
+→ backend must implement these states
+```
 
-Refund block should show separate state.
+---
 
-Example hierarchy:
+# 15. Refund presentation
+
+Where a downstream financial projection exists, keep it separate from the support/return fact.
+
+Example:
 
 ```text
 Refund
-Amount: ...            // backend-provided
-Status: Processing
-Method: ...            // only if safe/available
+Amount: backend-provided
+Status: backend-provided
 ```
 
-Never infer “money received” from case resolution alone.
+Do not calculate from current Catalog price.
 
-## 12.4 Replacement projection
-
-Show:
-
-```text
-Replacement approved
-reference / status if supplied
-tracking link if downstream contract exposes it
-```
-
-Do not recreate fulfillment management inside Aftersales.
+Do not infer `money received` from `return accepted` or `case resolved`.
 
 ---
 
-# 13. Empty states
+# 16. Replacement presentation
 
-## No cases
-
-Useful copy direction:
+Where the supported flow creates a replacement, show only returned downstream information:
 
 ```text
-No returns or claims yet.
-If you need help with an order, open My Orders and choose the order.
+replacement reference
+current status
+tracking / canonical link when available
 ```
 
-Primary CTA:
-
-```text
-View my orders
-```
-
-Do not add generic contact/support CTA as the first action when self-service begins from Order.
-
-## No eligible return items
-
-Explain:
-
-```text
-There are no items currently available for self-service return in this order.
-```
-
-Then show customer-safe policy/support route when defined.
-
-Do not silently present an empty item selector.
+Do not duplicate warehouse/fulfillment administration in public Aftersales.
 
 ---
 
-# 14. Error and stale-state behavior
+# 17. Error / stale behavior
 
-Aftersales is stateful; eligibility can change while the customer is acting.
-
-Required patterns:
-
-## Eligibility changed before submit
+For any consequential submission:
 
 ```text
-Your request couldn't be submitted because this order changed.
-[refresh latest eligibility]
+submit
+→ backend validates current eligibility/capability
+→ success: render canonical result
+→ stale/ineligible: explain latest state and refresh
 ```
 
-Preserve non-sensitive form input when safe.
+Do not show optimistic fake final success.
 
-## Case mutation conflict
+Upload failures must preserve other safe user input.
 
-When additional-info action or cancellation becomes stale:
-
-- do not fake success;
-- reload canonical case state;
-- explain latest state.
-
-## Upload failure
-
-Keep other form data and allow retry.
-
-## Backend unavailable
-
-Do not remove existing case history or imply the case disappeared.
+Order/Catalog link failures must not make an already-created Aftersales reference disappear.
 
 ---
 
-# 15. Mobile composition
+# 18. Mobile guidance
 
-Public Aftersales must be comfortable on mobile because aftersales often occurs near the physical product/delivery.
+Aftersales is naturally mobile-heavy because customers may be standing next to the delivered product.
 
-Mobile principles:
+Use:
 
-- one primary task per viewport section;
-- full-width item rows/cards;
-- sticky bottom CTA only when it does not cover important instruction/error content;
-- evidence upload reachable from device media flow;
-- concise state/next-action summary before timeline;
-- no desktop table compressed into horizontal scrolling.
-
-### Return item selection mobile
-
-Use stacked cards with quantity control below item identity.
-
-### Case detail mobile
-
-Order:
-
-```text
-state
-next action
-items
-resolution
-history
-```
-
-Do not place a long metadata sidebar above the actual task.
+- one clear task per section;
+- stacked item cards;
+- large media-upload controls when needed;
+- Order status before missing-item escalation;
+- explicit next step after return preparation;
+- no compressed desktop tables.
 
 ---
 
-# 16. Desktop composition
+# 19. Desktop guidance
 
-Desktop can use wider context but should stay simple.
+Keep public desktop similarly simple.
 
-Recommended detail composition:
+Creation/support flow:
 
 ```text
-Main column
-- state + next action
-- affected items
-- issue / resolution
-- timeline
-
-Secondary rail
-- case reference
-- source Order link
-- created/updated metadata
-- help link
+bounded main column
+Order/item context
+current question/action
 ```
 
-Do not turn public case detail into an admin dashboard.
+Existing case/detail, when implemented:
 
-For creation flows, a centered bounded form width is preferable to a full-screen dense grid.
+```text
+main: current status + action + affected items
+secondary: case/order references + help
+```
+
+Do not make public Aftersales look like an operator dashboard.
 
 ---
 
-# 17. Cross-module navigation
+# 20. Figma design gate
 
-## Order
+Before creating a Public Aftersales screen/state, the designer must answer:
 
-Always preserve easy route:
+1. Which requirement in `02-grip-aftersales-srs.md` authorizes it?
+2. Is the behavior directly observed at IKEA, or a clearly labeled GRIP decision?
+3. If it is a state/action, does a real backend contract support it?
+4. Does the design reuse Order truth instead of asking for known facts again?
+5. For missing items, is split-delivery truth shown before escalation?
+6. For return submission, does the UI avoid implying refund completion?
+7. Has any invented universal Claim lifecycle/wizard slipped back in?
 
-```text
-View order
-```
-
-Order owns tracking/purchase truth.
-
-## Catalog
-
-A current product link is optional.
-
-Never use current product page as the only way to identify historical affected item.
-
-## Account
-
-Customer profile/address editing is not part of case flow unless another contract explicitly requires it.
-
-## Content/help
-
-Contextual help links may appear after the main task and must route to Content/help source rather than duplicate large policy prose inside the transactional UI.
-
----
-
-# 18. Accessibility
-
-Required considerations:
-
-- state cannot rely on color alone;
-- item selection uses semantic controls and clear labels;
-- upload controls expose progress/error text;
-- focus moves to validation summary/first error after failed submit;
-- timeline is readable in document order;
-- destructive/cancel-case confirmation has clear action naming;
-- touch targets support mobile use;
-- image evidence preview has accessible remove/retry labels.
-
----
-
-# 19. Public canonical screen/state inventory
-
-Design should cover at least:
-
-```text
-Order detail — Aftersales eligible entry
-Order detail — no self-service eligibility
-Intent chooser
-Return item selection
-Return reason
-Return method / instructions
-Return review
-Return confirmation
-Missing item — still in split delivery
-Missing item — claim eligible
-Damage/quality/warranty issue input
-Evidence required
-Evidence upload failure
-Claim review
-Claim confirmation
-Returns & claims — empty
-Returns & claims — populated
-Case detail — awaiting customer return
-Case detail — reviewing
-Case detail — additional info required
-Case detail — refund pending
-Case detail — replacement in progress
-Case detail — resolved
-Case detail — rejected
-stale eligibility/error
-not found / unauthorized-safe failure
-```
-
-Not every state requires a separate route/frame if interaction design can represent it faithfully.
-
----
-
-# 20. Explicit UI exclusions
-
-Do not design:
-
-```text
-warehouse restock screen
-shipping label purchase console
-carrier setup
-refund amount calculator
-payment credentials
-manual refund form
-generic exchange configurator
-inventory availability editor
-repair technician scheduler
-CRM conversation inbox
-return analytics dashboard
-policy rule builder
-```
-
-These are outside `02-grip-aftersales-srs.md`.
-
----
-
-# 21. Design acceptance checklist
-
-A Public Aftersales design is ready only if all are true:
-
-```text
-[ ] Creation starts from Order context where possible.
-[ ] Customer chooses intent in plain language.
-[ ] Return and Claim are not visually/semantically collapsed.
-[ ] Item + quantity affected by case are always understandable.
-[ ] Missing-item path checks current fulfillment truth first.
-[ ] Evidence is conditional, not universally required.
-[ ] Submit state does not pretend case is approved/resolved.
-[ ] Refund state is visibly distinct from case state.
-[ ] Next customer task is above timeline/history.
-[ ] Historical Order data is not replaced with current Catalog data.
-[ ] Mobile flow is task-first and does not compress desktop tables.
-[ ] No unsupported exchange/WMS/payment behavior appears.
-[ ] Error/stale-state designs refresh canonical state rather than fake success.
-```
-
----
-
-# 22. Design handoff
-
-The strongest public mental model is:
-
-```text
-I bought this
-→ I need help with this specific item
-→ tell GRIP what happened
-→ give only necessary evidence
-→ understand what happens next
-→ track the case until resolved
-```
-
-The UI should feel like a continuation of the Order journey, not a separate enterprise support application.
+If any answer is unclear, do not invent the screen/state.
