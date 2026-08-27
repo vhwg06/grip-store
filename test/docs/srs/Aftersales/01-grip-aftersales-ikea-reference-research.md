@@ -1,538 +1,348 @@
-# GRIP Aftersales — IKEA / Reference Research
+# GRIP Aftersales — IKEA Reference Research
 
 **Status:** Final  
 **Pipeline stage:** 01 — External research  
 **Module:** Aftersales  
-**Surfaces covered:** Public self-service + Admin operations  
+**Market:** IKEA United States  
 **Research date:** 2026-08-27
 
 ---
 
 # 1. Purpose
 
-This file records externally verified behavior that can inform the GRIP Aftersales module.
+This file records **publicly observable IKEA behavior only** for returns, missing/damaged purchases, product quality problems and warranty claims.
 
-It is **research, not the GRIP specification**.
+It is not an inferred IKEA domain model and it is not the GRIP specification.
 
-Research trace:
+Research rule:
 
 ```text
-verified behavior
-→ product/domain implication
-→ candidate value for GRIP
-→ later scope decision in 02-grip-aftersales-srs.md
+IKEA public evidence
+→ observed behavior
+→ possible GRIP value
 ```
 
-Rules:
-
-- Existing GRIP SRS files remain authoritative for current product boundaries.
-- Do not infer IKEA internal/backoffice behavior when it is not publicly documented.
-- Public IKEA evidence is used primarily for customer behavior and policy semantics.
-- Shopify and commercetools are used only as secondary references for admin/domain patterns that IKEA does not publicly expose.
-- A referenced capability does not automatically enter GRIP scope.
+Anything described as a GRIP decision belongs in `02-grip-aftersales-srs.md` and must not be presented as something IKEA internally models or owns.
 
 ---
 
-# 2. Existing GRIP boundary before research
+# 2. Existing GRIP boundary
 
-The current GRIP Order SRS explicitly excludes:
+The existing Order SRS already excludes:
 
 ```text
-return/exchange workflow
+return / exchange workflow
 warranty claims
-warehouse return inspection/restock workflow
-full refund orchestration independent from another valid order action
+warehouse return processing
+independent refund orchestration
 ```
 
-and reserves those for a later Aftersales capability.
+Therefore Aftersales begins only after a GRIP Order exists.
 
-This means Aftersales starts from an already-placed Order and must not become:
+This research does not change ownership already defined in:
 
-```text
-Checkout
-Catalog
-Account
-WMS
-Payment gateway console
-CRM
-```
-
-Order remains the historical purchase authority.
+- `../Order/02-grip-order-srs.md`
+- `../Account/02-grip-account-srs.md`
+- `../catalog/srs_001_product.md`
+- `../checkout/checkout_srs.md`
 
 ---
 
-# 3. IKEA separates return intent from product/delivery claims
+# 3. What IKEA publicly calls a claim
 
-## E1 — Change-of-mind return is a policy-governed flow
+## Observed — IKEA US
 
-### Observed — IKEA US
+IKEA's public article **How do I make a claim?** introduces the flow as:
 
-IKEA US publishes a return policy with different windows for unopened and opened products and requires proof of purchase for the standard full-refund path. Certain categories or conditions are excluded.
+> trouble with a product or delivery
 
-IKEA also states that product condition is assessed before the return is accepted.
+The customer is directed to Customer Service by phone/chat when the FAQ does not resolve the problem.
 
-### Product implication
+For an existing claim, IKEA asks for a **case number or order number**.
 
-A return is not simply:
+IKEA also states that missing/damaged issues should be reported within **7 days** after purchase or home delivery.
 
-```text
-customer clicks Return
-→ money refunded
-```
+### What this proves
 
-It requires at least:
+Publicly observable IKEA behavior supports this statement:
 
 ```text
-purchase evidence
-item/quantity selection
-policy eligibility
-condition / channel constraints
-accepted return
-refund outcome
+Claim
+= a customer-service case concerning a problem
+  with a product or delivery
 ```
 
-### GRIP candidate
+### What this does NOT prove
 
-Model **Return** as a first-class Aftersales case with explicit eligibility and lifecycle.
+The public material does not establish IKEA's internal:
 
-Do not derive eligibility purely in the UI from purchase date.
+```text
+Claim aggregate
+Claim lifecycle enum
+Claim ownership boundary
+assessment state machine
+refund orchestration model
+admin case schema
+```
+
+Those must not be attributed to IKEA without separate evidence.
+
+### Source
+
+IKEA US — How do I make a claim?  
+https://www.ikea.com/us/en/customer-service/knowledge/articles/1c5gdc7d-3c3b-41cf-gd78-45b061b644f8.html
+
+---
+
+# 4. Change-of-mind return
+
+## Observed — IKEA US
+
+IKEA permits returns when a customer is not satisfied or changes their mind.
+
+Current published policy states:
+
+- new/unopened products: return within 365 days with proof of purchase;
+- opened products: return within 180 days with proof of purchase;
+- some product categories/conditions are excluded;
+- returned merchandise is assessed before the full-refund condition is accepted;
+- refund is normally made to the original payment method;
+- for a normal exchange, the customer first returns the old item and then makes a new purchase.
+
+### Important distinction
+
+This is explicitly a **return-policy** flow. IKEA does not describe ordinary change-of-mind returns as a product/delivery claim.
+
+### GRIP value candidate
+
+GRIP should preserve a visible difference between:
+
+```text
+I changed my mind / want to return
+```
+
+and:
+
+```text
+there is a problem with the product or delivery
+```
+
+The exact GRIP domain structure is decided later in the SRS.
 
 ### Sources
 
-- IKEA US — What is IKEA's return policy?  
-  https://www.ikea.com/us/en/customer-service/knowledge/articles/426ef947-4a4d-42f4-b940-dd12970a04f5.html
-- IKEA US — What if my item does not meet the return policy?  
-  https://www.ikea.com/us/en/customer-service/knowledge/articles/04028083-c5d5-4fd2-9d4d-d6c2c90c6b88.html
+IKEA US — What is IKEA's return policy?  
+https://www.ikea.com/us/en/customer-service/knowledge/articles/426ef947-4a4d-42f4-b940-dd12970a04f5.html
+
+IKEA US — Can I return an opened or assembled product?  
+https://www.ikea.com/us/en/customer-service/knowledge/articles/1dfe6100-2442-4647-9569-22f99238g065.html
 
 ---
 
-# 4. Return preparation can be self-service without making acceptance automatic
+# 5. Express return is online preparation, not proof of completed refund
 
-## E2 — IKEA Express return
+## Observed — IKEA US
 
-### Observed — IKEA US
+IKEA provides an Express Return flow for in-store returns.
 
-IKEA allows customers to prepare an in-store return online. The customer supplies proof-of-purchase information, selects products, provides requested details including a reason, submits, receives a barcode, and later brings the product to a store.
+The customer can prepare the return online, including selecting the purchase/products and supplying requested return information. IKEA sends a return barcode by SMS/email, and the customer must still bring the product to an IKEA store within the stated period.
 
-The online step accelerates the operation; it does not remove the physical return/assessment step.
-
-### Product implication
-
-A valuable self-service design can separate:
+The published flow therefore contains at least two observable stages:
 
 ```text
-request / preparation
-≠
-physical receipt / inspection
-≠
-refund completion
+online return preparation
+→ physical store return
 ```
 
-### GRIP candidate
+The online submission itself is not described as completion of the physical return or refund.
 
-Public UI should allow a customer to initiate an eligible return from the canonical Order context and then clearly show what must happen next.
+### GRIP value candidate
 
-Do not show `Refunded` simply because a return request was submitted.
+Do not design `request submitted` as equivalent to `refund completed`.
 
 ### Source
 
-- IKEA US — Can I return a product in store? / Express return  
-  https://www.ikea.com/us/en/customer-service/knowledge/articles/f41bb8c6-dab2-44c9-b6a7-a9f84be811b6.html
+IKEA US — Can I return a product in store? / Express return  
+https://www.ikea.com/us/en/customer-service/knowledge/articles/f41bb8c6-dab2-44c9-b6a7-a9f84be811b6.html
 
 ---
 
-# 5. Return logistics are not one universal method
+# 6. Missing item after delivery
 
-## E3 — Channel varies by item / situation
+## Observed — IKEA US
 
-### Observed — IKEA US
+When something appears missing after delivery or pickup, IKEA tells the customer to first:
 
-IKEA documents several return routes, including store return, small-item mail return, and large-item pickup/support arrangements. Different locations may not support returns.
+1. confirm the item was actually included in the order;
+2. check all packages/boxes;
+3. check whether the order was split across multiple deliveries in **Track & manage my order**;
+4. contact IKEA Customer Service if the item is still missing.
 
-### Product implication
+### What this proves
 
-Return method should be modeled as an **eligible option/result**, not as a hard-coded universal flow.
+IKEA does not immediately treat every apparent missing item as an independent claim form.
 
-Conceptually:
+Existing Order/fulfillment information is checked first.
+
+### GRIP value candidate
+
+Before GRIP offers escalation for a missing item, the UI should surface canonical Order fulfillment truth where available.
+
+### Source
+
+IKEA US — What can I do if something is missing from my delivery?  
+https://www.ikea.com/us/en/customer-service/knowledge/articles/74d6d65a-df6f-4f7f-90c3-f779ea35383d.html
+
+---
+
+# 7. Damaged item during or after delivery
+
+## Observed — IKEA US
+
+### Damage noticed during delivery
+
+IKEA states that the delivery driver can report damage immediately. An IKEA co-worker can process a damage report, arrange a replacement and communicate a new delivery date.
+
+### Damage noticed after delivery
+
+IKEA tells the customer to contact Customer Service with the order number/order confirmation.
+
+Published resolution options include:
 
 ```text
-return case + item characteristics + policy/context
-→ allowed return method(s)
+replace at an IKEA store, if available
+arrange home delivery of a replacement
+refund the damaged item
 ```
 
-### GRIP candidate
+The exact option depends on availability/context and is handled with an IKEA co-worker.
 
-For current GRIP scope, expose only return methods actually supported by backend/operations.
+### GRIP value candidate
 
-Do not invent labels, carriers, pickup scheduling or store-location workflows unless there is a real contract.
+For damaged-item support, only show resolution options that the backend/operations actually supports.
+
+Do not infer a generic mandatory return step because IKEA explicitly shows replacement/refund paths that do not all share one published sequence.
+
+### Source
+
+IKEA US — What can I do if my item was damaged during or after delivery?  
+https://www.ikea.com/us/en/customer-service/knowledge/articles/9ef5ebf8-c4bf-449d-97f4-a0cef573807b.html
+
+---
+
+# 8. Missing product parts
+
+## Observed — IKEA US
+
+If a product is missing parts, IKEA first asks the customer to check all boxes and identify whether the missing part has a code in the assembly guide.
+
+Depending on the part, IKEA may support:
+
+```text
+order the part online
+pick up the part at an IKEA store
+arrange delivery through Customer Service
+```
+
+### GRIP value candidate
+
+A missing-part problem does not necessarily imply replacing or returning the entire product.
+
+GRIP should expose a spare/replacement-part path only if GRIP actually has a supported part identity and fulfillment contract.
+
+### Source
+
+IKEA US — What can I do if my product is missing some parts?  
+https://www.ikea.com/us/en/customer-service/knowledge/articles/93d34e4a-3b1c-4989-812e-acdcfaf56ee8.html
+
+---
+
+# 9. Product quality issue / product stopped working
+
+## Observed — IKEA US
+
+IKEA tells customers with a product quality problem to check whether the purchase is still inside the ordinary return policy or covered by an extended warranty.
+
+The customer should have proof of purchase/order information available.
+
+For covered quality issues, IKEA publicly describes possible outcomes including:
+
+```text
+replacement
+home delivery of replacement
+refund
+```
+
+### GRIP value candidate
+
+Quality-problem support should not hard-code one global return window or one universal resolution.
 
 ### Sources
 
-- IKEA US FAQ — returns by mail / large-item pickup  
-  https://www.ikea.com/us/en/customer-service/faq/
-- IKEA US — Can I mail my return to an IKEA store?  
-  https://www.ikea.com/us/en/customer-service/knowledge/articles/c9d5c73d-7egc-46g2-8183-c87c6928f766.html
+IKEA US — What can I do if my IKEA product has quality issues?  
+https://www.ikea.com/us/en/customer-service/knowledge/articles/e180645a-7a2f-4c30-99ce-e340dd1118b3.html
+
+IKEA US — After use, my product stopped working. Is there a warranty?  
+https://www.ikea.com/us/en/customer-service/knowledge/articles/1323d2b0-48c2-4e01-bc3e-egcfd19f0e60.html
 
 ---
 
-# 6. Refund is an outcome of an accepted aftersales operation
+# 10. Warranty claim
 
-## E4 — Refund method follows purchase/return rules
+## Observed — IKEA US
 
-### Observed — IKEA US
+IKEA states that only certain products have extended limited warranties.
 
-IKEA normally refunds an accepted return to the original payment method when the standard receipt-supported conditions are met, with documented exceptions using a return/refund card.
+For a warranty claim:
 
-### Product implication
+- proof of purchase is required;
+- the claim is subject to inspection;
+- photos may be requested;
+- an IKEA co-worker makes the final decision.
 
-`Return` and `Refund` are related but not identical concepts.
+### What this proves
 
-```text
-Return lifecycle
-        ↓ accepted outcome
-Refund instruction/status
-```
+Warranty support is not simply `purchase_date < global_duration`.
 
-Refund state can lag return acceptance.
+IKEA publicly exposes evaluation/inspection as part of warranty handling.
 
-### GRIP candidate
+### What this does NOT prove
 
-Aftersales owns the business decision/outcome that a return or claim requires a refund. A payment/financial contract owns the actual money movement.
-
-Aftersales should expose refund projection/status without becoming payment-gateway administration.
+The public source does not define IKEA's internal warranty-claim state machine or software architecture.
 
 ### Source
 
-- IKEA US — If I return a product, how is it refunded?  
-  https://www.ikea.com/us/en/customer-service/knowledge/articles/0245372e-gcgd-406e-9994-4c3548e9g07c.html
+IKEA US — How do I make a claim?  
+https://www.ikea.com/us/en/customer-service/knowledge/articles/1c5gdc7d-3c3b-41cf-gd78-45b061b644f8.html
 
 ---
 
-# 7. General exchange does not need to be a complex separate transaction type
+# 11. Observable IKEA problem categories and outcomes
 
-## E5 — IKEA US general exchange behavior
+The following table is evidence-backed at the public behavior level.
 
-### Observed — IKEA US
-
-IKEA's current US return guidance states that if the customer wants to exchange an item, the normal pattern is to return the existing item and make a new purchase. Special policies can exist for selected categories such as mattresses.
-
-### Product implication
-
-A generic `Exchange` engine can create unnecessary complexity:
-
-```text
-new product reservation
-price difference
-payment collection/refund
-inventory allocation
-fulfillment
-```
-
-### GRIP candidate
-
-For current scope:
-
-- do **not** build a generic exchange transaction engine;
-- represent ordinary change-of-mind exchange as `return + new purchase` guidance;
-- allow a **replacement resolution** for damaged/defective claims where the case outcome explicitly supports replacement.
-
-This preserves customer value without pulling Checkout/Inventory back into Aftersales.
-
-### Source
-
-- IKEA US — What is IKEA's return policy?  
-  https://www.ikea.com/us/en/customer-service/knowledge/articles/426ef947-4a4d-42f4-b940-dd12970a04f5.html
+| Customer problem | Observable IKEA path | Observable outcomes |
+| --- | --- | --- |
+| Change of mind / not satisfied | Return policy / Express Return / store or supported return route | accepted return → refund; ordinary exchange = return then new purchase |
+| Missing order item | verify order + boxes + split delivery, then Customer Service | support resolution not fully enumerated publicly in the cited article |
+| Item damaged in/after delivery | delivery report or Customer Service | store replacement, home-delivered replacement, refund |
+| Missing product part | check boxes + part code / Customer Service | online part order, store pickup, part delivery depending on part |
+| Quality issue | check return/warranty coverage + Customer Service | replacement or refund where conditions are met |
+| Warranty issue | proof of purchase + possible photos + inspection + co-worker decision | final remedy depends on warranty decision |
 
 ---
 
-# 8. Missing/damaged delivery problems form a different intent from returns
-
-## E6 — Missing merchandise must first distinguish split delivery
-
-### Observed — IKEA US
-
-IKEA instructs customers who believe an item is missing to first verify purchased items and check Track & Manage to determine whether the order was split into multiple deliveries. If the item is still missing, the customer contacts support with the order number.
-
-### Product implication
-
-Aftersales should not create a false claim when current Order fulfillment already explains the apparent issue.
-
-### GRIP candidate
-
-Before starting a missing-item case:
-
-```text
-Order / fulfillment truth
-→ unresolved delivered quantity?
-→ only then allow missing-item issue path
-```
-
-Order remains the source for delivery/split-fulfillment facts.
-
-### Sources
-
-- IKEA US — What do I do if I have a missing product?  
-  https://www.ikea.com/us/en/customer-service/knowledge/articles/g877ed3b-4e47-468e-903e-718818f2g6df.html
-- IKEA US — What can I do if something is missing from my delivery?  
-  https://www.ikea.com/us/en/customer-service/knowledge/articles/74d6d65a-df6f-4f7f-90c3-f779ea35383d.html
-
----
-
-# 9. Damaged product resolution is outcome-oriented
-
-## E7 — Multiple valid resolutions
-
-### Observed — IKEA US
-
-For products damaged during/after delivery, IKEA documents several potential resolutions depending on context, including replacement, home delivery of a replacement, or refund.
-
-### Product implication
-
-A claim should not be modeled as a forced return.
-
-```text
-Issue Claim
-→ assess
-→ resolution
-   ├── replacement
-   ├── replacement part
-   ├── refund
-   └── reject / unsupported
-```
-
-The valid outcome depends on policy, item, evidence and operational capability.
-
-### GRIP candidate
-
-Create a first-class **Claim** concept separate from Return.
-
-Admin should choose only domain-supported resolution commands, not freely edit a status field.
-
-### Source
-
-- IKEA US — What can I do if my item was damaged during or after delivery?  
-  https://www.ikea.com/us/en/customer-service/knowledge/articles/9ef5ebf8-c4bf-449d-97f4-a0cef573807b.html
-
----
-
-# 10. Missing or damaged parts can be resolved without replacing the full product
-
-## E8 — Spare/replacement part path
-
-### Observed — IKEA US
-
-IKEA may provide or ship a missing/damaged part. For some hardware, a part number from assembly instructions can be used to order a spare part directly.
-
-### Product implication
-
-The smallest effective resolution can be better than a full-product return/replacement.
-
-### GRIP candidate
-
-Current SRS may support a `replacement_part` resolution only if GRIP has a real part-reference/fulfillment contract.
-
-Otherwise the UI should route the customer to support rather than pretending a self-service part catalog exists.
-
-### Sources
-
-- IKEA US — What should I do if my item has missing or damaged parts?  
-  https://www.ikea.com/us/en/customer-service/knowledge/articles/g7fb36d2-c919-41f3-8936-2g7e6d1e1194.html
-- IKEA US — What can I do if my product is missing some parts?  
-  https://www.ikea.com/us/en/customer-service/knowledge/articles/93d34e4a-3b1c-4989-812e-acdcfaf56ee8.html
-
----
-
-# 11. Warranty claim is not the same as standard return
-
-## E9 — Warranty eligibility uses product-specific coverage and proof
-
-### Observed — IKEA US
-
-IKEA states that only certain products have extended limited warranties. Warranty claims require proof of purchase, can require inspection and photos, and are decided after evaluation. Warranty duration can differ significantly by product family.
-
-### Product implication
-
-Warranty eligibility requires historical purchase evidence plus a warranty/policy contract.
-
-It must not be represented by one global `within 365 days` rule.
-
-### GRIP candidate
-
-Aftersales should query/use:
-
-```text
-Order purchase evidence
-+
-product/warranty policy reference
-+
-claim issue/evidence
-→ warranty claim eligibility / assessment
-```
-
-Catalog can expose current warranty summary, but historical claim eligibility must not silently change because product content is edited later.
-
-### Sources
-
-- IKEA US — What is IKEA Warranty?  
-  https://www.ikea.com/us/en/customer-service/knowledge/articles/16939445-gb19-415g-8060-55d1bf1e8410.html
-- IKEA US — After use, my product stopped working. Is there a warranty?  
-  https://www.ikea.com/us/en/customer-service/knowledge/articles/1323d2b0-48c2-4e01-bc3e-egcfd19f0e60.html
-- IKEA US — Kitchen guarantees  
-  https://www.ikea.com/us/en/customer-service/knowledge/articles/e8d6fa84-4b98-4114-8b03-792413b8c7d8.html
-
----
-
-# 12. Claims need evidence, but evidence requirements are contextual
-
-## E10 — Proof, inspection and photos
-
-### Observed — IKEA US
-
-IKEA's claim/warranty guidance requires proof of purchase and says claims can be subject to inspection; photos may be requested depending on the issue.
-
-### Product implication
-
-Evidence should be driven by claim type/policy, not required globally for every aftersales case.
-
-### GRIP candidate
-
-A Claim can expose a backend-defined evidence requirement such as:
-
-```text
-none
-text description
-photo evidence
-inspection required
-```
-
-Do not force media upload into ordinary returns unless policy requires it.
-
-### Sources
-
-- IKEA US — How do I make a claim?  
-  https://www.ikea.com/us/en/customer-service/knowledge/articles/1c5gdc7d-3c3b-41cf-gd78-45b061b644f8.html
-- IKEA US FAQ — Product warranties  
-  https://www.ikea.com/us/en/customer-service/faq/
-
----
-
-# 13. A case/reference number matters once support work exists
-
-## E11 — Existing claim lookup uses case/order reference
-
-### Observed — IKEA US
-
-IKEA asks customers with an existing claim to provide the case or order number when contacting support.
-
-### Product implication
-
-Once an aftersales case exists, it needs a stable identity independent from the Order identity.
-
-### GRIP candidate
-
-```text
-Order #123
-└── Aftersales Case AF-456
-```
-
-One Order can potentially have multiple independent cases over time or for different items.
-
-### Source
-
-- IKEA US — How do I make a claim?  
-  https://www.ikea.com/us/en/customer-service/knowledge/articles/1c5gdc7d-3c3b-41cf-gd78-45b061b644f8.html
-
----
-
-# 14. Secondary admin reference — Shopify
-
-IKEA does not publicly document its internal aftersales admin console. Shopify is therefore used only as a workflow reference, not as evidence of IKEA implementation.
-
-## R1 — Return creation and processing are separate steps
-
-Shopify Admin distinguishes creating a return from processing received return items and issuing a refund. It also supports return reasons and later financial action.
-
-### Useful pattern for GRIP
-
-```text
-create/request return
-→ expected items
-→ receive/assess
-→ process resolution/refund
-```
-
-This reinforces the same semantic separation found in IKEA's public behavior.
-
-### Source
-
-- Shopify Help Center — Creating and processing returns and exchanges  
-  https://help.shopify.com/en/manual/fulfillment/managing-orders/returns/creating-returns
-
----
-
-# 15. Secondary domain reference — commercetools
-
-## R2 — Return state should not be collapsed into Order state
-
-commercetools models Order state, shipment state, payment state and return information separately. Return items carry their own return shipment/payment state.
-
-### Useful pattern for GRIP
-
-Keep separate concerns:
-
-```text
-Order lifecycle            // Order-owned
-Aftersales case lifecycle  // Aftersales-owned
-Return physical state      // if implemented
-Refund projection          // financial contract
-```
-
-Do not add `returned` as a magic new Order lifecycle state that destroys partial-item semantics.
-
-### Source
-
-- commercetools HTTP API — Orders / ReturnInfo  
-  https://docs.commercetools.com/api/projects/orders
-
----
-
-# 16. Research synthesis
-
-The strongest product model emerging from the evidence is:
-
-```text
-Order
-  ↓ historical purchase + fulfillment evidence
-Aftersales
-├── Return
-│   ├── eligibility
-│   ├── selected items / quantities
-│   ├── reason
-│   ├── return method / instructions when supported
-│   ├── receipt / assessment
-│   └── refund outcome
-└── Claim
-    ├── missing item
-    ├── damaged item
-    ├── defective / quality issue
-    ├── warranty issue
-    ├── evidence / inspection
-    └── resolution
-        ├── replacement
-        ├── replacement part (only if supported)
-        ├── refund
-        └── rejected / unsupported
-```
-
-Key research conclusions:
-
-1. Return and Claim should be separate semantic case types.
-2. Submission/request is not equivalent to acceptance or refund completion.
-3. Historical purchase proof comes from Order, not current Catalog or Account state.
-4. Warranty eligibility is product/policy-specific, not a global return-window rule.
-5. A claim can resolve without a return.
-6. Refund is an outcome/projection, not the whole Aftersales domain.
-7. General-purpose exchange is not required for GRIP current scope; return + new purchase is sufficient unless a specific replacement resolution applies.
-8. Warehouse restock and payment gateway operations are separate capabilities and should not leak into current Aftersales UI.
-9. Admin should work from a case queue and semantic resolution commands rather than arbitrary status mutation.
-10. Public UI should start from Order context whenever possible so item identity and purchase proof do not need to be re-entered.
+# 12. Research conclusions for GRIP
+
+Only the following conclusions are safe to carry forward from IKEA evidence:
+
+1. **Return** is a customer flow for change-of-mind/not-satisfied purchases and is governed by return policy.
+2. IKEA uses **claim** as a customer-service concept for trouble with a product or delivery.
+3. A missing item should be checked against Order/split-delivery truth before escalation.
+4. Damaged-item support can lead to replacement or refund.
+5. Missing parts can have a smaller part-specific remedy.
+6. Quality/warranty handling can require proof, photos and inspection.
+7. IKEA has a stable case/order reference for an already-open claim.
+8. Public IKEA material does **not** justify inventing a detailed internal Claim lifecycle or backoffice model.
+
+The GRIP SRS may make product/domain decisions from these observations, but every such decision must be labeled as **GRIP behavior**, not as an IKEA fact.
