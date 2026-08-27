@@ -10,1036 +10,524 @@
 
 # 1. Purpose
 
-This file translates the approved Aftersales SRS into an operator-facing workflow.
+This file defines Admin interaction guidance for the GRIP Aftersales capability.
 
-It is deliberately constrained.
+Important evidence boundary:
 
-Admin Aftersales must help an operator:
+> IKEA does not publicly expose enough of its internal returns/claims backoffice UI to treat any specific queue, lifecycle, screen hierarchy or operator action model as “how IKEA Admin works”.
 
-```text
-find work
-→ understand the case
-→ inspect only relevant Order/customer context
-→ make one valid decision/action
-→ verify canonical result
-```
+Therefore this file does **not** claim to reproduce IKEA's internal Admin system.
 
-It must **not** become:
+IKEA public evidence contributes only:
 
-```text
-CRM
-WMS
-payment gateway console
-inventory admin
-free-form order editor
-analytics suite
-```
+- customer problem categories;
+- information customers are asked to provide;
+- publicly described support routes;
+- publicly described outcomes such as replacement/refund;
+- case/order reference behavior.
+
+Everything else in this file is a **GRIP UI decision bounded by the SRS**.
 
 ---
 
-# 2. Evidence boundary
+# 2. Existing GRIP boundaries
 
-IKEA does not publicly expose its internal return/claims backoffice UI in enough detail to copy or claim as reference.
-
-Therefore:
-
-- IKEA public behavior informs case semantics and customer expectations;
-- Shopify Admin informs common operational return-processing patterns;
-- commercetools informs useful state separation at the domain level;
-- GRIP SRS remains the only authority for actual capability.
-
-### Secondary reference — Shopify
-
-Shopify separates creating a return, processing received return items and issuing a refund. This supports a work-oriented admin flow rather than one combined `Returned` button.
-
-Source:  
-https://help.shopify.com/en/manual/fulfillment/managing-orders/returns/creating-returns
-
-### Secondary reference — commercetools
-
-commercetools represents order/shipment/payment/return concerns separately, including per-return-item states.
-
-Source:  
-https://docs.commercetools.com/api/projects/orders
-
----
-
-# 3. Existing GRIP admin boundaries
-
-Admin Aftersales composes with existing modules:
+Admin Aftersales composes with existing owning modules:
 
 ```text
 Order Admin
-→ source transaction / fulfillment history
+→ purchase + fulfillment truth
 
 Account Admin
-→ customer identity/profile context
+→ customer identity/profile
 
 Catalog Admin
-→ current product context, optional
+→ current product context
 
 Aftersales Admin
-→ case lifecycle / evidence / assessment / resolution
+→ only supported post-purchase support/return operations
 ```
 
-Core rule:
-
-> Show enough neighboring context to make the decision; navigate to the owning module for deeper work.
-
-Do not duplicate full Order, Account or Catalog administration inside case detail.
+Do not duplicate full Order, Account or Catalog editing inside Aftersales.
 
 ---
 
-# 4. Admin UX principles
+# 3. What IKEA public evidence justifies for operator context
 
-## P1 — Queue first
+The following public facts are useful context even though the internal screen is unknown.
 
-The default Aftersales Admin surface should answer:
+## Existing claim
 
-> What needs attention now?
+IKEA asks for case or order number when a claim is already in progress.
 
-Not:
-
-> Show every case ever created.
-
-Resolved history remains searchable but should not dominate the default view.
-
-## P2 — Actions, not statuses
-
-Never design a raw dropdown like:
+Useful GRIP implication:
 
 ```text
-Status:
-[requested ▼]
+operator should be able to locate/support a case using its case/order reference
 ```
 
-Operators perform semantic actions:
+Source:
+
+https://www.ikea.com/us/en/customer-service/knowledge/articles/1c5gdc7d-3c3b-41cf-gd78-45b061b644f8.html
+
+## Missing delivery
+
+IKEA tells the customer to check order contents and split deliveries before Customer Service escalation.
+
+Useful GRIP implication:
 
 ```text
-Mark return received
-Start/complete assessment
-Request more information
-Approve refund
-Approve replacement
-Reject claim
+Order fulfillment context should be near missing-item support work
 ```
 
-Only actions supported in the current state appear.
+Source:
 
-## P3 — One source of truth per concern
+https://www.ikea.com/us/en/customer-service/knowledge/articles/74d6d65a-df6f-4f7f-90c3-f779ea35383d.html
 
-Order state stays Order-owned.
+## Damaged item
 
-Case state stays Aftersales-owned.
+IKEA publicly describes co-worker-handled options including store replacement, home-delivered replacement and refund.
 
-Refund state comes from the financial projection.
-
-Do not blend them into one ambiguous colored badge.
-
-## P4 — Decision context near the action
-
-Before an operator approves/rejects a case, show the evidence and policy/eligibility context necessary to decide.
-
-Do not force repeated navigation between five pages for common decisions.
-
-## P5 — Keep internal and customer-visible text distinct
-
-If a workflow supports internal note and customer-facing explanation, label them explicitly.
-
-Never let operators accidentally expose internal notes.
-
-## P6 — Fresh canonical state after every consequential action
-
-Do not trust optimistic UI as final state.
-
-After mutation:
+Useful GRIP implication:
 
 ```text
-execute command
-→ fetch canonical case
-→ fetch relevant resolution/refund projection
-→ render result/history
+if GRIP supports those operations,
+operator sees only the operations actually available for this case
 ```
+
+Source:
+
+https://www.ikea.com/us/en/customer-service/knowledge/articles/9ef5ebf8-c4bf-449d-97f4-a0cef573807b.html
+
+## Warranty
+
+IKEA says warranty claims require proof of purchase, may require photos, are subject to inspection, and an IKEA co-worker makes the final decision.
+
+Useful GRIP implication:
+
+```text
+purchase evidence + supplied evidence + actual allowed decision
+should be available together when GRIP supports warranty handling
+```
+
+Source:
+
+https://www.ikea.com/us/en/customer-service/knowledge/articles/1c5gdc7d-3c3b-41cf-gd78-45b061b644f8.html
 
 ---
 
-# 5. Canonical Admin IA
+# 4. What must NOT be presented as IKEA Admin behavior
 
-Recommended semantic IA:
-
-```text
-Admin
-└── Aftersales
-    ├── Cases
-    │   ├── Needs attention
-    │   ├── Open
-    │   └── Resolved
-    └── Case detail
-```
-
-`Needs attention`, `Open`, `Resolved` may be tabs/saved filters rather than separate routes.
-
-Avoid exposing taxonomy/configuration pages unless an actual domain contract later supports them.
-
-No current:
+Do not attribute any of the following to IKEA without separate evidence:
 
 ```text
-Return policy builder
-Warranty policy editor
-Reason taxonomy manager
-Refund rules engine
+Needs attention queue
+Return/Claim tabs
+specific workflow columns
+requested → reviewing → approved lifecycle
+RMA terminology
+raw Claim aggregate fields
+refund approval screen
+operator audit timeline layout
+specific permission roles
+specific SLA dashboard
+specific case filters
 ```
+
+GRIP may implement some of these later, but they would be GRIP decisions.
 
 ---
 
-# 6. Work queue
+# 5. Current GRIP Admin scope
 
-The queue is the operational center.
-
-## 6.1 Default view
-
-Prefer cases requiring operator work.
-
-Examples of derivable attention signals:
+Current Admin capability is minimal:
 
 ```text
-newly submitted
-review needed
-return received and awaiting assessment
-customer supplied requested info
-resolution failed / requires follow-up
+find supported Aftersales case
+→ open case
+→ inspect source Order + affected item + customer-reported issue
+→ inspect evidence when present
+→ execute only currently supported backend action
+→ reload canonical result
 ```
 
-Only use signals actually published by backend.
+No additional workflow should be designed unless the SRS/backend needs it.
 
-## 6.2 Row information hierarchy
+---
 
-A row should let an operator answer quickly:
+# 6. Case discovery
 
-```text
-What is this?
-Who/order is it about?
-What item is affected?
-What state is it in?
-Does it need me now?
-How old is the case?
-```
+If persistent cases are implemented, Admin needs a way to find them.
 
-Recommended fields:
+## Search
 
-```text
-case reference
-case type / issue kind
-order reference
-customer display identity
-small affected-item summary
-case state
-attention/next-work indicator
-created / last updated time
-```
-
-Do not stuff the row with:
-
-```text
-full address
-all order lines
-payment detail
-full claim description
-long internal notes
-```
-
-Those belong in detail.
-
-## 6.3 Human-readable search
-
-Primary search should accept identifiers operators actually know:
+Use only backend-supported human-recognizable identifiers, preferably:
 
 ```text
 case reference
 order reference
-customer name
-email
-phone
 ```
 
-SKU/product snapshot search can be included only if backend reliably supports it.
+Customer name/email/phone search may be added only when the actual search contract supports it and access is permitted.
 
-Do not require internal UUID.
+Do not require internal UUID for normal work.
 
-## 6.4 Filters
+## List/queue
 
-Candidate operational filters:
+A case list is allowed if operational volume requires it, but the SRS does not mandate an invented “Needs attention” workflow.
+
+Minimal useful row:
 
 ```text
-Case type: Return / Claim
-Issue kind: Missing / Damaged / Quality / Warranty
-Case state
-Needs action
-Resolution type/status
-Created date
+case reference
+source order
+customer-safe issue/return intent
+affected item summary
+actual backend status
+updated time, if provided
 ```
 
-Keep filter count small.
-
-Do not add generic query-builder behavior.
-
-## 6.5 Sort
-
-Default sort should serve work prioritization, for example oldest waiting work first or latest activity first, depending on backend/product decision.
-
-Do not silently use a sort whose meaning operators cannot understand.
+Do not invent state-derived priority badges without backend semantics.
 
 ---
 
-# 7. Queue state design
+# 7. Case detail hierarchy
 
-Distinct states required:
-
-## Loading
-
-Use structural skeleton/loader without fake case data.
-
-## Empty — no cases
-
-```text
-No aftersales cases yet.
-```
-
-## Empty — filter has no matches
-
-Preserve filters and offer `Clear filters`.
-
-Do not show the global no-data empty state.
-
-## Error
-
-Keep search/filter input and provide retry.
-
-## Stale row
-
-Opening the case should always load current canonical detail; row state is a summary only.
-
----
-
-# 8. Case detail — overall composition
-
-Case detail should optimize decision-making, not simply display every database field.
-
-Recommended desktop composition:
+Recommended GRIP hierarchy:
 
 ```text
 Header
-├── case reference
-├── case type / issue
-├── current case state
-├── attention signal
-└── valid primary action(s)
+- case reference
+- source order
+- actual backend status
+- supported action(s), if any
 
-Main column
-├── customer-reported issue / return intent
-├── affected item(s) + quantity
-├── evidence
-├── assessment / resolution
-└── activity/history
+Main
+- customer-reported intent/problem
+- affected item(s) + quantity
+- submitted information/evidence
+- current outcome/instruction
 
-Context rail
-├── source Order projection + link
-├── customer projection + Account link
-├── current product link, optional
-└── refund/replacement projection
+Context
+- Order projection + canonical Order link
+- minimal customer projection + Account link
+- optional current Catalog link
+- downstream refund/replacement projection when available
 ```
 
-The exact visual layout can vary, but this hierarchy should survive.
+This is a GRIP usability decision, not an IKEA-backoffice observation.
 
 ---
 
-# 9. Header and action area
+# 8. Return support in Admin
 
-The header should answer:
+Show only data the current Return contract actually provides.
 
-```text
-What case?
-What state?
-What do I need to do?
-```
-
-### Primary action
-
-Show at most one strongest current action when possible.
-
-Examples:
+Candidate fields:
 
 ```text
-Review case
-Mark return received
-Resolve case
-```
-
-Secondary actions can be grouped but should stay state-valid.
-
-### No action state
-
-If waiting for customer/downstream system:
-
-```text
-Waiting for customer information
-Refund processing
-Waiting for return
-```
-
-Do not manufacture a button just to make the page feel actionable.
-
----
-
-# 10. Affected item section
-
-Use Order historical snapshot.
-
-Per affected line:
-
-```text
-purchase-time item title
-variant/selection label
-SKU/reference where available
-ordered quantity
+affected Order item(s)
 affected quantity
-purchase-time unit/line amount where decision-relevant
-fulfillment reference/status context when relevant
+customer return reason, if collected
+selected/supported return method
+return instructions/reference
+actual return/refund status supplied by backend
 ```
 
-Do not overwrite with current Catalog title/price.
-
-### Partial quantity
-
-Make affected quantity prominent.
-
-Example:
+Do not invent operational controls such as:
 
 ```text
-Affected: 1 of 3 purchased
+Mark received
+Inspect
+Restock
+Approve return
 ```
 
-This reduces operator errors that accidentally resolve the whole line/order.
+unless those commands actually exist in the GRIP backend.
+
+The previous document assumed these commands as a universal lifecycle. That assumption is removed.
 
 ---
 
-# 11. Return case detail
+# 9. Missing-order-item support in Admin
 
-Return-specific information can include:
+Put Order fulfillment truth next to the customer's report.
 
-```text
-return reason
-selected item(s)/quantity
-eligibility result/context
-return method/instructions
-physical return state
-assessment result
-refund projection
-```
-
-## 11.1 Return progression
-
-Visually preserve meaningful stages:
+Useful context:
 
 ```text
-Requested
-→ Waiting for return
-→ Received
-→ Assessment
-→ Resolution
+ordered quantity
+fulfillment groups
+current delivery status
+tracking/estimate when available
 ```
 
-Only show stages supported by implementation.
+The operator should not have to infer from free text whether another split delivery is still active.
 
-Do not make a fake universal five-step stepper if some return types skip steps.
-
-## 11.2 Mark return received
-
-If this command exists:
-
-- show expected item/quantity;
-- confirmation names the actual items;
-- do not expose restock location or inventory disposition in current scope;
-- after success refresh canonical case.
-
-## 11.3 Assess return
-
-If inspection outcome is required, present only supported assessment values.
-
-Avoid generic editable status.
-
-If a return cannot be accepted, require supported reason/customer explanation according to backend contract.
+Do not expose a generic refund/replacement action set unless the current backend specifically allows it for this issue.
 
 ---
 
-# 12. Claim case detail
+# 10. Damaged-item support in Admin
 
-Claim-specific context:
-
-```text
-issue kind
-description
-submitted evidence
-Order fulfillment context where relevant
-warranty/eligibility projection where relevant
-assessment state
-resolution options
-```
-
-## 12.1 Missing item
-
-Put fulfillment truth adjacent to claim:
+If GRIP implements IKEA-like damaged-item remedies, detail should show:
 
 ```text
-expected quantity
-delivered/split fulfillment projection
-tracking/status link to Order
-```
-
-The operator should not have to infer from customer prose whether another shipment is still active.
-
-## 12.2 Damaged / quality
-
-Evidence area should support:
-
-```text
-image thumbnails
-open larger view
-file error/unavailable state
+affected item
 customer description
+evidence if collected
+actual supported remedy options
 ```
 
-Do not expose unrelated customer uploads.
-
-## 12.3 Warranty
-
-Show customer-safe/internal eligibility evidence from accepted policy contract, such as:
+Potential remedies observed publicly at IKEA include:
 
 ```text
-purchase date
-policy reference
-coverage/eligibility result
-assessment requirement
+store replacement
+home-delivered replacement
+refund
 ```
 
-Do not design a manual calendar calculation workflow.
+But the Admin screen shows only actions supported by GRIP for the current case.
+
+No raw status dropdown is needed.
+
+---
+
+# 11. Missing-part support in Admin
+
+If GRIP has a real part contract, operator context can include:
+
+```text
+purchased product
+requested/missing part reference
+actual supported part fulfillment option
+```
+
+If GRIP does not have part identity/fulfillment, Admin should route the issue through the supported general Customer Service path rather than expose a fake parts catalog.
+
+---
+
+# 12. Quality / warranty support in Admin
+
+For an implemented quality/warranty path, show decision-relevant evidence only:
+
+```text
+source Order + purchase date
+purchased item
+customer description
+photos/files when present
+actual coverage/policy result if backend provides it
+inspection requirement/result if provided
+currently valid supported action
+```
+
+Do not add a manual warranty-date calculator or policy editor.
+
+Do not expose current Catalog marketing text as the authoritative warranty decision.
 
 ---
 
 # 13. Evidence UI
 
-Evidence is central for some Claims but irrelevant for many Returns.
+Evidence is contextual, not universal.
 
-Recommended structure:
+If evidence exists:
 
 ```text
-Evidence
-├── customer description
-├── photo/file evidence, when present
-└── requested additional information, when applicable
+customer description
+photo/file evidence
+additional information requested/provided, if supported
 ```
 
-### Operator actions
+Requirements:
 
-If contract supports `Request additional information`:
+- customer-submitted evidence is read-only unless the backend explicitly supports correction;
+- image/file failure does not make the whole case disappear;
+- do not expose unrelated customer files;
+- distinguish customer-visible text from internal-only data if both actually exist.
 
-- action specifies what is needed using supported structure/text;
-- customer-facing message must be previewable;
-- case enters the actual waiting state;
-- previous evidence remains visible/read-only.
-
-Do not make the operator edit customer-submitted evidence.
+Do not invent an internal-note feature solely because typical support tools have one.
 
 ---
 
-# 14. Resolution workspace
+# 14. Actions
 
-Resolution is the most consequential Admin area.
+Actions come from the real backend contract and current state.
 
-Do not render all possible resolutions all the time.
-
-Backend/current state provides valid commands.
-
-Potential supported actions:
+Good pattern:
 
 ```text
-Approve refund
-Approve replacement
-Approve replacement part
-Reject
+backend says available_actions = [...]
+→ UI renders those semantic actions
 ```
 
-## 14.1 Refund action
-
-Before confirmation show:
+Bad pattern:
 
 ```text
-affected items/quantity
-backend-calculated refund amount
-refund destination/method summary when safe
-case consequence
+Status [dropdown]
+→ operator can force arbitrary state
 ```
 
-Current SRS does not permit arbitrary free-form refund amount entry by default.
+Examples such as `Refund`, `Replace`, or `Request more information` may appear only if implemented.
 
-If amount is not available from backend, do not invent a calculator.
-
-### Confirmation copy direction
-
-Use specific action names:
-
-```text
-Approve refund
-```
-
-not:
-
-```text
-Save changes
-```
-
-## 14.2 Replacement action
-
-Show only downstream data Aftersales actually controls/receives.
-
-Do not add:
-
-```text
-warehouse selection
-stock allocation
-pick list
-shipping carrier setup
-```
-
-If downstream replacement is created, show returned reference/status and route to canonical owning surface if one exists.
-
-## 14.3 Reject action
-
-Rejection needs stronger protection than ordinary save.
-
-Recommended flow:
-
-```text
-Reject claim
-→ choose/enter supported reason
-→ separate internal note if available
-→ preview customer-visible explanation
-→ confirm
-```
-
-Do not allow empty customer explanation if backend requires one.
+Do not design the full action catalog first and treat it as a requirement.
 
 ---
 
 # 15. Refund projection
 
-Keep refund visually separate from case resolution.
-
-Recommended card:
+Where financial integration returns data, show it separately:
 
 ```text
 Refund
-Amount      1,200,000 ₫
-Status      Processing
-Reference   ...       // if useful/safe
-Updated     ...
+amount        backend-provided
+status        backend-provided
+reference     if safe/useful
 ```
 
-Only show actual backend fields.
+Do not:
 
-Distinct states may include:
-
-```text
-Requested
-Processing
-Refunded
-Failed
-```
-
-If refund fails after case approval, the case detail must surface the operational problem rather than still showing an unqualified green `Resolved` experience.
-
-Attention signal can be derived only if backend marks it actionable.
+- compute amount from current Catalog price;
+- mark refund complete because support case is closed;
+- create a generic payment/refund console inside Aftersales.
 
 ---
 
 # 16. Replacement projection
 
-Keep replacement outcome concise:
+Where a replacement operation exists, show only the downstream projection:
 
 ```text
-Replacement
-Status
-Reference
-tracking / owning-flow link if published
+replacement reference
+status
+tracking/canonical link when published
 ```
 
-Do not duplicate Order/Fulfillment detail if replacement is represented by another canonical transaction.
+Do not add warehouse, inventory allocation, carrier or label controls to Aftersales Admin.
 
 ---
 
-# 17. Case activity/history
+# 17. Status presentation
 
-Operator history should answer:
+There is no SRS-defined universal Claim lifecycle.
 
-> Who/what changed this case and why?
-
-Meaningful events:
+Therefore:
 
 ```text
-case submitted
-operator opened/reviewed only if audit chooses to record it
-additional info requested
-customer information added
-return received
-assessment completed
-refund requested
-refund state changed
-replacement requested
-case rejected/resolved
+backend state
+→ plain operator/customer-safe label where appropriate
 ```
 
-### Visual hierarchy
-
-Newest-first can help operational review, but chronological order is acceptable if globally consistent.
-
-Each event can include:
+Do not build a fixed visual stepper such as:
 
 ```text
-time
-action
-actor type/display identity if allowed
-customer-visible/internal reason where relevant
+Submitted → Review → Approval → Resolution → Done
 ```
 
-Do not expose low-level event bus payloads.
+unless the implemented contract truly has those states.
 
 ---
 
-# 18. Cross-domain context rail
+# 18. Cross-module navigation
 
-## Order projection
+## Order
 
-Show minimal facts:
+Always prefer a canonical `View order` link for purchase/fulfillment depth.
 
-```text
-order reference
-purchase date
-order status
-fulfillment relevant to affected item
-link: View order
-```
+## Account
 
-Do not duplicate full Order history.
+Use `View customer` for full Account-owned context.
 
-## Customer projection
+Aftersales does not edit Account profile fields.
 
-Show minimal support context:
+## Catalog
 
-```text
-name
-email/phone as authorized
-account reference/state if useful
-link: View customer
-```
+Use current product link only as optional current context.
 
-Do not edit Account fields from Aftersales.
-
-## Catalog projection
-
-Optional current product context:
-
-```text
-current product link
-current status if useful
-```
-
-Historical claim remains based on Order/policy evidence.
+Historical support evidence remains tied to Order purchase facts.
 
 ---
 
-# 19. Internal note boundary
+# 19. Permissions
 
-If internal notes are supported in implementation, they must be clearly marked:
+Admin access remains permission-controlled according to the platform's existing access model.
 
-```text
-Internal note — customers cannot see this
-```
+UI may hide unavailable actions for usability, but backend authorization remains authoritative.
 
-Customer-facing explanation uses a separate component/field.
-
-Never use one generic textarea with an ambiguous visibility toggle hidden elsewhere.
-
-If internal notes are not supported by backend, do not invent them simply because Admin products commonly have notes.
+This file does not invent Aftersales-specific role names or permission matrices.
 
 ---
 
-# 20. Permissions
+# 20. Stale/concurrent actions
 
-UI action availability should reflect permissions but must not be the security boundary.
-
-Patterns:
+For every consequential operator action:
 
 ```text
-view-only operator
-→ can inspect case
-→ no mutation controls
-
-resolution permission
-→ supported resolution actions visible
+execute action
+→ backend validates latest case/state
+→ success: reload canonical case + downstream projection
+→ stale/ineligible: show latest state and new valid actions
 ```
 
-If an operator lacks permission:
-
-- do not render misleading active controls;
-- backend must still reject unauthorized direct requests.
-
-Avoid exposing an editable permission matrix inside Aftersales; admin access belongs to Account/Admin access contracts.
+Do not force the stale local view over canonical state.
 
 ---
 
-# 21. Stale-state and concurrency UX
+# 21. Error states
 
-Common failure:
+## Case load failure
 
-Two operators open the same case.
-
-Required UX:
-
-```text
-Operator A resolves
-Operator B attempts stale action
-→ backend rejects stale/ineligible mutation
-→ show conflict message
-→ reload canonical case
-→ preserve safe unsent note text if possible
-```
-
-Do not overwrite current state with Operator B's stale local view.
-
-### Suggested copy direction
-
-```text
-This case changed since you opened it. We've loaded the latest state.
-```
-
-Then show the new valid action set.
-
----
-
-# 22. Error handling
+Preserve the searched case reference and allow retry.
 
 ## Action failure
 
-Keep case context visible.
+Keep case context visible and show failure near the attempted action.
 
-Do not navigate back to queue on failed resolution.
+## Evidence unavailable
 
-## Downstream refund/replacement unavailable
+Render evidence unavailable state without treating the whole case as nonexistent.
 
-Case decision and downstream execution may differ.
+## Order/Account/Catalog link failure
 
-Show actual failure/pending state and retry/escalation only if backend supports it.
-
-## Evidence inaccessible
-
-Show unavailable evidence state without treating the whole case as missing.
-
-## Cross-module link failure
-
-Order/Account/Catalog link failure must not destroy case detail.
+Cross-module failure must not erase valid Aftersales case information.
 
 ---
 
-# 23. Desktop-first admin composition
+# 22. Responsive behavior
 
-Aftersales Admin is primarily a work surface, so desktop can use denser information than Public.
+Admin is desktop-first but must remain usable at smaller widths.
 
-Recommended queue:
-
-- real table at desktop width;
-- sticky header optional;
-- compact but readable rows;
-- search + small filter group above;
-- pagination/incremental retrieval according to backend.
-
-Recommended detail:
-
-- main work column + context rail;
-- persistent action area only when it does not obscure evidence/history;
-- avoid modal-only case processing for complex assessment.
-
-### Why not a giant drawer for everything
-
-A drawer can work for quick triage, but full case assessment may include evidence, history and consequential resolution.
-
-Use canonical detail page for full work.
-
----
-
-# 24. Responsive / narrow Admin
-
-Admin must remain usable at narrow widths even if desktop is primary.
-
-Do not horizontally squeeze the full table.
-
-Narrow queue:
+Desktop:
 
 ```text
-case reference + state
-issue / item summary
-customer/order
-attention + age
+case context + evidence + action
+with compact source-context rail
 ```
 
-Use stacked row cards/list items.
-
-Narrow detail ordering:
+Narrow width:
 
 ```text
-state + primary action
-issue/evidence
-affected items
-resolution
-Order/customer context
-history
+status/action
+→ issue + item
+→ evidence
+→ downstream outcome
+→ source context
 ```
 
-Do not put context rail before the actual work.
+Do not compress a dense desktop table into unusable horizontal scrolling when a stacked list is more appropriate.
 
 ---
 
-# 25. Bulk actions
+# 23. Figma design gate
 
-Current SRS does not require bulk resolution, bulk refund, bulk rejection or bulk status change.
+Before adding an Admin Aftersales screen, state, filter or action, verify:
 
-Do not design bulk checkboxes merely because the queue is a table.
+1. Is it required by `02-grip-aftersales-srs.md` or an actual backend contract?
+2. If described as IKEA behavior, is there direct public IKEA evidence?
+3. Are Order/Account/Catalog facts shown as projections rather than duplicated ownership?
+4. Are only real backend actions exposed?
+5. Has an invented Claim lifecycle or generic status editor slipped back in?
+6. Are refund/replacement states coming from their owning downstream contract?
+7. Could the operator complete the supported task without unrelated CRM/WMS/payment features?
 
-Bulk consequential actions are high-risk and need separate domain support.
-
-If selection is not used for any current operation, omit row checkboxes.
-
----
-
-# 26. Color and status usage
-
-Status color is secondary to text.
-
-Use restrained semantic emphasis:
-
-```text
-needs action       → attention emphasis
-waiting            → neutral/info
-resolved           → success/supporting
-rejected/failed    → clear negative/error semantics
-```
-
-Do not create ten bespoke colors for every backend enum.
-
-Case type and state are different dimensions; avoid representing both with competing badge rainbows.
-
----
-
-# 27. Canonical Admin screen/state inventory
-
-Design should cover at least:
-
-```text
-Aftersales queue — needs attention
-Aftersales queue — open
-Aftersales queue — resolved
-queue loading
-queue empty global
-queue empty filtered
-queue error
-Return detail — requested
-Return detail — waiting for return
-Return detail — received / assessment needed
-Return detail — refund pending
-Claim detail — new review
-Claim detail — missing item with fulfillment context
-Claim detail — damaged with evidence
-Claim detail — warranty assessment
-Claim detail — additional info required
-Claim detail — approve refund confirmation
-Claim detail — approve replacement confirmation
-Claim detail — rejection confirmation
-Case detail — resolved
-Case detail — rejected
-refund failed/pending projection
-replacement projection
-stale mutation conflict
-permission/read-only state
-cross-module projection unavailable
-```
-
-Not every state must be a separate page if the design represents it correctly.
-
----
-
-# 28. Explicit Admin UI exclusions
-
-Do not design:
-
-```text
-raw case status dropdown
-raw Order status editing
-warehouse receiving/restock location UI
-inventory mutation
-carrier setup
-shipping-label purchase
-payment gateway console
-manual arbitrary refund amount editor
-chargeback workflow
-generic exchange order builder
-repair dispatch board
-CRM inbox/chat
-policy rule builder
-reason taxonomy manager
-return analytics dashboard
-bulk refund/reject controls
-```
-
-These are outside current scope.
-
----
-
-# 29. Design acceptance checklist
-
-An Admin Aftersales design is ready only if:
-
-```text
-[ ] Default queue prioritizes work requiring attention.
-[ ] Search uses human-recognizable identifiers.
-[ ] Filters are operational and limited.
-[ ] Case type, case state, refund state and Order state remain distinct.
-[ ] Detail clearly identifies affected line + quantity.
-[ ] Order historical data is preserved as authority.
-[ ] Missing-item claim shows relevant fulfillment truth.
-[ ] Evidence appears only where relevant.
-[ ] Operator mutations are semantic commands, not status editing.
-[ ] Refund action uses backend-calculated entitlement.
-[ ] Reject flow distinguishes customer explanation from internal note if both exist.
-[ ] Consequential actions have clear confirmation.
-[ ] Canonical state is refreshed after mutation.
-[ ] Stale concurrent actions fail safely and reload latest state.
-[ ] Full Account/Order/Catalog admin is not duplicated.
-[ ] No WMS/payment/CRM/exchange-engine scope leaked into screens.
-[ ] Narrow-width layout prioritizes work before context/history.
-```
-
----
-
-# 30. Design handoff
-
-The strongest operator mental model is:
-
-```text
-A customer has a problem with a known purchase.
-
-What exactly is affected?
-What evidence/policy applies?
-What valid action can I take now?
-Did the downstream resolution actually happen?
-```
-
-The Admin UI should make those four questions easy to answer and nothing more.
+If the answer is unclear, do not invent the element.
