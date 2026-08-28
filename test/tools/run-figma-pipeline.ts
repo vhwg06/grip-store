@@ -17,8 +17,6 @@ interface Options {
 
 interface NodeRunResult {
   id: string;
-  directlyChanged: boolean;
-  invalidatedBy: string[];
   status: "PASS" | "FAILED" | "NOT_RUN";
   exitCode: number | null;
 }
@@ -79,7 +77,7 @@ function parseArgs(argv: string[]): Options {
     }
 
     if (arg === "--help" || arg === "-h") {
-      console.log(`Usage:\n  npm run figma:pipeline -- \\\n    --graph docs/srs/figma-pipeline-dependencies.json \\\n    --figma "<Figma file/page reference>" \\\n    --changed Catalog \\\n    --max-repairs 3\n\nRepeat --changed for every module whose canonical planning inputs changed.\n\nSemantics:\n- the supplied changed nodes are invalidation seeds;\n- the runner follows reverse dependencies transitively;\n- only stale nodes are scheduled;\n- stale nodes execute in topological dependency order;\n- each stale node delegates to one normal figma:harness write/review lifecycle;\n- a stale dependent may legitimately require zero visual mutation, but it still gets a fresh review because an upstream dependency changed;\n- unrelated nodes are skipped entirely;\n- the pipeline stops on the first failed child lifecycle and never resets its repair budget automatically.\n\nUse --dry-run to inspect the invalidation plan without touching Figma.\n`);
+      console.log(`Usage:\n  npm run figma:pipeline -- \\\n    --graph docs/srs/figma-pipeline-dependencies.json \\\n    --figma "<Figma file/page reference>" \\\n    --changed Catalog \\\n    --max-repairs 3\n\nRule:\n  changed node → rebuild that node + every dependent, once, in dependency order.\n\nRepeat --changed when multiple module planning inputs changed.\nUse --dry-run to print the rebuild plan without touching Figma.\n`);
       process.exit(0);
     }
 
@@ -135,13 +133,9 @@ function loadPlan(options: Options) {
 function printPlan(name: string, changed: string[], plan: ReturnType<typeof buildFigmaPipelinePlan>): void {
   console.log(`[figma-pipeline] graph=${name}`);
   console.log(`[figma-pipeline] changed=${changed.join(", ")}`);
-  console.log(`[figma-pipeline] execution-contract=${pipelineContract}`);
-
+  console.log(`[figma-pipeline] rebuild=${plan.map((item) => item.id).join(" -> ")}`);
   for (const [index, item] of plan.entries()) {
-    const reason = item.directlyChanged
-      ? "direct-change"
-      : `dependency-change:${item.invalidatedBy.join(",")}`;
-    console.log(`[figma-pipeline] ${index + 1}. ${item.id} reason=${reason} maxRepairs=${item.maxRepairs}`);
+    console.log(`[figma-pipeline] ${index + 1}. ${item.id} maxRepairs=${item.maxRepairs}`);
     item.docs.forEach((doc, docIndex) => {
       console.log(`[figma-pipeline]    ${docIndex + 1}. ${doc}`);
     });
@@ -166,7 +160,6 @@ function writePipelineState(
       graph: graphPath,
       figma,
       changed,
-      executionContract: pipelineContract,
       results,
       completedAt: new Date().toISOString(),
     }, null, 2)}\n`,
@@ -181,14 +174,12 @@ function run(): void {
   printPlan(graph.name, options.changed, plan);
 
   if (options.dryRun) {
-    console.log("[figma-pipeline] DRY_RUN PASS — graph, dependency closure, and documents are valid; no Figma lifecycle started.");
+    console.log("[figma-pipeline] DRY_RUN PASS — dependency rebuild plan is valid; no Figma lifecycle started.");
     return;
   }
 
   const results: NodeRunResult[] = plan.map((item) => ({
     id: item.id,
-    directlyChanged: item.directlyChanged,
-    invalidatedBy: item.invalidatedBy,
     status: "NOT_RUN",
     exitCode: null,
   }));
@@ -197,7 +188,7 @@ function run(): void {
 
   for (let index = 0; index < plan.length; index += 1) {
     const item = plan[index];
-    console.log(`[figma-pipeline] START ${item.id}`);
+    console.log(`[figma-pipeline] BUILD ${item.id}`);
 
     const args = [
       "run",
@@ -229,15 +220,13 @@ function run(): void {
 
     results[index] = {
       id: item.id,
-      directlyChanged: item.directlyChanged,
-      invalidatedBy: item.invalidatedBy,
       status: exitCode === 0 && !child.error ? "PASS" : "FAILED",
       exitCode,
     };
 
     if (results[index].status !== "PASS") {
       const statePath = writePipelineState(graph.name, options.graph, options.figma, options.changed, results);
-      console.error(`[figma-pipeline] STOP ${item.id} failed. No downstream node will run.`);
+      console.error(`[figma-pipeline] STOP ${item.id} failed. Dependents will not run.`);
       console.error(`[figma-pipeline] Pipeline state: ${statePath}`);
       process.exit(exitCode && exitCode > 0 ? exitCode : 1);
     }
