@@ -14,9 +14,10 @@
     "test:catalog": "tsx tools/run-cucumber.ts catalog",
     "test:browser": "tsx tools/run-cucumber.ts browser",
     "test:browser:non-catalog": "tsx tools/run-cucumber.ts browser-non-catalog",
-    "test:figma-harness": "tsx --test tools/figma-harness/lifecycle.test.ts tools/figma-harness/supervision.test.ts tools/figma-harness/process.test.ts",
+    "test:figma-harness": "tsx --test tools/figma-harness/lifecycle.test.ts tools/figma-harness/supervision.test.ts tools/figma-harness/process.test.ts tools/figma-harness/reconciliation.test.ts",
     "figma:harness": "tsx tools/run-figma-harness.ts",
     "figma:verify": "tsx tools/run-figma-harness.ts --mode verify",
+    "figma:reconcile": "tsx tools/run-figma-reconcile.ts",
     "report": "open artifacts/report.html",
     "validate:modules": "tsx tools/validate-modules.ts",
     "validate:openapi": "tsx tools/validate-openapi.ts"
