@@ -39,35 +39,30 @@
 - `npm run figma:harness -- ...` is the canonical single-root write/repair
   lifecycle. It may start one writer session and owns its complete repair budget.
 - `npm run figma:verify -- ...` is verification-only. It MUST NOT start or resume
-  a writer, mutate Figma, or schedule a repair. Use it when the task is to verify
-  one canonical artifact as it already exists.
-- `npm run figma:pipeline -- ...` is the canonical dependency-driven orchestrator
-  for updating Figma after accepted canonical module planning inputs change.
-- The Figma pipeline dependency graph is declared in
-  `docs/srs/figma-pipeline-dependencies.json`. It is orchestration authority for
-  invalidation only; it does not redefine domain ownership or SRS semantics.
-- When planning updates canonical module documents, pass only those module nodes
-  as `--changed` invalidation seeds. The runner MUST compute the transitive
-  reverse-dependency closure and schedule only stale nodes in topological order.
-- Do NOT maintain a separate hand-written PATCH/VERIFY/backfill list. Whether an
-  existing Figma node must be revisited is determined by the dependency graph.
-- Every stale node delegates to exactly one normal `figma:harness --mode write`
-  lifecycle. A dependency-invalidated node may inspect the updated context and
-  require zero visual mutation, but it still needs a fresh independent review
-  before it becomes clean again.
-- Nodes outside the stale dependency closure MUST NOT be rerun or mutated.
-- Every dependency-driven update must read `.agents/figma-pipeline-update.md`
-  before the module-specific canonical planning documents.
+  a writer, mutate Figma, or schedule a repair.
+- `npm run figma:pipeline -- ...` is the canonical dependency rebuild runner.
+- The dependency graph lives at `docs/srs/figma-pipeline-dependencies.json`.
+- Core rule:
+
+  ```text
+  module changed
+  → rebuild that module
+  → rebuild every dependent module
+  ```
+
+- Pass every canonical module whose accepted planning inputs changed with
+  `--changed`. The runner follows dependent edges recursively, deduplicates the
+  result, and executes the rebuild in dependency order.
+- Do NOT maintain a separate PATCH/VERIFY/backfill list for Figma.
+- Modules outside the dependency path MUST NOT run.
+- Every rebuilt module delegates to exactly one normal
+  `figma:harness --mode write` lifecycle and reads
+  `.agents/figma-pipeline-update.md` before its canonical module documents.
 - A vertical capability name or documentation folder MUST NOT create a new
   top-level Figma Module root unless product semantics establish a genuinely new
-  owning Module. Planning first reconciles vertical semantics into canonical
-  module docs; the Figma pipeline then operates on canonical module nodes.
-- A planning result of `NO PATCH REQUIRED` for one module does not by itself keep
-  its Figma node clean. If a declared upstream Figma dependency changes, that
-  node is stale and must be revisited according to the graph.
-- A pipeline run MUST stop on the first failed stale node. It MUST NOT continue
-  into downstream stale nodes, automatically retry the failed node, or reset its
-  repair budget behind the caller's back.
+  owning Module. Rebuild the existing canonical root.
+- A pipeline run MUST stop on the first failed module. It MUST NOT continue into
+  its dependents, automatically retry it, or reset its repair budget.
 - A write/repair invocation MUST terminate from an independent reviewer or
   deterministic verifier state, never immediately after writer mutation.
 - Writer execution over an existing canonical scope MUST reconcile by semantic
