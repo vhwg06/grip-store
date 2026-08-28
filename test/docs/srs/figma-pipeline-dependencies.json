@@ -1,0 +1,86 @@
+{
+  "version": 1,
+  "name": "grip-figma-module-pipeline",
+  "nodes": [
+    {
+      "id": "Catalog",
+      "scope": "Catalog canonical Figma root",
+      "dependsOn": [],
+      "docs": [
+        "docs/srs/catalog/srs_001_product.md",
+        "docs/srs/catalog/catalog-public-ui-ux-guide.md",
+        "docs/srs/catalog/01-semantic-invariants.md",
+        "docs/srs/catalog/02-browse-list-ui-ux.md",
+        "docs/srs/catalog/03-product-detail-ui-ux.md",
+        "docs/srs/catalog/04-merchandising-cart-interactions.md",
+        "docs/srs/catalog/05-design-system-contracts.md",
+        "docs/srs/catalog/06-acceptance-qa.md",
+        "docs/srs/catalog/catalog-admin-ui-ux-research.md",
+        "docs/srs/catalog/07-vertical-capability-reconciliation.md"
+      ]
+    },
+    {
+      "id": "Checkout",
+      "scope": "Checkout canonical Figma root",
+      "dependsOn": ["Catalog"],
+      "docs": [
+        "docs/srs/checkout/checkout_srs.md",
+        "docs/srs/checkout/checkout_ui_ux_research.md",
+        "docs/srs/checkout/checkout-admin-ui-ux-research.md",
+        "docs/srs/checkout/05-vertical-capability-reconciliation.md"
+      ]
+    },
+    {
+      "id": "Account",
+      "scope": "Account canonical Figma root",
+      "dependsOn": ["Checkout"],
+      "docs": [
+        "docs/srs/Account/02-grip-account-srs.md",
+        "docs/srs/Account/03-grip-account-ui-ux-research.md",
+        "docs/srs/Account/04-account-vertical-capability-reconciliation.md"
+      ]
+    },
+    {
+      "id": "Engagement",
+      "scope": "Engagement canonical Figma root",
+      "dependsOn": ["Catalog", "Checkout", "Account"],
+      "docs": [
+        "docs/srs/Engagement/02-grip-engagement-srs.md",
+        "docs/srs/Engagement/03-grip-engagement-ui-ux-research.md",
+        "docs/srs/Engagement/04-engagement-vertical-capability-audit.md"
+      ]
+    },
+    {
+      "id": "Content",
+      "scope": "Content canonical Figma root",
+      "dependsOn": ["Catalog", "Engagement"],
+      "docs": [
+        "docs/srs/Content/02-grip-content-srs.md",
+        "docs/srs/Content/03-grip-content-ui-ux-research.md",
+        "docs/srs/Content/04-content-vertical-capability-reconciliation.md"
+      ]
+    },
+    {
+      "id": "Order",
+      "scope": "Order canonical Figma root",
+      "dependsOn": ["Catalog", "Checkout", "Account", "Engagement", "Content"],
+      "docs": [
+        "docs/srs/Order/02-grip-order-srs.md",
+        "docs/srs/Order/03-grip-order-public-ui-ux-research.md",
+        "docs/srs/Order/04-grip-order-admin-ui-ux-research.md",
+        "docs/srs/Order/05-order-vertical-capability-reconciliation.md"
+      ]
+    },
+    {
+      "id": "Aftersales",
+      "scope": "Aftersales canonical Figma root",
+      "dependsOn": ["Order", "Account", "Content"],
+      "docs": [
+        "docs/srs/Aftersales/02-grip-aftersales-srs.md",
+        "docs/srs/Aftersales/03-grip-aftersales-public-ui-ux-research.md",
+        "docs/srs/Aftersales/04-grip-aftersales-admin-ui-ux-research.md",
+        "docs/srs/Aftersales/05-aftersales-vertical-capability-audit.md"
+      ]
+    }
+  ]
+}
