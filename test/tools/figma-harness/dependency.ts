@@ -17,8 +17,6 @@ export interface FigmaPipelinePlanItem {
   scope: string;
   docs: string[];
   maxRepairs: number;
-  invalidatedBy: string[];
-  directlyChanged: boolean;
 }
 
 function nonEmptyString(value: unknown, field: string): string {
@@ -128,11 +126,16 @@ export function buildFigmaPipelinePlan(
   if (changedNodes.length === 0) throw new Error("at least one changed Figma pipeline node is required");
 
   const byKey = new Map(graph.nodes.map((node) => [node.id.toLowerCase(), node]));
-  const direct = new Set<string>();
+  const rebuild = new Set<string>();
+  const queue: string[] = [];
+
   for (const changed of changedNodes) {
     const key = changed.toLowerCase();
     if (!byKey.has(key)) throw new Error(`unknown changed Figma pipeline node: ${changed}`);
-    direct.add(key);
+    if (!rebuild.has(key)) {
+      rebuild.add(key);
+      queue.push(key);
+    }
   }
 
   const dependents = new Map<string, string[]>();
@@ -145,52 +148,45 @@ export function buildFigmaPipelinePlan(
     }
   }
 
-  const stale = new Set(direct);
-  const invalidatedBy = new Map<string, Set<string>>();
-  const queue = [...direct];
-
   while (queue.length > 0) {
     const current = queue.shift()!;
     for (const dependent of dependents.get(current) ?? []) {
-      const causes = invalidatedBy.get(dependent) ?? new Set<string>();
-      causes.add(byKey.get(current)!.id);
-      invalidatedBy.set(dependent, causes);
-      if (!stale.has(dependent)) {
-        stale.add(dependent);
-        queue.push(dependent);
-      }
+      if (rebuild.has(dependent)) continue;
+      rebuild.add(dependent);
+      queue.push(dependent);
     }
   }
 
   const indegree = new Map<string, number>();
-  for (const key of stale) indegree.set(key, 0);
-  for (const key of stale) {
+  for (const key of rebuild) {
     const node = byKey.get(key)!;
-    const count = node.dependsOn.filter((dependency) => stale.has(dependency.toLowerCase())).length;
-    indegree.set(key, count);
+    indegree.set(
+      key,
+      node.dependsOn.filter((dependency) => rebuild.has(dependency.toLowerCase())).length,
+    );
   }
 
-  const manifestOrder = new Map(graph.nodes.map((node, index) => [node.id.toLowerCase(), index]));
-  const ready = [...stale]
+  const graphOrder = new Map(graph.nodes.map((node, index) => [node.id.toLowerCase(), index]));
+  const ready = [...rebuild]
     .filter((key) => indegree.get(key) === 0)
-    .sort((a, b) => manifestOrder.get(a)! - manifestOrder.get(b)!);
+    .sort((a, b) => graphOrder.get(a)! - graphOrder.get(b)!);
   const ordered: string[] = [];
 
   while (ready.length > 0) {
     const key = ready.shift()!;
     ordered.push(key);
     for (const dependent of dependents.get(key) ?? []) {
-      if (!stale.has(dependent)) continue;
+      if (!rebuild.has(dependent)) continue;
       indegree.set(dependent, indegree.get(dependent)! - 1);
       if (indegree.get(dependent) === 0) {
         ready.push(dependent);
-        ready.sort((a, b) => manifestOrder.get(a)! - manifestOrder.get(b)!);
+        ready.sort((a, b) => graphOrder.get(a)! - graphOrder.get(b)!);
       }
     }
   }
 
-  if (ordered.length !== stale.size) {
-    throw new Error("could not topologically order stale Figma pipeline nodes");
+  if (ordered.length !== rebuild.size) {
+    throw new Error("could not topologically order Figma rebuild nodes");
   }
 
   return ordered.map((key) => {
@@ -200,8 +196,6 @@ export function buildFigmaPipelinePlan(
       scope: node.scope,
       docs: node.docs,
       maxRepairs: node.maxRepairs ?? defaultMaxRepairs,
-      invalidatedBy: [...(invalidatedBy.get(key) ?? [])],
-      directlyChanged: direct.has(key),
     };
   });
 }
