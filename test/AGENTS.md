@@ -47,14 +47,14 @@
   ```text
   module changed
   → rebuild that module
-  → rebuild every dependent module
+  → rebuild every module that depends on it
   ```
 
 - Pass every canonical module whose accepted planning inputs changed with
   `--changed`. The runner follows dependent edges recursively, deduplicates the
   result, and executes the rebuild in dependency order.
 - Do NOT maintain a separate PATCH/VERIFY/backfill list for Figma.
-- Modules outside the dependency path MUST NOT run.
+- Modules outside the changed node's dependent closure MUST NOT run.
 - Every rebuilt module delegates to exactly one normal
   `figma:harness --mode write` lifecycle and reads
   `.agents/figma-pipeline-update.md` before its canonical module documents.
