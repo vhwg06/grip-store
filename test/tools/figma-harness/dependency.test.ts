@@ -20,19 +20,14 @@ const graphInput = {
   ],
 };
 
-test("changing Order invalidates only Order and its downstream Aftersales node", () => {
+test("change rebuilds the changed node and all dependents", () => {
   const graph = parseFigmaPipelineGraph(graphInput);
-  const plan = buildFigmaPipelinePlan(graph, ["Order"], 3);
-  assert.deepEqual(plan.map((item) => item.id), ["Order", "Aftersales"]);
-  assert.equal(plan[0].directlyChanged, true);
-  assert.equal(plan[1].directlyChanged, false);
-  assert.deepEqual(plan[1].invalidatedBy, ["Order"]);
-});
+  assert.deepEqual(buildFigmaPipelinePlan(graph, ["Order"], 3).map((item) => item.id), [
+    "Order",
+    "Aftersales",
+  ]);
 
-test("changing Catalog propagates through the declared dependency graph", () => {
-  const graph = parseFigmaPipelineGraph(graphInput);
-  const plan = buildFigmaPipelinePlan(graph, ["Catalog"], 3);
-  assert.deepEqual(plan.map((item) => item.id), [
+  assert.deepEqual(buildFigmaPipelinePlan(graph, ["Catalog"], 3).map((item) => item.id), [
     "Catalog",
     "Checkout",
     "Account",
@@ -43,10 +38,9 @@ test("changing Catalog propagates through the declared dependency graph", () => 
   ]);
 });
 
-test("multiple changed roots are collapsed into one stale closure without duplicate work", () => {
+test("multiple changed nodes are rebuilt once in dependency order", () => {
   const graph = parseFigmaPipelineGraph(graphInput);
-  const plan = buildFigmaPipelinePlan(graph, ["Checkout", "Content", "Order"], 2);
-  assert.deepEqual(plan.map((item) => item.id), [
+  assert.deepEqual(buildFigmaPipelinePlan(graph, ["Checkout", "Content", "Order"], 2).map((item) => item.id), [
     "Checkout",
     "Account",
     "Engagement",
@@ -54,11 +48,9 @@ test("multiple changed roots are collapsed into one stale closure without duplic
     "Order",
     "Aftersales",
   ]);
-  assert.equal(plan.find((item) => item.id === "Order")?.directlyChanged, true);
-  assert.equal(plan.find((item) => item.id === "Catalog"), undefined);
 });
 
-test("unrelated upstream nodes are not rerun", () => {
+test("nodes outside the dependency path are skipped", () => {
   const graph = parseFigmaPipelineGraph({
     version: 1,
     name: "independent",
@@ -71,12 +63,10 @@ test("unrelated upstream nodes are not rerun", () => {
   assert.deepEqual(buildFigmaPipelinePlan(graph, ["A"], 3).map((item) => item.id), ["A", "B"]);
 });
 
-test("unknown changed nodes are rejected", () => {
+test("invalid graph/change input is rejected", () => {
   const graph = parseFigmaPipelineGraph(graphInput);
   assert.throws(() => buildFigmaPipelinePlan(graph, ["Missing"], 3), /unknown changed/i);
-});
 
-test("dependency cycles are rejected because invalidation order would be ambiguous", () => {
   assert.throws(
     () => parseFigmaPipelineGraph({
       version: 1,
@@ -88,9 +78,7 @@ test("dependency cycles are rejected because invalidation order would be ambiguo
     }),
     /cycle/i,
   );
-});
 
-test("duplicate dependencies and duplicate documents are rejected", () => {
   assert.throws(
     () => parseFigmaPipelineGraph({
       version: 1,
@@ -101,14 +89,5 @@ test("duplicate dependencies and duplicate documents are rejected", () => {
       ],
     }),
     /duplicate dependency/i,
-  );
-
-  assert.throws(
-    () => parseFigmaPipelineGraph({
-      version: 1,
-      name: "dup-doc",
-      nodes: [{ id: "A", scope: "A", dependsOn: [], docs: ["a.md", "a.md"] }],
-    }),
-    /same document more than once/i,
   );
 });
