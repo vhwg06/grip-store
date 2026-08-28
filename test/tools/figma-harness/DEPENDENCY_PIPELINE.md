@@ -7,7 +7,7 @@ Use this runner after accepted planning changes update one or more canonical mod
 ```text
 module changed
 → rebuild that module
-→ rebuild every dependent module
+→ rebuild every module that depends on it
 ```
 
 Dependencies come from:
@@ -17,6 +17,8 @@ docs/srs/figma-pipeline-dependencies.json
 ```
 
 No separate patch/backfill list is allowed.
+
+Dependents are rebuilt recursively, so transitive dependents are included automatically.
 
 ## Example
 
@@ -39,7 +41,7 @@ Catalog
 → Aftersales
 ```
 
-That is simply the dependency graph being rebuilt.
+That is simply the dependency graph being rebuilt from the changed node.
 
 ## Run
 
@@ -78,7 +80,7 @@ Figma does not redo impact analysis:
 
 ```text
 canonical module changed
-→ rebuild dependency graph from that node
+→ rebuild from that node through its dependents
 ```
 
 ## Evidence
