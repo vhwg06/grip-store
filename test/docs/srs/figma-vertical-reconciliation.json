@@ -1,0 +1,173 @@
+{
+  "version": 1,
+  "name": "vertical-capability-backfill-after-aftersales",
+  "roots": [
+    {
+      "root": "Catalog",
+      "action": "patch",
+      "scope": "Catalog canonical root — reconcile Promotions and Business Solutions vertical additions",
+      "docs": {
+        "semantics": [
+          "docs/srs/catalog/srs_001_product.md",
+          "docs/srs/Promotions/02-grip-promotions-srs.md",
+          "docs/srs/BusinessSolutions/02-grip-business-solutions-srs.md",
+          "docs/srs/catalog/07-vertical-capability-reconciliation.md"
+        ],
+        "baseUiUx": [
+          "docs/srs/catalog/catalog-public-ui-ux-guide.md",
+          "docs/srs/catalog/catalog-admin-ui-ux-research.md"
+        ],
+        "deltaUiUx": [
+          "docs/srs/Promotions/03-grip-promotions-public-ui-ux-extension.md",
+          "docs/srs/Promotions/04-grip-promotions-admin-ui-ux-extension.md",
+          "docs/srs/BusinessSolutions/03-grip-business-solutions-public-ui-ux-extension.md",
+          "docs/srs/BusinessSolutions/04-grip-business-solutions-admin-ui-ux-extension.md"
+        ],
+        "references": [
+          "docs/srs/Promotions/01-grip-promotions-reference-research.md",
+          "docs/srs/BusinessSolutions/01-grip-business-solutions-reference-research.md"
+        ]
+      }
+    },
+    {
+      "root": "Checkout",
+      "action": "patch",
+      "scope": "Checkout canonical root — reconcile Promotions, Membership, and Business Solutions vertical additions",
+      "docs": {
+        "semantics": [
+          "docs/srs/checkout/checkout_srs.md",
+          "docs/srs/Promotions/02-grip-promotions-srs.md",
+          "docs/srs/Membership/02-grip-membership-srs.md",
+          "docs/srs/BusinessSolutions/02-grip-business-solutions-srs.md",
+          "docs/srs/checkout/05-vertical-capability-reconciliation.md"
+        ],
+        "baseUiUx": [
+          "docs/srs/checkout/checkout_ui_ux_research.md",
+          "docs/srs/checkout/checkout-admin-ui-ux-research.md"
+        ],
+        "deltaUiUx": [
+          "docs/srs/Promotions/03-grip-promotions-public-ui-ux-extension.md",
+          "docs/srs/Membership/03-grip-membership-public-ui-ux-extension.md",
+          "docs/srs/BusinessSolutions/03-grip-business-solutions-public-ui-ux-extension.md"
+        ],
+        "references": [
+          "docs/srs/Promotions/01-grip-promotions-reference-research.md",
+          "docs/srs/Membership/01-grip-membership-reference-research.md",
+          "docs/srs/BusinessSolutions/01-grip-business-solutions-reference-research.md"
+        ]
+      }
+    },
+    {
+      "root": "Account",
+      "action": "patch",
+      "scope": "Account canonical root — reconcile Membership and Business Solutions vertical additions",
+      "docs": {
+        "semantics": [
+          "docs/srs/Account/02-grip-account-srs.md",
+          "docs/srs/Membership/02-grip-membership-srs.md",
+          "docs/srs/BusinessSolutions/02-grip-business-solutions-srs.md",
+          "docs/srs/Account/04-account-vertical-capability-reconciliation.md"
+        ],
+        "baseUiUx": [
+          "docs/srs/Account/03-grip-account-ui-ux-research.md"
+        ],
+        "deltaUiUx": [
+          "docs/srs/Membership/03-grip-membership-public-ui-ux-extension.md",
+          "docs/srs/Membership/04-grip-membership-admin-ui-ux-extension.md",
+          "docs/srs/BusinessSolutions/03-grip-business-solutions-public-ui-ux-extension.md",
+          "docs/srs/BusinessSolutions/04-grip-business-solutions-admin-ui-ux-extension.md"
+        ],
+        "references": [
+          "docs/srs/Membership/01-grip-membership-reference-research.md",
+          "docs/srs/BusinessSolutions/01-grip-business-solutions-reference-research.md"
+        ]
+      }
+    },
+    {
+      "root": "Content",
+      "action": "patch",
+      "scope": "Content canonical root — reconcile Promotions and Business Solutions vertical additions",
+      "docs": {
+        "semantics": [
+          "docs/srs/Content/02-grip-content-srs.md",
+          "docs/srs/Promotions/02-grip-promotions-srs.md",
+          "docs/srs/BusinessSolutions/02-grip-business-solutions-srs.md",
+          "docs/srs/Content/04-content-vertical-capability-reconciliation.md"
+        ],
+        "baseUiUx": [
+          "docs/srs/Content/03-grip-content-ui-ux-research.md"
+        ],
+        "deltaUiUx": [
+          "docs/srs/Promotions/03-grip-promotions-public-ui-ux-extension.md",
+          "docs/srs/BusinessSolutions/03-grip-business-solutions-public-ui-ux-extension.md"
+        ],
+        "references": [
+          "docs/srs/Promotions/01-grip-promotions-reference-research.md",
+          "docs/srs/BusinessSolutions/01-grip-business-solutions-reference-research.md"
+        ]
+      }
+    },
+    {
+      "root": "Order",
+      "action": "patch",
+      "scope": "Order canonical root — reconcile purchase-time promotion, business, and quotation context",
+      "docs": {
+        "semantics": [
+          "docs/srs/Order/02-grip-order-srs.md",
+          "docs/srs/Promotions/02-grip-promotions-srs.md",
+          "docs/srs/Membership/02-grip-membership-srs.md",
+          "docs/srs/BusinessSolutions/02-grip-business-solutions-srs.md",
+          "docs/srs/Order/05-order-vertical-capability-reconciliation.md"
+        ],
+        "baseUiUx": [
+          "docs/srs/Order/03-grip-order-public-ui-ux-research.md",
+          "docs/srs/Order/04-grip-order-admin-ui-ux-research.md"
+        ],
+        "deltaUiUx": [
+          "docs/srs/Promotions/03-grip-promotions-public-ui-ux-extension.md",
+          "docs/srs/Membership/03-grip-membership-public-ui-ux-extension.md",
+          "docs/srs/BusinessSolutions/03-grip-business-solutions-public-ui-ux-extension.md",
+          "docs/srs/BusinessSolutions/04-grip-business-solutions-admin-ui-ux-extension.md"
+        ],
+        "references": [
+          "docs/srs/Promotions/01-grip-promotions-reference-research.md",
+          "docs/srs/Membership/01-grip-membership-reference-research.md",
+          "docs/srs/BusinessSolutions/01-grip-business-solutions-reference-research.md"
+        ]
+      }
+    },
+    {
+      "root": "Engagement",
+      "action": "verify",
+      "scope": "Engagement canonical root — verify vertical capability backfill requires no mutation",
+      "docs": {
+        "semantics": [
+          "docs/srs/Engagement/02-grip-engagement-srs.md",
+          "docs/srs/Engagement/04-engagement-vertical-capability-audit.md"
+        ],
+        "baseUiUx": [
+          "docs/srs/Engagement/03-grip-engagement-ui-ux-research.md"
+        ],
+        "deltaUiUx": [],
+        "references": []
+      }
+    },
+    {
+      "root": "Aftersales",
+      "action": "verify",
+      "scope": "Aftersales canonical root — verify vertical capability backfill requires no mutation",
+      "docs": {
+        "semantics": [
+          "docs/srs/Aftersales/02-grip-aftersales-srs.md",
+          "docs/srs/Aftersales/05-aftersales-vertical-capability-audit.md"
+        ],
+        "baseUiUx": [
+          "docs/srs/Aftersales/03-grip-aftersales-public-ui-ux-research.md",
+          "docs/srs/Aftersales/04-grip-aftersales-admin-ui-ux-research.md"
+        ],
+        "deltaUiUx": [],
+        "references": []
+      }
+    }
+  ]
+}
