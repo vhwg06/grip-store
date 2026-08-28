@@ -62,6 +62,9 @@
   top-level Figma Module root unless product semantics establish a genuinely new
   owning Module. Planning first reconciles vertical semantics into canonical
   module docs; the Figma pipeline then operates on canonical module nodes.
+- A planning result of `NO PATCH REQUIRED` for one module does not by itself keep
+  its Figma node clean. If a declared upstream Figma dependency changes, that
+  node is stale and must be revisited according to the graph.
 - A pipeline run MUST stop on the first failed stale node. It MUST NOT continue
   into downstream stale nodes, automatically retry the failed node, or reset its
   repair budget behind the caller's back.
