@@ -36,11 +36,28 @@
 - Canonical Figma harness sessions MUST use `figma-mcp-go` for Figma operations.
   Do not fall back to another Figma MCP server when `figma-mcp-go` is unavailable
   or rate-limited.
-- `npm run figma:harness -- ...` is the canonical write/repair lifecycle. It may
+- `npm run figma:harness -- ...` is the canonical single-root write/repair lifecycle. It may
   start one writer session and owns its complete repair budget.
 - `npm run figma:verify -- ...` is verification-only. It MUST NOT start or resume
   a writer, mutate Figma, or schedule a repair. Use it when the task is to verify
   the canonical artifact as it already exists.
+- `npm run figma:reconcile -- ...` is the canonical multi-root vertical-backfill
+  orchestrator. It MUST delegate each canonical root to exactly one normal
+  `figma:harness` lifecycle, execute roots sequentially, and stop on the first
+  failed lifecycle.
+- A reconciliation wave MUST read `.agents/figma-reconciliation.md` before the
+  root-specific documents. Product/design documents are supplied in authority
+  order: product semantics → existing GRIP UI/UX base → accepted UI/UX delta →
+  targeted reference evidence.
+- A vertical capability name or documentation folder MUST NOT create a new
+  top-level Figma Module root unless product semantics establish a genuinely new
+  owning Module. Reconciliation patches the existing canonical owning root.
+- Roots marked `verify` in a reconciliation manifest remain read-only. A failed
+  verification MUST NOT be silently converted into a write lifecycle.
+- A reconciliation wave MUST NOT automatically retry a failed root with a fresh
+  repair budget or continue mutating later roots after an earlier root fails.
+  Resuming a failed root requires an explicit new invocation such as
+  `figma:reconcile -- --root <name> ...`.
 - A write/repair invocation MUST terminate from an independent reviewer or
   deterministic verifier state, never immediately after writer mutation.
 - Writer execution over an existing canonical scope MUST reconcile by semantic
