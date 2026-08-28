@@ -42,13 +42,24 @@
   a writer, mutate Figma, or schedule a repair.
 - `npm run figma:pipeline -- ...` is the canonical dependency update runner.
 - The dependency graph lives at `docs/srs/figma-pipeline-dependencies.json`.
+- The dependency pipeline MUST NOT require or accept a hard-coded Figma URL or
+  node id. For each affected node, use its Module identity plus the canonical
+  Figma hierarchy/identity constraints in `.agents/design-base.md`, then inspect
+  the actual connected Figma artifact through `figma-mcp-go` to resolve the one
+  canonical Module root.
+- Target resolution MUST validate the semantic/structural identity of the root,
+  not merely match a frame name or remembered node id. If the canonical root is
+  ambiguous, stop instead of guessing or mutating another root.
+- Local `artifacts/figma-harness/**` are execution evidence only and MUST NOT be
+  used as a replacement canonical target registry.
 - Core rule:
 
   ```text
   module changed
   → lookup dependency graph
   → changed module + dependents
-  → review each existing canonical Figma root
+  → resolve each canonical Module root through figma-mcp-go
+  → review that root
      ├── PASS              → no update
      └── FAIL_VERIFICATION → run normal figma:harness write/repair lifecycle
   ```
@@ -60,11 +71,13 @@
   must be mutated.
 - Do NOT maintain a separate PATCH/VERIFY/backfill list for Figma.
 - Modules outside the changed node's dependent closure MUST NOT run.
-- Every affected module is reviewed first with `figma:verify`.
+- Every affected module is reviewed first with `figma:verify` after its canonical
+  root has been resolved through MCP.
 - Only a clean `FAIL_VERIFICATION` result means the root needs update. In that
   case the runner invokes one normal `figma:harness --mode write` lifecycle.
-- A review timeout, execution error, or other terminal failure MUST stop the
-  pipeline and MUST NOT be interpreted as permission to mutate.
+- A target-resolution ambiguity, review timeout, execution error, or other
+  terminal failure MUST stop the pipeline and MUST NOT be interpreted as
+  permission to mutate.
 - A vertical capability name or documentation folder MUST NOT create a new
   top-level Figma Module root unless product semantics establish a genuinely new
   owning Module. Update the existing canonical root when review proves it is
