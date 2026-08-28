@@ -24,6 +24,7 @@ interface RootRunResult {
 }
 
 const root = process.cwd();
+const reconciliationContract = ".agents/figma-reconciliation.md";
 
 function die(message: string): never {
   console.error(`[figma-reconcile] ${message}`);
@@ -78,7 +79,7 @@ function parseArgs(argv: string[]): Options {
     }
 
     if (arg === "--help" || arg === "-h") {
-      console.log(`Usage:\n  npm run figma:reconcile -- \\\n    --manifest docs/srs/figma-vertical-reconciliation.json \\\n    --figma "<Figma file/page reference>" \\\n    --max-repairs 3\n\nOptional:\n  --root <name>   Run only the named canonical root. Repeat to select multiple roots.\n  --dry-run       Validate manifest/docs and print the execution plan without mutating Figma.\n\nSemantics:\n- action=patch runs one normal figma:harness write lifecycle for that canonical root;\n- action=verify runs one read-only verification lifecycle;\n- roots execute sequentially in manifest order;\n- the wave stops on the first non-PASS child lifecycle;\n- it never automatically restarts a failed root with a fresh repair budget;\n- use an explicit --root invocation when a human intentionally starts a new lifecycle later.\n`);
+      console.log(`Usage:\n  npm run figma:reconcile -- \\\n    --manifest docs/srs/figma-vertical-reconciliation.json \\\n    --figma "<Figma file/page reference>" \\\n    --max-repairs 3\n\nOptional:\n  --root <name>   Run only the named canonical root. Repeat to select multiple roots.\n  --dry-run       Validate manifest/docs and print the execution plan without mutating Figma.\n\nSemantics:\n- action=patch runs one normal figma:harness write lifecycle for that canonical root;\n- action=verify runs one read-only verification lifecycle;\n- every child receives .agents/figma-reconciliation.md before product/design docs;\n- product/design docs are then supplied in authority order: semantics → existing UI/UX base → delta → reference;\n- roots execute sequentially in manifest order;\n- the wave stops on the first non-PASS child lifecycle;\n- it never automatically restarts a failed root with a fresh repair budget;\n- use an explicit --root invocation when a human intentionally starts a new lifecycle later.\n`);
       process.exit(0);
     }
 
@@ -91,6 +92,9 @@ function parseArgs(argv: string[]): Options {
 }
 
 function loadPlan(options: Options) {
+  const contractPath = resolve(root, reconciliationContract);
+  if (!existsSync(contractPath)) die(`reconciliation contract not found: ${reconciliationContract}`);
+
   const manifestPath = resolve(root, options.manifest);
   if (!existsSync(manifestPath)) die(`manifest not found: ${options.manifest}`);
 
@@ -130,6 +134,7 @@ function loadPlan(options: Options) {
 
 function printPlan(name: string, plan: ReturnType<typeof buildReconciliationPlan>): void {
   console.log(`[figma-reconcile] wave=${name}`);
+  console.log(`[figma-reconcile] execution-contract=${reconciliationContract}`);
   for (const [index, item] of plan.entries()) {
     console.log(
       `[figma-reconcile] ${index + 1}. ${item.root} action=${item.action} mode=${item.mode} docs=${item.docs.length}` +
@@ -157,6 +162,7 @@ function writeWaveState(
       wave: name,
       manifest: manifestPath,
       figma,
+      executionContract: reconciliationContract,
       results,
       completedAt: new Date().toISOString(),
     }, null, 2),
@@ -171,7 +177,7 @@ function run(): void {
   printPlan(manifest.name, plan);
 
   if (options.dryRun) {
-    console.log("[figma-reconcile] DRY_RUN PASS — manifest and documents are valid; no Figma lifecycle started.");
+    console.log("[figma-reconcile] DRY_RUN PASS — manifest, contract, and documents are valid; no Figma lifecycle started.");
     return;
   }
 
@@ -199,6 +205,8 @@ function run(): void {
       item.scope,
       "--figma",
       options.figma,
+      "--doc",
+      reconciliationContract,
     ];
 
     for (const doc of item.docs) args.push("--doc", doc);
