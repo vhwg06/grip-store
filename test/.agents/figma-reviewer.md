@@ -39,6 +39,32 @@ Do not rely on the writer's rationale, claimed intent, hidden reasoning, or self
 
 The actual artifact is the evidence.
 
+## Target Resolution Contract
+
+Before judging design quality, resolve the requested Figma target through `figma-mcp-go`.
+
+When the caller supplies an existing-target/update contract, target resolution is fail-closed:
+
+```text
+exactly one existing canonical target established
+→ continue review
+→ summary MUST begin exactly: TARGET_RESOLVED:
+
+no canonical target exists
+→ status = fail
+→ summary MUST begin exactly: TARGET_NOT_FOUND:
+→ do not reinterpret this as a design defect that a writer should fix
+
+multiple candidates prevent unique resolution
+→ status = fail
+→ summary MUST begin exactly: TARGET_AMBIGUOUS:
+→ do not guess
+```
+
+For `TARGET_NOT_FOUND` or `TARGET_AMBIGUOUS`, do not recommend creating a replacement root. A missing canonical root may only be created under a separate explicit init/rewrite instruction.
+
+Frame name or node id alone is not enough to establish semantic identity when the target contract requires Module / Use Case / Screen / State resolution.
+
 ## Review Pipeline
 
 Evaluate the artifact using the shared gate order from `.agents/design-base.md`:
@@ -214,5 +240,9 @@ Diagnose the defect and its origin so the writer can repair the affected decisio
 ## Output
 
 Return only the structured result required by the caller's JSON schema.
+
+When the target is resolved, the `summary` field MUST begin exactly with `TARGET_RESOLVED:` before the normal review summary.
+
+When an existing-target contract cannot resolve a root, use exactly `TARGET_NOT_FOUND:` or `TARGET_AMBIGUOUS:` as defined above.
 
 Use `status: pass` only when the score thresholds are met, there are no blocking defects, and all applicable gates from `.agents/design-base.md` pass on the actual artifact.
