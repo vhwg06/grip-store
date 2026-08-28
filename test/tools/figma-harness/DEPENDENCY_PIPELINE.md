@@ -108,6 +108,32 @@ Catalog
 
 In that case going back through the full downstream pipeline is correct because dependency invalidation requires it, not because the harness blindly rewinds to module 1.
 
+## Current vertical-planning update
+
+The current planning patch changes canonical module planning sets including Catalog, Checkout, Account, Content, and Order. Catalog is therefore an invalidation seed.
+
+Under the current graph, Catalog reaches every later Figma module transitively, so this specific update resolves to:
+
+```text
+Catalog
+→ Checkout
+→ Account
+→ Engagement
+→ Content
+→ Order
+→ Aftersales
+```
+
+Engagement and Aftersales are revisited because their upstream dependencies became stale, even though their planning audit may have concluded no direct business-document patch was required.
+
+Important distinction:
+
+```text
+NO DIRECT PLANNING PATCH
+≠
+NO FIGMA DEPENDENCY INVALIDATION
+```
+
 ## Node inputs
 
 Each graph node lists only that module's current canonical planning set.
