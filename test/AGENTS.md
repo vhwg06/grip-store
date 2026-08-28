@@ -15,6 +15,22 @@
   acceptance source.
 - *Always follow: `Spec / Use Case → Test → Implementation → Verification`.
 
+## Domain / UI-UX planning
+
+- For planning work under `docs/srs/**`, read and obey `docs/srs/README.md` before
+  creating or patching Research, SRS, Public UI/UX, or Admin UI/UX artifacts.
+- Treat new commerce/business capabilities as vertical product evolution by
+  default. Do not manufacture an isolated bounded context or UI universe merely
+  because the capability has a separate planning task or name.
+- IKEA is the primary reference where relevant, but reference research is not
+  the GRIP product model. GRIP feature decisions must also consider the needs,
+  simplicity, and operating context of Vietnamese SMEs.
+- Public and Admin UI/UX MUST extend the affected existing GRIP UI/UX and
+  journeys. Reference UI/UX is input; it is not a replacement base.
+- Patching/reconciliation happens after the new GRIP capability is defined and
+  changes only affected GRIP planning documents. Do not rewrite reference facts
+  merely because GRIP adopts a smaller scope.
+
 ## Figma harness execution
 
 - Canonical Figma harness sessions MUST use `figma-mcp-go` for Figma operations.
