@@ -1,6 +1,6 @@
-# Figma Pipeline Dependency Update Contract
+# Figma Pipeline Update Contract
 
-This file is an execution contract for updating canonical Figma after accepted planning documents change.
+This file is an execution contract for revisiting canonical Figma after accepted planning documents change.
 
 It is not product/domain authority.
 
@@ -8,21 +8,70 @@ It is not product/domain authority.
 
 ```text
 module changed
-→ rebuild that module
-→ rebuild every module that depends on it
+→ lookup dependency graph
+→ changed module + dependents, in dependency order
+→ run harness review on each existing canonical Figma root
+   ├── review PASS → no update
+   └── review FAIL_VERIFICATION → run normal writer/repair lifecycle → fresh review
 ```
 
-Use the declared Figma dependency graph. Do not maintain a separate patch list.
+That is the whole update model.
 
-Dependents are rebuilt recursively, so transitive dependents are included automatically.
+Do not maintain a separate patch list, verify list, backfill manifest, or business-impact engine inside the Figma harness.
 
-## Existing Figma remains canonical
+## Existing Figma is the base
 
-Rebuild means reconcile the existing canonical Figma root against its current module docs and updated dependency context.
+Every affected node is reviewed against:
 
-Do not create a replacement Module root merely because the module is being rebuilt.
+```text
+current canonical module planning docs
++
+current canonical Figma root
+```
 
-Repeated execution must reconcile by semantic identity:
+A changed document or upstream dependency does not by itself justify mutation.
+
+The reviewer decides whether the existing Figma still satisfies the current inputs.
+
+If it does, leave it unchanged.
+
+If it does not, run the normal writer/repair harness against the same canonical root.
+
+## Dependency graph scope
+
+The dependency graph answers only:
+
+```text
+which later Figma modules must be checked when this module changes?
+```
+
+It does not redefine domain ownership and it does not decide whether a visual update is required.
+
+## Update lifecycle
+
+For every module returned by dependency lookup:
+
+```text
+figma:verify
+   ↓
+PASS
+   → done, zero mutation
+
+FAIL_VERIFICATION
+   ↓
+figma:harness --mode write
+   ↓
+writer
+→ fresh reviewer
+→ repair if required within the same budget
+→ PASS | terminal failure
+```
+
+A review execution error, timeout, or other terminal failure is not interpreted as "needs update". Stop the pipeline instead.
+
+## Canonical identity
+
+When update is required, reconcile the existing representation by:
 
 ```text
 owning Module
@@ -31,34 +80,17 @@ owning Module
 + State responsibility
 ```
 
-## Execution
+Do not append duplicate canonical roots/screens/states merely because the planning inputs changed.
 
-For every node selected by the dependency graph, run one normal:
+## Failure rule
 
-```text
-figma:harness --mode write
-```
+Process dependency results in order.
 
-The existing writer → review → repair-budget lifecycle remains unchanged.
-
-The pipeline runs nodes in dependency order and stops on the first failure. Dependents of a failed node do not run.
-
-The pipeline must not:
-
-- rebuild modules outside the changed node's dependent closure;
-- run the same module twice in one pipeline execution;
-- reset a failed module's repair budget automatically;
-- create duplicate canonical Figma roots.
-
-## Planning / Figma boundary
-
-Planning decides and patches canonical module documents.
-
-Figma only needs to know which canonical module documents changed:
+If review or update for one module fails terminally:
 
 ```text
-canonical module changed
-→ rebuild that module + dependents
+stop
+→ do not process its later dependents
+→ do not reset repair budget automatically
+→ do not start a hidden retry
 ```
-
-No extra Figma impact analysis is required.
