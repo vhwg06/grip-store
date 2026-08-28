@@ -6,8 +6,12 @@ Use this runner after accepted planning changes update one or more canonical mod
 
 ```text
 module changed
-→ rebuild that module
-→ rebuild every module that depends on it
+→ lookup dependency graph
+→ changed module + dependents
+→ for each affected module:
+     review existing Figma
+     ├── no changes needed → PASS, no mutation
+     └── changes needed    → run normal writer/repair harness → fresh review
 ```
 
 Dependencies come from:
@@ -16,11 +20,9 @@ Dependencies come from:
 docs/srs/figma-pipeline-dependencies.json
 ```
 
-No separate patch/backfill list is allowed.
+No separate patch/backfill list is needed.
 
-Dependents are rebuilt recursively, so transitive dependents are included automatically.
-
-## Example
+## Example dependency lookup
 
 If only `Order` changes:
 
@@ -29,19 +31,18 @@ Order
 → Aftersales
 ```
 
-If `Catalog` changes and all later modules depend on it transitively:
+Those roots are then checked in dependency order. The graph only says **what must be checked**; it does not say both roots must be mutated.
+
+For each root:
 
 ```text
-Catalog
-→ Checkout
-→ Account
-→ Engagement
-→ Content
-→ Order
-→ Aftersales
+figma:verify
+├── PASS              → leave Figma unchanged
+└── FAIL_VERIFICATION → figma:harness --mode write
+                         → reviewer
+                         → repair if needed
+                         → PASS / terminal failure
 ```
-
-That is simply the dependency graph being rebuilt from the changed node.
 
 ## Run
 
@@ -55,9 +56,9 @@ npm run figma:pipeline -- \
 
 Repeat `--changed` when multiple canonical modules changed.
 
-Use `--dry-run` to print the rebuild order without touching Figma.
+Use `--dry-run` to print dependency lookup without reviewing or mutating Figma.
 
-## Build behavior
+## Runtime behavior
 
 The runner:
 
@@ -65,22 +66,24 @@ The runner:
 2. follows dependent edges recursively;
 3. deduplicates modules;
 4. orders them by dependency;
-5. runs one normal `figma:harness --mode write` lifecycle per module;
-6. stops on first failure.
+5. runs read-only harness review for each root;
+6. updates only roots whose review returns `FAIL_VERIFICATION`;
+7. lets the normal write harness close every mutation with fresh review and the existing repair budget;
+8. stops on the first terminal review/update failure.
 
-Each build reconciles the existing canonical Figma root. It does not create a replacement root.
-
-The existing harness writer/reviewer/repair-budget lifecycle is unchanged.
+A timeout, execution error, or other terminal review failure is not interpreted as "needs update".
 
 ## Planning boundary
 
 Planning already decides what changed and patches canonical module docs.
 
-Figma does not redo impact analysis:
+Figma does not redo business impact analysis:
 
 ```text
 canonical module changed
-→ rebuild from that node through its dependents
+→ dependency lookup
+→ review affected Figma roots
+→ update only where review proves it is needed
 ```
 
 ## Evidence
@@ -97,4 +100,10 @@ The pipeline also writes:
 artifacts/figma-harness/pipeline-*/pipeline-state.json
 ```
 
-with the changed inputs and PASS / FAILED / NOT_RUN result for each rebuilt module.
+with, per affected module:
+
+```text
+review = PASS | NEEDS_UPDATE | FAILED
+updated = true | false
+status = PASS | FAILED | NOT_RUN
+```
