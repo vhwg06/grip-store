@@ -1,5 +1,12 @@
 import { spawnSync } from "node:child_process";
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import {
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  readdirSync,
+  statSync,
+  writeFileSync,
+} from "node:fs";
 import { resolve } from "node:path";
 
 import {
@@ -23,9 +30,20 @@ interface NodeRunResult {
   updateExitCode: number | null;
 }
 
+type TargetResolution = "RESOLVED" | "NOT_FOUND" | "AMBIGUOUS" | "UNKNOWN";
+
+interface ReviewProbe {
+  summary?: string;
+}
+
+interface TerminalStateProbe {
+  last_review?: string | null;
+}
+
 const root = process.cwd();
 const pipelineContract = ".agents/figma-pipeline-update.md";
 const designBaseContract = ".agents/design-base.md";
+const harnessArtifactRoot = resolve(root, "artifacts", "figma-harness");
 
 function die(message: string): never {
   console.error(`[figma-pipeline] ${message}`);
@@ -76,7 +94,7 @@ function parseArgs(argv: string[]): Options {
     }
 
     if (arg === "--help" || arg === "-h") {
-      console.log(`Usage:\n  npm run figma:pipeline -- \\\n    --graph docs/srs/figma-pipeline-dependencies.json \\\n    --changed Catalog \\\n    --max-repairs 3\n\nTarget routing:\n  Each affected module is resolved through figma-mcp-go from its module identity\n  plus the canonical hierarchy/identity constraints in .agents/design-base.md.\n  No Figma URL or node id is supplied to the dependency pipeline.\n\nRule:\n  changed node → lookup dependents → resolve canonical module root through MCP → review first.\n  review PASS → no mutation.\n  review FAIL_VERIFICATION → run normal write/repair harness → fresh review.\n\nRepeat --changed when multiple module planning inputs changed.\nUse --dry-run to print dependency lookup only; it does not access or mutate Figma.\n`);
+      console.log(`Usage:\n  npm run figma:pipeline -- \\\n    --graph docs/srs/figma-pipeline-dependencies.json \\\n    --changed Catalog \\\n    --max-repairs 3\n\nTarget routing:\n  Each affected module is resolved through figma-mcp-go from its module identity\n  plus the canonical hierarchy/identity constraints in .agents/design-base.md.\n  No Figma URL or node id is supplied to the dependency pipeline.\n\nExisting-root rule:\n  figma:pipeline is an update/verify path, not init/rewrite.\n  The canonical Module root MUST already exist.\n  TARGET_NOT_FOUND or TARGET_AMBIGUOUS is terminal and never starts a writer.\n\nRule:\n  changed node → lookup dependents → resolve existing canonical module root through MCP → review first.\n  review PASS → no mutation.\n  review FAIL_VERIFICATION with TARGET_RESOLVED → run normal write/repair harness → fresh review.\n\nRepeat --changed when multiple module planning inputs changed.\nUse --dry-run to print dependency lookup only; it does not access or mutate Figma.\n`);
       process.exit(0);
     }
 
@@ -136,7 +154,7 @@ function printPlan(name: string, changed: string[], plan: ReturnType<typeof buil
   console.log(`[figma-pipeline] affected=${plan.map((item) => item.id).join(" -> ")}`);
   for (const [index, item] of plan.entries()) {
     console.log(`[figma-pipeline] ${index + 1}. ${item.id} maxRepairs=${item.maxRepairs}`);
-    console.log(`[figma-pipeline]    target=resolve canonical ${item.id} Module root through figma-mcp-go`);
+    console.log(`[figma-pipeline]    target=resolve EXISTING canonical ${item.id} Module root through figma-mcp-go`);
     item.docs.forEach((doc, docIndex) => {
       console.log(`[figma-pipeline]    ${docIndex + 1}. ${doc}`);
     });
@@ -158,7 +176,7 @@ function writePipelineState(
     `${JSON.stringify({
       pipeline: name,
       graph: graphPath,
-      targetResolution: "figma-mcp-go + module semantic identity + design-base structural constraints",
+      targetResolution: "figma-mcp-go + existing module semantic identity + design-base structural constraints",
       changed,
       results,
       completedAt: new Date().toISOString(),
@@ -171,16 +189,22 @@ function writePipelineState(
 function semanticFigmaTarget(item: ReturnType<typeof buildFigmaPipelinePlan>[number]): string {
   return [
     "Resolve the existing canonical Figma artifact through figma-mcp-go. Do not use or require a hard-coded Figma URL or node id.",
+    "This dependency pipeline is UPDATE/VERIFY ONLY. It is NOT an init or rewrite request. An existing canonical Module root is mandatory.",
     `Owning Module: ${item.id}`,
     `Pipeline scope: ${item.scope}`,
     `Structural locator contract: ${designBaseContract}`,
-    "Before review or mutation, inspect the connected Figma document with MCP and establish exactly one canonical Module root that satisfies the shared contract:",
+    "Before review or mutation, inspect the connected Figma document with MCP and establish exactly one existing canonical Module root that satisfies the shared contract:",
     "- each product Module owns one independent top-level canvas root;",
     "- Module roots are siblings;",
     "- canonical UI belongs only under its owning Module;",
     "- semantic identity is owning Module + Use Case + Screen responsibility + State responsibility;",
     "- node id, frame name, creation time, or visual similarity alone does not establish semantic identity.",
-    "Use MCP document/page/search/node inspection as needed to locate and validate the root. If the intended canonical root cannot be established unambiguously, fail rather than guess or mutate another root.",
+    "Target-resolution output contract for the reviewer summary:",
+    "- existing unique canonical root established: summary MUST begin exactly TARGET_RESOLVED:",
+    "- no canonical Module root exists: return status=fail and summary MUST begin exactly TARGET_NOT_FOUND:",
+    "- multiple candidates prevent unique resolution: return status=fail and summary MUST begin exactly TARGET_AMBIGUOUS:",
+    "TARGET_NOT_FOUND and TARGET_AMBIGUOUS are terminal routing failures, not ordinary design defects.",
+    "Never create a new Module root as fallback for either condition. Only an explicit separate init/rewrite instruction may authorize creating a missing canonical root.",
   ].join("\n");
 }
 
@@ -212,6 +236,86 @@ function harnessArgs(
   return args;
 }
 
+function snapshotHarnessRuns(): Set<string> {
+  if (!existsSync(harnessArtifactRoot)) return new Set();
+  return new Set(
+    readdirSync(harnessArtifactRoot, { withFileTypes: true })
+      .filter((entry) => entry.isDirectory() && !entry.name.startsWith("pipeline-"))
+      .map((entry) => entry.name),
+  );
+}
+
+function newestNewHarnessRun(before: Set<string>): string | null {
+  if (!existsSync(harnessArtifactRoot)) return null;
+
+  const candidates = readdirSync(harnessArtifactRoot, { withFileTypes: true })
+    .filter(
+      (entry) =>
+        entry.isDirectory() &&
+        !entry.name.startsWith("pipeline-") &&
+        !before.has(entry.name),
+    )
+    .map((entry) => {
+      const path = resolve(harnessArtifactRoot, entry.name);
+      return { path, mtimeMs: statSync(path).mtimeMs };
+    })
+    .sort((a, b) => b.mtimeMs - a.mtimeMs);
+
+  return candidates[0]?.path ?? null;
+}
+
+function targetResolutionFromHarnessRun(runDir: string | null): TargetResolution {
+  if (!runDir) return "UNKNOWN";
+
+  try {
+    const terminalPath = resolve(runDir, "terminal-state.json");
+    if (!existsSync(terminalPath)) return "UNKNOWN";
+    const terminal = JSON.parse(readFileSync(terminalPath, "utf8")) as TerminalStateProbe;
+    if (!terminal.last_review) return "UNKNOWN";
+
+    const reviewPath = terminal.last_review.startsWith(runDir)
+      ? terminal.last_review
+      : resolve(runDir, terminal.last_review);
+    if (!existsSync(reviewPath)) return "UNKNOWN";
+
+    const review = JSON.parse(readFileSync(reviewPath, "utf8")) as ReviewProbe;
+    const summary = (review.summary ?? "").trim().toUpperCase();
+    if (summary.startsWith("TARGET_RESOLVED:")) return "RESOLVED";
+    if (summary.startsWith("TARGET_NOT_FOUND:")) return "NOT_FOUND";
+    if (summary.startsWith("TARGET_AMBIGUOUS:")) return "AMBIGUOUS";
+    return "UNKNOWN";
+  } catch {
+    return "UNKNOWN";
+  }
+}
+
+function stopForTargetResolutionFailure(
+  graphName: string,
+  graphPath: string,
+  changed: string[],
+  results: NodeRunResult[],
+  index: number,
+  itemId: string,
+  reviewExitCode: number | null,
+  resolution: TargetResolution,
+): never {
+  results[index] = {
+    id: itemId,
+    review: "FAILED",
+    updated: false,
+    status: "FAILED",
+    reviewExitCode,
+    updateExitCode: null,
+  };
+  const statePath = writePipelineState(graphName, graphPath, changed, results);
+  console.error(
+    `[figma-pipeline] STOP ${itemId} target resolution=${resolution}. Existing-root update cannot fall back to creating a new Figma root.`,
+  );
+  console.error("[figma-pipeline] A missing root may only be created by an explicit separate init/rewrite instruction.");
+  console.error(`[figma-pipeline] Pipeline state: ${statePath}`);
+  process.exit(1);
+}
+
 function run(): void {
   const options = parseArgs(process.argv.slice(2));
   const { graph, plan } = loadPlan(options);
@@ -235,8 +339,9 @@ function run(): void {
 
   for (let index = 0; index < plan.length; index += 1) {
     const item = plan[index];
-    console.log(`[figma-pipeline] REVIEW ${item.id} — resolving canonical Module root through figma-mcp-go`);
+    console.log(`[figma-pipeline] REVIEW ${item.id} — resolving EXISTING canonical Module root through figma-mcp-go`);
 
+    const beforeReviewRuns = snapshotHarnessRuns();
     const reviewChild = spawnSync(npm, harnessArgs(item, "verify"), {
       cwd: root,
       env: process.env,
@@ -245,11 +350,40 @@ function run(): void {
     });
 
     const reviewExitCode = reviewChild.status;
+    const reviewRunDir = newestNewHarnessRun(beforeReviewRuns);
+    const targetResolution = targetResolutionFromHarnessRun(reviewRunDir);
+
     if (reviewChild.error) {
       console.error(`[figma-pipeline] ${item.id} review failed to start: ${reviewChild.error.message}`);
     }
 
-    if (!reviewChild.error && reviewExitCode === 0) {
+    if (!reviewChild.error && (targetResolution === "NOT_FOUND" || targetResolution === "AMBIGUOUS")) {
+      stopForTargetResolutionFailure(
+        graph.name,
+        options.graph,
+        options.changed,
+        results,
+        index,
+        item.id,
+        reviewExitCode,
+        targetResolution,
+      );
+    }
+
+    if (!reviewChild.error && targetResolution === "UNKNOWN") {
+      stopForTargetResolutionFailure(
+        graph.name,
+        options.graph,
+        options.changed,
+        results,
+        index,
+        item.id,
+        reviewExitCode,
+        "UNKNOWN",
+      );
+    }
+
+    if (!reviewChild.error && reviewExitCode === 0 && targetResolution === "RESOLVED") {
       results[index] = {
         id: item.id,
         review: "PASS",
@@ -258,11 +392,11 @@ function run(): void {
         reviewExitCode,
         updateExitCode: null,
       };
-      console.log(`[figma-pipeline] PASS ${item.id} — review says no update required`);
+      console.log(`[figma-pipeline] PASS ${item.id} — existing root resolved; review says no update required`);
       continue;
     }
 
-    if (reviewChild.error || reviewExitCode !== 2) {
+    if (reviewChild.error || reviewExitCode !== 2 || targetResolution !== "RESOLVED") {
       results[index] = {
         id: item.id,
         review: "FAILED",
@@ -279,7 +413,7 @@ function run(): void {
 
     results[index].review = "NEEDS_UPDATE";
     results[index].reviewExitCode = reviewExitCode;
-    console.log(`[figma-pipeline] UPDATE ${item.id} — review found required changes`);
+    console.log(`[figma-pipeline] UPDATE ${item.id} — existing root resolved and review found required changes`);
 
     const updateChild = spawnSync(npm, harnessArgs(item, "write"), {
       cwd: root,

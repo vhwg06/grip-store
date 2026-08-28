@@ -47,9 +47,29 @@
   Figma hierarchy/identity constraints in `.agents/design-base.md`, then inspect
   the actual connected Figma artifact through `figma-mcp-go` to resolve the one
   canonical Module root.
+- `figma:pipeline` is an update/verify path, NOT an init/rewrite path. Every
+  selected Module MUST already have an existing canonical top-level root before
+  review or mutation may continue.
 - Target resolution MUST validate the semantic/structural identity of the root,
-  not merely match a frame name or remembered node id. If the canonical root is
-  ambiguous, stop instead of guessing or mutating another root.
+  not merely match a frame name or remembered node id.
+- Reviewer target-resolution summaries are part of the pipeline control
+  contract:
+
+  ```text
+  TARGET_RESOLVED:   → existing unique root established
+  TARGET_NOT_FOUND:  → no existing canonical root
+  TARGET_AMBIGUOUS:  → multiple candidates prevent unique resolution
+  ```
+
+- `TARGET_NOT_FOUND`, `TARGET_AMBIGUOUS`, or an unclassifiable target-resolution
+  result MUST stop the entire dependency pipeline with zero mutation for that
+  Module and no processing of later dependents.
+- A missing Module root MUST NOT be treated as an ordinary `FAIL_VERIFICATION`
+  and MUST NOT trigger a writer. Do not draw/rebuild the Module from scratch as a
+  fallback for patch/update work.
+- Creating a missing canonical Module root requires a separate explicit
+  init/rewrite instruction. Never infer init/rewrite permission from a changed
+  planning document, dependency edge, patch request, or failed lookup.
 - Local `artifacts/figma-harness/**` are execution evidence only and MUST NOT be
   used as a replacement canonical target registry.
 - Core rule:
@@ -58,10 +78,12 @@
   module changed
   → lookup dependency graph
   → changed module + dependents
-  → resolve each canonical Module root through figma-mcp-go
-  → review that root
-     ├── PASS              → no update
-     └── FAIL_VERIFICATION → run normal figma:harness write/repair lifecycle
+  → resolve each EXISTING canonical Module root through figma-mcp-go
+     ├── TARGET_NOT_FOUND / TARGET_AMBIGUOUS → STOP, no mutation
+     └── TARGET_RESOLVED
+          → review that root
+             ├── PASS              → no update
+             └── FAIL_VERIFICATION → run normal figma:harness write/repair lifecycle
   ```
 
 - Pass every canonical module whose accepted planning inputs changed with
@@ -73,17 +95,18 @@
 - Modules outside the changed node's dependent closure MUST NOT run.
 - Every affected module is reviewed first with `figma:verify` after its canonical
   root has been resolved through MCP.
-- Only a clean `FAIL_VERIFICATION` result means the root needs update. In that
-  case the runner invokes one normal `figma:harness --mode write` lifecycle.
-- A target-resolution ambiguity, review timeout, execution error, or other
+- Only a clean `FAIL_VERIFICATION` for a target already classified
+  `TARGET_RESOLVED` means the root needs update. In that case the runner invokes
+  one normal `figma:harness --mode write` lifecycle.
+- A target-resolution failure, review timeout, execution error, or other
   terminal failure MUST stop the pipeline and MUST NOT be interpreted as
   permission to mutate.
 - A vertical capability name or documentation folder MUST NOT create a new
   top-level Figma Module root unless product semantics establish a genuinely new
-  owning Module. Update the existing canonical root when review proves it is
-  required.
-- A pipeline run MUST stop on the first failed review or update. It MUST NOT
-  continue into dependents, automatically retry, or reset repair budget.
+  owning Module AND an explicit init/rewrite task authorizes its creation.
+- A pipeline run MUST stop on the first failed target resolution, review, or
+  update. It MUST NOT continue into dependents, automatically retry, reset repair
+  budget, or create a replacement root.
 - A write/repair invocation MUST terminate from an independent reviewer or
   deterministic verifier state, never immediately after writer mutation.
 - Writer execution over an existing canonical scope MUST reconcile by semantic

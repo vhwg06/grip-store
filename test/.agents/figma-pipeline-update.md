@@ -10,15 +10,47 @@ It is not product/domain authority.
 module changed
 → lookup dependency graph
 → changed module + dependents, in dependency order
-→ resolve each canonical Module root through figma-mcp-go
-→ run harness review on that root
-   ├── review PASS → no update
-   └── review FAIL_VERIFICATION → run normal writer/repair lifecycle → fresh review
+→ resolve each EXISTING canonical Module root through figma-mcp-go
+   ├── TARGET_NOT_FOUND / TARGET_AMBIGUOUS → STOP pipeline, zero mutation
+   └── TARGET_RESOLVED                     → review that root
+        ├── review PASS → no update
+        └── review FAIL_VERIFICATION → normal writer/repair lifecycle → fresh review
 ```
 
 That is the whole update model.
 
 Do not maintain a separate patch list, verify list, backfill manifest, business-impact engine, hard-coded Figma URL list, or node-id routing table inside the Figma harness.
+
+## Existing-root invariant
+
+`figma:pipeline` is an **update / verify** path. It is not an init or rewrite path.
+
+For every affected module, an existing canonical Module root is mandatory before review or mutation.
+
+```text
+patch Catalog
+→ MCP lookup Catalog
+→ Catalog root exists uniquely
+   → review/update normally
+
+patch Catalog
+→ MCP lookup Catalog
+→ Catalog root does not exist
+   → TARGET_NOT_FOUND
+   → STOP
+   → do NOT create Catalog from scratch
+```
+
+Likewise, if multiple candidates prevent unique semantic resolution:
+
+```text
+TARGET_AMBIGUOUS
+→ STOP
+→ do not guess
+→ do not mutate
+```
+
+Creating a missing canonical Module root requires a **separate explicit init/rewrite instruction**. Missing-target recovery must never be inferred from a patch/update request.
 
 ## Figma target resolution
 
@@ -34,7 +66,7 @@ canonical Figma hierarchy / identity constraints from .agents/design-base.md
 actual connected Figma artifact inspected through figma-mcp-go
 ```
 
-Use MCP document/page/search/node inspection as needed to establish the unique canonical Module root before review or mutation.
+Use MCP document/page/search/node inspection as needed to establish the unique existing canonical Module root before review or mutation.
 
 The shared structural constraints are authoritative:
 
@@ -47,7 +79,15 @@ semantic identity = Module + Use Case + Screen responsibility + State responsibi
 
 A node id, frame name, creation time, or visual similarity alone is not enough to establish semantic identity.
 
-If the intended canonical root cannot be established unambiguously, fail instead of guessing or mutating another root.
+Reviewer target-resolution summaries are machine-consumed by the dependency runner:
+
+```text
+TARGET_RESOLVED:
+TARGET_NOT_FOUND:
+TARGET_AMBIGUOUS:
+```
+
+The dependency runner is fail-closed: missing, ambiguous, or unclassifiable target resolution is terminal and must never enter the writer branch.
 
 Local `artifacts/figma-harness/**` are execution evidence only. They are not the canonical Figma locator source and must not replace MCP inspection of the actual artifact.
 
@@ -84,7 +124,14 @@ It does not redefine domain ownership and it does not decide whether a visual up
 For every module returned by dependency lookup:
 
 ```text
-resolve canonical Module root through figma-mcp-go
+resolve existing canonical Module root through figma-mcp-go
+   ↓
+TARGET_NOT_FOUND / TARGET_AMBIGUOUS
+   → terminal failure
+   → zero mutation
+   → stop dependents
+
+TARGET_RESOLVED
    ↓
 figma:verify
    ↓
@@ -101,7 +148,7 @@ writer against the same resolved semantic root
 → PASS | terminal failure
 ```
 
-A target-resolution ambiguity, review execution error, timeout, or other terminal failure is not interpreted as "needs update". Stop the pipeline instead.
+A target-resolution failure, review execution error, timeout, or other terminal failure is not interpreted as "needs update". Stop the pipeline instead.
 
 ## Canonical identity
 
@@ -125,6 +172,7 @@ If target resolution, review, or update for one module fails terminally:
 ```text
 stop
 → do not process its later dependents
+→ do not create a replacement root
 → do not reset repair budget automatically
 → do not start a hidden retry
 ```

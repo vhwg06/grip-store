@@ -49,6 +49,25 @@ Do not create Strategy, Scope, Structure, Skeleton, Surface, or design-state doc
 
 Reasoning may remain session-local.
 
+## Existing Target vs Init / Rewrite
+
+Honor the caller's target policy before mutation.
+
+When the caller declares an **existing-target / update / verify** task:
+
+```text
+locate the existing canonical target through figma-mcp-go
+├── exactly one target exists → continue
+├── target missing            → STOP; do not create a replacement
+└── target ambiguous          → STOP; do not guess
+```
+
+A patch, dependency update, repair, or failed lookup does **not** imply permission to initialize a missing Module root.
+
+Creating a missing top-level Module root is allowed only when the caller explicitly requests an **init/rewrite** task (or otherwise explicitly authorizes creation of that missing canonical root).
+
+Never recover from `TARGET_NOT_FOUND` or `TARGET_AMBIGUOUS` by drawing the Module from scratch.
+
 ## Before Mutation
 
 Apply the shared quality pipeline through Composition before high-fidelity mutation.
@@ -89,7 +108,7 @@ Required mutation order:
 inspect existing canonical scope
 → locate semantically equivalent representation
 → update / repair existing representation when it exists
-→ create only when no canonical representation exists
+→ create only when no canonical representation exists AND the caller's target policy authorizes creation
 → read back the resulting inventory
 ```
 
@@ -121,7 +140,7 @@ approved product visual context
 
 Reuse mature patterns when they fit the resolved task. Do not force the task into an existing component when that weakens the UX.
 
-Before creating or moving a top-level Module root:
+Before creating or moving a top-level Module root, first confirm that the caller explicitly authorizes root creation. Then:
 
 ```text
 inspect page-level root bounds
@@ -254,6 +273,8 @@ When the harness returns reviewer defects:
 Do not patch a downstream visual symptom when the defect originates in semantics, UX, composition, responsive structure, geometry, or canonical structure.
 
 Do not append a semantically equivalent screen/state as a repair shortcut.
+
+If an existing-target/update task cannot locate its canonical root, stop instead of converting the repair into an implicit init/rewrite.
 
 ## Writer Boundary
 
