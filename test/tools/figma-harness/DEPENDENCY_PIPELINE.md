@@ -1,100 +1,33 @@
 # Figma Dependency Pipeline
 
-Use this runner when canonical Figma has already progressed through multiple modules and one or more canonical module planning inputs change.
+Use this runner after accepted planning changes update one or more canonical module inputs.
 
-The runner does not use a manual patch/verify list.
-
-It treats the Figma module pipeline as a dependency graph.
-
-## Architecture
+## Rule
 
 ```text
-changed module node(s)
-      ↓
-reverse dependency closure
-      ↓
-stale node set
-      ↓
-topological order
-      ↓
-one normal figma:harness lifecycle per stale node
+module changed
+→ rebuild that module
+→ rebuild every dependent module
 ```
 
-`figma:harness` remains the single-root lifecycle primitive and keeps its existing repair-budget and fresh-review semantics unchanged.
-
-## Dependency meaning
-
-`dependsOn` is a Figma pipeline dependency, not a statement of aggregate ownership.
-
-If node `B` depends on node `A`, then a material planning/design change to `A` invalidates `B` because `B` was designed against `A`'s product/UI context.
-
-Example:
-
-```text
-Catalog changed
-→ Checkout stale because Checkout depends on Catalog
-→ Account stale if it depends on Checkout
-→ continue only along declared edges
-```
-
-An unrelated node with no dependency path from the changed node remains clean and is skipped.
-
-## Current graph
-
-The current graph is:
+Dependencies come from:
 
 ```text
 docs/srs/figma-pipeline-dependencies.json
 ```
 
-Its current topological module order is:
+No separate patch/backfill list is allowed.
 
-```text
-Catalog
-→ Checkout
-→ Account
-→ Engagement
-→ Content
-→ Order
-→ Aftersales
-```
+## Example
 
-This order emerges from declared dependencies; the runner validates the graph is acyclic.
-
-The graph is the orchestration source of truth for invalidation. Do not hard-code a separate backfill list in the runner.
-
-## Changed nodes
-
-The planning phase remains responsible for patching canonical module docs.
-
-After that patch, tell the Figma pipeline which canonical module inputs changed:
-
-```bash
-npm run figma:pipeline -- \
-  --graph docs/srs/figma-pipeline-dependencies.json \
-  --figma "<Figma file/page reference>" \
-  --changed Catalog \
-  --changed Checkout \
-  --max-repairs 3 \
-  --dry-run
-```
-
-The changed set is only the invalidation seed.
-
-The runner computes all downstream stale nodes from the dependency graph.
-
-## Example invalidation
-
-If only `Order` changed:
+If only `Order` changes:
 
 ```text
 Order
 → Aftersales
 ```
 
-Only those two nodes rerun.
-
-If `Catalog` changed and every later module is reachable from it through the current graph, the correct result is:
+If `Catalog` changes and all later modules depend on it transitively:
 
 ```text
 Catalog
@@ -106,94 +39,60 @@ Catalog
 → Aftersales
 ```
 
-In that case going back through the full downstream pipeline is correct because dependency invalidation requires it, not because the harness blindly rewinds to module 1.
+That is simply the dependency graph being rebuilt.
 
-## Current vertical-planning update
-
-The current planning patch changes canonical module planning sets including Catalog, Checkout, Account, Content, and Order. Catalog is therefore an invalidation seed.
-
-Under the current graph, Catalog reaches every later Figma module transitively, so this specific update resolves to:
-
-```text
-Catalog
-→ Checkout
-→ Account
-→ Engagement
-→ Content
-→ Order
-→ Aftersales
-```
-
-Engagement and Aftersales are revisited because their upstream dependencies became stale, even though their planning audit may have concluded no direct business-document patch was required.
-
-Important distinction:
-
-```text
-NO DIRECT PLANNING PATCH
-≠
-NO FIGMA DEPENDENCY INVALIDATION
-```
-
-## Node inputs
-
-Each graph node lists only that module's current canonical planning set.
-
-Vertical capability documents are first reconciled into affected canonical module planning docs during the planning phase. The Figma pipeline consumes the resulting module docs rather than re-performing vertical capability impact analysis.
-
-The pipeline additionally supplies:
-
-```text
-.agents/figma-pipeline-update.md
-```
-
-which explains why the node is being revisited and requires canonical in-place reconciliation.
-
-## Execution
-
-Run without `--dry-run` to execute stale nodes:
+## Run
 
 ```bash
 npm run figma:pipeline -- \
   --graph docs/srs/figma-pipeline-dependencies.json \
   --figma "<Figma file/page reference>" \
-  --changed Order \
+  --changed Catalog \
   --max-repairs 3
 ```
 
-For every stale node:
+Repeat `--changed` when multiple canonical modules changed.
+
+Use `--dry-run` to print the rebuild order without touching Figma.
+
+## Build behavior
+
+The runner:
+
+1. starts from the changed node(s);
+2. follows dependent edges recursively;
+3. deduplicates modules;
+4. orders them by dependency;
+5. runs one normal `figma:harness --mode write` lifecycle per module;
+6. stops on first failure.
+
+Each build reconciles the existing canonical Figma root. It does not create a replacement root.
+
+The existing harness writer/reviewer/repair-budget lifecycle is unchanged.
+
+## Planning boundary
+
+Planning already decides what changed and patches canonical module docs.
+
+Figma does not redo impact analysis:
 
 ```text
-existing canonical Figma
-+ current module docs
-+ updated dependency context
-→ normal writer/review lifecycle
+canonical module changed
+→ rebuild dependency graph from that node
 ```
-
-A dependency-invalidated node may need no visual mutation after inspection. It still needs the fresh review that closes its stale state.
-
-## Failure behavior
-
-The pipeline stops immediately when a stale node fails its child harness lifecycle.
-
-It does not:
-
-- continue into downstream stale nodes;
-- automatically reset repair budget;
-- automatically open a new writer lifecycle;
-- rerun nodes outside the stale dependency closure.
 
 ## Evidence
 
-Child lifecycles retain their normal artifacts under:
+Child harness artifacts remain under:
 
 ```text
 artifacts/figma-harness/
 ```
 
-The pipeline runner also records:
+The pipeline also writes:
 
 ```text
 artifacts/figma-harness/pipeline-*/pipeline-state.json
 ```
 
-including changed seeds, invalidation reason, PASS/FAILED/NOT_RUN, and exit code for each stale node.
+with the changed inputs and PASS / FAILED / NOT_RUN result for each rebuilt module.
