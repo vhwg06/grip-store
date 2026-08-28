@@ -9,12 +9,12 @@ It is not product/domain authority.
 ```text
 module changed
 → rebuild that module
-→ rebuild every dependent module
+→ rebuild every module that depends on it
 ```
 
 Use the declared Figma dependency graph. Do not maintain a separate patch list.
 
-A dependent is rebuilt recursively, so transitive dependents are included automatically.
+Dependents are rebuilt recursively, so transitive dependents are included automatically.
 
 ## Existing Figma remains canonical
 
@@ -45,7 +45,7 @@ The pipeline runs nodes in dependency order and stops on the first failure. Depe
 
 The pipeline must not:
 
-- rebuild modules outside the changed node's dependency closure;
+- rebuild modules outside the changed node's dependent closure;
 - run the same module twice in one pipeline execution;
 - reset a failed module's repair budget automatically;
 - create duplicate canonical Figma roots.
@@ -58,8 +58,7 @@ Figma only needs to know which canonical module documents changed:
 
 ```text
 canonical module changed
-→ dependency graph
-→ rebuild module + dependents
+→ rebuild that module + dependents
 ```
 
 No extra Figma impact analysis is required.
