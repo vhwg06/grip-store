@@ -142,7 +142,7 @@ Reviewer target-resolution summaries are machine-consumed by the dependency runn
 ```text
 TARGET_RESOLVED:
 TARGET_NOT_FOUND:
-TARGET_AMIGUOUS:
+TARGET_AMBIGUOUS:
 ```
 
 `TARGET_RESOLVED` means the required existing Module scope has been established; it may contain multiple distinct surface roots.
