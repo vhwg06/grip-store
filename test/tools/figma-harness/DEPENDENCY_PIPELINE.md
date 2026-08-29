@@ -158,6 +158,39 @@ Repeat `--changed` when multiple canonical modules changed.
 
 Use `--dry-run` to print dependency lookup without accessing, reviewing, or mutating Figma.
 
+## Completion semantics
+
+`figma:pipeline` is the orchestration owner for the full dependency closure selected from the original `--changed` seed(s).
+
+Child commands are not pipeline completion signals:
+
+```text
+figma:verify PASS       = one Module scope verified
+figma:harness PASS      = one Module scope updated and closed
+figma:pipeline PASS     = every planned Module scope passed
+```
+
+Do not replace a terminated dependency pipeline with a direct single-scope harness and then call the dependency task complete.
+
+A dependency run is complete only when all planned nodes have `status = PASS` and the top-level `figma:pipeline` process exits successfully. Any `NOT_RUN` node means the closure has not completed.
+
+If the pipeline terminates and a separate explicitly requested single-scope repair later fixes the failed Module, rerun the dependency pipeline from the **original changed seed(s)**:
+
+```text
+original run: --changed Catalog
+→ stops at Catalog
+
+separate Catalog repair
+→ PASS locally
+
+continuation
+→ rerun --changed Catalog
+→ re-review Catalog
+→ then Checkout → Account → ... according to graph
+```
+
+Do not manually start from Checkout merely because Catalog passed in a separate child harness.
+
 ## Runtime behavior
 
 The runner:
@@ -213,4 +246,12 @@ with, per affected module:
 review = PASS | NEEDS_UPDATE | FAILED
 updated = true | false
 status = PASS | FAILED | NOT_RUN
+```
+
+Interpretation:
+
+```text
+all planned status = PASS → dependency pipeline completed
+any FAILED              → dependency pipeline terminated
+any NOT_RUN             → dependency pipeline incomplete / later closure not executed
 ```
