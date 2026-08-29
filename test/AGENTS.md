@@ -41,6 +41,23 @@
 - `npm run figma:verify -- ...` is verification-only. It MUST NOT start or resume
   a writer, mutate Figma, or schedule a repair.
 - `npm run figma:pipeline -- ...` is the canonical dependency update runner.
+- When the requested task is a dependency update pipeline, `figma:pipeline`
+  remains the top-level orchestration owner for the entire dependency closure.
+  Do NOT replace it with a direct single-scope `figma:harness` invocation and
+  then treat that child harness result as completion of the original task.
+- A single-scope `figma:harness` or `figma:verify` `PASS` is only a local result
+  for that Module scope. It MUST NOT be reported as dependency-pipeline `PASS`.
+- Dependency-pipeline completion means every Module in the planned dependency
+  closure has reached `PASS` under the same top-level pipeline execution and the
+  pipeline runner itself exits successfully. If any planned Module remains
+  `NOT_RUN`, the dependency pipeline is not complete.
+- If the pipeline terminates on one Module, report that terminal pipeline result
+  and the later `NOT_RUN` dependents. Do not silently continue them with ad-hoc
+  single-scope harness calls.
+- If a Module is repaired by a separate explicitly requested single-scope run
+  after a terminated dependency pipeline, continuation requires rerunning
+  `figma:pipeline` from the original `--changed` seed(s). Do not start manually
+  from the next dependency and do not infer that the prior pipeline has resumed.
 - The dependency graph lives at `docs/srs/figma-pipeline-dependencies.json`.
 - Dependency graph nodes are **logical Module scopes**, not physical Figma roots.
   The graph decides which Module scopes must be checked after a change.
