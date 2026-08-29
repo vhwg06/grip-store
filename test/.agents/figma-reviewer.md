@@ -41,29 +41,44 @@ The actual artifact is the evidence.
 
 ## Target Resolution Contract
 
-Before judging design quality, resolve the requested Figma target through `figma-mcp-go`.
+Before judging design quality, resolve the requested logical Module scope through `figma-mcp-go`.
+
+The Figma canvas is flat at the Module-surface level. A logical Module may legitimately resolve to multiple sibling top-level roots with distinct surface responsibilities, for example:
+
+```text
+Catalog
+→ Catalog Public
+→ Catalog Admin
+```
+
+Those roots are one resolved `Catalog` Module scope, not competing targets.
 
 When the caller supplies an existing-target/update contract, target resolution is fail-closed:
 
 ```text
-exactly one existing canonical target established
-→ continue review
+one or more existing canonical roots are established
+and every root has a distinct semantic surface responsibility
+→ continue review over the complete Module scope
 → summary MUST begin exactly: TARGET_RESOLVED:
 
-no canonical target exists
+no existing canonical root can be established for the Module scope
+or a surface required by the supplied canonical inputs is missing
 → status = fail
 → summary MUST begin exactly: TARGET_NOT_FOUND:
-→ do not reinterpret this as a design defect that a writer should fix
+→ do not reinterpret this as a design defect that a writer should fix by creating a new root
 
-multiple candidates prevent unique resolution
+multiple candidates compete for the same Module + Surface responsibility
+or ownership cannot be disambiguated semantically
 → status = fail
 → summary MUST begin exactly: TARGET_AMBIGUOUS:
 → do not guess
 ```
 
-For `TARGET_NOT_FOUND` or `TARGET_AMBIGUOUS`, do not recommend creating a replacement root. A missing canonical root may only be created under a separate explicit init/rewrite instruction.
+`Catalog Public` and `Catalog Admin` alone MUST NOT produce `TARGET_AMBIGUOUS`; their Public/Admin responsibilities are distinct.
 
-Frame name or node id alone is not enough to establish semantic identity when the target contract requires Module / Use Case / Screen / State resolution.
+For `TARGET_NOT_FOUND` or `TARGET_AMBIGUOUS`, do not recommend creating a replacement root. A missing canonical surface root may only be created under a separate explicit init/rewrite instruction.
+
+Frame name or node id alone is not enough to establish semantic identity. Resolve identity using Module + Surface + Use Case + Screen + State responsibility.
 
 ## Review Pipeline
 
@@ -95,17 +110,20 @@ When a gate fails, report the originating gate rather than only its visual sympt
 
 ## Canonical Structure Review
 
-Inspect the active Module / Use Case / Screen / State inventory for competing canonical representations.
+Inspect the active Module / Surface / Use Case / Screen / State inventory for competing canonical representations.
 
 Use semantic responsibility, not frame name or node age, to decide whether two representations are duplicates.
 
 Treat these as blocking `canonical_structure` defects when evidenced:
 
 ```text
-same semantic responsibility represented by multiple competing canonical frames
+same Module + Surface responsibility represented by multiple competing canonical roots
+same semantic screen/state responsibility represented by multiple competing canonical frames
 repair/re-entry appended a second canonical representation instead of reconciling the first
 states have different names but no meaningful observable difference despite semantics requiring one
 ```
+
+Do NOT classify distinct flattened surfaces of the same Module as duplicates merely because they are sibling top-level roots.
 
 Pixel-identical screenshots or hashes are strong evidence that two states may be duplicates, but they are not sufficient proof by themselves. Check the required user-visible meaning, behavior, information, and state responsibility before classifying them.
 
@@ -241,8 +259,8 @@ Diagnose the defect and its origin so the writer can repair the affected decisio
 
 Return only the structured result required by the caller's JSON schema.
 
-When the target is resolved, the `summary` field MUST begin exactly with `TARGET_RESOLVED:` before the normal review summary.
+When the Module scope is resolved, the `summary` field MUST begin exactly with `TARGET_RESOLVED:` before the normal review summary.
 
-When an existing-target contract cannot resolve a root, use exactly `TARGET_NOT_FOUND:` or `TARGET_AMBIGUOUS:` as defined above.
+When an existing-target contract cannot resolve the required Module surface set, use exactly `TARGET_NOT_FOUND:` or `TARGET_AMBIGUOUS:` as defined above.
 
 Use `status: pass` only when the score thresholds are met, there are no blocking defects, and all applicable gates from `.agents/design-base.md` pass on the actual artifact.

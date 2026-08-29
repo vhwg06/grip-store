@@ -68,7 +68,7 @@ function parseArgs(argv: string[]): Options {
     }
 
     if (arg === "--figma") {
-      die("figma:pipeline resolves canonical module roots through figma-mcp-go; do not pass --figma");
+      die("figma:pipeline resolves canonical module scopes through figma-mcp-go; do not pass --figma");
     }
 
     if (arg === "--changed") {
@@ -94,7 +94,7 @@ function parseArgs(argv: string[]): Options {
     }
 
     if (arg === "--help" || arg === "-h") {
-      console.log(`Usage:\n  npm run figma:pipeline -- \\\n    --graph docs/srs/figma-pipeline-dependencies.json \\\n    --changed Catalog \\\n    --max-repairs 3\n\nTarget routing:\n  Each affected module is resolved through figma-mcp-go from its module identity\n  plus the canonical hierarchy/identity constraints in .agents/design-base.md.\n  No Figma URL or node id is supplied to the dependency pipeline.\n\nExisting-root rule:\n  figma:pipeline is an update/verify path, not init/rewrite.\n  The canonical Module root MUST already exist.\n  TARGET_NOT_FOUND or TARGET_AMBIGUOUS is terminal and never starts a writer.\n\nRule:\n  changed node → lookup dependents → resolve existing canonical module root through MCP → review first.\n  review PASS → no mutation.\n  review FAIL_VERIFICATION with TARGET_RESOLVED → run normal write/repair harness → fresh review.\n\nRepeat --changed when multiple module planning inputs changed.\nUse --dry-run to print dependency lookup only; it does not access or mutate Figma.\n`);
+      console.log(`Usage:\n  npm run figma:pipeline -- \\\n    --graph docs/srs/figma-pipeline-dependencies.json \\\n    --changed Catalog \\\n    --max-repairs 3\n\nTarget routing:\n  Dependency nodes are logical Module scopes, not physical Figma roots.\n  Each affected Module is resolved through figma-mcp-go to its existing flattened\n  canonical surface-root set using Module identity + .agents/design-base.md.\n  Example: Catalog may resolve to Catalog Public + Catalog Admin.\n  No Figma URL or node id is supplied to the dependency pipeline.\n\nExisting-scope rule:\n  figma:pipeline is an update/verify path, not init/rewrite.\n  The required existing Module surface set MUST already be resolvable.\n  TARGET_NOT_FOUND or TARGET_AMBIGUOUS is terminal and never starts a writer.\n  Distinct Public/Admin surfaces of one Module are not ambiguity.\n\nRule:\n  changed node → lookup dependents → resolve existing Module surface set through MCP → review first.\n  review PASS → no mutation.\n  review FAIL_VERIFICATION with TARGET_RESOLVED → run normal write/repair harness → fresh review.\n\nRepeat --changed when multiple module planning inputs changed.\nUse --dry-run to print dependency lookup only; it does not access or mutate Figma.\n`);
       process.exit(0);
     }
 
@@ -154,7 +154,7 @@ function printPlan(name: string, changed: string[], plan: ReturnType<typeof buil
   console.log(`[figma-pipeline] affected=${plan.map((item) => item.id).join(" -> ")}`);
   for (const [index, item] of plan.entries()) {
     console.log(`[figma-pipeline] ${index + 1}. ${item.id} maxRepairs=${item.maxRepairs}`);
-    console.log(`[figma-pipeline]    target=resolve EXISTING canonical ${item.id} Module root through figma-mcp-go`);
+    console.log(`[figma-pipeline]    target=resolve EXISTING canonical ${item.id} Module surface set through figma-mcp-go`);
     item.docs.forEach((doc, docIndex) => {
       console.log(`[figma-pipeline]    ${docIndex + 1}. ${doc}`);
     });
@@ -176,7 +176,7 @@ function writePipelineState(
     `${JSON.stringify({
       pipeline: name,
       graph: graphPath,
-      targetResolution: "figma-mcp-go + existing module semantic identity + design-base structural constraints",
+      targetResolution: "figma-mcp-go + logical Module identity + flattened surface-set semantics + design-base structural constraints",
       changed,
       results,
       completedAt: new Date().toISOString(),
@@ -189,22 +189,26 @@ function writePipelineState(
 function semanticFigmaTarget(item: ReturnType<typeof buildFigmaPipelinePlan>[number]): string {
   return [
     "Resolve the existing canonical Figma artifact through figma-mcp-go. Do not use or require a hard-coded Figma URL or node id.",
-    "This dependency pipeline is UPDATE/VERIFY ONLY. It is NOT an init or rewrite request. An existing canonical Module root is mandatory.",
-    `Owning Module: ${item.id}`,
+    "This dependency pipeline is UPDATE/VERIFY ONLY. It is NOT an init or rewrite request. The required existing Module surface set is mandatory.",
+    `Logical dependency Module: ${item.id}`,
     `Pipeline scope: ${item.scope}`,
     `Structural locator contract: ${designBaseContract}`,
-    "Before review or mutation, inspect the connected Figma document with MCP and establish exactly one existing canonical Module root that satisfies the shared contract:",
-    "- each product Module owns one independent top-level canvas root;",
-    "- Module roots are siblings;",
-    "- canonical UI belongs only under its owning Module;",
-    "- semantic identity is owning Module + Use Case + Screen responsibility + State responsibility;",
+    "Important: the dependency Module is a logical scope, not one physical Figma root.",
+    "The Figma canvas is flattened at the Module-surface level. Resolve ALL existing canonical top-level roots owned by this Module that are required by the supplied canonical inputs.",
+    "Example: logical Catalog may resolve to sibling roots Catalog Public + Catalog Admin. Distinct Public/Admin responsibilities are valid and MUST NOT be classified ambiguous merely because there are multiple roots.",
+    "Before review or mutation, inspect the connected Figma document with MCP and establish the existing canonical Module surface set that satisfies the shared contract:",
+    "- a Module may own one or more sibling top-level canonical surface roots;",
+    "- each resolved root must have a distinct semantic Surface responsibility;",
+    "- canonical UI belongs only under the correct Module + Surface responsibility;",
+    "- semantic identity is Module + Surface + Use Case + Screen responsibility + State responsibility;",
     "- node id, frame name, creation time, or visual similarity alone does not establish semantic identity.",
     "Target-resolution output contract for the reviewer summary:",
-    "- existing unique canonical root established: summary MUST begin exactly TARGET_RESOLVED:",
-    "- no canonical Module root exists: return status=fail and summary MUST begin exactly TARGET_NOT_FOUND:",
-    "- multiple candidates prevent unique resolution: return status=fail and summary MUST begin exactly TARGET_AMBIGUOUS:",
+    "- required existing Module surface set established: summary MUST begin exactly TARGET_RESOLVED:",
+    "- no canonical surface can be established for this Module, or a surface required by the supplied canonical inputs is missing: return status=fail and summary MUST begin exactly TARGET_NOT_FOUND:",
+    "- multiple candidates compete for the SAME Module + Surface responsibility, or semantic ownership cannot be resolved: return status=fail and summary MUST begin exactly TARGET_AMBIGUOUS:",
     "TARGET_NOT_FOUND and TARGET_AMBIGUOUS are terminal routing failures, not ordinary design defects.",
-    "Never create a new Module root as fallback for either condition. Only an explicit separate init/rewrite instruction may authorize creating a missing canonical root.",
+    "Never create a missing surface root as fallback for either condition. Only an explicit separate init/rewrite instruction may authorize creating a missing canonical surface.",
+    "If TARGET_RESOLVED and review later finds design drift, update only the affected semantic surface(s) inside the resolved Module scope; do not restructure valid flattened Public/Admin roots into a wrapper Module root.",
   ].join("\n");
 }
 
@@ -309,9 +313,9 @@ function stopForTargetResolutionFailure(
   };
   const statePath = writePipelineState(graphName, graphPath, changed, results);
   console.error(
-    `[figma-pipeline] STOP ${itemId} target resolution=${resolution}. Existing-root update cannot fall back to creating a new Figma root.`,
+    `[figma-pipeline] STOP ${itemId} target resolution=${resolution}. Existing-scope update cannot fall back to creating a missing Figma surface.`,
   );
-  console.error("[figma-pipeline] A missing root may only be created by an explicit separate init/rewrite instruction.");
+  console.error("[figma-pipeline] A missing required surface may only be created by an explicit separate init/rewrite instruction.");
   console.error(`[figma-pipeline] Pipeline state: ${statePath}`);
   process.exit(1);
 }
@@ -339,7 +343,7 @@ function run(): void {
 
   for (let index = 0; index < plan.length; index += 1) {
     const item = plan[index];
-    console.log(`[figma-pipeline] REVIEW ${item.id} — resolving EXISTING canonical Module root through figma-mcp-go`);
+    console.log(`[figma-pipeline] REVIEW ${item.id} — resolving EXISTING canonical Module surface set through figma-mcp-go`);
 
     const beforeReviewRuns = snapshotHarnessRuns();
     const reviewChild = spawnSync(npm, harnessArgs(item, "verify"), {
@@ -392,7 +396,7 @@ function run(): void {
         reviewExitCode,
         updateExitCode: null,
       };
-      console.log(`[figma-pipeline] PASS ${item.id} — existing root resolved; review says no update required`);
+      console.log(`[figma-pipeline] PASS ${item.id} — existing Module surface set resolved; review says no update required`);
       continue;
     }
 
@@ -413,7 +417,7 @@ function run(): void {
 
     results[index].review = "NEEDS_UPDATE";
     results[index].reviewExitCode = reviewExitCode;
-    console.log(`[figma-pipeline] UPDATE ${item.id} — existing root resolved and review found required changes`);
+    console.log(`[figma-pipeline] UPDATE ${item.id} — existing Module surface set resolved and review found required changes`);
 
     const updateChild = spawnSync(npm, harnessArgs(item, "write"), {
       cwd: root,
@@ -443,7 +447,7 @@ function run(): void {
       process.exit(updateExitCode && updateExitCode > 0 ? updateExitCode : 1);
     }
 
-    console.log(`[figma-pipeline] PASS ${item.id} — updated and closed by normal harness review`);
+    console.log(`[figma-pipeline] PASS ${item.id} — updated affected surface(s) and closed by normal harness review`);
   }
 
   const statePath = writePipelineState(graph.name, options.graph, options.changed, results);

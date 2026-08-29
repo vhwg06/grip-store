@@ -4,7 +4,7 @@
   "nodes": [
     {
       "id": "Catalog",
-      "scope": "Catalog canonical Figma root",
+      "scope": "Catalog canonical Figma module scope",
       "dependsOn": [],
       "docs": [
         "docs/srs/catalog/srs_001_product.md",
@@ -21,7 +21,7 @@
     },
     {
       "id": "Checkout",
-      "scope": "Checkout canonical Figma root",
+      "scope": "Checkout canonical Figma module scope",
       "dependsOn": ["Catalog"],
       "docs": [
         "docs/srs/checkout/checkout_srs.md",
@@ -32,7 +32,7 @@
     },
     {
       "id": "Account",
-      "scope": "Account canonical Figma root",
+      "scope": "Account canonical Figma module scope",
       "dependsOn": ["Checkout"],
       "docs": [
         "docs/srs/Account/02-grip-account-srs.md",
@@ -42,7 +42,7 @@
     },
     {
       "id": "Engagement",
-      "scope": "Engagement canonical Figma root",
+      "scope": "Engagement canonical Figma module scope",
       "dependsOn": ["Catalog", "Checkout", "Account"],
       "docs": [
         "docs/srs/Engagement/02-grip-engagement-srs.md",
@@ -52,7 +52,7 @@
     },
     {
       "id": "Content",
-      "scope": "Content canonical Figma root",
+      "scope": "Content canonical Figma module scope",
       "dependsOn": ["Catalog", "Engagement"],
       "docs": [
         "docs/srs/Content/02-grip-content-srs.md",
@@ -62,7 +62,7 @@
     },
     {
       "id": "Order",
-      "scope": "Order canonical Figma root",
+      "scope": "Order canonical Figma module scope",
       "dependsOn": ["Catalog", "Checkout", "Account", "Engagement", "Content"],
       "docs": [
         "docs/srs/Order/02-grip-order-srs.md",
@@ -73,7 +73,7 @@
     },
     {
       "id": "Aftersales",
-      "scope": "Aftersales canonical Figma root",
+      "scope": "Aftersales canonical Figma module scope",
       "dependsOn": ["Order", "Account", "Content"],
       "docs": [
         "docs/srs/Aftersales/02-grip-aftersales-srs.md",

@@ -53,20 +53,24 @@ Reasoning may remain session-local.
 
 Honor the caller's target policy before mutation.
 
-When the caller declares an **existing-target / update / verify** task:
+When the caller declares an **existing-target / update / verify** task, resolve the logical Module scope through `figma-mcp-go`.
+
+A Module scope may contain multiple flattened sibling top-level roots with distinct surface responsibilities, for example `Catalog Public` and `Catalog Admin`.
 
 ```text
-locate the existing canonical target through figma-mcp-go
-├── exactly one target exists → continue
-├── target missing            → STOP; do not create a replacement
-└── target ambiguous          → STOP; do not guess
+locate the existing canonical Module surface set
+├── required existing surface set is established → continue
+├── no canonical surface can be established      → STOP; do not create a replacement
+└── candidates compete for the same surface      → STOP; do not guess
 ```
 
-A patch, dependency update, repair, or failed lookup does **not** imply permission to initialize a missing Module root.
+Distinct Public/Admin roots of the same Module are not ambiguity.
 
-Creating a missing top-level Module root is allowed only when the caller explicitly requests an **init/rewrite** task (or otherwise explicitly authorizes creation of that missing canonical root).
+A patch, dependency update, repair, or failed lookup does **not** imply permission to initialize a missing Module/surface root.
 
-Never recover from `TARGET_NOT_FOUND` or `TARGET_AMBIGUOUS` by drawing the Module from scratch.
+Creating a missing top-level surface root is allowed only when the caller explicitly requests an **init/rewrite** task (or otherwise explicitly authorizes creation of that missing canonical surface).
+
+Never recover from `TARGET_NOT_FOUND` or `TARGET_AMBIGUOUS` by drawing the missing surface from scratch.
 
 ## Before Mutation
 
@@ -95,6 +99,7 @@ Resolve semantic identity by:
 
 ```text
 owning Module
++ Surface responsibility
 + Use Case
 + Screen responsibility
 + State responsibility
@@ -105,7 +110,7 @@ Node ids, frame names, creation time, or visual similarity alone are not semanti
 Required mutation order:
 
 ```text
-inspect existing canonical scope
+inspect existing canonical Module surface set
 → locate semantically equivalent representation
 → update / repair existing representation when it exists
 → create only when no canonical representation exists AND the caller's target policy authorizes creation
@@ -123,7 +128,7 @@ If suspicious duplicates already exist:
 - do not blindly delete them because screenshots or hashes match;
 - establish whether they represent the same semantic responsibility;
 - if they do, reconcile the affected scope to one canonical representation;
-- if they are legitimately distinct states, preserve the observable distinction required by the user task.
+- if they are legitimately distinct surfaces/states, preserve the observable distinction required by the user task.
 
 ## Figma Execution
 
@@ -132,7 +137,7 @@ Only the Principal Product Designer mutates canonical Figma during a writer run.
 Inspect only the relevant:
 
 ```text
-owning Module root
+owning Module surface root(s)
 target screen / state
 canonical Design System
 approved product visual context
@@ -140,7 +145,7 @@ approved product visual context
 
 Reuse mature patterns when they fit the resolved task. Do not force the task into an existing component when that weakens the UX.
 
-Before creating or moving a top-level Module root, first confirm that the caller explicitly authorizes root creation. Then:
+Before creating or moving a top-level surface root, first confirm that the caller explicitly authorizes root creation. Then:
 
 ```text
 inspect page-level root bounds
@@ -266,7 +271,7 @@ When the harness returns reviewer defects:
 1. identify the shared gate that failed;
 2. inspect and reconcile the existing canonical representation before creating new nodes;
 3. repair the defect at its originating decision layer;
-4. mutate only the affected canonical Figma scope;
+4. mutate only the affected canonical Figma surface(s);
 5. re-check applicable upstream gates before polishing downstream details;
 6. leave the actual Figma ready for a fresh independent review.
 
@@ -274,7 +279,7 @@ Do not patch a downstream visual symptom when the defect originates in semantics
 
 Do not append a semantically equivalent screen/state as a repair shortcut.
 
-If an existing-target/update task cannot locate its canonical root, stop instead of converting the repair into an implicit init/rewrite.
+If an existing-target/update task cannot locate its required canonical surface set, stop instead of converting the repair into an implicit init/rewrite.
 
 ## Writer Boundary
 

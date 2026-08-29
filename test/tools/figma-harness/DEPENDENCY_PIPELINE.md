@@ -8,11 +8,11 @@ Use this runner after accepted planning changes update one or more canonical mod
 module changed
 → lookup dependency graph
 → changed module + dependents
-→ for each affected module:
-     resolve EXISTING canonical Module root through figma-mcp-go
+→ for each affected logical Module scope:
+     resolve EXISTING flattened canonical surface set through figma-mcp-go
      ├── TARGET_NOT_FOUND / TARGET_AMBIGUOUS → STOP, no mutation
      └── TARGET_RESOLVED
-          → review existing Figma
+          → review existing Figma Module scope
              ├── no changes needed → PASS, no mutation
              └── changes needed    → run normal writer/repair harness → fresh review
 ```
@@ -31,49 +31,75 @@ Canonical Figma structure and semantic identity come from:
 
 No separate patch/backfill list or hard-coded Figma target registry is needed.
 
-## Existing-root rule
+## Dependency graph selects Module scope
+
+The dependency graph is about **logical Module dependencies**, not physical Figma nesting.
+
+A node such as `Catalog` selects all canonical Figma representations owned by the Catalog Module.
+
+The canvas is flattened at the Module-surface level, so this is valid:
+
+```text
+Catalog
+→ Catalog Public
+→ Catalog Admin
+```
+
+`Catalog Public` and `Catalog Admin` are sibling top-level roots with different surface responsibilities. They form one resolved Catalog Module scope and are not ambiguous.
+
+Ambiguity is narrower:
+
+```text
+Catalog Public
+Catalog Public v2
+```
+
+when both candidates claim the same `Catalog + Public` semantic responsibility, or semantic ownership cannot be established.
+
+## Existing-scope rule
 
 The dependency pipeline is an update/verify runner. It is not an init/rewrite runner.
 
-Therefore every selected Module root must already exist before the pipeline can decide whether the design needs an update.
+Therefore the existing surface set required by the current canonical inputs must already be resolvable before the pipeline can decide whether the design needs an update.
 
 Example:
 
 ```text
 --changed Catalog
 → dependency lookup includes Catalog
-→ MCP lookup Catalog
+→ MCP resolves Catalog-owned surfaces
 
-Catalog root exists uniquely
+Catalog Public + Catalog Admin resolved
 → TARGET_RESOLVED
-→ review
+→ review complete Catalog scope
 
-Catalog root missing
+no Catalog surface can be established
+or a required existing Catalog surface is missing
 → TARGET_NOT_FOUND
 → STOP pipeline
-→ do NOT create Catalog from scratch
+→ do NOT create the missing surface from scratch
 
-Catalog cannot be resolved uniquely
+multiple roots compete for the same Catalog surface responsibility
 → TARGET_AMBIGUOUS
 → STOP pipeline
 → do NOT guess
 ```
 
-A missing root may be created only by a separate explicit init/rewrite instruction. Patch/update semantics never imply permission to initialize Figma.
+A missing surface may be created only by a separate explicit init/rewrite instruction. Patch/update semantics never imply permission to initialize Figma.
 
 ## Figma routing
 
 The dependency pipeline does not take a Figma URL or node id.
 
-For each selected graph node it derives a semantic target from the Module id and scope, then the child reviewer/writer uses `figma-mcp-go` to inspect the actual connected Figma artifact and locate the unique existing canonical Module root.
+For each selected graph node it derives a semantic Module target from the Module id and scope. The child reviewer/writer uses `figma-mcp-go` to inspect the actual connected Figma artifact and locate the existing canonical surface-root set owned by that Module.
 
 The target must satisfy the shared structural contract:
 
 ```text
-each product Module owns one independent top-level canvas root
-Module roots are siblings
-canonical UI belongs only under its owning Module
-semantic identity = Module + Use Case + Screen responsibility + State responsibility
+dependency Module → one or more flattened canonical surface roots
+surface roots may be siblings
+canonical UI belongs only under the correct Module + Surface responsibility
+semantic identity = Module + Surface + Use Case + Screen + State responsibility
 ```
 
 Frame name or node id alone is not sufficient.
@@ -81,12 +107,12 @@ Frame name or node id alone is not sufficient.
 The review `summary` is also the machine-readable target-resolution handshake:
 
 ```text
-TARGET_RESOLVED:   unique existing canonical root established
-TARGET_NOT_FOUND:  no existing canonical root exists
-TARGET_AMBIGUOUS:  unique semantic resolution failed
+TARGET_RESOLVED:   required existing Module surface set established
+TARGET_NOT_FOUND:  no Module surface exists, or a required existing surface is missing
+TARGET_AMBIGUOUS:  candidates compete for the same semantic surface / ownership cannot be resolved
 ```
 
-The runner is fail-closed. If the target result is missing/unclassifiable, it stops instead of assuming the root is safe to update.
+The runner is fail-closed. If the target result is missing/unclassifiable, it stops instead of assuming the scope is safe to update.
 
 `artifacts/figma-harness/**` remains execution evidence; it is not the canonical target registry.
 
@@ -99,20 +125,21 @@ Order
 → Aftersales
 ```
 
-Those roots are then checked in dependency order. The graph only says **what must be checked**; it does not say both roots must be mutated.
+Those logical Module scopes are checked in dependency order. The graph only says **what must be checked**; it does not say every surface must be mutated.
 
-For each root:
+For each Module scope:
 
 ```text
-MCP resolve existing canonical root
+MCP resolve existing canonical surface set
 ├── TARGET_NOT_FOUND / TARGET_AMBIGUOUS
 │    → terminal failure
 │    → no writer
 │
 └── TARGET_RESOLVED
-     → figma:verify
+     → figma:verify over complete Module scope
         ├── PASS              → leave Figma unchanged
         └── FAIL_VERIFICATION → figma:harness --mode write
+                                 → mutate only affected semantic surface(s)
                                  → reviewer
                                  → repair if needed
                                  → PASS / terminal failure
@@ -137,16 +164,17 @@ The runner:
 
 1. starts from the changed node(s);
 2. follows dependent edges recursively;
-3. deduplicates modules;
+3. deduplicates logical Modules;
 4. orders them by dependency;
-5. derives each module's semantic Figma target from graph identity + `.agents/design-base.md`;
-6. requires the child read-only harness to resolve and validate the existing canonical root through `figma-mcp-go`;
+5. derives each Module's semantic Figma scope from graph identity + `.agents/design-base.md`;
+6. requires the child read-only harness to resolve the existing flattened surface set through `figma-mcp-go`;
 7. reads the review artifact's target-resolution marker;
 8. stops immediately on `TARGET_NOT_FOUND`, `TARGET_AMBIGUOUS`, or an unclassifiable resolution result;
-9. runs normal design review only for `TARGET_RESOLVED` roots;
-10. updates only resolved roots whose review returns `FAIL_VERIFICATION`;
-11. lets the normal write harness close every mutation with fresh review and the existing repair budget;
-12. stops on the first target-resolution/review/update terminal failure.
+9. runs normal design review only for `TARGET_RESOLVED` Module scopes;
+10. updates only resolved Module scopes whose review returns `FAIL_VERIFICATION`;
+11. requires the writer to mutate only the affected semantic surface(s) inside that resolved scope;
+12. lets the normal write harness close every mutation with fresh review and the existing repair budget;
+13. stops on the first target-resolution/review/update terminal failure.
 
 A target-resolution failure, timeout, execution error, or other terminal review failure is not interpreted as "needs update".
 
@@ -159,10 +187,10 @@ Figma does not redo business impact analysis:
 ```text
 canonical module changed
 → dependency lookup
-→ MCP resolve affected EXISTING canonical roots
-→ missing/ambiguous root? STOP
-→ otherwise review affected roots
-→ update only where review proves it is needed
+→ MCP resolve affected EXISTING Module surface sets
+→ missing/ambiguous required scope? STOP
+→ otherwise review affected Module scopes
+→ update only the semantic surfaces where review proves it is needed
 ```
 
 ## Evidence

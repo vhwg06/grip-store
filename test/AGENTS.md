@@ -36,38 +36,45 @@
 - Canonical Figma harness sessions MUST use `figma-mcp-go` for Figma operations.
   Do not fall back to another Figma MCP server when `figma-mcp-go` is unavailable
   or rate-limited.
-- `npm run figma:harness -- ...` is the canonical single-root write/repair
+- `npm run figma:harness -- ...` is the canonical single-scope write/repair
   lifecycle. It may start one writer session and owns its complete repair budget.
 - `npm run figma:verify -- ...` is verification-only. It MUST NOT start or resume
   a writer, mutate Figma, or schedule a repair.
 - `npm run figma:pipeline -- ...` is the canonical dependency update runner.
 - The dependency graph lives at `docs/srs/figma-pipeline-dependencies.json`.
+- Dependency graph nodes are **logical Module scopes**, not physical Figma roots.
+  The graph decides which Module scopes must be checked after a change.
+- Figma is flattened at the Module-surface level. One Module may legitimately
+  map to multiple sibling top-level roots with distinct surface responsibilities,
+  for example `Catalog Public` and `Catalog Admin`.
 - The dependency pipeline MUST NOT require or accept a hard-coded Figma URL or
-  node id. For each affected node, use its Module identity plus the canonical
-  Figma hierarchy/identity constraints in `.agents/design-base.md`, then inspect
-  the actual connected Figma artifact through `figma-mcp-go` to resolve the one
-  canonical Module root.
-- `figma:pipeline` is an update/verify path, NOT an init/rewrite path. Every
-  selected Module MUST already have an existing canonical top-level root before
-  review or mutation may continue.
-- Target resolution MUST validate the semantic/structural identity of the root,
-  not merely match a frame name or remembered node id.
+  node id. For each affected graph node, use its Module identity plus the
+  canonical Figma hierarchy/identity constraints in `.agents/design-base.md`,
+  current canonical inputs, and the actual connected Figma artifact through
+  `figma-mcp-go` to resolve the existing canonical Module surface set.
+- `Catalog Public` + `Catalog Admin` is a valid resolved Catalog scope and MUST
+  NOT be classified ambiguous merely because there are two sibling roots.
+- Target ambiguity means multiple candidates compete for the same
+  `Module + Surface responsibility`, or semantic ownership cannot be established.
+- `figma:pipeline` is an update/verify path, NOT an init/rewrite path. The
+  required existing surface set for each selected Module MUST be resolvable
+  before review or mutation may continue.
 - Reviewer target-resolution summaries are part of the pipeline control
   contract:
 
   ```text
-  TARGET_RESOLVED:   → existing unique root established
-  TARGET_NOT_FOUND:  → no existing canonical root
-  TARGET_AMBIGUOUS:  → multiple candidates prevent unique resolution
+  TARGET_RESOLVED:   → required existing Module surface set established
+  TARGET_NOT_FOUND:  → no Module surface can be established, or a required existing surface is missing
+  TARGET_AMBIGUOUS:  → candidates compete for the same semantic surface / ownership cannot be resolved
   ```
 
 - `TARGET_NOT_FOUND`, `TARGET_AMBIGUOUS`, or an unclassifiable target-resolution
   result MUST stop the entire dependency pipeline with zero mutation for that
   Module and no processing of later dependents.
-- A missing Module root MUST NOT be treated as an ordinary `FAIL_VERIFICATION`
-  and MUST NOT trigger a writer. Do not draw/rebuild the Module from scratch as a
-  fallback for patch/update work.
-- Creating a missing canonical Module root requires a separate explicit
+- A missing required Module surface MUST NOT be treated as an ordinary
+  `FAIL_VERIFICATION` and MUST NOT trigger a writer. Do not draw/rebuild the
+  missing surface from scratch as a fallback for patch/update work.
+- Creating a missing canonical surface root requires a separate explicit
   init/rewrite instruction. Never infer init/rewrite permission from a changed
   planning document, dependency edge, patch request, or failed lookup.
 - Local `artifacts/figma-harness/**` are execution evidence only and MUST NOT be
@@ -78,10 +85,10 @@
   module changed
   → lookup dependency graph
   → changed module + dependents
-  → resolve each EXISTING canonical Module root through figma-mcp-go
+  → for each logical Module scope, resolve its EXISTING flattened surface set through figma-mcp-go
      ├── TARGET_NOT_FOUND / TARGET_AMBIGUOUS → STOP, no mutation
      └── TARGET_RESOLVED
-          → review that root
+          → review the complete Module scope
              ├── PASS              → no update
              └── FAIL_VERIFICATION → run normal figma:harness write/repair lifecycle
   ```
@@ -89,30 +96,30 @@
 - Pass every canonical module whose accepted planning inputs changed with
   `--changed`. The runner follows dependent edges recursively, deduplicates the
   result, and processes modules in dependency order.
-- The graph decides which roots must be checked; it does NOT decide which roots
-  must be mutated.
+- The graph decides which Module scopes must be checked; it does NOT decide which
+  Figma surfaces must be mutated.
 - Do NOT maintain a separate PATCH/VERIFY/backfill list for Figma.
 - Modules outside the changed node's dependent closure MUST NOT run.
-- Every affected module is reviewed first with `figma:verify` after its canonical
-  root has been resolved through MCP.
+- Every affected Module scope is reviewed first with `figma:verify` after its
+  existing canonical surface set has been resolved through MCP.
 - Only a clean `FAIL_VERIFICATION` for a target already classified
-  `TARGET_RESOLVED` means the root needs update. In that case the runner invokes
-  one normal `figma:harness --mode write` lifecycle.
+  `TARGET_RESOLVED` means some representation inside the Module scope needs
+  update. The writer must mutate only the affected semantic surface(s).
 - A target-resolution failure, review timeout, execution error, or other
   terminal failure MUST stop the pipeline and MUST NOT be interpreted as
   permission to mutate.
 - A vertical capability name or documentation folder MUST NOT create a new
-  top-level Figma Module root unless product semantics establish a genuinely new
-  owning Module AND an explicit init/rewrite task authorizes its creation.
+  top-level Figma surface unless product semantics establish a genuinely new
+  owning responsibility AND an explicit init/rewrite task authorizes creation.
 - A pipeline run MUST stop on the first failed target resolution, review, or
   update. It MUST NOT continue into dependents, automatically retry, reset repair
-  budget, or create a replacement root.
+  budget, or create a replacement surface.
 - A write/repair invocation MUST terminate from an independent reviewer or
   deterministic verifier state, never immediately after writer mutation.
 - Writer execution over an existing canonical scope MUST reconcile by semantic
   identity before creating nodes. Re-entry or repair MUST NOT append a second
-  canonical representation for an already represented Module / Use Case /
-  Screen / State responsibility.
+  canonical representation for an already represented Module / Surface / Use
+  Case / Screen / State responsibility.
 - `PASS`, `FAIL_BUDGET`, `FAIL_VERIFICATION`, `TIMEOUT`, and `ERROR` are terminal
   results for the current harness invocation.
 - Do not automatically start a new write/repair harness invocation after
