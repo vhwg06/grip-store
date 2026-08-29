@@ -59,15 +59,28 @@ Never invent unsupported behavior, state, navigation, action, field, or business
 
 ## 2. Canonical Figma Hierarchy
 
+Logical product ownership is:
+
 ```text
-Domain → Module → Use Case → Screen → State
+Domain → Module → Surface → Use Case → Screen → State
 ```
 
-Each product Module owns one independent top-level canvas root.
+`Surface` is a presentation responsibility such as Public or Admin. It may be implicit when a Module has only one relevant surface.
 
-Module roots are siblings.
+The Figma canvas is intentionally **flat at the Module-surface level**. A Module does not require a wrapper frame merely to mirror the logical hierarchy.
 
-Canonical UI belongs only under its owning Module.
+A Module may therefore own one or more sibling top-level canonical roots, for example:
+
+```text
+Catalog Public
+Catalog Admin
+```
+
+Both belong to the logical `Catalog` Module and are valid distinct roots because they own different surface responsibilities.
+
+The dependency graph selects a **logical Module scope**. Resolving that scope means locating the set of existing canonical top-level roots that belong to that Module, not forcing exactly one physical root.
+
+Canonical UI belongs only to the correct Module and surface responsibility.
 
 Correct ownership does not imply correct placement.
 
@@ -79,6 +92,7 @@ Semantic identity is determined by:
 
 ```text
 owning Module
++ Surface responsibility
 + Use Case
 + Screen responsibility
 + State responsibility
@@ -87,6 +101,10 @@ owning Module
 Node id, frame name, creation time, or visual similarity alone does not define semantic identity.
 
 For one semantic identity there must be one canonical representation in the active scope.
+
+Multiple sibling roots for the same Module are **not** ambiguous when they have distinct surface responsibilities.
+
+Ambiguity exists when multiple candidates compete for the same semantic responsibility, for example two roots both claiming `Catalog Public` responsibility.
 
 Repeated generation or repair over unchanged upstream semantics MUST reconcile the existing representation rather than append another canonical copy.
 
@@ -328,6 +346,7 @@ Geometry / Structural PASS requires:
 
 ```text
 correct canonical ownership
+correct surface responsibility
 correct parent hierarchy
 one canonical representation per semantic identity
 zero unintended sibling overlap
@@ -404,6 +423,7 @@ Never approve while any of these remain:
 ```text
 semantic / UX gap silently guessed
 wrong canonical ownership
+wrong surface responsibility
 competing canonical representation for the same semantic identity
 semantically equivalent duplicate state with no justified coexistence
 named distinct state with no meaningful observable difference when semantics require one
@@ -426,7 +446,9 @@ Product semantics > Canvas convenience
 User goal > Implementation structure
 Composition > Decoration
 
+Dependency Module → canonical surface-root set
 One semantic identity → one canonical representation
+Different surface responsibility ≠ duplicate root
 Different state name ≠ different state
 Repeated execution → reconcile, not append
 
