@@ -21,6 +21,42 @@ That is the whole update model.
 
 Do not maintain a separate patch list, verify list, backfill manifest, business-impact engine, hard-coded Figma URL list, or node-id routing table inside the Figma harness.
 
+## Orchestration ownership and completion
+
+`figma:pipeline` owns the dependency-update task from the original changed seed(s) through the entire planned dependency closure.
+
+The single-scope `figma:verify` and `figma:harness` invocations are child lifecycles used by that orchestration. Their terminal states are **local** to one Module scope.
+
+```text
+child figma:verify PASS
+≠ dependency pipeline PASS
+
+child figma:harness PASS
+≠ dependency pipeline PASS
+```
+
+A dependency pipeline is complete only when:
+
+```text
+all Module scopes in the planned closure = PASS
++
+top-level figma:pipeline exits successfully
+```
+
+If any planned Module is `NOT_RUN`, the dependency pipeline is incomplete.
+
+If the top-level pipeline stops on a terminal failure:
+
+```text
+report the failed Module
++ report later dependents as NOT_RUN
++ stop
+```
+
+Do not replace the failed top-level pipeline with ad-hoc single-scope harness calls and then claim the original pipeline completed.
+
+If a separate explicit instruction later repairs the failed Module outside the pipeline, continue the dependency task by rerunning `figma:pipeline` from the **original `--changed` seed(s)**. The rerun must re-review the repaired upstream Module and then walk the dependency closure normally. Do not manually jump to the next dependency.
+
 ## Dependency node ≠ physical Figma root
 
 The dependency graph is the selector.
