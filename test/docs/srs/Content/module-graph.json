@@ -16,6 +16,14 @@
       "stateDocs": [
         "docs/srs/Content/04-promotions-reconciliation.md"
       ]
+    },
+    {
+      "id": "P003-business-solutions",
+      "parent": "P001-promotions",
+      "taskDoc": "docs/srs/Content/05-business-solutions-reconciliation.md",
+      "stateDocs": [
+        "docs/srs/Content/05-business-solutions-reconciliation.md"
+      ]
     }
   ]
 }
