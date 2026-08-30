@@ -16,6 +16,14 @@
       "stateDocs": [
         "docs/srs/Account/04-membership-reconciliation.md"
       ]
+    },
+    {
+      "id": "P003-business-solutions",
+      "parent": "P002-membership",
+      "taskDoc": "docs/srs/Account/05-business-solutions-reconciliation.md",
+      "stateDocs": [
+        "docs/srs/Account/05-business-solutions-reconciliation.md"
+      ]
     }
   ]
 }

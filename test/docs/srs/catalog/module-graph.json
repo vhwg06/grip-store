@@ -23,6 +23,14 @@
       "stateDocs": [
         "docs/srs/catalog/07-promotions-reconciliation.md"
       ]
+    },
+    {
+      "id": "P003-business-solutions",
+      "parent": "P001-promotions",
+      "taskDoc": "docs/srs/catalog/08-business-solutions-reconciliation.md",
+      "stateDocs": [
+        "docs/srs/catalog/08-business-solutions-reconciliation.md"
+      ]
     }
   ]
 }
