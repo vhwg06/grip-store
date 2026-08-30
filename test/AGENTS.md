@@ -66,13 +66,76 @@
   after a terminated dependency pipeline, continuation requires rerunning
   `figma:pipeline` from the original `--changed` seed(s). Do not start manually
   from the next dependency and do not infer that the prior pipeline has resumed.
+
+### Dependency scope and patch intent are separate
+
 - The dependency graph lives at `docs/srs/figma-pipeline-dependencies.json`.
-- The graph's `docs` lists are active canonical inputs through the current
-  vertical-roadmap activation point: baseline Module docs + already-activated
-  capability reconciliation/audit docs. Do NOT add a future capability's
-  reconciliation to the graph before that capability reaches CAP-06.
 - Dependency graph nodes are **logical Module scopes**, not physical Figma roots.
   The graph decides which Module scopes must be checked after a change.
+- The dependency graph MUST remain a scope/dependency selector. Do not encode
+  patch reasons, change descriptions, business-impact rules, or writer intent in
+  dependency edges.
+- The graph's `docs` lists are active canonical compatibility inputs through the
+  current vertical-roadmap activation point: baseline Module docs + already-
+  activated capability reconciliation/audit docs. Do NOT add a future
+  capability's reconciliation before that capability reaches CAP-06.
+- Every `figma:pipeline` run MUST also carry an explicit **active change
+  context** independent of the graph:
+
+  ```text
+  --change <accepted delta label>
+  --change-doc <authoritative delta / impact document>
+  ```
+
+- Derive the active change from the current accepted planning checkpoint in the
+  repository. Do not ask the user to repeat the capability/change when the
+  repository already establishes it.
+- `--changed` answers where dependency lookup starts. `--change` / `--change-doc`
+  answer what this run is trying to materialize. Never treat `--changed Catalog`
+  as permission to perform general Catalog/closure cleanup.
+
+### Active-change review gate
+
+- For every `TARGET_RESOLVED` child review, the summary MUST include exactly one
+  active-change classification:
+
+  ```text
+  CHANGE_VERIFIED: <active change>
+  CHANGE_GAP: <active change>
+  CHANGE_NOT_APPLICABLE: <active change>
+  ```
+
+- Meanings:
+  - `CHANGE_VERIFIED`: the requested delta is already represented for that
+    Module; PASS with zero mutation.
+  - `CHANGE_NOT_APPLICABLE`: the Module is in dependency closure but has no
+    direct delta; compatibility-only PASS with zero mutation.
+  - `CHANGE_GAP`: the requested delta is missing/incorrect or directly blocked
+    on an affected semantic surface.
+- Writer permission is fail-closed. A writer may start only for:
+
+  ```text
+  TARGET_RESOLVED
+  + CHANGE_GAP: <active change>
+  + FAIL_VERIFICATION
+  ```
+
+- A review failure without `CHANGE_GAP` MUST NOT be converted into general repair
+  permission. Stop instead.
+- After a child writer exits, top-level `figma:pipeline` MUST inspect its fresh
+  reviewer artifact. Child exit `0` alone is insufficient. Closure requires
+  `TARGET_RESOLVED` plus `CHANGE_VERIFIED` (or valid `CHANGE_NOT_APPLICABLE`).
+- Unrelated pre-existing spacing, copy, composition, responsive, gallery, or
+  craft defects are outside a patch run unless they directly block, contradict,
+  or were introduced by the active change on an affected semantic surface.
+  They may be reported as non-blocking observations but MUST NOT trigger writer
+  mutation.
+- A dependency-pipeline writer may mutate only the active delta plus defects
+  directly caused by or blocking that delta. No opportunistic Figma tuning,
+  redesign, polish, copy cleanup, or unrelated maintenance.
+
+### Target resolution
+
 - Figma is flattened at the Module-surface level. One Module may legitimately
   map to multiple sibling top-level roots with distinct surface responsibilities,
   for example `Catalog Public` and `Catalog Admin`.
@@ -108,41 +171,40 @@
   planning document, dependency edge, patch request, or failed lookup.
 - Local `artifacts/figma-harness/**` are execution evidence only and MUST NOT be
   used as a replacement canonical target registry.
+
+### Canonical lifecycle
+
 - Core rule:
 
   ```text
-  module changed
+  accepted change context
+  + original changed Module seed
   → lookup dependency graph
-  → changed module + dependents
-  → for each logical Module scope, resolve its EXISTING flattened surface set through figma-mcp-go
+  → changed Module + dependents
+  → for each logical Module scope, resolve EXISTING flattened surface set
      ├── TARGET_NOT_FOUND / TARGET_AMBIGUOUS → STOP, no mutation
      └── TARGET_RESOLVED
-          → review the complete Module scope
-             ├── PASS              → no update
-             └── FAIL_VERIFICATION → run normal figma:harness write/repair lifecycle
+          → classify active change
+             ├── CHANGE_VERIFIED       → PASS, no mutation
+             ├── CHANGE_NOT_APPLICABLE → PASS, no mutation
+             └── CHANGE_GAP
+                  → FAIL_VERIFICATION
+                  → bounded child writer for active delta only
+                  → fresh reviewer must produce CHANGE_VERIFIED
   ```
 
 - Pass every canonical module whose accepted planning inputs changed with
   `--changed`. The runner follows dependent edges recursively, deduplicates the
   result, and processes modules in dependency order.
-- The graph decides which Module scopes must be checked; it does NOT decide which
-  Figma surfaces must be mutated.
-- Do NOT maintain a separate PATCH/VERIFY/backfill list for Figma.
 - Modules outside the changed node's dependent closure MUST NOT run.
-- Every affected Module scope is reviewed first with `figma:verify` after its
-  existing canonical surface set has been resolved through MCP.
-- Only a clean `FAIL_VERIFICATION` for a target already classified
-  `TARGET_RESOLVED` means some representation inside the Module scope needs
-  update. The writer must mutate only the affected semantic surface(s).
-- A target-resolution failure, review timeout, execution error, or other
-  terminal failure MUST stop the pipeline and MUST NOT be interpreted as
-  permission to mutate.
 - A vertical capability name or documentation folder MUST NOT create a new
   top-level Figma surface unless product semantics establish a genuinely new
   owning responsibility AND an explicit init/rewrite task authorizes creation.
-- A pipeline run MUST stop on the first failed target resolution, review, or
-  update. It MUST NOT continue into dependents, automatically retry, reset repair
-  budget, or create a replacement surface.
+- A pipeline run MUST stop on the first failed target resolution, unclassifiable
+  change result, review/update execution failure, exhausted budget, or fresh
+  review that does not verify the active delta. It MUST NOT continue into
+  dependents, automatically retry, reset repair budget, or create a replacement
+  surface.
 - A write/repair invocation MUST terminate from an independent reviewer or
   deterministic verifier state, never immediately after writer mutation.
 - Writer execution over an existing canonical scope MUST reconcile by semantic
