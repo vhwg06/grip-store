@@ -1,21 +1,22 @@
 # Figma Dependency Pipeline
 
-Use this runner after accepted planning changes update one or more canonical module inputs.
+Use this runner after accepted planning changes update one or more canonical Module inputs.
 
-## Rule
+## Two separate contracts
+
+The dependency graph and the patch intent are intentionally separate.
 
 ```text
-module changed
-→ lookup dependency graph
-→ changed module + dependents
-→ for each affected logical Module scope:
-     resolve EXISTING flattened canonical surface set through figma-mcp-go
-     ├── TARGET_NOT_FOUND / TARGET_AMBIGUOUS → STOP, no mutation
-     └── TARGET_RESOLVED
-          → review existing Figma Module scope
-             ├── no changes needed → PASS, no mutation
-             └── changes needed    → run normal writer/repair harness → fresh review
+dependency graph
+= scope selector
+= which logical Module scopes must be checked
+
+active change context
+= patch intent
+= what accepted delta the child harness must verify/materialize
 ```
+
+Do not encode patch reasons or business-impact semantics into dependency edges.
 
 Dependencies come from:
 
@@ -23,21 +24,176 @@ Dependencies come from:
 docs/srs/figma-pipeline-dependencies.json
 ```
 
-Canonical Figma structure and semantic identity come from:
+Canonical Figma structure comes from:
 
 ```text
 .agents/design-base.md
 ```
 
-No separate patch/backfill list or hard-coded Figma target registry is needed.
+Patch/update behavior comes from:
 
-## Dependency graph selects Module scope
+```text
+.agents/figma-pipeline-update.md
+```
 
-The dependency graph is about **logical Module dependencies**, not physical Figma nesting.
+## Canonical flow
 
-A node such as `Catalog` selects all canonical Figma representations owned by the Catalog Module.
+```text
+accepted change context
++
+original changed Module seed(s)
+↓
+dependency lookup
+↓
+changed Module + dependents
+↓
+for each logical Module:
+  resolve EXISTING flattened canonical surface set through figma-mcp-go
+  ├── TARGET_NOT_FOUND / TARGET_AMBIGUOUS
+  │    → STOP, zero mutation
+  │
+  └── TARGET_RESOLVED
+       → classify active change
+          ├── CHANGE_VERIFIED
+          │    → requested delta already represented
+          │    → PASS, zero mutation
+          │
+          ├── CHANGE_NOT_APPLICABLE
+          │    → dependency compatibility only
+          │    → PASS, zero mutation
+          │
+          └── CHANGE_GAP
+               → requested delta missing/incorrect here
+               → FAIL_VERIFICATION
+               → bounded child writer for this delta only
+               → fresh independent review
+               → must close with CHANGE_VERIFIED
+```
 
-The canvas is flattened at the Module-surface level, so this is valid:
+A Module appearing in dependency closure is not permission for general Figma cleanup.
+
+## Active change context
+
+Every dependency run requires:
+
+```text
+--change <accepted delta label>
+--change-doc <authoritative delta / impact document>
+```
+
+Repeat `--change-doc` only when more than one upstream document is needed to explain the same active delta.
+
+The top-level orchestrator should derive these values from the current accepted planning checkpoint in the repository.
+
+Example for Promotions:
+
+```bash
+npm run figma:pipeline -- \
+  --graph docs/srs/figma-pipeline-dependencies.json \
+  --changed Catalog \
+  --change Promotions \
+  --change-doc docs/srs/Promotions/05-promotions-impact-map-and-review.md \
+  --max-repairs 3
+```
+
+Interpretation:
+
+```text
+--changed Catalog
+= dependency lookup starts at Catalog
+
+--change Promotions
++ Promotions impact-map/reconciliation context
+= child harness knows the requested patch is Promotions
+```
+
+The runner passes the active change context to every child reviewer/writer together with that Module's current canonical docs.
+
+## Change classification handshake
+
+For every resolved Module, reviewer `summary` must begin with the normal target marker and also contain one active-change marker.
+
+Examples:
+
+```text
+TARGET_RESOLVED: CHANGE_VERIFIED: Promotions — ...
+```
+
+```text
+TARGET_RESOLVED: CHANGE_GAP: Promotions — ...
+```
+
+```text
+TARGET_RESOLVED: CHANGE_NOT_APPLICABLE: Promotions — ...
+```
+
+Meanings:
+
+- `CHANGE_VERIFIED`: requested delta is already represented; no writer.
+- `CHANGE_GAP`: requested delta needs a direct repair/update here.
+- `CHANGE_NOT_APPLICABLE`: Module is in closure but no direct delta applies; compatibility-only, no writer.
+
+The runner is fail-closed if this classification is missing or unclassifiable.
+
+## Writer permission
+
+Only this state authorizes a writer:
+
+```text
+TARGET_RESOLVED
++
+CHANGE_GAP: <active change>
++
+figma:verify exit = FAIL_VERIFICATION
+```
+
+The following must never start a writer:
+
+```text
+TARGET_NOT_FOUND
+TARGET_AMBIGUOUS
+CHANGE_VERIFIED
+CHANGE_NOT_APPLICABLE
+missing change marker
+review failure whose reason is unrelated to the active change
+```
+
+Unrelated pre-existing craft/spacing/copy/composition defects may be recorded as non-blocking observations but are not patch intent.
+
+The writer may mutate only the active delta and defects directly caused by or blocking that delta on affected semantic surfaces.
+
+No opportunistic:
+
+```text
+spacing cleanup
+gallery tuning
+copy polishing
+old screen redesign
+responsive maintenance
+unrelated Figma QA fixes
+```
+
+## Fresh evidence after mutation
+
+Child `figma:harness` exit `0` alone does not prove the requested patch was completed.
+
+After the writer lifecycle, the top-level runner reads the child's fresh reviewer artifact and requires:
+
+```text
+TARGET_RESOLVED
++
+CHANGE_VERIFIED: <active change>
+```
+
+(or a valid `CHANGE_NOT_APPLICABLE` when no direct delta remains).
+
+Without fresh active-change evidence the Module is failed and later dependents remain `NOT_RUN`.
+
+## Dependency graph selects logical Module scope
+
+A node such as `Catalog` represents all canonical Figma representations owned by the Catalog Module.
+
+The canvas is flattened at Module-surface level, so this is valid:
 
 ```text
 Catalog
@@ -45,213 +201,160 @@ Catalog
 → Catalog Admin
 ```
 
-`Catalog Public` and `Catalog Admin` are sibling top-level roots with different surface responsibilities. They form one resolved Catalog Module scope and are not ambiguous.
+Those sibling roots have different surface responsibilities and form one resolved Catalog scope.
 
-Ambiguity is narrower:
+Ambiguity is narrower, for example:
 
 ```text
 Catalog Public
 Catalog Public v2
 ```
 
-when both candidates claim the same `Catalog + Public` semantic responsibility, or semantic ownership cannot be established.
+when both claim the same `Catalog + Public` responsibility, or ownership cannot be established.
 
 ## Existing-scope rule
 
-The dependency pipeline is an update/verify runner. It is not an init/rewrite runner.
+The dependency pipeline is update/verify only, not init/rewrite.
 
-Therefore the existing surface set required by the current canonical inputs must already be resolvable before the pipeline can decide whether the design needs an update.
-
-Example:
+The existing surface set required by current canonical inputs must already be resolvable.
 
 ```text
---changed Catalog
-→ dependency lookup includes Catalog
-→ MCP resolves Catalog-owned surfaces
+TARGET_NOT_FOUND
+→ STOP
+→ do not create missing surface
 
-Catalog Public + Catalog Admin resolved
-→ TARGET_RESOLVED
-→ review complete Catalog scope
-
-no Catalog surface can be established
-or a required existing Catalog surface is missing
-→ TARGET_NOT_FOUND
-→ STOP pipeline
-→ do NOT create the missing surface from scratch
-
-multiple roots compete for the same Catalog surface responsibility
-→ TARGET_AMBIGUOUS
-→ STOP pipeline
-→ do NOT guess
+TARGET_AMBIGUOUS
+→ STOP
+→ do not guess
 ```
 
-A missing surface may be created only by a separate explicit init/rewrite instruction. Patch/update semantics never imply permission to initialize Figma.
+A missing canonical root may be created only by a separate explicit init/rewrite task.
 
 ## Figma routing
 
-The dependency pipeline does not take a Figma URL or node id.
+The pipeline takes no Figma URL or node id.
 
-For each selected graph node it derives a semantic Module target from the Module id and scope. The child reviewer/writer uses `figma-mcp-go` to inspect the actual connected Figma artifact and locate the existing canonical surface-root set owned by that Module.
-
-The target must satisfy the shared structural contract:
+For each selected graph node, child reviewer/writer resolves the actual existing canonical Module surface set through `figma-mcp-go` using:
 
 ```text
-dependency Module → one or more flattened canonical surface roots
-surface roots may be siblings
-canonical UI belongs only under the correct Module + Surface responsibility
-semantic identity = Module + Surface + Use Case + Screen + State responsibility
+logical Module identity
++ .agents/design-base.md
++ current canonical Module inputs
++ actual connected Figma artifact
 ```
 
-Frame name or node id alone is not sufficient.
-
-The review `summary` is also the machine-readable target-resolution handshake:
+Semantic identity remains:
 
 ```text
-TARGET_RESOLVED:   required existing Module surface set established
-TARGET_NOT_FOUND:  no Module surface exists, or a required existing surface is missing
-TARGET_AMBIGUOUS:  candidates compete for the same semantic surface / ownership cannot be resolved
+Module
++ Surface responsibility
++ Use Case
++ Screen responsibility
++ State responsibility
 ```
 
-The runner is fail-closed. If the target result is missing/unclassifiable, it stops instead of assuming the scope is safe to update.
+Frame name or node id alone is insufficient.
 
-`artifacts/figma-harness/**` remains execution evidence; it is not the canonical target registry.
+Target-resolution summary markers remain:
 
-## Example dependency lookup
+```text
+TARGET_RESOLVED:
+TARGET_NOT_FOUND:
+TARGET_AMBIGUOUS:
+```
 
-If only `Order` changes:
+Local `artifacts/figma-harness/**` are execution evidence only, never a canonical target registry.
+
+## Dependency lookup examples
+
+If `Order` is the original changed Module:
 
 ```text
 Order
 → Aftersales
 ```
 
-Those logical Module scopes are checked in dependency order. The graph only says **what must be checked**; it does not say every surface must be mutated.
-
-For each Module scope:
+If `Catalog` is the original changed Module under the current graph:
 
 ```text
-MCP resolve existing canonical surface set
-├── TARGET_NOT_FOUND / TARGET_AMBIGUOUS
-│    → terminal failure
-│    → no writer
-│
-└── TARGET_RESOLVED
-     → figma:verify over complete Module scope
-        ├── PASS              → leave Figma unchanged
-        └── FAIL_VERIFICATION → figma:harness --mode write
-                                 → mutate only affected semantic surface(s)
-                                 → reviewer
-                                 → repair if needed
-                                 → PASS / terminal failure
+Catalog
+→ Checkout
+→ Account
+→ Engagement
+→ Content
+→ Order
+→ Aftersales
 ```
 
-## Run
-
-```bash
-npm run figma:pipeline -- \
-  --graph docs/srs/figma-pipeline-dependencies.json \
-  --changed Catalog \
-  --max-repairs 3
-```
-
-Repeat `--changed` when multiple canonical modules changed.
-
-Use `--dry-run` to print dependency lookup without accessing, reviewing, or mutating Figma.
+That list says which Module scopes must be checked. It does **not** say that every Module requires a mutation.
 
 ## Completion semantics
 
-`figma:pipeline` is the orchestration owner for the full dependency closure selected from the original `--changed` seed(s).
-
-Child commands are not pipeline completion signals:
+`figma:pipeline` remains the top-level orchestration owner for the full dependency closure.
 
 ```text
-figma:verify PASS       = one Module scope verified
-figma:harness PASS      = one Module scope updated and closed
-figma:pipeline PASS     = every planned Module scope passed
+figma:verify PASS
+= one child verification result
+
+figma:harness PASS
+= one child writer/reviewer lifecycle result
+
+figma:pipeline PASS
+= every planned Module passed under the active change contract
 ```
 
-Do not replace a terminated dependency pipeline with a direct single-scope harness and then call the dependency task complete.
+A dependency run completes only when all planned nodes have `status = PASS` and the top-level process exits successfully.
 
-A dependency run is complete only when all planned nodes have `status = PASS` and the top-level `figma:pipeline` process exits successfully. Any `NOT_RUN` node means the closure has not completed.
+Any `NOT_RUN` node means the closure is incomplete.
 
-If the pipeline terminates and a separate explicitly requested single-scope repair later fixes the failed Module, rerun the dependency pipeline from the **original changed seed(s)**:
-
-```text
-original run: --changed Catalog
-→ stops at Catalog
-
-separate Catalog repair
-→ PASS locally
-
-continuation
-→ rerun --changed Catalog
-→ re-review Catalog
-→ then Checkout → Account → ... according to graph
-```
-
-Do not manually start from Checkout merely because Catalog passed in a separate child harness.
+If a separately requested child repair occurs after a terminated pipeline, rerun the top-level pipeline from the original `--changed` seed(s) with the same active change context. Do not jump manually to the next dependency.
 
 ## Runtime behavior
 
 The runner:
 
-1. starts from the changed node(s);
-2. follows dependent edges recursively;
-3. deduplicates logical Modules;
-4. orders them by dependency;
-5. derives each Module's semantic Figma scope from graph identity + `.agents/design-base.md`;
-6. requires the child read-only harness to resolve the existing flattened surface set through `figma-mcp-go`;
-7. reads the review artifact's target-resolution marker;
-8. stops immediately on `TARGET_NOT_FOUND`, `TARGET_AMBIGUOUS`, or an unclassifiable resolution result;
-9. runs normal design review only for `TARGET_RESOLVED` Module scopes;
-10. updates only resolved Module scopes whose review returns `FAIL_VERIFICATION`;
-11. requires the writer to mutate only the affected semantic surface(s) inside that resolved scope;
-12. lets the normal write harness close every mutation with fresh review and the existing repair budget;
-13. stops on the first target-resolution/review/update terminal failure.
-
-A target-resolution failure, timeout, execution error, or other terminal review failure is not interpreted as "needs update".
+1. validates the dependency graph;
+2. requires `--changed`, `--change`, and at least one `--change-doc`;
+3. follows dependent edges recursively and orders logical Modules;
+4. propagates the active change context to every child;
+5. resolves each existing flattened Module surface set through `figma-mcp-go`;
+6. reads target + active-change markers from the child review artifact;
+7. passes resolved Modules with `CHANGE_VERIFIED` or `CHANGE_NOT_APPLICABLE` without mutation;
+8. starts a writer only for `TARGET_RESOLVED + CHANGE_GAP + FAIL_VERIFICATION`;
+9. lets the normal child harness own its bounded writer/repair lifecycle;
+10. re-reads the fresh child reviewer artifact after mutation;
+11. requires fresh `CHANGE_VERIFIED`/valid no-op evidence before proceeding;
+12. stops on the first terminal target/change/review/update failure.
 
 ## Planning boundary
 
-Planning already decides what changed and patches canonical module docs.
+Planning decides the accepted change and patches canonical Module docs.
 
-Figma does not redo business impact analysis:
+Figma does not redo domain/business impact analysis. It receives the accepted active change as execution context and answers only:
 
 ```text
-canonical module changed
-→ dependency lookup
-→ MCP resolve affected EXISTING Module surface sets
-→ missing/ambiguous required scope? STOP
-→ otherwise review affected Module scopes
-→ update only the semantic surfaces where review proves it is needed
+within each dependency-selected Module scope,
+is this accepted delta already represented,
+not applicable,
+or missing and requiring a bounded patch?
 ```
+
+That is the whole dependency update model.
 
 ## Evidence
 
-Child harness artifacts remain under:
-
-```text
-artifacts/figma-harness/
-```
-
-The pipeline also writes:
+Pipeline state is written under:
 
 ```text
 artifacts/figma-harness/pipeline-*/pipeline-state.json
 ```
 
-with, per affected module:
-
-```text
-review = PASS | NEEDS_UPDATE | FAILED
-updated = true | false
-status = PASS | FAILED | NOT_RUN
-```
+It records the original changed seed(s), active change label/docs, and per-Module status.
 
 Interpretation:
 
 ```text
 all planned status = PASS → dependency pipeline completed
 any FAILED              → dependency pipeline terminated
-any NOT_RUN             → dependency pipeline incomplete / later closure not executed
+any NOT_RUN             → later closure was not executed
 ```
