@@ -1,0 +1,22 @@
+{
+  "version": 1,
+  "module": "Checkout",
+  "base": {
+    "id": "BASE",
+    "stateDocs": [
+      "docs/srs/checkout/checkout_srs.md",
+      "docs/srs/checkout/checkout_ui_ux_research.md",
+      "docs/srs/checkout/checkout-admin-ui-ux-research.md"
+    ]
+  },
+  "patches": [
+    {
+      "id": "P001-promotions",
+      "parent": "BASE",
+      "taskDoc": "docs/srs/checkout/05-promotions-reconciliation.md",
+      "stateDocs": [
+        "docs/srs/checkout/05-promotions-reconciliation.md"
+      ]
+    }
+  ]
+}
