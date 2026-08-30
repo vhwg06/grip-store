@@ -1,122 +1,85 @@
 # Figma Pipeline Update Contract
 
-This file is the execution contract for revisiting canonical Figma after accepted planning documents change.
+This file defines execution after Task Provider has resolved a Figma patch task.
 
-It is not product/domain authority.
+It is not product/domain authority and it is not a task resolver.
 
-## Core model
-
-The dependency graph and the active patch/change context have different jobs.
+## Ownership model
 
 ```text
-Dependency graph
-= WHICH logical Module scopes must be checked
+Task Provider
+= resolve WHAT this run means
+= resolve direct Module patch nodes
+= resolve dependency closure
+= resolve each Module state/task mode
 
-Active change context
-= WHAT accepted delta this run is trying to materialize
+figma:pipeline
+= execute the resolved Module task sequence
+
+child reviewer/writer
+= inspect or mutate only the supplied Module task
 ```
 
-Never collapse those responsibilities.
+Do not collapse these layers.
 
-A dependency edge is not mutation permission.
+## Public entrypoint
 
-Canonical flow:
+Dependency patch work starts through Task Provider:
+
+```bash
+npm run task -- --pipeline figma --patch P001-promotions
+```
+
+`figma:pipeline` is internal and accepts only:
 
 ```text
-accepted planning delta
-↓
-original changed Module seed(s)
-↓
-lookup dependency graph
-↓
-changed Module + dependents, dependency order
-↓
-for each Module:
-  resolve EXISTING canonical flattened surface set
-  ↓
-  classify the active change for this Module
-    ├── CHANGE_VERIFIED
-    │     → active delta already represented
-    │     → PASS, zero mutation
-    │
-    ├── CHANGE_NOT_APPLICABLE
-    │     → compatibility check only
-    │     → PASS, zero mutation
-    │
-    └── CHANGE_GAP
-          → active delta is missing/incorrect here
-          → writer may repair that delta only
-          → fresh independent review
+--task <Task Provider resolved package>
 ```
 
-The pipeline must never degrade into a general Figma cleanup/tuning pass merely because a Module is in the dependency closure.
+It must reject raw graph/change/doc/Figma routing arguments.
 
-## Active change context is mandatory
+## Dependency graph
 
-`figma:pipeline` requires an explicit run-level active change contract:
+The Figma dependency graph is scope-only:
 
 ```text
---change <accepted delta label>
---change-doc <authoritative delta / impact document>
+Module id
+scope
+dependsOn
+optional execution budget
 ```
 
-The top-level orchestrator must derive this from the accepted planning work already present in the repository. Do not make the user restate information that the current planning checkpoint establishes.
+It does not contain docs, patch reasons, business impact, desired state, or writer intent.
 
-Example for the Promotions checkpoint:
+Task Provider derives direct patch Modules from Module graphs and then computes the union dependent closure.
+
+## Module task modes
+
+Every affected Module arrives already classified by Task Provider.
+
+### PATCH
+
+The Module owns a direct node for the requested product patch.
+
+Resolved input contains:
 
 ```text
---changed Catalog
---change Promotions
---change-doc docs/srs/Promotions/05-promotions-impact-map-and-review.md
+Module patch id
+parent Module state
+authoritative task document
+resulting desired-state docs
 ```
 
-The active change context is propagated to every child reviewer/writer together with that Module's current canonical docs.
-
-Interpretation:
+Reviewer must classify the patch as exactly one:
 
 ```text
-current canonical Module docs
-= compatibility/product truth
-
-active change docs
-= why this pipeline run exists
-= patch intent
+CHANGE_VERIFIED: <patch label>
+CHANGE_GAP: <patch label>
 ```
 
-Do not add change reasons, patch lists, or business-impact semantics to the dependency graph itself.
+`CHANGE_NOT_APPLICABLE` is invalid for PATCH.
 
-## Reviewer change gate
-
-After target resolution, the reviewer must evaluate the active change before general quality observations can authorize mutation.
-
-For `TARGET_RESOLVED`, the summary must include exactly one machine-consumed active-change marker:
-
-```text
-CHANGE_VERIFIED: <active change>
-CHANGE_GAP: <active change>
-CHANGE_NOT_APPLICABLE: <active change>
-```
-
-Meanings:
-
-### CHANGE_VERIFIED
-
-The active delta required for this Module is already represented correctly enough to satisfy the accepted change contract and current canonical compatibility constraints.
-
-Result:
-
-```text
-PASS
-zero mutation
-```
-
-### CHANGE_GAP
-
-The active delta requires a direct observable/design change in this Module and the current Figma is missing it, represents it incorrectly, or has a blocking defect directly caused by / blocking that delta.
-
-Only this classification can authorize a writer.
-
-Required routing:
+Writer permission requires exactly:
 
 ```text
 TARGET_RESOLVED
@@ -124,149 +87,83 @@ TARGET_RESOLVED
 CHANGE_GAP
 +
 FAIL_VERIFICATION
-→ writer allowed
 ```
 
-### CHANGE_NOT_APPLICABLE
+The writer may mutate only the resolved Module patch plus defects directly caused by or blocking that patch.
 
-The Module is in the dependency closure but the active change requires no direct Figma delta there. Review compatibility only.
+Unrelated pre-existing spacing, gallery, copy, composition, responsive, or craft issues are outside the task and must not authorize mutation.
 
-Result:
-
-```text
-PASS
-zero mutation
-```
-
-## Unrelated defects are not patch intent
-
-Pre-existing issues unrelated to the active change must not be converted into `CHANGE_GAP`.
-
-Examples:
-
-```text
-old spacing inconsistency
-old gallery polish issue
-old copy preference
-old composition weakness
-unrelated responsive tuning opportunity
-```
-
-These may be recorded as non-blocking observations when useful, but they do not authorize a writer in this patch run unless they directly block, contradict, or were introduced by the active delta on an affected semantic surface.
-
-This is the key boundary:
-
-```text
-Module is affected by dependency graph
-≠ every defect in that Module may be repaired
-```
-
-## Writer mutation boundary
-
-A dependency-pipeline writer may mutate only:
-
-```text
-active change delta
-+
-blocking defects directly caused by or preventing that delta
-+
-required reconciliation on the affected semantic surfaces
-```
-
-It must not opportunistically:
-
-```text
-polish unrelated screens
-retune spacing elsewhere
-rewrite unrelated copy
-redesign old composition
-fix unrelated responsive behavior
-perform general Figma maintenance
-```
-
-If the active change is already represented or not applicable, no writer should start.
-
-## Machine-enforced writer permission
-
-The top-level runner consumes both target and active-change markers.
-
-A writer may start only under this exact control state:
+After writer completion the fresh independent reviewer must produce:
 
 ```text
 TARGET_RESOLVED
 +
-CHANGE_GAP: <active change>
-+
-child verify exit = FAIL_VERIFICATION
+CHANGE_VERIFIED
 ```
 
-These states do **not** authorize mutation:
+Child exit `0` alone is not completion evidence.
 
-```text
-TARGET_NOT_FOUND
-TARGET_AMBIGUOUS
-TARGET_RESOLVED + CHANGE_VERIFIED
-TARGET_RESOLVED + CHANGE_NOT_APPLICABLE
-TARGET_RESOLVED + missing/unclassifiable change marker
-review failure without CHANGE_GAP
-```
+### COMPATIBILITY
 
-After a writer run, child exit `0` alone is not sufficient. The top-level pipeline must inspect the fresh child reviewer artifact and require:
+The Module is in the dependency closure but owns no direct node for the requested product patch.
+
+Task Provider supplies its latest Module state at or before that patch.
+
+This mode is read-only.
+
+Compatible result:
 
 ```text
 TARGET_RESOLVED
 +
-CHANGE_VERIFIED: <active change>
+CHANGE_NOT_APPLICABLE: <patch label>
+→ PASS
+→ zero mutation
 ```
 
-or, when appropriate:
+If review establishes that a direct Module change is actually required:
 
 ```text
-TARGET_RESOLVED
-+
-CHANGE_NOT_APPLICABLE: <active change>
+CHANGE_GAP
+→ DOC_GAP
+→ STOP pipeline
+→ writer forbidden
 ```
 
-Otherwise the Module remains failed and later dependents do not run.
+The fix is to patch docs / Module graph first, then resolve a new task package.
 
-## Orchestration ownership and completion
+Dependency reachability is never permission to invent an undocumented Module patch.
 
-`figma:pipeline` owns the dependency-update task from the original changed seed(s) through the entire planned dependency closure.
+## Task-scoped review
 
-Single-scope `figma:verify` / `figma:harness` invocations are child lifecycles only.
+When the Figma target contains a Task Provider resolved task boundary, reviewer gates and scores apply to the resolved task scope.
+
+For PATCH:
 
 ```text
-child PASS
-≠ dependency pipeline PASS
+patch semantics
++ resulting desired state
++ directly affected surfaces
 ```
 
-A dependency pipeline is complete only when:
+For COMPATIBILITY:
 
 ```text
-all planned Module scopes = PASS
-+
-top-level figma:pipeline exits successfully
+compatibility with current Module state
++ dependency effect only
 ```
 
-If any planned Module is `NOT_RUN`, the pipeline is incomplete.
+Unrelated pre-existing quality issues may be reported as non-blocking observations, but they must not be converted into patch failure or repair work.
 
-If the pipeline terminates:
+The pipeline is not a general Figma maintenance loop.
 
-```text
-report failed Module
-+ later dependents = NOT_RUN
-+ stop
-```
+## Existing target resolution
 
-Do not replace the failed top-level pipeline with ad-hoc child harness calls and then claim completion.
+Figma update/verify is never implicit init/rewrite.
 
-If a separately requested child repair later changes the failed Module, continuation requires rerunning `figma:pipeline` from the original `--changed` seed(s) with the same active change context.
+Before patch evaluation, resolve the existing canonical Module surface set through `figma-mcp-go`.
 
-## Dependency node ≠ physical Figma root
-
-A dependency node is one logical Module scope.
-
-Figma is flattened at the Module-surface level, so a Module may resolve to multiple sibling canonical roots with distinct surface responsibilities:
+A logical Module may own multiple flattened sibling roots with distinct responsibilities:
 
 ```text
 Catalog
@@ -274,69 +171,9 @@ Catalog
 → Catalog Admin
 ```
 
-That is one resolved Catalog scope, not ambiguity.
+This is one resolved Catalog scope, not ambiguity.
 
-Ambiguity exists only when candidates compete for the same `Module + Surface responsibility`, or semantic ownership cannot be established.
-
-## Existing-scope invariant
-
-`figma:pipeline` is update/verify only, never implicit init/rewrite.
-
-For every selected Module, the existing canonical surface set required by current canonical inputs must be resolvable through `figma-mcp-go` before review or mutation.
-
-```text
-TARGET_NOT_FOUND
-→ STOP
-→ zero mutation
-
-TARGET_AMBIGUOUS
-→ STOP
-→ zero mutation
-```
-
-Creating a missing canonical root requires a separate explicit init/rewrite task.
-
-## Target resolution
-
-The dependency pipeline does not accept a hard-coded Figma URL or node id.
-
-Resolve the existing Module surface set from:
-
-```text
-logical Module identity from dependency graph
-+
-canonical hierarchy / identity constraints from .agents/design-base.md
-+
-current canonical Module inputs
-+
-actual connected Figma inspected through figma-mcp-go
-```
-
-Reviewer target summaries remain machine-consumed:
-
-```text
-TARGET_RESOLVED:
-TARGET_NOT_FOUND:
-TARGET_AMBIGUOUS:
-```
-
-When `TARGET_RESOLVED`, the same summary must also contain one active-change classification.
-
-Example:
-
-```text
-TARGET_RESOLVED: CHANGE_GAP: Promotions — Checkout is missing coupon apply/remove states required by the active Promotions delta.
-```
-
-or:
-
-```text
-TARGET_RESOLVED: CHANGE_VERIFIED: Promotions — promotional pricing and operator promotion flows are already represented on the affected Catalog surfaces.
-```
-
-## Canonical identity and reconciliation
-
-When `CHANGE_GAP` authorizes mutation, reconcile by semantic identity:
+Semantic identity is:
 
 ```text
 Module
@@ -346,20 +183,79 @@ Module
 + State responsibility
 ```
 
-Update the existing representation in place where it exists.
+Reviewer summary must begin with exactly one target marker:
 
-Do not append duplicate canonical roots/screens/states merely because a new planning delta arrived.
+```text
+TARGET_RESOLVED:
+TARGET_NOT_FOUND:
+TARGET_AMBIGUOUS:
+```
+
+`TARGET_NOT_FOUND`, `TARGET_AMBIGUOUS`, or unclassifiable target resolution is terminal and must never enter a writer branch.
+
+A missing canonical root requires a separate explicit init/rewrite task.
+
+## Execution lifecycle
+
+For each Task Provider resolved Module task, in package order:
+
+```text
+resolve existing canonical Module surface set
+↓
+TARGET_NOT_FOUND / TARGET_AMBIGUOUS
+→ STOP
+
+TARGET_RESOLVED
+↓
+read-only review
+↓
+PATCH
+├── CHANGE_VERIFIED → PASS, zero mutation
+└── CHANGE_GAP      → bounded writer → fresh review → CHANGE_VERIFIED
+
+COMPATIBILITY
+├── CHANGE_NOT_APPLICABLE → PASS, zero mutation
+└── CHANGE_GAP            → DOC_GAP → STOP, writer forbidden
+```
+
+The top-level pipeline stops on the first terminal failure. Later Module tasks remain `NOT_RUN`.
+
+## Completion
+
+A child harness PASS is local only.
+
+The provider-resolved Figma task is complete only when:
+
+```text
+all resolved Module tasks = PASS
++
+figma:pipeline exits successfully
++
+Task Provider observes executor success
+```
+
+Do not replace a terminated pipeline with ad-hoc child runs and claim the provider task completed.
+
+## Canonical reconciliation
+
+When PATCH authorizes writer mutation, reconcile the existing representation in place by semantic identity.
+
+Repeated execution of the same patch against the same state must converge and must not append duplicate canonical roots/screens/states.
 
 ## Failure rule
 
-Process dependency results in order.
-
-On target-resolution failure, unclassifiable active-change result, review execution failure, timeout, exhausted repair budget, or child update that does not close with fresh change evidence:
+Stop on:
 
 ```text
-STOP
-→ do not process later dependents
-→ do not reset repair budget
-→ do not start a hidden retry
-→ do not convert failure into general cleanup permission
+TARGET_NOT_FOUND
+TARGET_AMBIGUOUS
+DOC_GAP
+invalid task/change classification
+review execution failure
+writer execution failure
+fresh review that does not verify the patch
+timeout
+repair budget exhaustion
 ```
+
+Do not automatically retry, reset repair budget, continue to later dependents, or reinterpret failure as general cleanup permission.
