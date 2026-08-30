@@ -9,11 +9,39 @@
 - `03-grip-account-ui-ux-research.md`
 
 **Vertical input:**
+- `../Membership/01-grip-membership-reference-research.md`
 - `../Membership/02-grip-membership-srs.md`
 - `../Membership/03-grip-membership-public-ui-ux-extension.md`
 - `../Membership/04-grip-membership-admin-ui-ux-extension.md`
+- `../Membership/05-membership-impact-map-and-review.md`
 
-## 1. Purpose
+## 1. Source traceability
+
+This patch is derived from the existing canonical Membership pipeline. Existing artifacts are inputs that must be traced; their `Final` status is not permission to skip them.
+
+```text
+MEM-01 reference research
+→ MEM-02 accepted GRIP semantics
+→ MEM-03/MEM-04 accepted Public/Admin UX
+→ MEM-05 Account = PATCH
+→ this P002 Account transition
+```
+
+Trace matrix:
+
+| P002 Account requirement | Immediate authority | Upstream trace |
+| --- | --- | --- |
+| Keep Account as individual identity/profile/security authority; Business role is separate | MEM-02 §§1, 11, 17; MEM-05 Account SRS PATCH | MEM-01 IKEA-BN-01/02: individual profile and company membership/admin are distinct |
+| Add `Doanh nghiệp` inside existing Account experience rather than a separate portal | MEM-03 §§1-5; MEM-05 Account Public/Admin UI/UX PATCH | MEM-01 minimum SME jobs + simpler-than-IKEA position |
+| Expose Business profile, role, members, invitation lifecycle and role-sensitive actions | MEM-02 §§4-9, 16; MEM-03 §§3-10 | MEM-01 IKEA-BN-01/02/03: colleagues, admin distinction, responsible administrator invariant |
+| Preserve exactly one Owner and explicit ownership transfer | MEM-02 §§6-7 and MEM-I02/MEM-I06; MEM-03 §9 | MEM-01 IKEA-BN-03 motivates visible privileged-user continuity; GRIP narrows it to exactly one Owner |
+| Add Admin Business discovery/detail/projection without mixing GRIP Admin and Business roles | MEM-04 §§2-8; MEM-02 §17 | MEM-01 IKEA-BN-02 + SME simplicity; GRIP chooses a small operator workflow rather than enterprise IAM |
+| Membership removal never deletes Account; inactive Business cannot be used for new purchase | MEM-02 §§9-11 and MEM-I03/MEM-I07 | MEM-01 separates personal identity from company membership and treats business identity as purchase context |
+| Do not introduce enterprise IAM, wholesale pricing, billing/tax or Business Solutions workflow | MEM-02 §18; MEM-03 §14; MEM-04 §12; MEM-05 deferred decisions | MEM-01 §§3-7 explicitly rejects enterprise complexity and separates wholesale/billing concerns |
+
+If any future Account requirement cannot be traced through this chain, it is a planning gap: return upstream and update the appropriate canonical artifact before changing this patch.
+
+## 2. Purpose
 
 Apply Membership V1 to the existing Account experience without moving authentication or personal-profile ownership out of Account.
 
@@ -29,7 +57,7 @@ Membership
 
 A Business role is never an Account role and GRIP internal Admin access is not Business Owner/Admin/Member access.
 
-## 2. Public Account reconciliation
+## 3. Public Account reconciliation
 
 Extend the existing Account task hub with a `Doanh nghiệp` entry when Membership is available to the signed-in account.
 
@@ -51,7 +79,7 @@ For one Business, show a simple business summary. For multiple Businesses, use a
 
 Member-only users see read-only membership context and must not receive member-management actions.
 
-## 3. Business lifecycle and role invariants
+## 4. Business lifecycle and role invariants
 
 The resulting Account/Membership surface must preserve:
 
@@ -67,7 +95,7 @@ inactive Business cannot be selected for new business purchases
 
 Invitation acceptance links to the authenticated Account and must not manufacture a second personal Account when one already exists.
 
-## 4. Admin Account reconciliation
+## 5. Admin Account reconciliation
 
 Extend current customer/account administration with business discovery and Membership projection:
 
@@ -89,7 +117,7 @@ navigate from Business detail to related commerce context when available
 
 Do not combine Business roles with GRIP internal administrative permissions and do not expose an unrestricted raw-role editor.
 
-## 5. Commerce boundary
+## 6. Commerce boundary
 
 Account only projects the Business relationships available to the current person.
 
@@ -103,7 +131,7 @@ Account
 
 Checkout owns purchase completion. Order owns historical purchase truth. Promotions owns discount semantics.
 
-## 6. Explicit non-changes
+## 7. Explicit non-changes
 
 This Membership reconciliation does not add:
 
@@ -122,7 +150,7 @@ mandatory global Business switcher
 
 Business Solutions remains inactive until `P003-business-solutions`.
 
-## 7. Patch execution steps
+## 8. Patch execution steps
 
 Task Provider resolves this file as the complete Account transition for `P002-membership`.
 
@@ -136,7 +164,7 @@ Task Provider resolves this file as the complete Account transition for `P002-me
 7. Verify resulting Account state; do not tune unrelated copy/layout/craft.
 ```
 
-## 8. Desired state after `P002-membership`
+## 9. Desired state after `P002-membership`
 
 ```text
 Account @ P002-membership
@@ -167,6 +195,6 @@ Not present yet
 - enterprise IAM / custom permissions
 ```
 
-## 9. Completion evidence
+## 10. Completion evidence
 
 An Account Figma patch is complete only when the canonical Account Public/Admin surfaces visibly demonstrate the Membership state above, including role-sensitive business/member behavior and the identity-boundary separation. Unrelated Account cleanup does not prove `P002-membership` is complete.
