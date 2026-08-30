@@ -205,19 +205,30 @@ PASS.
 
 BUS-06 reconciles **Business Solutions only**, on top of the already-active product state through Promotions + Membership.
 
-Do not rewrite earlier Promotions/Membership reconciliation files into one cumulative vertical document. Add Business-Solutions-specific reconciliation artifacts only where this impact map says `PATCH`.
+Do not rewrite earlier P001/P002 Module patch nodes into one cumulative vertical document. Add Business-Solutions-specific Module patch nodes only where this impact map says `PATCH`.
 
 Required activation sequence:
 
 ```text
-existing baseline + active Promotions + active Membership reconciliations
+existing Module states through P001-promotions + P002-membership
 → BUS-05 impact map
-→ BUS-06 Business-Solutions-specific reconciliation in affected Modules
-→ add those Business Solutions reconciliation docs to figma-pipeline-dependencies.json
+→ BUS-06 add P003-business-solutions nodes to affected Module graphs
+   - Account
+   - Catalog
+   - Content
+   - Checkout
+   - Order
+   - any additional Module only when this impact map proves PATCH
+→ each P003 Module node points to that Module's latest prior state
+→ each node defines a self-contained patch task + resulting desired state
 → BUS-07 review through the full current roadmap point
-→ Figma dependency update
+→ execute Task Provider task figma-p003-business-solutions
 ```
 
-After BUS-07, a product-wide consistency pass may review the accumulated three capabilities together.
+The Figma dependency graph remains scope-only and must not receive Business Solutions docs or patch intent.
+
+Historical P001/P002 nodes remain unchanged. After BUS-07 and Figma execution, a product-wide consistency pass may review the accumulated three capabilities together.
+
+Task Provider task `figma-p003-business-solutions` is reserved now but must fail closed until at least one canonical P003 Module node is activated.
 
 See `../vertical-capability-sequencing.md`.
