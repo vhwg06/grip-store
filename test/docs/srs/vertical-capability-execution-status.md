@@ -1,98 +1,97 @@
 # GRIP Vertical Capability Execution — Current Checkpoint
 
-**Status:** Promotions planning activated; Promotions Figma patch requires active-change verification; Membership next  
+**Status:** `P001-promotions` Module patch activation complete; Figma execution must run through Task Provider; Membership next  
 **Depends on:** `test/docs/srs/README.md`, `test/docs/srs/vertical-capability-sequencing.md`
 
 ## Current roadmap
 
 ```text
-Promotions          ✅ planning + CAP-06 activation
-Promotions Figma    🔄 requires canonical active-change pass
-Membership          ⏭ next activation
-Business Solutions  ⏳ queued after Membership
+P001-promotions planning / CAP-06     ✅
+P001-promotions Module patch graphs   ✅
+P001-promotions Figma                 🔄 requires Task Provider run
+P002-membership                       ⏭ next CAP-06 activation
+P003-business-solutions               ⏳ after Membership
 ```
 
-## Promotions active canonical checkpoint
+## Current Module state checkpoint
 
-Current existing-Module planning inputs represent:
+Direct `P001-promotions` Module nodes exist for:
 
 ```text
-baseline GRIP
-+
-Promotions
+Catalog
+Checkout
+Content
+Order
 ```
 
-Active Promotions reconciliation/audit includes:
+No direct P001 node exists for:
+
+```text
+Account
+Engagement
+Aftersales
+```
+
+At the P001 checkpoint those Modules remain at their latest earlier state (`BASE` today) and are compatibility-only when dependency closure reaches them.
+
+Membership and Business Solutions source planning remains prepared but is not activated as P002/P003 Module nodes yet.
+
+## Promotions desired state
 
 ```text
 Catalog
 → promotional/effective pricing projection
-→ Promotions Admin extension
+→ Khuyến mãi / Mã khuyến mãi / Giảm giá tự động
+→ Product/Variant regular-price ownership preserved
 
 Checkout
-→ coupon apply/remove/revalidation
-→ discount commercial-summary behavior
+→ coupon entry/apply/remove/revalidation/error states
+→ automatic discount/commercial-summary effect
+→ no Promotions checkout stage
 
 Content
-→ current promotion/offer projection
+→ editorial offer/product references may render authoritative current promotion projection
+→ no promotion-rule ownership
+→ no Business Solutions CTA yet
 
 Order
-→ purchase-time promotion evidence
+→ stable purchase-time promotion evidence
+→ historical totals never follow later Promotion edits/expiry
 
-Engagement
-→ no direct Promotions patch required
-
-Aftersales
-→ no direct Promotions workflow patch required
-
-Account
-→ no Promotions reconciliation required for base V1
+Account / Engagement / Aftersales
+→ no direct Promotions-owned UI/workflow patch
+→ compatibility verification only
 ```
-
-Membership and Business Solutions source planning remains prepared but is not active canonical Module reconciliation yet.
 
 ## Figma execution checkpoint
 
-A prior dependency pass cannot be used as evidence that Promotions Figma is complete because it did not carry an explicit active-change contract and its reported mutations were mostly general Figma tuning.
+The earlier dependency PASS is not valid evidence that Promotions Figma completed. It ran as a generic Module-quality reconciliation and reported unrelated tuning rather than explicit Promotions patch evidence.
 
-The canonical Promotions Figma pass must distinguish dependency scope from patch intent.
-
-Execution context:
-
-```text
-original changed Module seed = Catalog
-active change = Promotions
-active change authority = Promotions/05-promotions-impact-map-and-review.md
-```
-
-Command shape:
+Canonical execution now starts only through Task Provider:
 
 ```bash
-npm run figma:pipeline -- \
-  --graph docs/srs/figma-pipeline-dependencies.json \
-  --changed Catalog \
-  --change Promotions \
-  --change-doc docs/srs/Promotions/05-promotions-impact-map-and-review.md \
-  --max-repairs 3
+npm run task -- --pipeline figma --patch P001-promotions
 ```
 
-The graph may select the full Catalog dependency closure. That closure is review scope only.
+Task Provider resolves pipeline configuration, direct Module patch nodes, dependency closure, each Module's state and exact task inputs.
 
-For each Module, the child harness must return exactly one active-change classification:
+The caller does not supply:
 
 ```text
-CHANGE_VERIFIED: Promotions
-CHANGE_GAP: Promotions
-CHANGE_NOT_APPLICABLE: Promotions
+graph path
+changed seed
+active-change document list
+Module docs
+Figma URL/node id
 ```
 
-Only `CHANGE_GAP` may authorize writer mutation.
+Direct Module tasks run in `PATCH` mode. Dependency-only Modules run in `COMPATIBILITY` mode.
 
-A successful child writer lifecycle must close with fresh reviewer evidence that Promotions is verified. General layout/copy/craft tuning without Promotions evidence does not prove the Promotions patch completed.
+If a compatibility Module is discovered to require a direct Promotions change, the result is `DOC_GAP`; Figma mutation is forbidden until a canonical P001 Module patch is defined.
 
 ## Membership source planning
 
-Prepared source artifacts remain available under `Membership/`:
+Prepared artifacts remain under `Membership/`:
 
 ```text
 01-grip-membership-reference-research.md
@@ -102,21 +101,21 @@ Prepared source artifacts remain available under `Membership/`:
 05-membership-impact-map-and-review.md
 ```
 
-They become active Module reconciliation only when Membership reaches CAP-06.
+They become active Module state only when P002/Membership reaches CAP-06 and the affected Module graphs receive `P002-membership` nodes.
 
 ## Business Solutions source planning
 
-Prepared source artifacts remain available under `BusinessSolutions/` and are activated only after Membership.
+Prepared source artifacts remain under `BusinessSolutions/` and activate as `P003-business-solutions` Module nodes only after Membership.
 
 ## Completion meaning
 
 At this checkpoint:
 
 ```text
-Promotions planning / canonical reconciliation = active
-Promotions Figma patch = not yet proven under active-change contract
-Membership canonical activation = not started
-Business Solutions canonical activation = not started
+Promotions planning / Module patch activation = complete
+Promotions Figma                             = not yet proven under Task Provider execution
+Membership Module patch activation          = not started
+Business Solutions Module patch activation  = not started
 ```
 
-Do not infer Promotions Figma completion from a dependency-pipeline PASS that lacked explicit Promotions change evidence.
+Do not infer `P001-promotions` completion from a Figma PASS that was not produced from a provider-resolved task package.
