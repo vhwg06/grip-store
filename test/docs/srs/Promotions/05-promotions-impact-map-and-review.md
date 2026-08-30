@@ -149,13 +149,21 @@ See `../vertical-capability-sequencing.md`.
 
 ## 5. Task Provider execution
 
-Figma execution is resolved from repository state:
+Agent-facing Figma execution uses only the registered task id:
 
 ```bash
-npm run task -- --pipeline figma --patch P001-promotions
+npm run task -- --task figma-p001-promotions
 ```
 
-Task Provider derives:
+Task registry resolves:
+
+```text
+figma-p001-promotions
+→ pipeline = figma
+→ patch = P001-promotions
+```
+
+Task Provider then derives:
 
 ```text
 direct patch Modules = Catalog / Checkout / Content / Order
@@ -167,7 +175,7 @@ per-Module resolver
 PATCH or COMPATIBILITY task
 ```
 
-The caller/agent does not pass graph path, changed seed, change-doc list, Module docs, or Figma node ids.
+The caller/agent does not pass pipeline id, product patch id, graph path, changed seed, change-doc list, Module docs, or Figma node ids.
 
 For direct PATCH tasks, the Module patch document itself defines execution steps + resulting desired state. Only a verified Module patch gap may authorize writer mutation.
 
@@ -175,7 +183,7 @@ For dependency-only COMPATIBILITY tasks, any discovered need for a direct change
 
 ## 6. Promotions completion evidence
 
-`P001-promotions` is complete only when the provider-resolved Figma task closes with explicit Promotions evidence for every resolved Module task.
+`P001-promotions` is complete only when provider task `figma-p001-promotions` closes with explicit Promotions evidence for every resolved Module task.
 
 General Figma tuning is not evidence.
 
