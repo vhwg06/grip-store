@@ -37,17 +37,19 @@ resolver arguments
 
 Those are provider/pipeline-owned concerns.
 
-## Registries
+## Task registry
 
-`tasks.json` maps an agent-facing task id to an internal pipeline + product patch.
-
-Example:
+`tasks.json` is the agent-facing routing registry.
 
 ```text
 figma-p001-promotions
 → pipeline = figma
 → patch = P001-promotions
 ```
+
+The Task Provider resolves the internal pipeline from the task definition. The caller does not pass `--pipeline`.
+
+## Pipeline registry
 
 `pipelines/figma.json` owns the Figma execution configuration:
 
