@@ -5,217 +5,193 @@
 
 ## 1. Purpose
 
-GRIP vertical capabilities are activated into the existing product **in roadmap order**.
+GRIP vertical capabilities activate into the existing product **in roadmap order**.
 
-Capability-specific source artifacts may be prepared ahead of their activation turn, but preparing those artifacts does not make their decisions active canonical inputs for earlier Module reconciliation or Figma update runs.
-
-Required distinction:
+Capability source artifacts may be prepared ahead, but preparation does not activate future behavior into current Module state.
 
 ```text
-capability source artifacts
+source planning
 = research + SRS + Public/Admin extension + impact map
 
-activated reconciliation
-= capability decisions patched into affected existing Module planning inputs at CAP-06
+activation
+= capability-specific Module patch nodes created at CAP-06
 ```
 
-Source prepared ahead ≠ reconciliation activated.
+Source prepared ahead ≠ Module patch activated.
 
-## 2. Sequential activation rule
+## 2. Product patch sequence
 
-For the current queue:
+Current product patch registry:
 
 ```text
-Promotions
-→ CAP-06 Promotions-only reconciliation
-→ CAP-07 review
-→ activate Promotions reconciliation docs as current Module inputs
-→ Figma dependency update with active change = Promotions
-
-Membership
-→ CAP-06 Membership-only reconciliation on top of already-active Promotions
-→ CAP-07 review
-→ add Membership reconciliation docs as current Module inputs
-→ Figma dependency update with active change = Membership
-
-Business Solutions
-→ CAP-06 Business-Solutions-only reconciliation on top of already-active Promotions + Membership
-→ CAP-07 review
-→ add Business Solutions reconciliation docs as current Module inputs
-→ Figma dependency update with active change = Business Solutions
+P001-promotions
+↓
+P002-membership
+↓
+P003-business-solutions
 ```
 
-Do not wait for later capabilities so several roadmap items can be patched into existing Module docs in one combined reconciliation.
+This sequence identifies product evolution events. It does not say every Module changes at every product patch.
 
-## 3. Capability-specific reconciliation
+## 3. Module-local state graphs
 
-Every CAP-06 reconciliation artifact must identify one owning vertical capability.
-
-Prefer:
+Each Module owns its own state history:
 
 ```text
-catalog/07-promotions-reconciliation.md
-checkout/06-membership-reconciliation.md
-Content/05-business-solutions-reconciliation.md
+Catalog
+BASE → P001-promotions → P003-business-solutions
+
+Checkout
+BASE → P001-promotions → P002-membership → P003-business-solutions
+
+Account
+BASE → P002-membership → P003-business-solutions
 ```
 
-Do not create a cumulative file whose meaning silently expands from:
+The examples above describe the intended model; only nodes whose CAP-06 artifacts are currently activated may exist in the live Module graphs.
+
+A Module patch node must define:
 
 ```text
-Promotions
+patch id
+parent Module state
+authoritative patch task
+resulting desired state
 ```
 
-to:
+Do not use one cumulative reconciliation file whose meaning silently expands across several roadmap capabilities.
+
+## 4. Sequential CAP-06 activation
+
+For each capability:
 
 ```text
-Promotions + Membership + Business Solutions
+CAP-01 Research
+→ CAP-02 GRIP SRS
+→ CAP-03 Public UI/UX extension
+→ CAP-04 Admin UI/UX extension
+→ CAP-05 impact map
+→ CAP-06 create/update exact Module patch nodes
+→ CAP-07 review through current roadmap point
+→ Task Provider Figma execution for that product patch
 ```
 
-because that destroys roadmap sequencing and makes downstream Figma review consume future capability requirements early.
-
-## 4. Dependency graph is scope only
-
-`docs/srs/figma-pipeline-dependencies.json` answers only:
+### Promotions
 
 ```text
-which logical Module scopes must be checked after this Module changes?
+P001-promotions
+→ create Promotions-only Module patch nodes
+→ current direct nodes: Catalog / Checkout / Content / Order
+→ Task Provider resolves dependency closure
+→ Figma executes resolved PATCH / COMPATIBILITY tasks
 ```
 
-It does **not** answer:
+### Membership
+
+When Membership reaches CAP-06:
 
 ```text
-what capability is being patched?
-why this pipeline run exists?
-what the writer should mutate?
+P002-membership
+→ add Membership-only Module patch nodes on top of each Module's latest prior state
+→ do not rewrite P001-promotions nodes
+→ Task Provider resolves P002 from Module graphs
 ```
 
-The graph's Module `docs` lists contain current canonical compatibility inputs:
+### Business Solutions
+
+When Business Solutions reaches CAP-06:
 
 ```text
-baseline Module docs
-+
-already-activated capability reconciliation/audit docs
+P003-business-solutions
+→ add Business-Solutions-only Module patch nodes on top of each Module's latest prior state
+→ preserve P001/P002 history
+→ Task Provider resolves P003 from Module graphs
 ```
 
-They MUST NOT include future capability reconciliation before that capability reaches CAP-06.
+## 5. Dependency graph remains scope-only
 
-The dependency graph may select a broad closure. That closure is inspection scope, not general mutation scope.
-
-## 5. Active change context is patch intent
-
-Every Figma dependency update must carry a run-level active change context separate from the graph:
+`docs/srs/figma-pipeline-dependencies.json` owns only cross-Module Figma dependency scope:
 
 ```text
---change <accepted capability/delta>
---change-doc <authoritative impact/change document>
+Module id
+scope
+dependsOn
 ```
 
-For Promotions:
+It does not contain Module docs, current patch state, change reasons, desired state, or writer intent.
+
+Task Provider derives direct patch Modules from Module graphs, then computes the union dependent closure.
+
+## 6. Task Provider is the execution wrapper
+
+Figma dependency work is invoked as:
 
 ```bash
-npm run figma:pipeline -- \
-  --graph docs/srs/figma-pipeline-dependencies.json \
-  --changed Catalog \
-  --change Promotions \
-  --change-doc docs/srs/Promotions/05-promotions-impact-map-and-review.md \
-  --max-repairs 3
+npm run task -- --pipeline figma --patch P001-promotions
 ```
 
-Interpretation:
+The agent/user does not specify graph path, changed seed, change docs, Module docs, or Figma targets.
+
+Task Provider resolves:
 
 ```text
---changed Catalog
-= original changed Module seed
-= dependency lookup scope
-
---change Promotions
-+ Promotions impact map
-= patch intent
-= what child harnesses must verify/materialize
+product patch
+→ direct Module patch nodes
+→ dependency closure
+→ each Module's latest state
+→ PATCH or COMPATIBILITY task
+→ exact task inputs
 ```
 
-The top-level orchestration agent must derive the active change from the accepted planning checkpoint already present in the repository. Do not make the user repeat it when the repository establishes it.
+The resulting package is handed to the Figma executor.
 
-## 6. Child harness change gate
+## 7. PATCH vs COMPATIBILITY
 
-For each dependency-selected Module:
+### PATCH
+
+The Module contains the requested patch node.
+
+The Figma task verifies/materializes that exact Module transition and resulting desired state.
+
+### COMPATIBILITY
+
+The Module is in dependency closure but contains no requested patch node.
+
+The Figma task only verifies compatibility against the Module's latest earlier state.
+
+If a direct change is actually required:
 
 ```text
-resolve existing canonical Module surface set
-↓
-TARGET_RESOLVED
-↓
-classify active change
-├── CHANGE_VERIFIED
-│    → requested delta already represented
-│    → PASS, zero mutation
-│
-├── CHANGE_NOT_APPLICABLE
-│    → no direct delta for this Module
-│    → compatibility-only PASS, zero mutation
-│
-└── CHANGE_GAP
-     → requested delta missing/incorrect or directly blocked
-     → bounded writer may patch active delta only
-     → fresh reviewer must verify the same active change
+DOC_GAP
+→ stop
+→ define the missing CAP-06 Module patch
+→ resolve a fresh task
 ```
 
-A dependency-selected Module is **not** general cleanup scope.
-
-Unrelated pre-existing spacing, copy, composition, responsive, gallery, or craft issues must not trigger mutation unless they directly block, contradict, or were introduced by the active delta on an affected semantic surface.
-
-## 7. Fresh evidence is required
-
-Child `figma:harness` exit `0` is not enough to prove the requested capability was patched.
-
-The top-level pipeline must inspect the child's fresh independent review and require active-change evidence:
-
-```text
-TARGET_RESOLVED: CHANGE_VERIFIED: <active change>
-```
-
-or a valid no-direct-change result:
-
-```text
-TARGET_RESOLVED: CHANGE_NOT_APPLICABLE: <active change>
-```
-
-Writer permission exists only for:
-
-```text
-TARGET_RESOLVED
-+ CHANGE_GAP: <active change>
-+ FAIL_VERIFICATION
-```
-
-A generic design failure without `CHANGE_GAP` is not mutation permission.
+The Figma agent must never invent the missing patch.
 
 ## 8. No future-capability leakage
 
-A current capability reconciliation may reference an earlier already-active capability when needed for compatibility.
+Current patch nodes may reference already-active earlier state when compatibility requires it.
 
-It must not materialize a later roadmap capability merely because that capability's source SRS/UIUX already exists.
+They must not materialize later roadmap behavior merely because future source SRS/UIUX files already exist.
 
-```text
-current = Promotions
-future Membership/Business Solutions source docs exist
-→ do not patch Membership/Business Solutions semantics into active Module reconciliation
-→ do not add them to current Figma compatibility inputs
-→ do not let child harness materialize them
-```
-
-## 9. Review rule
-
-CAP-07 reviews the product **through the current activation point**, not through every future source artifact available in the repository.
-
-The final product-wide consistency pass may review all capabilities only after every roadmap capability has completed its own CAP-06/CAP-07 activation.
-
-## 10. Current activation checkpoint
+At the Promotions checkpoint:
 
 ```text
-Promotions          ✅ activated
-Membership          ⏭ next activation
-Business Solutions  ⏳ queued after Membership
+P001 active
+P002/P003 source planning may exist
+→ P002/P003 Module nodes do not exist yet
+→ Task Provider cannot resolve them as active Figma patch tasks
 ```
 
-Membership and Business Solutions source planning artifacts remain valid inputs for their future turns; they are not deleted or rewritten merely because their canonical Module reconciliation is not active yet.
+## 9. Current checkpoint
+
+```text
+P001-promotions          ✅ planning/module patch activation
+P001-promotions Figma    🔄 requires execution under Task Provider contract
+P002-membership          ⏭ next CAP-06 activation
+P003-business-solutions  ⏳ after Membership
+```
+
+The earlier generic Figma dependency PASS is not evidence that `P001-promotions` completed because it was not executed from self-contained Module patch tasks.
