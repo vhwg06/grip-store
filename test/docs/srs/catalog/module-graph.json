@@ -1,0 +1,28 @@
+{
+  "version": 1,
+  "module": "Catalog",
+  "base": {
+    "id": "BASE",
+    "stateDocs": [
+      "docs/srs/catalog/srs_001_product.md",
+      "docs/srs/catalog/catalog-public-ui-ux-guide.md",
+      "docs/srs/catalog/01-semantic-invariants.md",
+      "docs/srs/catalog/02-browse-list-ui-ux.md",
+      "docs/srs/catalog/03-product-detail-ui-ux.md",
+      "docs/srs/catalog/04-merchandising-cart-interactions.md",
+      "docs/srs/catalog/05-design-system-contracts.md",
+      "docs/srs/catalog/06-acceptance-qa.md",
+      "docs/srs/catalog/catalog-admin-ui-ux-research.md"
+    ]
+  },
+  "patches": [
+    {
+      "id": "P001-promotions",
+      "parent": "BASE",
+      "taskDoc": "docs/srs/catalog/07-promotions-reconciliation.md",
+      "stateDocs": [
+        "docs/srs/catalog/07-promotions-reconciliation.md"
+      ]
+    }
+  ]
+}
