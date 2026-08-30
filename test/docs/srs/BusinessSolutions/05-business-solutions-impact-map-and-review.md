@@ -1,10 +1,100 @@
 # Business Solutions — Impact Map & Review
 
-**Pipeline stages:** BUS-05 / BUS-06 / BUS-07
+**Pipeline stage:** BUS-05 — Build Impact Map  
+**Status:** Final traced impact decision
 
 ## 1. Purpose
 
-Map the accepted Business Solutions capability onto existing GRIP planning artifacts before final reconciliation.
+Trace the accepted Business Solutions capability from existing canonical research/SRS/UI/UX into exact Module impact decisions before BUS-06 activation.
+
+Existing artifacts are not skipped because they are already `Final`:
+
+```text
+BUS-01 Reference Research
+→ BUS-02 GRIP SRS
+→ BUS-03 Public UI/UX
+→ BUS-04 Admin UI/UX
+→ BUS-05 impact decision
+→ BUS-06 Module patches
+```
+
+Research is evidence; accepted GRIP SRS/UI/UX is product authority; this impact map decides which existing Modules receive P003 nodes.
+
+## 2. Existing source trace
+
+### BUS-01 Reference Research
+
+Primary reusable evidence:
+
+```text
+IKEA Business order assistance + planning
+→ needs/requirements
+→ concrete product proposal
+→ quotation/commercial understanding
+→ assisted purchase through normal commerce
+```
+
+The research explicitly rejects CRM/project-management/procurement-suite/wholesale complexity for GRIP V1.
+
+### BUS-02 SRS
+
+Accepted GRIP flow:
+
+```text
+BusinessRequest
+→ Consultation
+→ SolutionProposal / Revision
+→ Quotation
+→ Acceptance
+→ PurchaseHandoff
+→ Checkout
+→ Order
+```
+
+Ownership remains distributed:
+
+```text
+Membership = Business/member context
+Catalog = product truth
+Promotions = promotion rules
+Business Solutions = request/proposal/quotation intent
+Checkout = final validation/payment/place order
+Order = placed purchase truth
+```
+
+### BUS-03 Public UI/UX
+
+Accepted customer continuity:
+
+```text
+Account/Business context
++ relevant Catalog/Content entry
+→ request
+→ proposal
+→ quotation
+→ normal Checkout
+→ normal Order
+```
+
+No disconnected business portal, duplicate browse, custom business checkout or duplicate order history.
+
+### BUS-04 Admin UI/UX
+
+Accepted operator workflow:
+
+```text
+request queue
+→ understand business need
+→ build proposal from Catalog selections
+→ share/revise
+→ issue quotation
+→ hand accepted intent to Checkout
+→ navigate to resulting Order
+```
+
+No CRM funnel, arbitrary price override, custom Order editor or enterprise procurement suite.
+
+## 3. Impact decisions
 
 Statuses:
 
@@ -14,122 +104,148 @@ NO PATCH REQUIRED
 DEFER
 ```
 
-## 2. Existing docs inspected
-
-Primary baseline:
-
-```text
-Account/02-grip-account-srs.md
-Account/03-grip-account-ui-ux-research.md
-Membership/02-grip-membership-srs.md
-Membership/03-grip-membership-public-ui-ux-extension.md
-Membership/04-grip-membership-admin-ui-ux-extension.md
-catalog/srs_001_product.md
-catalog/catalog-public-ui-ux-guide.md
-catalog/catalog-admin-ui-ux-research.md
-Content/02-grip-content-srs.md
-Content/03-grip-content-ui-ux-research.md
-checkout/checkout_srs.md
-checkout/checkout_ui_ux_research.md
-Order/02-grip-order-srs.md
-Order/03-grip-order-public-ui-ux-research.md
-Order/04-grip-order-admin-ui-ux-research.md
-Promotions/02-grip-promotions-srs.md
-```
-
-## 3. Impact decisions
-
 ### Account — PATCH
 
-Account remains the customer continuity hub.
-
-Required additive extension:
+Trace:
 
 ```text
-Account / Business context
-→ Yêu cầu & báo giá entry point / projection
+BUS-02 §§17,19
++ BUS-03 §§2,6-7
+→ Account/Business context is the continuity hub
+→ `Yêu cầu & báo giá` projection/entry is required
 ```
 
-Account does not own request/proposal/quotation state.
+Account only projects/navigates Business Solutions state. It does not own request/proposal/quotation lifecycle.
 
 ### Membership — NO PATCH REQUIRED
 
-Membership already defines active BusinessContext and explicitly assigns consultation/proposal/quotation workflow to Business Solutions.
+Trace:
+
+```text
+BUS-02 §4
++ existing P002 Membership state
+→ BusinessContext already exists
+→ Business Solutions consumes it
+```
+
+No P003 Membership node is required.
 
 ### Catalog SRS — NO PATCH REQUIRED
 
-Catalog continues to own ProductModel/Variant product truth.
-
-Business Solutions references Catalog selections and must not move proposal requirements into ProductModel schema.
+Catalog already owns ProductModel/Variant/SKU/current sellability/product truth. Business Solutions references Catalog selections and must not move requirements/proposal state into ProductModel.
 
 ### Catalog Public UI/UX — PATCH
 
-Potential entry points such as `Cần tư vấn?` or `Cần mua số lượng?` may be added only where contextually useful.
+Trace:
 
-Proposal items link back to canonical PDP instead of duplicating Catalog UX.
+```text
+BUS-03 §§2,8
+→ contextual `Cần tư vấn?` / `Cần mua số lượng?` entry when useful
+→ proposal items navigate to canonical PDP
+```
+
+No CTA on every product by default and no duplicate business Catalog.
 
 ### Catalog Admin UI/UX — PATCH
 
-Business Solutions proposal builder reuses Catalog selection/search patterns. Product editing remains Catalog-owned.
+Trace:
 
-No Business Solutions fields belong on ProductModel forms.
+```text
+BUS-04 §§6-7
+→ proposal builder reuses Catalog search/selection
+→ unavailable selections are surfaced, never silently substituted
+```
+
+No Business Solutions fields belong in ProductModel/Variant editors.
 
 ### Content SRS/UI — PATCH
 
-Content remains editorial/inspiration.
-
-Add an optional typed handoff/CTA from relevant business guidance to Business Solutions.
-
-Do not turn Content articles into customer-specific requests.
-
-### Checkout SRS — PATCH
-
-Add accepted `PurchaseHandoff` as a valid source of purchase intent.
-
-Checkout must revalidate product/commercial state before placement.
-
-Business Solutions must not bypass normal buyer/delivery/payment decisions.
-
-### Checkout UI/UX — PATCH
-
-When entered from accepted business proposal/quotation, show compact provenance/context without creating a separate business checkout.
-
-Example:
+Trace:
 
 ```text
-Mua cho: GRIP Studio
-Từ báo giá: Q-2026-018
+BUS-02 §18
++ BUS-03 §§2,14
+→ relevant editorial/business guidance may hand off into Business Solutions
 ```
 
-If current values differ from quotation, show a reviewable change before final placement.
+Content remains editorial/inspiration and never owns customer-specific request/proposal/quotation state.
 
-### Order SRS — PATCH
+### Checkout SRS/UI — PATCH
 
-Allow optional business-solution provenance:
+Trace:
 
 ```text
-business_ref
-proposal_ref?
-quotation_ref?
+BUS-02 §§13-15
++ BUS-03 §§11-12
+→ accepted proposal/quotation creates PurchaseHandoff
+→ canonical Checkout receives intent
+→ current product/commercial state is revalidated
+→ change is explained before placement
 ```
 
-where useful for history/support.
+Existing P001 Promotions and P002 Membership behavior remains active. No separate business checkout.
 
-Order remains canonical placed purchase truth.
+### Order SRS/Public/Admin UI — PATCH
 
-### Order Public UI/UX — PATCH
+Trace:
 
-Show source quotation/business context only when useful; do not duplicate proposal state or quotation workflow.
+```text
+BUS-02 §16
++ BUS-03 §13
++ BUS-04 §13
+→ placed Order may preserve source Business/proposal/quotation provenance
+→ Public/Admin may navigate to origin when useful
+```
 
-### Order Admin UI/UX — PATCH
-
-Provide cross-navigation from Order to originating Business Solutions request/quotation where useful.
+Order remains canonical placed-purchase truth and does not duplicate proposal/quotation lifecycle.
 
 ### Promotions — NO PATCH REQUIRED
 
-Promotions may contribute effective commercial values used in a quotation, but Business Solutions does not change Promotions ownership or rule semantics.
+Trace:
 
-## 4. Deferred decisions
+```text
+BUS-02 §12
+→ Promotions may contribute applicable commercial values
+→ Business Solutions does not change promotion rule ownership
+```
+
+No P003 Promotions node is required.
+
+### Engagement — NO PATCH REQUIRED
+
+BUS-01..04 do not establish a direct Engagement-owned Business Solutions behavior. Dependency reachability is not mutation permission.
+
+### Aftersales — NO PATCH REQUIRED
+
+BUS-02/03 explicitly keep post-purchase tracking/returns/claims outside Business Solutions. Existing Order/Aftersales ownership remains unchanged.
+
+## 4. Direct BUS-06 patch set
+
+Only these Modules are proven `PATCH`:
+
+```text
+Account
+Catalog
+Content
+Checkout
+Order
+```
+
+Therefore BUS-06 may activate `P003-business-solutions` only in those Module graphs.
+
+Latest prior parent states must be resolved per Module:
+
+```text
+Account   P002-membership
+Catalog   P001-promotions
+Content   P001-promotions
+Checkout  P002-membership
+Order     P002-membership
+```
+
+## 5. Deferred decisions
+
+Remain explicitly deferred:
 
 ```text
 company legal/tax/billing profile
@@ -144,91 +260,42 @@ appointment calendar integration
 file upload / floorplan storage
 ```
 
-These require explicit future decisions.
+These may not be invented by BUS-06 or Figma.
 
-## 5. Cross-capability review
-
-### Business identity
+## 6. Cross-capability invariants
 
 ```text
-Account → person
-Membership → Business relationship/context
-Business Solutions → need/proposal/quotation
+Account = person / continuity
+Membership = Business relationship/context
+Catalog = product truth
+Content = editorial guidance
+Promotions = promotion rules
+Business Solutions = need/proposal/quotation
+Checkout = final purchase validation/payment
+Order = placed purchase truth
 ```
 
-PASS.
-
-### Product truth
+Purchase boundary:
 
 ```text
-Catalog owns products
-Business Solutions references products
-```
-
-PASS.
-
-### Commercial truth
-
-```text
-Promotions owns promotion rules
-Business Solutions can quote resulting values
-Checkout revalidates
-Order snapshots final purchase
-```
-
-PASS.
-
-### Purchase boundary
-
-```text
-Business Solutions acceptance
+Business Solutions Acceptance
 → PurchaseHandoff
 → Checkout
 → Order
 ```
 
-PASS.
+A quotation is not an Order and does not reserve stock in V1.
 
-### Post-purchase
-
-Business Solutions links to Order after placement but does not absorb tracking/returns/claims.
-
-PASS.
-
-### UX
-
-Business Solutions extends Account/Membership + Catalog/Content + Checkout/Order. It does not introduce duplicate browse, checkout or order-history universes.
-
-PASS.
-
-## 6. Patch execution note
-
-BUS-06 reconciles **Business Solutions only**, on top of the already-active product state through Promotions + Membership.
-
-Do not rewrite earlier P001/P002 Module patch nodes into one cumulative vertical document. Add Business-Solutions-specific Module patch nodes only where this impact map says `PATCH`.
-
-Required activation sequence:
+## 7. BUS-06 activation rule
 
 ```text
-existing Module states through P001-promotions + P002-membership
-→ BUS-05 impact map
-→ BUS-06 add P003-business-solutions nodes to affected Module graphs
-   - Account
-   - Catalog
-   - Content
-   - Checkout
-   - Order
-   - any additional Module only when this impact map proves PATCH
-→ each P003 Module node points to that Module's latest prior state
-→ each node defines a self-contained patch task + resulting desired state
-→ BUS-07 review through the full current roadmap point
-→ execute Task Provider task figma-p003-business-solutions
+existing Module states through P001 + P002
+→ this traced BUS-05 decision
+→ create exact P003 nodes for Account/Catalog/Content/Checkout/Order
+→ each node uses latest prior Module state
+→ each task doc contains source trace + desired state + explicit non-changes + completion evidence
+→ BUS-07 independent review
+→ figma-p003-business-solutions
 ```
 
-The Figma dependency graph remains scope-only and must not receive Business Solutions docs or patch intent.
-
-Historical P001/P002 nodes remain unchanged. After BUS-07 and Figma execution, a product-wide consistency pass may review the accumulated three capabilities together.
-
-Task Provider task `figma-p003-business-solutions` is reserved now but must fail closed until at least one canonical P003 Module node is activated.
-
-See `../vertical-capability-sequencing.md`.
+The Figma dependency graph remains scope-only. Membership, Promotions, Engagement and Aftersales do not gain direct P003 mutation permission from dependency reachability.
