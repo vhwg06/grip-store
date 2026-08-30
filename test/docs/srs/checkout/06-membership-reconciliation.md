@@ -11,11 +11,40 @@
 - `05-promotions-reconciliation.md`
 
 **Vertical input:**
+- `../Membership/01-grip-membership-reference-research.md`
 - `../Membership/02-grip-membership-srs.md`
 - `../Membership/03-grip-membership-public-ui-ux-extension.md`
 - `../Membership/04-grip-membership-admin-ui-ux-extension.md`
+- `../Membership/05-membership-impact-map-and-review.md`
 
-## 1. Purpose
+## 1. Source traceability
+
+This patch is derived from the existing canonical Membership pipeline. Existing artifacts are inputs that must be traced; their `Final` status is not permission to skip them.
+
+```text
+MEM-01 reference research
+→ MEM-02 accepted GRIP semantics
+→ MEM-03/MEM-04 accepted Public/Admin UX
+→ MEM-05 Checkout = PATCH
+→ this P002 Checkout transition
+```
+
+Trace matrix:
+
+| P002 Checkout requirement | Immediate authority | Upstream trace |
+| --- | --- | --- |
+| Checkout may consume an explicit active `BusinessContext` from Membership | MEM-02 §13; MEM-05 Checkout SRS PATCH | MEM-01 IKEA-BN-05: business identity must be present during purchase |
+| Show compact `Mua cho <Business>` context inside existing Checkout | MEM-03 §11; MEM-05 Checkout UI/UX PATCH | MEM-01 §§2,5,8: business purchase context should be explicit without creating a second product |
+| Preserve personal Checkout when no BusinessContext is used and avoid a separate business checkout | MEM-03 §§1,11,14; MEM-05 Checkout UI/UX PATCH | MEM-01 SME simplicity position and explicit rejection of enterprise complexity |
+| Do not silently infer among multiple Businesses; selected context remains visible | MEM-02 §§5,13; MEM-03 §§4,11 | MEM-01 models one person participating in a company context while preserving individual identity |
+| Keep Membership out of cart/totals/payment/promotion/order ownership | MEM-02 §§12-14; MEM-05 Checkout SRS PATCH | MEM-01 IKEA-BN-06: Membership exposes benefits/context rather than absorbing every downstream capability |
+| Preserve P001 Promotions behavior unchanged; Membership itself adds no discount semantics | MEM-02 §12; MEM-05 Promotions NO PATCH REQUIRED; existing `05-promotions-reconciliation.md` | MEM-01 §§4,6 separates membership from wholesale/pricing concerns |
+| Successful business purchase hands stable purchase-time context to Order | MEM-02 §§13-14; MEM-05 Checkout/Order PATCH | MEM-01 IKEA-BN-04/05: company-linked purchases must remain explainable as purchase history |
+| No Membership-management workflow in Checkout Admin | MEM-04 §§5,8-10; MEM-05 Checkout UI/UX PATCH | MEM-01 small-team model; company/member management is separate from purchase completion |
+
+If any future Checkout requirement cannot be traced through this chain, it is a planning gap: return upstream and update the appropriate canonical artifact before changing this patch.
+
+## 2. Purpose
 
 Apply Membership V1 to Checkout on top of the active Promotions state.
 
@@ -30,7 +59,7 @@ signed-in Account
 
 Membership does not own cart, totals, payment, promotion rules or order placement.
 
-## 2. BusinessContext integration
+## 3. BusinessContext integration
 
 When the buyer chooses to purchase for a Business, Checkout receives a business context that identifies the Business and acting Account/member relationship.
 
@@ -38,7 +67,7 @@ The selected context must be valid for a new purchase. An inactive Business or u
 
 Do not silently infer a Business when the user has multiple available Businesses. The selected context must remain explicit when it changes the meaning of the purchase.
 
-## 3. Public Checkout UI reconciliation
+## 4. Public Checkout UI reconciliation
 
 Show BusinessContext as a compact purchase-context summary, for example:
 
@@ -61,7 +90,7 @@ no business role editor inside Checkout
 
 If the user has no active BusinessContext, the existing personal checkout flow remains unchanged.
 
-## 4. Promotions state remains active
+## 5. Promotions state remains active
 
 Preserve the entire `P001-promotions` Checkout state:
 
@@ -76,7 +105,7 @@ no standalone Promotions checkout stage
 
 Membership may provide context that another capability can later use for eligibility, but Membership does not create prices, discounts, coupons or wholesale pricing.
 
-## 5. Order placement handoff
+## 6. Order placement handoff
 
 When a successful purchase used BusinessContext, Checkout passes stable purchase-time business context to Order together with the normal placed-purchase result.
 
@@ -89,7 +118,7 @@ acting Account/member reference where useful
 
 Checkout does not own the historical record after placement.
 
-## 6. Admin Checkout reconciliation
+## 7. Admin Checkout reconciliation
 
 No Membership-management workflow is added to Checkout Admin.
 
@@ -99,7 +128,7 @@ placed business purchase truth → Order Admin
 Checkout Admin → purchase-flow observation only
 ```
 
-## 7. Explicit non-changes
+## 8. Explicit non-changes
 
 This Membership reconciliation does not add:
 
@@ -117,7 +146,7 @@ Membership role management inside Checkout
 
 Business Solutions remains inactive until `P003-business-solutions`.
 
-## 8. Patch execution steps
+## 9. Patch execution steps
 
 Task Provider resolves this file as the complete Checkout transition for `P002-membership`.
 
@@ -131,7 +160,7 @@ Task Provider resolves this file as the complete Checkout transition for `P002-m
 7. Verify resulting Checkout state; do not tune unrelated copy/layout/craft.
 ```
 
-## 9. Desired state after `P002-membership`
+## 10. Desired state after `P002-membership`
 
 ```text
 Checkout @ P002-membership
@@ -160,6 +189,6 @@ Not present yet
 - purchase approvals / company credit / wholesale pricing
 ```
 
-## 10. Completion evidence
+## 11. Completion evidence
 
 A Checkout Figma patch is complete only when the canonical Checkout surfaces demonstrate the optional explicit BusinessContext while preserving the existing Promotions journey and keeping Membership management outside Checkout. Generic checkout cleanup does not prove `P002-membership` is complete.
