@@ -8,5 +8,14 @@
       "docs/srs/Account/03-grip-account-ui-ux-research.md"
     ]
   },
-  "patches": []
+  "patches": [
+    {
+      "id": "P002-membership",
+      "parent": "BASE",
+      "taskDoc": "docs/srs/Account/04-membership-reconciliation.md",
+      "stateDocs": [
+        "docs/srs/Account/04-membership-reconciliation.md"
+      ]
+    }
+  ]
 }
