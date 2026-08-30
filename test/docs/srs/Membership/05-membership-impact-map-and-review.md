@@ -177,4 +177,21 @@ PASS.
 
 ## 6. Patch execution note
 
-Actual reconciliation should be applied after Business Solutions is defined so Account/Checkout/Order are edited once with the complete business vertical rather than repeatedly for intermediate assumptions.
+MEM-06 must reconcile **Membership only**, on top of the already-active product state through Promotions.
+
+Do not wait for Business Solutions and do not import Business Solutions request/proposal/quotation behavior into Membership reconciliation.
+
+Required activation sequence when Membership becomes the current roadmap capability:
+
+```text
+existing baseline + active Promotions reconciliations
+→ MEM-05 impact map
+→ MEM-06 Membership-specific reconciliation for Account / Checkout / Order and any required audit docs
+→ add those Membership reconciliation docs to figma-pipeline-dependencies.json
+→ MEM-07 review through the Membership roadmap point
+→ Figma dependency update
+```
+
+Existing Promotions reconciliation remains active. Business Solutions source artifacts remain inactive until BUS-06.
+
+See `../vertical-capability-sequencing.md`.

@@ -100,4 +100,20 @@ PASS.
 
 ## 4. Patch execution
 
-Apply additive reconciliation inside the affected existing module documentation after Membership and Business Solutions are also defined, so shared files are patched once.
+PROMO-06 is applied **immediately for Promotions** after this impact map is accepted.
+
+Do not defer Promotions reconciliation until Membership or Business Solutions are defined, and do not combine future capability decisions into Promotions Module reconciliation files.
+
+Required activation sequence:
+
+```text
+PROMO-05 impact map
+→ PROMO-06 Promotions-only reconciliation in affected existing Module docs
+→ update figma-pipeline-dependencies.json with those active Promotions reconciliation/audit docs
+→ PROMO-07 review through the Promotions roadmap point
+→ Figma dependency update
+```
+
+Membership and Business Solutions source artifacts may already exist, but they remain inactive for current Module reconciliation until their own CAP-06 turns.
+
+See `../vertical-capability-sequencing.md`.

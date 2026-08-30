@@ -19,6 +19,14 @@
 
 - For planning work under `docs/srs/**`, read and obey `docs/srs/README.md` before
   creating or patching Research, SRS, Public UI/UX, or Admin UI/UX artifacts.
+- For roadmap vertical capabilities, also read and obey
+  `docs/srs/vertical-capability-sequencing.md`. CAP-06 reconciliation is
+  capability-specific and activates in roadmap order. Do not defer the current
+  capability patch so it can be combined with future Membership/Business
+  Solutions decisions merely because those source artifacts already exist.
+- Future capability source artifacts may exist ahead of their roadmap turn, but
+  they MUST NOT become active existing-Module reconciliation/Figma inputs until
+  that capability reaches CAP-06.
 - Treat new commerce/business capabilities as vertical product evolution by
   default. Do not manufacture an isolated bounded context or UI universe merely
   because the capability has a separate planning task or name.
@@ -59,6 +67,10 @@
   `figma:pipeline` from the original `--changed` seed(s). Do not start manually
   from the next dependency and do not infer that the prior pipeline has resumed.
 - The dependency graph lives at `docs/srs/figma-pipeline-dependencies.json`.
+- The graph's `docs` lists are active canonical inputs through the current
+  vertical-roadmap activation point: baseline Module docs + already-activated
+  capability reconciliation/audit docs. Do NOT add a future capability's
+  reconciliation to the graph before that capability reaches CAP-06.
 - Dependency graph nodes are **logical Module scopes**, not physical Figma roots.
   The graph decides which Module scopes must be checked after a change.
 - Figma is flattened at the Module-surface level. One Module may legitimately

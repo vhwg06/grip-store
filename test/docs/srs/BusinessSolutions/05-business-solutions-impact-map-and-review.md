@@ -203,4 +203,21 @@ PASS.
 
 ## 6. Patch execution note
 
-Business Solutions completes the new business vertical definition. The next stage should reconcile all affected existing GRIP docs once, using the combined Promotions + Membership + Business Solutions decisions.
+BUS-06 reconciles **Business Solutions only**, on top of the already-active product state through Promotions + Membership.
+
+Do not rewrite earlier Promotions/Membership reconciliation files into one cumulative vertical document. Add Business-Solutions-specific reconciliation artifacts only where this impact map says `PATCH`.
+
+Required activation sequence:
+
+```text
+existing baseline + active Promotions + active Membership reconciliations
+→ BUS-05 impact map
+→ BUS-06 Business-Solutions-specific reconciliation in affected Modules
+→ add those Business Solutions reconciliation docs to figma-pipeline-dependencies.json
+→ BUS-07 review through the full current roadmap point
+→ Figma dependency update
+```
+
+After BUS-07, a product-wide consistency pass may review the accumulated three capabilities together.
+
+See `../vertical-capability-sequencing.md`.

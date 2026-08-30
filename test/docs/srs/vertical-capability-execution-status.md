@@ -1,61 +1,64 @@
-# GRIP Vertical Capability Execution — Status & Final Review
+# GRIP Vertical Capability Execution — Status
 
-**Status:** Planning execution complete for current queue  
-**Depends on:** `test/docs/srs/README.md`
+**Status:** Capability definitions prepared; canonical reconciliation activates sequentially by roadmap  
+**Depends on:** `README.md`, `vertical-capability-sequencing.md`
 
-## 1. Executed capability queue
+## 1. Capability source planning
 
-```text
-Promotions          ✅
-Membership          ✅
-Business Solutions  ✅
-```
-
-Each capability executed:
+The source planning artifacts for the current vertical queue are prepared:
 
 ```text
-Reference Research
-→ GRIP SRS
-→ Public UI/UX Extension
-→ Admin UI/UX Extension
-→ Impact Map
-→ Patching / Reconciliation
-→ Review
+Promotions          ✅ research / SRS / Public UIUX / Admin UIUX / impact map
+Membership          ✅ research / SRS / Public UIUX / Admin UIUX / impact map
+Business Solutions  ✅ research / SRS / Public UIUX / Admin UIUX / impact map
 ```
 
-## 2. Promotions artifacts
+Prepared source planning does **not** mean all three capabilities are already active in existing Module reconciliation or Figma inputs.
+
+## 2. Canonical activation checkpoint
+
+Roadmap activation is sequential:
 
 ```text
-Promotions/
-├── 01-grip-promotions-reference-research.md
-├── 02-grip-promotions-srs.md
-├── 03-grip-promotions-public-ui-ux-extension.md
-├── 04-grip-promotions-admin-ui-ux-extension.md
-└── 05-promotions-impact-map-and-review.md
+8. Promotions          ✅ active reconciliation
+9. Membership          ⏭ next activation
+10. Business Solutions ⏳ queued after Membership
 ```
 
-Selected GRIP scope:
+Current canonical Module/Figma inputs represent the product through the Promotions activation point only.
+
+## 3. Active Promotions reconciliation
+
+Active Module inputs:
 
 ```text
-Coupon
-├── % off order
-├── fixed amount off order
-└── free shipping
+Catalog
+└── catalog/07-promotions-reconciliation.md
 
-Automatic Product Discount
-├── % off
-└── fixed amount off
+Checkout
+└── checkout/05-promotions-reconciliation.md
 
-+ validity
-+ minimum order when relevant
-+ total code usage limit
-+ product/category scope
-+ one active coupon per checkout
+Account
+└── no Promotions patch required
+
+Engagement
+└── Engagement/04-promotions-audit.md          // NO PATCH REQUIRED
+
+Content
+└── Content/04-promotions-reconciliation.md
+
+Order
+└── Order/05-promotions-reconciliation.md
+
+Aftersales
+└── Aftersales/05-promotions-audit.md          // NO DIRECT PATCH REQUIRED
 ```
 
-Deliberately excluded complexity includes multi-code stacking, loyalty wallet, Buy-X-Get-Y, customer segmentation, rule DSL and campaign automation.
+`figma-pipeline-dependencies.json` exposes these active Promotions reconciliation/audit documents plus the baseline Module docs.
 
-## 3. Membership artifacts
+## 4. Membership source plan — not yet activated
+
+Membership remains defined by:
 
 ```text
 Membership/
@@ -66,22 +69,23 @@ Membership/
 └── 05-membership-impact-map-and-review.md
 ```
 
-Canonical model:
+At MEM-06, Membership must receive capability-specific reconciliation on top of already-active Promotions.
+
+Expected affected existing Modules from the accepted impact map include:
 
 ```text
 Account
-= person
-
-Membership
-= Account ↔ Business relationship
-
-Roles
-= Owner / Admin / Member
+Checkout
+Order
 ```
 
-Membership remains a thin SME business-context layer, not enterprise IAM or wholesale pricing.
+Other Modules receive only an explicit audit/reconciliation artifact if the Membership impact requires one.
 
-## 4. Business Solutions artifacts
+Membership reconciliation docs are added to `figma-pipeline-dependencies.json` only when MEM-06 is activated.
+
+## 5. Business Solutions source plan — not yet activated
+
+Business Solutions remains defined by:
 
 ```text
 BusinessSolutions/
@@ -92,308 +96,41 @@ BusinessSolutions/
 └── 05-business-solutions-impact-map-and-review.md
 ```
 
-Canonical flow:
+At BUS-06, Business Solutions is reconciled on top of already-active Promotions + Membership.
+
+Its accepted impact map currently identifies affected existing journeys across:
 
 ```text
-Business Request
-→ Consultation / Assistance
-→ Solution Proposal
-→ Revision when needed
-→ Quotation
-→ Acceptance
-→ Checkout
-→ Order
-```
-
-Business purchasing and planning/consultation stay together. No CRM or second commerce stack is introduced.
-
-## 5. Existing-module reconciliation result
-
-### Catalog — PATCHED
-
-Artifact:
-
-```text
-catalog/07-vertical-capability-reconciliation.md
-```
-
-Adds:
-
-```text
-promotion commerce projection
-promotion admin extension
-Business Solutions contextual handoff
-proposal builder reuses Catalog product selection
-```
-
-Preserves ProductModel/Variant/regular-price semantics.
-
-### Checkout — PATCHED
-
-Artifact:
-
-```text
-checkout/05-vertical-capability-reconciliation.md
-```
-
-Adds:
-
-```text
-one-coupon Promotions V1 behavior
-BusinessContext from Membership
-PurchaseHandoff from Business Solutions
-quotation-change revalidation UX
-```
-
-Preserves canonical Checkout flow and does not create separate business checkout.
-
-### Account — PATCHED
-
-Artifact:
-
-```text
-Account/04-account-vertical-capability-reconciliation.md
-```
-
-Adds:
-
-```text
-Business membership entry/projection
-Business Solutions resume entry
-contextual business journey continuity
-```
-
-Preserves individual identity/profile ownership.
-
-### Content — PATCHED
-
-Artifact:
-
-```text
-Content/04-content-vertical-capability-reconciliation.md
-```
-
-Adds:
-
-```text
-live promotion references
-contextual Business Solutions CTA
-```
-
-Preserves editorial ownership.
-
-### Order — PATCHED
-
-Artifact:
-
-```text
-Order/05-order-vertical-capability-reconciliation.md
-```
-
-Adds purchase-time context for:
-
-```text
-promotion result
-Business context
-proposal/quotation provenance
-```
-
-Preserves post-placement Order ownership.
-
-### Engagement — NO PATCH REQUIRED
-
-Artifact:
-
-```text
-Engagement/04-engagement-vertical-capability-audit.md
-```
-
-Saved Lists already consume current Catalog projection; no new business-sharing/review behavior was accepted.
-
-### Aftersales — NO DIRECT PATCH REQUIRED
-
-Artifact:
-
-```text
-Aftersales/05-aftersales-vertical-capability-audit.md
-```
-
-Aftersales consumes relevant historical Order truth and does not need a separate business/promotion remedy model.
-
-## 6. Final business ownership / responsibility review
-
-The current product model is coherent as:
-
-```text
+Account
 Catalog
-├── product / variant / SKU / regular price truth
-└── simple Promotions commerce extension
-
-Account
-└── individual identity + persistent personal context
-
-Membership
-└── Account ↔ Business relationship and role
-
-Engagement
-└── Saved Lists + Reviews
-
 Content
-└── editorial meaning / composition
-
-Business Solutions
-└── business need → proposal → quotation → purchase handoff
-
 Checkout
-└── current purchase intent → validation/payment → placement
-
 Order
-└── canonical placed-purchase truth
-
-Aftersales
-└── post-purchase remedies
 ```
 
-No vertical introduced a required new technical service boundary. These are product/business planning responsibilities.
+Business Solutions reconciliation docs are not active Module/Figma inputs before BUS-06.
 
-## 7. Cross-module journeys
-
-### Standard commerce
+## 6. Sequencing invariant
 
 ```text
-Content / Catalog
-→ optional Promotion
-→ Checkout
-→ Order
-→ Aftersales
+source capability docs may exist ahead
+≠ future capability is active
 ```
 
-PASS.
+Do not combine several future roadmap capabilities into one cumulative Module reconciliation file merely to edit the Module once.
 
-### Returning customer
+Each capability owns its CAP-06 patch/reconciliation step and advances the canonical product state one roadmap step.
 
-```text
-Account
-→ Catalog
-→ Checkout
-→ Order
-```
+See `vertical-capability-sequencing.md`.
 
-PASS.
+## 7. Final consistency pass
 
-### SME direct purchase
+After Promotions, Membership, and Business Solutions have each completed their own CAP-06/CAP-07 activation, run one final product-wide consistency review across the accumulated result.
 
-```text
-Account
-→ Membership / BusinessContext
-→ Catalog
-→ optional Promotion
-→ Checkout
-→ Order
-```
+That final pass is verification, not a reason to defer or combine the individual capability reconciliation stages.
 
-PASS.
+## 8. Planning / Figma boundary
 
-### SME assisted purchase
+This file describes planning activation state.
 
-```text
-Account
-→ Membership
-→ Business Solutions
-→ Catalog proposal references
-→ Quotation
-→ Checkout
-→ Order
-→ Aftersales if needed
-```
-
-PASS.
-
-## 8. Public UI/UX consistency review
-
-Rule verified across all three new verticals:
-
-```text
-existing GRIP Public UI/UX
-+ new GRIP business semantics
-+ reference UX
-→ next GRIP Public UI/UX
-```
-
-No new capability creates a duplicate storefront.
-
-- Promotions extends Catalog/Checkout pricing and coupon surfaces.
-- Membership extends Account/business context.
-- Business Solutions connects existing Account/Content/Catalog to Checkout/Order.
-
-PASS.
-
-## 9. Admin UI/UX consistency review
-
-Rule verified:
-
-```text
-existing GRIP Admin workflows
-+ smallest useful new operator job
-→ next GRIP Admin
-```
-
-- Promotions extends Catalog/commerce Admin.
-- Membership extends customer/business administration.
-- Business Solutions adds one task-oriented request/proposal/quotation workflow.
-- Checkout/Order do not absorb those management functions.
-
-PASS.
-
-## 10. Deferred product decisions
-
-The current queue intentionally does not decide:
-
-```text
-company tax/legal/billing profile
-invoice authoring
-business credit / payment terms
-purchase approval chains
-wholesale pricing
-quantity-tier pricing
-loyalty points
-customer segmentation
-promotion stacking engine
-3D planning
-appointment calendar integration
-quotation PDF/signature workflow
-inventory reservation
-```
-
-These are not missing requirements unless a later product goal requires them.
-
-## 11. Current planning roadmap
-
-```text
-Catalog                  ✅ planned + vertical reconciliation
-Checkout                 ✅ planned + vertical reconciliation
-Account                  ✅ planned + vertical reconciliation
-Engagement               ✅ planned + vertical audit
-Content                  ✅ planned + vertical reconciliation
-Order                    ✅ planned + vertical reconciliation
-Aftersales               ✅ planned + vertical audit
-Promotions               ✅ pipeline complete
-Membership               ✅ pipeline complete
-Business Solutions       ✅ pipeline complete
-```
-
-## 12. Planning completion definition
-
-For the current business/domain + UI/UX phase:
-
-```text
-Research
-+ GRIP SRS
-+ Public UI/UX grounded in existing GRIP UX
-+ Admin UI/UX grounded in existing GRIP UX
-+ affected-module reconciliation
-+ cross-product review
-= complete
-```
-
-No backend/frontend/API/database/Figma implementation is implied by this status.
+Figma execution is performed by the canonical dependency pipeline using the active Module inputs in `figma-pipeline-dependencies.json`. Figma artifacts do not override planning authority.
