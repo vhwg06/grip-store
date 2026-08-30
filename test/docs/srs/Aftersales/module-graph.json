@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "module": "Aftersales",
+  "base": {
+    "id": "BASE",
+    "stateDocs": [
+      "docs/srs/Aftersales/02-grip-aftersales-srs.md",
+      "docs/srs/Aftersales/03-grip-aftersales-public-ui-ux-research.md",
+      "docs/srs/Aftersales/04-grip-aftersales-admin-ui-ux-research.md"
+    ]
+  },
+  "patches": []
+}
