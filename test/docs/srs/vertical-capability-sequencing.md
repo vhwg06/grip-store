@@ -73,7 +73,7 @@ CAP-01 Research
 → CAP-05 impact map
 → CAP-06 create/update exact Module patch nodes
 → CAP-07 review through current roadmap point
-→ Task Provider Figma execution for that product patch
+→ register/use Task Provider execution task for that product patch
 ```
 
 ### Promotions
@@ -86,6 +86,12 @@ P001-promotions
 → Figma executes resolved PATCH / COMPATIBILITY tasks
 ```
 
+Agent-facing execution task:
+
+```text
+figma-p001-promotions
+```
+
 ### Membership
 
 When Membership reaches CAP-06:
@@ -96,6 +102,8 @@ P002-membership
 → do not rewrite P001-promotions nodes
 → Task Provider resolves P002 from Module graphs
 ```
+
+Its Figma task id is already reserved in the task registry but cannot resolve successfully until at least one `P002-membership` Module node is activated.
 
 ### Business Solutions
 
@@ -122,20 +130,28 @@ It does not contain Module docs, current patch state, change reasons, desired st
 
 Task Provider derives direct patch Modules from Module graphs, then computes the union dependent closure.
 
-## 6. Task Provider is the execution wrapper
+## 6. Task Provider is the agent wrapper
 
-Figma dependency work is invoked as:
+Figma dependency work is invoked using only a task id:
 
 ```bash
-npm run task -- --pipeline figma --patch P001-promotions
+npm run task -- --task figma-p001-promotions
 ```
 
-The agent/user does not specify graph path, changed seed, change docs, Module docs, or Figma targets.
-
-Task Provider resolves:
+`tools/task-provider/tasks.json` resolves:
 
 ```text
-product patch
+figma-p001-promotions
+→ pipeline = figma
+→ patch = P001-promotions
+```
+
+The agent/user does not specify pipeline id, product patch id, graph path, changed seed, change docs, Module docs, or Figma targets.
+
+Task Provider then resolves:
+
+```text
+selected pipeline + product patch
 → direct Module patch nodes
 → dependency closure
 → each Module's latest state
@@ -189,7 +205,7 @@ P002/P003 source planning may exist
 
 ```text
 P001-promotions          ✅ planning/module patch activation
-P001-promotions Figma    🔄 requires execution under Task Provider contract
+P001-promotions Figma    🔄 requires execution via task figma-p001-promotions
 P002-membership          ⏭ next CAP-06 activation
 P003-business-solutions  ⏳ after Membership
 ```
