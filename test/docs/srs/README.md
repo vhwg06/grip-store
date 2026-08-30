@@ -50,6 +50,8 @@ For each new module/capability, use this sequence:
 
 The stages are sequential in authority: research informs GRIP decisions; GRIP decisions constrain UI/UX; the resulting capability is then reconciled into affected existing GRIP documents.
 
+For roadmap vertical capabilities, CAP-06/CAP-07 activation and Figma execution must also follow `vertical-capability-sequencing.md`.
+
 ## 3. Reference research rules
 
 ### 3.1 IKEA is the primary reference
@@ -333,6 +335,19 @@ Patching
 - final journeys remain coherent across capabilities.
 ```
 
+For vertical capabilities whose canonical Figma must be updated after CAP-06, planning review and Figma execution remain separate gates:
+
+```text
+CAP-07 planning review
+→ accepted active change
+→ figma:pipeline receives:
+     original changed Module seed(s)
+     + active change label
+     + authoritative change/impact document
+```
+
+The dependency graph selects logical Module scope only. It does not define patch intent.
+
 ## 9. Core principle
 
 ```text
@@ -341,6 +356,7 @@ Choose for GRIP deliberately.
 Scale vertically.
 Extend existing UI/UX.
 Patch only where the new capability actually reaches.
+Keep dependency scope separate from mutation intent.
 ```
 
 ## 10. Current GRIP planning roadmap
@@ -450,222 +466,70 @@ Do not patch based on naming similarity alone.
 
 Apply accepted domain/UI changes vertically into the existing product documentation.
 
+For roadmap verticals, reconcile only the current capability. Do not batch future capability decisions into the same Module reconciliation.
+
 Do not perform implementation work.
 
 ### CAP-07 — Cross-capability Review
 
-Review the end-to-end product after patching, not just the new capability artifact.
+Review the end-to-end product through the current activation point after patching, not just the new capability artifact.
+
+If Figma execution follows, preserve this capability as the run-level active change context so the dependency pipeline can distinguish scope from patch intent.
 
 ## 12. Current vertical capability plans
 
-The lists below are **inspection baselines**, not pre-approved ownership or mandatory patch lists. The SRS and extension-plan stages decide the actual impact.
-
 ### 12.1 Promotions
 
-#### Research focus
+Promotions uses IKEA as the main reference where relevant, filtered through simple Vietnamese SME needs.
 
-IKEA remains the main reference for promotion/offer behavior and UI/UX where observable.
+Accepted scope is defined in `Promotions/02-grip-promotions-srs.md`; impact and Figma change authority are in `Promotions/05-promotions-impact-map-and-review.md`.
 
-Feature selection should additionally consider simple patterns familiar to Vietnamese SMEs, especially:
-
-```text
-voucher / coupon code
-percentage discount
-fixed-amount discount
-free-shipping benefit where relevant
-minimum purchase condition
-validity period
-usage limit
-product/category applicability
-simple automatic promotion only when it adds clear value
-```
-
-Avoid defaulting to:
-
-```text
-enterprise rule DSL
-complex stacking matrix
-personalization engine
-loyalty-points system
-campaign automation suite
-```
-
-unless later product evidence requires them.
-
-#### Existing GRIP baseline to inspect
-
-Business/domain:
-
-```text
-Catalog
-Checkout
-Content
-Order
-```
-
-Public UI/UX:
-
-```text
-Catalog browse/list
-Catalog product detail
-Catalog merchandising/cart interactions
-Checkout public journey
-Order public purchase summary/detail where the SRS requires promotion evidence
-```
-
-Admin UI/UX:
-
-```text
-Catalog Admin as the primary existing commerce-management baseline
-other Admin surfaces only when the Promotions SRS creates a real operator job there
-```
-
-Known current documentation touchpoints include existing Catalog promotion/merchandising semantics and Checkout discount/coupon behavior. These are reasons to inspect the documents, not instructions to move ownership or delete existing behavior.
-
-#### Promotions pipeline
+Current activation rule:
 
 ```text
 PROMO-01 Research
-→ PROMO-02 GRIP Promotions business/SRS decision
-→ PROMO-03 Public UX extension plan based on existing Catalog/Checkout UX
-→ PROMO-04 Admin UX extension plan based on existing GRIP Admin UX
+→ PROMO-02 SRS
+→ PROMO-03 Public UX extension
+→ PROMO-04 Admin UX extension
 → PROMO-05 impact map
-→ PROMO-06 patch affected GRIP docs
-→ PROMO-07 end-to-end review
+→ PROMO-06 Promotions-only Module reconciliation
+→ PROMO-07 review
+→ figma:pipeline with active change = Promotions
 ```
 
 ### 12.2 Membership
 
-#### Research focus
-
-IKEA Business Network is the main IKEA reference where relevant.
-
-Feature selection must be filtered through Vietnamese SME needs and should examine:
-
-```text
-business/company identity
-business profile
-owner/admin/member relationship
-invite/join/remove behavior
-simple role semantics
-business purchasing identity/context
-member/business benefits only when useful
-```
-
-Do not automatically import enterprise IAM, organization hierarchy, approval matrices, or loyalty mechanics.
-
-#### Existing GRIP baseline to inspect
-
-Business/domain:
-
-```text
-Account
-Checkout
-Order
-Promotions, when already defined and membership affects eligibility
-```
-
-Public UI/UX:
-
-```text
-Account public journey as primary base
-Checkout where business/member context changes the purchase journey
-Order only where the accepted SRS requires business/member context after purchase
-```
-
-Admin UI/UX:
-
-```text
-Account Admin/customer-management workflow as primary base
-```
-
-Required distinction:
-
-```text
-business owner/admin/member role
-≠ GRIP internal Admin access
-```
-
-#### Membership pipeline
+Membership is next after Promotions. It extends Account/business context and purchasing journeys without importing enterprise IAM complexity.
 
 ```text
 MEM-01 Research
-→ MEM-02 GRIP Membership business/SRS decision
-→ MEM-03 Public UX extension plan based on existing Account/purchasing UX
-→ MEM-04 Admin UX extension plan based on existing Account Admin UX
+→ MEM-02 SRS
+→ MEM-03 Public UX extension
+→ MEM-04 Admin UX extension
 → MEM-05 impact map
-→ MEM-06 patch affected GRIP docs
-→ MEM-07 end-to-end review
+→ MEM-06 Membership-only Module reconciliation on top of active Promotions
+→ MEM-07 review
+→ figma:pipeline with active change = Membership
 ```
 
 ### 12.3 Business Solutions
 
-#### Research focus
-
-Use IKEA Business as the main reference for observable business assistance, planning/consultation, quotation, and assisted-purchasing patterns.
-
-Filter features for a simple SME experience. Relevant research themes include:
-
-```text
-business need / request intake
-consultation
-planning/support
-proposed product solution
-revision
-quotation
-assisted purchasing
-company purchase context
-handoff into the normal purchase journey
-```
-
-Do not default to CRM, sales-pipeline, lead-scoring, enterprise procurement, or project-management complexity.
-
-#### Existing GRIP baseline to inspect
-
-Business/domain:
-
-```text
-Account / Membership
-Catalog
-Content
-Checkout
-Order
-```
-
-Public UI/UX:
-
-```text
-Account / Membership entry points
-Content and Catalog discovery where the accepted workflow uses them
-Checkout purchase completion
-Order post-purchase continuity
-```
-
-Admin UI/UX:
-
-```text
-existing customer/account workflow
-existing product-selection/catalog workflow
-existing checkout/order workflow
-```
-
-The Business Solutions Admin extension should add the smallest coherent operator workflow needed to support the accepted business journey; it must not create a disconnected CRM workspace by default.
-
-#### Business Solutions pipeline
+Business Solutions follows Membership and covers the accepted business need → proposal → quotation → purchase handoff journey without becoming CRM/project-management software.
 
 ```text
 BUS-01 Research
-→ BUS-02 GRIP Business Solutions business/SRS decision
-→ BUS-03 Public UX extension plan based on existing GRIP journeys
-→ BUS-04 Admin UX extension plan based on existing GRIP operator journeys
+→ BUS-02 SRS
+→ BUS-03 Public UX extension
+→ BUS-04 Admin UX extension
 → BUS-05 impact map
-→ BUS-06 patch affected GRIP docs
-→ BUS-07 end-to-end review
+→ BUS-06 Business-Solutions-only Module reconciliation on top of active Promotions + Membership
+→ BUS-07 review
+→ figma:pipeline with active change = Business Solutions
 ```
 
-## 13. Final patching and consistency pass
+## 13. Final product-wide consistency pass
 
-After Promotions, Membership, and Business Solutions each complete their own patch/review stage, run one final product-wide consistency pass.
+After Promotions, Membership, and Business Solutions each complete their own activation/review/Figma change pass, run one final product-wide consistency review.
 
 This is not a second redesign. It verifies that the accumulated vertical changes still form one coherent GRIP product.
 
@@ -682,32 +546,4 @@ stale cross-document references
 unintentional new standalone surfaces
 ```
 
-Critical end-to-end journeys to verify include:
-
-```text
-Catalog
-→ Checkout
-→ Order
-→ Aftersales
-```
-
-with Promotions added where relevant, and:
-
-```text
-Account
-→ Membership
-→ Business Solutions
-→ Checkout
-→ Order
-```
-
-where the accepted SRS supports that SME journey.
-
-The goal of the final pass is:
-
-```text
-vertical capability growth
-→ one coherent business model
-→ one coherent Public experience
-→ one coherent Admin experience
-```
+The final pass must not retroactively erase the evidence that each roadmap capability was individually activated and verified.
