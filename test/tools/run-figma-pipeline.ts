@@ -9,23 +9,16 @@ import {
 } from "node:fs";
 import { resolve } from "node:path";
 
-import {
-  buildFigmaPipelinePlan,
-  parseFigmaPipelineGraph,
-} from "./figma-harness/dependency";
+import type { ResolvedModuleTask, ResolvedTask } from "./task-provider/resolver";
 
 interface Options {
-  graph: string;
-  changed: string[];
-  change: string;
-  changeDocs: string[];
-  maxRepairs: number;
-  dryRun: boolean;
+  task: string;
 }
 
 interface NodeRunResult {
   id: string;
-  review: "PASS" | "NEEDS_UPDATE" | "FAILED" | "NOT_RUN";
+  mode: "PATCH" | "COMPATIBILITY";
+  review: "PASS" | "NEEDS_UPDATE" | "DOC_GAP" | "FAILED" | "NOT_RUN";
   updated: boolean;
   status: "PASS" | "FAILED" | "NOT_RUN";
   reviewExitCode: number | null;
@@ -54,266 +47,186 @@ function die(message: string): never {
 }
 
 function parseArgs(argv: string[]): Options {
-  let graph = "";
-  const changed: string[] = [];
-  let change = "";
-  const changeDocs: string[] = [];
-  let maxRepairs = 3;
-  let dryRun = false;
-
-  for (let i = 0; i < argv.length; i += 1) {
-    const arg = argv[i];
-    const value = argv[i + 1];
-
-    if (arg === "--graph") {
-      if (!value) die("--graph requires a value");
-      graph = value;
-      i += 1;
+  let task = "";
+  for (let index = 0; index < argv.length; index += 1) {
+    const arg = argv[index];
+    const value = argv[index + 1];
+    if (arg === "--task") {
+      if (!value) die("--task requires a resolved task path");
+      task = value;
+      index += 1;
       continue;
     }
-
-    if (arg === "--figma") {
-      die("figma:pipeline resolves canonical module scopes through figma-mcp-go; do not pass --figma");
-    }
-
-    if (arg === "--changed") {
-      if (!value) die("--changed requires a node id");
-      changed.push(value);
-      i += 1;
-      continue;
-    }
-
-    if (arg === "--change") {
-      if (!value) die("--change requires a label");
-      change = value.trim();
-      i += 1;
-      continue;
-    }
-
-    if (arg === "--change-doc") {
-      if (!value) die("--change-doc requires a path");
-      changeDocs.push(value);
-      i += 1;
-      continue;
-    }
-
-    if (arg === "--max-repairs") {
-      if (!value) die("--max-repairs requires a value");
-      maxRepairs = Number.parseInt(value, 10);
-      if (!Number.isInteger(maxRepairs) || maxRepairs < 0 || maxRepairs > 10) {
-        die("--max-repairs must be an integer between 0 and 10");
-      }
-      i += 1;
-      continue;
-    }
-
-    if (arg === "--dry-run") {
-      dryRun = true;
-      continue;
-    }
-
     if (arg === "--help" || arg === "-h") {
-      console.log(`Usage:\n  npm run figma:pipeline -- \\\n    --graph docs/srs/figma-pipeline-dependencies.json \\\n    --changed Catalog \\\n    --change Promotions \\\n    --change-doc docs/srs/Promotions/05-promotions-impact-map-and-review.md \\\n    --max-repairs 3\n\nScope routing:\n  Dependency nodes are logical Module scopes, not mutation intent.\n  --changed selects the original changed Module seed(s), and the graph selects the dependent Module scopes to inspect.\n\nActive change contract:\n  --change names the accepted delta being materialized in this run.\n  Repeat --change-doc for authoritative delta/impact documents that explain what changed.\n  The runner propagates this context to every child reviewer/writer.\n  The graph remains a scope/dependency selector; it does not encode patch reasons.\n\nTarget routing:\n  Each affected Module is resolved through figma-mcp-go to its existing flattened\n  canonical surface-root set using Module identity + .agents/design-base.md.\n  Example: Catalog may resolve to Catalog Public + Catalog Admin.\n  No Figma URL or node id is supplied to the dependency pipeline.\n\nExisting-scope rule:\n  figma:pipeline is an update/verify path, not init/rewrite.\n  The required existing Module surface set MUST already be resolvable.\n  TARGET_NOT_FOUND or TARGET_AMBIGUOUS is terminal and never starts a writer.\n  Distinct Public/Admin surfaces of one Module are not ambiguity.\n\nMutation rule:\n  Reviewer summaries must classify the active change as CHANGE_VERIFIED, CHANGE_GAP, or CHANGE_NOT_APPLICABLE.\n  Only TARGET_RESOLVED + CHANGE_GAP + FAIL_VERIFICATION authorizes a writer.\n  Unrelated pre-existing design cleanup is not patch intent and must not authorize mutation.\n\nRepeat --changed when multiple module planning inputs changed for the same active change.\nUse --dry-run to print dependency lookup + active change context only; it does not access or mutate Figma.\n`);
+      console.log(`Internal executor usage:\n  npm run figma:pipeline -- --task <resolved-task.json>\n\nDependency patch tasks must be created through the Task Provider:\n  npm run task -- --pipeline figma --patch P001-promotions\n\nDo not pass graph, changed seed, change label, change documents, Figma URL, or Module docs directly to this executor.\n`);
       process.exit(0);
     }
-
-    die(`unknown argument: ${arg}`);
+    die(`unknown argument: ${arg}. figma:pipeline only consumes Task Provider packages`);
   }
-
-  if (!graph) die("--graph is required");
-  if (changed.length === 0) die("at least one --changed node is required");
-  if (!change) die("--change is required; dependency scope alone is not mutation intent");
-  if (changeDocs.length === 0) {
-    die("at least one --change-doc is required so child harnesses know what changed");
-  }
-
-  return { graph, changed, change, changeDocs, maxRepairs, dryRun };
+  if (!task) die("--task is required; invoke dependency patch work through npm run task");
+  return { task };
 }
 
-function loadPlan(options: Options) {
+function loadTask(path: string): ResolvedTask {
+  const absolute = resolve(root, path);
+  if (!existsSync(absolute)) die(`resolved task not found: ${path}`);
+
+  let task: ResolvedTask;
+  try {
+    task = JSON.parse(readFileSync(absolute, "utf8")) as ResolvedTask;
+  } catch (error) {
+    die(`invalid resolved task JSON: ${error instanceof Error ? error.message : String(error)}`);
+  }
+
+  if (task.version !== 1 || task.provider !== "grip-task-provider") {
+    die("resolved task must be version 1 from grip-task-provider");
+  }
+  if (task.pipeline !== "figma") die(`resolved task pipeline must be figma, got ${task.pipeline}`);
+  if (!task.patch?.id || !task.patch?.label || !Array.isArray(task.modules) || task.modules.length === 0) {
+    die("resolved task is missing patch/module information");
+  }
+
   for (const contract of [pipelineContract, designBaseContract]) {
-    if (!existsSync(resolve(root, contract))) {
-      die(`required Figma contract not found: ${contract}`);
+    if (!existsSync(resolve(root, contract))) die(`required Figma contract not found: ${contract}`);
+  }
+
+  const affected = task.modules.map((module) => module.id);
+  if (affected.join("\u0000") !== task.dependency.affectedModules.join("\u0000")) {
+    die("resolved task module order does not match its dependency closure");
+  }
+
+  for (const module of task.modules) {
+    if (module.mode === "PATCH" && !module.patch) die(`PATCH task ${module.id} is missing its module patch node`);
+    if (module.mode === "COMPATIBILITY" && module.patch) {
+      die(`COMPATIBILITY task ${module.id} must not carry a module patch node`);
+    }
+    if (!Array.isArray(module.inputDocs) || module.inputDocs.length === 0) {
+      die(`resolved task ${module.id} has no inputDocs`);
+    }
+    for (const doc of module.inputDocs) {
+      if (!existsSync(resolve(root, doc))) die(`resolved input document not found for ${module.id}: ${doc}`);
     }
   }
-
-  for (const doc of options.changeDocs) {
-    if (!existsSync(resolve(root, doc))) {
-      die(`active change document not found: ${doc}`);
-    }
-  }
-
-  const graphPath = resolve(root, options.graph);
-  if (!existsSync(graphPath)) die(`dependency graph not found: ${options.graph}`);
-
-  let raw: unknown;
-  try {
-    raw = JSON.parse(readFileSync(graphPath, "utf8"));
-  } catch (error) {
-    die(`invalid dependency graph JSON: ${error instanceof Error ? error.message : String(error)}`);
-  }
-
-  let graph;
-  try {
-    graph = parseFigmaPipelineGraph(raw);
-  } catch (error) {
-    die(error instanceof Error ? error.message : String(error));
-  }
-
-  let plan;
-  try {
-    plan = buildFigmaPipelinePlan(graph, options.changed, options.maxRepairs);
-  } catch (error) {
-    die(error instanceof Error ? error.message : String(error));
-  }
-
-  for (const item of plan) {
-    for (const doc of item.docs) {
-      if (!existsSync(resolve(root, doc))) {
-        die(`input document not found for ${item.id}: ${doc}`);
-      }
-    }
-  }
-
-  return { graph, plan };
+  return task;
 }
 
-function printPlan(
-  name: string,
-  changed: string[],
-  change: string,
-  changeDocs: string[],
-  plan: ReturnType<typeof buildFigmaPipelinePlan>,
-): void {
-  console.log(`[figma-pipeline] graph=${name}`);
-  console.log(`[figma-pipeline] changed=${changed.join(", ")}`);
-  console.log(`[figma-pipeline] active-change=${change}`);
-  changeDocs.forEach((doc, index) => {
-    console.log(`[figma-pipeline] change-doc ${index + 1}. ${doc}`);
-  });
-  console.log(`[figma-pipeline] affected=${plan.map((item) => item.id).join(" -> ")}`);
-  for (const [index, item] of plan.entries()) {
-    console.log(`[figma-pipeline] ${index + 1}. ${item.id} maxRepairs=${item.maxRepairs}`);
-    console.log(`[figma-pipeline]    target=resolve EXISTING canonical ${item.id} Module surface set through figma-mcp-go`);
-    item.docs.forEach((doc, docIndex) => {
-      console.log(`[figma-pipeline]    ${docIndex + 1}. ${doc}`);
+function printTask(taskPath: string, task: ResolvedTask): void {
+  console.log(`[figma-pipeline] task=${taskPath}`);
+  console.log(`[figma-pipeline] patch=${task.patch.id} (${task.patch.label})`);
+  console.log(`[figma-pipeline] dependency=${task.dependency.graph}`);
+  console.log(`[figma-pipeline] direct=${task.dependency.directPatchModules.join(", ")}`);
+  console.log(`[figma-pipeline] affected=${task.dependency.affectedModules.join(" -> ")}`);
+  for (const [index, module] of task.modules.entries()) {
+    console.log(
+      `[figma-pipeline] ${index + 1}. ${module.id} mode=${module.mode} state=${module.state.id}` +
+        (module.patch ? ` patch=${module.patch.id}` : ""),
+    );
+    module.inputDocs.forEach((doc, docIndex) => {
+      console.log(`[figma-pipeline]    input ${docIndex + 1}. ${doc}`);
     });
   }
 }
 
-function writePipelineState(
-  name: string,
-  graphPath: string,
-  changed: string[],
-  change: string,
-  changeDocs: string[],
-  results: NodeRunResult[],
-): string {
+function writePipelineState(taskPath: string, task: ResolvedTask, results: NodeRunResult[]): string {
   const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
   const runDir = resolve(root, "artifacts", "figma-harness", `pipeline-${timestamp}`);
   mkdirSync(runDir, { recursive: true });
   const statePath = resolve(runDir, "pipeline-state.json");
   writeFileSync(
     statePath,
-    `${JSON.stringify({
-      pipeline: name,
-      graph: graphPath,
-      targetResolution: "figma-mcp-go + logical Module identity + flattened surface-set semantics + design-base structural constraints",
-      changed,
-      activeChange: {
-        label: change,
-        docs: changeDocs,
+    `${JSON.stringify(
+      {
+        pipeline: "figma",
+        taskProvider: task.provider,
+        resolvedTask: taskPath,
+        patch: task.patch,
+        dependency: task.dependency,
+        targetResolution:
+          "figma-mcp-go + logical Module identity + flattened surface-set semantics + design-base structural constraints",
+        results,
+        completedAt: new Date().toISOString(),
       },
-      results,
-      completedAt: new Date().toISOString(),
-    }, null, 2)}\n`,
+      null,
+      2,
+    )}\n`,
     "utf8",
   );
   return statePath;
 }
 
-function activeChangeBoundary(options: Options): string[] {
+function resolvedTaskBoundary(module: ResolvedModuleTask, task: ResolvedTask): string[] {
+  const common = [
+    "TASK PROVIDER RESOLVED TASK — this is the complete execution intent. Do not rediscover or broaden it.",
+    `Product patch: ${task.patch.id} (${task.patch.label})`,
+    `Logical Module: ${module.id}`,
+    `Task mode: ${module.mode}`,
+    `Resolved Module state at this product patch: ${module.state.id}`,
+  ];
+
+  if (module.mode === "PATCH") {
+    return [
+      ...common,
+      `Module patch parent: ${module.patch!.parent}`,
+      `Authoritative Module patch task: ${module.patch!.taskDoc}`,
+      "Resulting desired-state documents:",
+      ...module.patch!.stateDocs.map((doc) => `- ${doc}`),
+      "Execute/verify ONLY this Module patch transition. The patch task and resulting desired state are the mutation boundary.",
+      `If the desired state is already represented, summary must include exactly CHANGE_VERIFIED: ${task.patch.label}`,
+      `If the Module patch is missing/incorrect, summary must include exactly CHANGE_GAP: ${task.patch.label}`,
+      `CHANGE_NOT_APPLICABLE: ${task.patch.label} is invalid because Task Provider resolved a direct Module patch node.`,
+      "Unrelated pre-existing quality issues are outside this task. They may be non-blocking observations but must not lower task-scoped scores, fail this patch, or authorize mutation.",
+      "Writer may mutate only the resolved patch delta plus defects directly caused by or blocking that delta.",
+    ];
+  }
+
   return [
-    "ACTIVE CHANGE CONTRACT — this is the mutation intent for the current dependency-pipeline run.",
-    `Active change: ${options.change}`,
-    "Authoritative change-context documents:",
-    ...options.changeDocs.map((doc) => `- ${doc}`),
-    "The dependency graph selected WHICH logical Module scopes must be checked. It does not define WHAT should be changed.",
-    "The normal Module docs are the current canonical compatibility truth. The active change context above explains why this run exists and what delta must be materialized.",
-    "For this Module, first determine whether the active change requires a direct observable/design delta, only compatibility verification, or no applicable change.",
-    "Reviewer mutation-routing summary contract when TARGET_RESOLVED:",
-    `- active change fully represented for this Module: include exactly CHANGE_VERIFIED: ${options.change}`,
-    `- active change requires a missing/incorrect delta in this Module: include exactly CHANGE_GAP: ${options.change}`,
-    `- active change has no direct required delta in this Module and current Figma remains compatible: include exactly CHANGE_NOT_APPLICABLE: ${options.change}`,
-    "Only CHANGE_GAP is repair intent. A general quality observation unrelated to the active change must not be converted into CHANGE_GAP.",
-    "Unrelated pre-existing spacing, polish, composition, copy, or craft defects are outside this patch run unless they directly block, contradict, or were introduced by the active change on an affected semantic surface.",
-    "When the active change is already represented, PASS without mutation even if unrelated cleanup opportunities exist. Those may be reported as non-blocking evidence only.",
-    "When no direct delta applies to this Module, perform compatibility verification only and do not mutate it for general cleanup.",
-    "Writer boundary: mutate only the active change delta plus defects directly caused by or blocking that delta on affected surfaces. No opportunistic redesign, polishing, spacing cleanup, copy tuning, or unrelated repairs.",
+    ...common,
+    "No Module patch node exists for this product patch. This is compatibility verification only.",
+    "Current Module state documents:",
+    ...module.state.docs.map((doc) => `- ${doc}`),
+    `If the existing Module remains compatible, summary must include exactly CHANGE_NOT_APPLICABLE: ${task.patch.label}`,
+    `If this dependency actually requires a direct Module change, summary must include exactly CHANGE_GAP: ${task.patch.label}; this means DOC_GAP and MUST NOT start a writer.`,
+    `CHANGE_VERIFIED: ${task.patch.label} is invalid because there is no direct Module patch node to verify.`,
+    "Do not perform general quality cleanup, polish, copy tuning, spacing repair, redesign, or any mutation in compatibility mode.",
   ];
 }
 
-function semanticFigmaTarget(
-  item: ReturnType<typeof buildFigmaPipelinePlan>[number],
-  options: Options,
-): string {
+function semanticFigmaTarget(module: ResolvedModuleTask, task: ResolvedTask): string {
   return [
     "Resolve the existing canonical Figma artifact through figma-mcp-go. Do not use or require a hard-coded Figma URL or node id.",
-    "This dependency pipeline is UPDATE/VERIFY ONLY. It is NOT an init or rewrite request. The required existing Module surface set is mandatory.",
-    `Logical dependency Module: ${item.id}`,
-    `Pipeline scope: ${item.scope}`,
+    "This pipeline is UPDATE/VERIFY ONLY. It is NOT an init/rewrite request.",
+    `Pipeline scope: ${module.scope}`,
     `Structural locator contract: ${designBaseContract}`,
     "",
-    ...activeChangeBoundary(options),
+    ...resolvedTaskBoundary(module, task),
     "",
-    "Important: the dependency Module is a logical scope, not one physical Figma root.",
-    "The Figma canvas is flattened at the Module-surface level. Resolve ALL existing canonical top-level roots owned by this Module that are required by the supplied canonical inputs.",
-    "Example: logical Catalog may resolve to sibling roots Catalog Public + Catalog Admin. Distinct Public/Admin responsibilities are valid and MUST NOT be classified ambiguous merely because there are multiple roots.",
-    "Before review or mutation, inspect the connected Figma document with MCP and establish the existing canonical Module surface set that satisfies the shared contract:",
-    "- a Module may own one or more sibling top-level canonical surface roots;",
-    "- each resolved root must have a distinct semantic Surface responsibility;",
-    "- canonical UI belongs only under the correct Module + Surface responsibility;",
-    "- semantic identity is Module + Surface + Use Case + Screen responsibility + State responsibility;",
-    "- node id, frame name, creation time, or visual similarity alone does not establish semantic identity.",
-    "Target-resolution output contract for the reviewer summary:",
-    "- required existing Module surface set established: summary MUST begin exactly TARGET_RESOLVED:",
-    "- no canonical surface can be established for this Module, or a surface required by the supplied canonical inputs is missing: return status=fail and summary MUST begin exactly TARGET_NOT_FOUND:",
-    "- multiple candidates compete for the SAME Module + Surface responsibility, or semantic ownership cannot be resolved: return status=fail and summary MUST begin exactly TARGET_AMBIGUOUS:",
-    "TARGET_NOT_FOUND and TARGET_AMBIGUOUS are terminal routing failures, not ordinary design defects.",
-    "Never create a missing surface root as fallback for either condition. Only an explicit separate init/rewrite instruction may authorize creating a missing canonical surface.",
-    "If TARGET_RESOLVED and CHANGE_GAP is established, update only the affected semantic surface(s) required by the active change; do not restructure valid flattened Public/Admin roots into a wrapper Module root.",
+    "Dependency Module identity is logical, not one physical Figma root.",
+    "Resolve all existing canonical top-level roots owned by this Module and required by the resolved task state.",
+    "Distinct Public/Admin sibling roots are valid when their surface responsibilities differ.",
+    "Semantic identity is Module + Surface + Use Case + Screen responsibility + State responsibility.",
+    "Target-resolution summary contract:",
+    "- resolved existing Module surface set: summary MUST begin exactly TARGET_RESOLVED:",
+    "- required existing surface missing: status=fail and summary MUST begin exactly TARGET_NOT_FOUND:",
+    "- competing same-responsibility candidates / unresolved ownership: status=fail and summary MUST begin exactly TARGET_AMBIGUOUS:",
+    "TARGET_NOT_FOUND/TARGET_AMBIGUOUS are terminal routing failures. Never create a replacement root as fallback.",
   ].join("\n");
 }
 
-function harnessArgs(
-  item: ReturnType<typeof buildFigmaPipelinePlan>[number],
-  mode: "verify" | "write",
-  options: Options,
-): string[] {
-  const args = [
-    "run",
-    mode === "verify" ? "figma:verify" : "figma:harness",
-    "--",
-  ];
-
+function harnessArgs(module: ResolvedModuleTask, task: ResolvedTask, mode: "verify" | "write"): string[] {
+  const args = ["run", mode === "verify" ? "figma:verify" : "figma:harness", "--"];
   if (mode === "write") args.push("--mode", "write");
-
   args.push(
     "--scope",
-    item.scope,
+    module.scope,
     "--figma",
-    semanticFigmaTarget(item, options),
+    semanticFigmaTarget(module, task),
     "--doc",
     pipelineContract,
     "--doc",
     designBaseContract,
   );
-
-  const docs = new Set(item.docs);
-  for (const doc of options.changeDocs) docs.add(doc);
-  for (const doc of docs) args.push("--doc", doc);
-
-  if (mode === "write") args.push("--max-repairs", String(item.maxRepairs));
+  for (const doc of module.inputDocs) args.push("--doc", doc);
+  if (mode === "write") args.push("--max-repairs", String(module.maxRepairs));
   return args;
 }
 
@@ -328,142 +241,74 @@ function snapshotHarnessRuns(): Set<string> {
 
 function newestNewHarnessRun(before: Set<string>): string | null {
   if (!existsSync(harnessArtifactRoot)) return null;
-
   const candidates = readdirSync(harnessArtifactRoot, { withFileTypes: true })
-    .filter(
-      (entry) =>
-        entry.isDirectory() &&
-        !entry.name.startsWith("pipeline-") &&
-        !before.has(entry.name),
-    )
+    .filter((entry) => entry.isDirectory() && !entry.name.startsWith("pipeline-") && !before.has(entry.name))
     .map((entry) => {
       const path = resolve(harnessArtifactRoot, entry.name);
       return { path, mtimeMs: statSync(path).mtimeMs };
     })
-    .sort((a, b) => b.mtimeMs - a.mtimeMs);
-
+    .sort((left, right) => right.mtimeMs - left.mtimeMs);
   return candidates[0]?.path ?? null;
 }
 
-function reviewSummaryFromHarnessRun(runDir: string | null): string | null {
-  if (!runDir) return null;
-
+function reviewSummary(runDir: string | null): string {
+  if (!runDir) return "";
   try {
     const terminalPath = resolve(runDir, "terminal-state.json");
-    if (!existsSync(terminalPath)) return null;
+    if (!existsSync(terminalPath)) return "";
     const terminal = JSON.parse(readFileSync(terminalPath, "utf8")) as TerminalStateProbe;
-    if (!terminal.last_review) return null;
-
+    if (!terminal.last_review) return "";
     const reviewPath = terminal.last_review.startsWith(runDir)
       ? terminal.last_review
       : resolve(runDir, terminal.last_review);
-    if (!existsSync(reviewPath)) return null;
-
+    if (!existsSync(reviewPath)) return "";
     const review = JSON.parse(readFileSync(reviewPath, "utf8")) as ReviewProbe;
     return (review.summary ?? "").trim();
   } catch {
-    return null;
+    return "";
   }
 }
 
-function targetResolutionFromSummary(summary: string | null): TargetResolution {
-  if (!summary) return "UNKNOWN";
-  const normalized = summary.toUpperCase();
-  if (normalized.startsWith("TARGET_RESOLVED:")) return "RESOLVED";
-  if (normalized.startsWith("TARGET_NOT_FOUND:")) return "NOT_FOUND";
-  if (normalized.startsWith("TARGET_AMBIGUOUS:")) return "AMBIGUOUS";
+function targetResolution(summary: string): TargetResolution {
+  const upper = summary.toUpperCase();
+  if (upper.startsWith("TARGET_RESOLVED:")) return "RESOLVED";
+  if (upper.startsWith("TARGET_NOT_FOUND:")) return "NOT_FOUND";
+  if (upper.startsWith("TARGET_AMBIGUOUS:")) return "AMBIGUOUS";
   return "UNKNOWN";
 }
 
-function changeResolutionFromSummary(summary: string | null, change: string): ChangeResolution {
-  if (!summary) return "UNKNOWN";
-  const normalized = summary.toUpperCase();
-  const label = change.trim().toUpperCase();
-  if (normalized.includes(`CHANGE_VERIFIED: ${label}`)) return "VERIFIED";
-  if (normalized.includes(`CHANGE_GAP: ${label}`)) return "GAP";
-  if (normalized.includes(`CHANGE_NOT_APPLICABLE: ${label}`)) return "NOT_APPLICABLE";
+function changeResolution(summary: string, label: string): ChangeResolution {
+  const upper = summary.toUpperCase();
+  const expected = label.toUpperCase();
+  if (upper.includes(`CHANGE_VERIFIED: ${expected}`)) return "VERIFIED";
+  if (upper.includes(`CHANGE_GAP: ${expected}`)) return "GAP";
+  if (upper.includes(`CHANGE_NOT_APPLICABLE: ${expected}`)) return "NOT_APPLICABLE";
   return "UNKNOWN";
 }
 
-function stopForTargetResolutionFailure(
-  options: Options,
-  graphName: string,
+function failNode(
+  taskPath: string,
+  task: ResolvedTask,
   results: NodeRunResult[],
   index: number,
-  itemId: string,
-  reviewExitCode: number | null,
-  resolution: TargetResolution,
+  message: string,
+  exitCode = 1,
 ): never {
-  results[index] = {
-    id: itemId,
-    review: "FAILED",
-    updated: false,
-    status: "FAILED",
-    reviewExitCode,
-    updateExitCode: null,
-  };
-  const statePath = writePipelineState(
-    graphName,
-    options.graph,
-    options.changed,
-    options.change,
-    options.changeDocs,
-    results,
-  );
-  console.error(
-    `[figma-pipeline] STOP ${itemId} target resolution=${resolution}. Existing-scope update cannot fall back to creating a missing Figma surface.`,
-  );
-  console.error("[figma-pipeline] A missing required surface may only be created by an explicit separate init/rewrite instruction.");
+  results[index].status = "FAILED";
+  const statePath = writePipelineState(taskPath, task, results);
+  console.error(`[figma-pipeline] STOP ${results[index].id}: ${message}`);
   console.error(`[figma-pipeline] Pipeline state: ${statePath}`);
-  process.exit(1);
-}
-
-function stopForChangeContractFailure(
-  options: Options,
-  graphName: string,
-  results: NodeRunResult[],
-  index: number,
-  itemId: string,
-  reviewExitCode: number | null,
-  resolution: ChangeResolution,
-  detail: string,
-): never {
-  results[index] = {
-    id: itemId,
-    review: "FAILED",
-    updated: false,
-    status: "FAILED",
-    reviewExitCode,
-    updateExitCode: null,
-  };
-  const statePath = writePipelineState(
-    graphName,
-    options.graph,
-    options.changed,
-    options.change,
-    options.changeDocs,
-    results,
-  );
-  console.error(
-    `[figma-pipeline] STOP ${itemId} active change=${options.change} classification=${resolution}. ${detail}`,
-  );
-  console.error("[figma-pipeline] Dependency scope is not mutation permission; no general cleanup writer will be started.");
-  console.error(`[figma-pipeline] Pipeline state: ${statePath}`);
-  process.exit(1);
+  process.exit(exitCode > 0 ? exitCode : 1);
 }
 
 function run(): void {
   const options = parseArgs(process.argv.slice(2));
-  const { graph, plan } = loadPlan(options);
-  printPlan(graph.name, options.changed, options.change, options.changeDocs, plan);
+  const task = loadTask(options.task);
+  printTask(options.task, task);
 
-  if (options.dryRun) {
-    console.log("[figma-pipeline] DRY_RUN PASS — dependency lookup + active change context are valid; no Figma MCP access, review, or mutation started.");
-    return;
-  }
-
-  const results: NodeRunResult[] = plan.map((item) => ({
-    id: item.id,
+  const results: NodeRunResult[] = task.modules.map((module) => ({
+    id: module.id,
+    mode: module.mode,
     review: "NOT_RUN",
     updated: false,
     status: "NOT_RUN",
@@ -473,196 +318,132 @@ function run(): void {
 
   const npm = process.platform === "win32" ? "npm.cmd" : "npm";
 
-  for (let index = 0; index < plan.length; index += 1) {
-    const item = plan[index];
-    console.log(
-      `[figma-pipeline] REVIEW ${item.id} — active change=${options.change}; resolving EXISTING canonical Module surface set through figma-mcp-go`,
-    );
+  for (let index = 0; index < task.modules.length; index += 1) {
+    const module = task.modules[index];
+    console.log(`[figma-pipeline] REVIEW ${module.id} mode=${module.mode}`);
 
     const beforeReviewRuns = snapshotHarnessRuns();
-    const reviewChild = spawnSync(npm, harnessArgs(item, "verify", options), {
+    const reviewChild = spawnSync(npm, harnessArgs(module, task, "verify"), {
       cwd: root,
       env: process.env,
       stdio: "inherit",
       windowsHide: true,
     });
-
     const reviewExitCode = reviewChild.status;
-    const reviewRunDir = newestNewHarnessRun(beforeReviewRuns);
-    const reviewSummary = reviewSummaryFromHarnessRun(reviewRunDir);
-    const targetResolution = targetResolutionFromSummary(reviewSummary);
-    const changeResolution = changeResolutionFromSummary(reviewSummary, options.change);
-
+    results[index].reviewExitCode = reviewExitCode;
     if (reviewChild.error) {
-      console.error(`[figma-pipeline] ${item.id} review failed to start: ${reviewChild.error.message}`);
+      results[index].review = "FAILED";
+      failNode(options.task, task, results, index, `review failed to start: ${reviewChild.error.message}`);
     }
 
-    if (!reviewChild.error && (targetResolution === "NOT_FOUND" || targetResolution === "AMBIGUOUS")) {
-      stopForTargetResolutionFailure(
-        options,
-        graph.name,
+    const reviewRun = newestNewHarnessRun(beforeReviewRuns);
+    const summary = reviewSummary(reviewRun);
+    const target = targetResolution(summary);
+    const change = changeResolution(summary, task.patch.label);
+
+    if (target !== "RESOLVED") {
+      results[index].review = "FAILED";
+      failNode(options.task, task, results, index, `target resolution=${target}; writer forbidden`, reviewExitCode ?? 1);
+    }
+
+    if (module.mode === "COMPATIBILITY") {
+      if (change === "NOT_APPLICABLE" && reviewExitCode === 0) {
+        results[index] = {
+          ...results[index],
+          review: "PASS",
+          status: "PASS",
+          updated: false,
+        };
+        console.log(`[figma-pipeline] PASS ${module.id} — compatibility verified, zero mutation`);
+        continue;
+      }
+      if (change === "GAP") {
+        results[index].review = "DOC_GAP";
+        failNode(
+          options.task,
+          task,
+          results,
+          index,
+          `DOC_GAP: dependency requires a ${task.patch.label} Module patch but ${module.id} has no ${task.patch.id} node; writer forbidden`,
+          reviewExitCode ?? 1,
+        );
+      }
+      results[index].review = "FAILED";
+      failNode(
+        options.task,
+        task,
         results,
         index,
-        item.id,
-        reviewExitCode,
-        targetResolution,
+        `compatibility task returned invalid change classification=${change}`,
+        reviewExitCode ?? 1,
       );
     }
 
-    if (!reviewChild.error && targetResolution === "UNKNOWN") {
-      stopForTargetResolutionFailure(
-        options,
-        graph.name,
-        results,
-        index,
-        item.id,
-        reviewExitCode,
-        "UNKNOWN",
-      );
-    }
-
-    if (!reviewChild.error && targetResolution === "RESOLVED" && changeResolution === "UNKNOWN") {
-      stopForChangeContractFailure(
-        options,
-        graph.name,
-        results,
-        index,
-        item.id,
-        reviewExitCode,
-        changeResolution,
-        "Reviewer did not classify the active change with CHANGE_VERIFIED, CHANGE_GAP, or CHANGE_NOT_APPLICABLE.",
-      );
-    }
-
-    if (
-      !reviewChild.error &&
-      reviewExitCode === 0 &&
-      targetResolution === "RESOLVED" &&
-      (changeResolution === "VERIFIED" || changeResolution === "NOT_APPLICABLE")
-    ) {
+    if (change === "VERIFIED" && reviewExitCode === 0) {
       results[index] = {
-        id: item.id,
+        ...results[index],
         review: "PASS",
-        updated: false,
         status: "PASS",
-        reviewExitCode,
-        updateExitCode: null,
+        updated: false,
       };
-      console.log(
-        `[figma-pipeline] PASS ${item.id} — ${options.change} ${changeResolution}; no mutation required`,
-      );
+      console.log(`[figma-pipeline] PASS ${module.id} — module patch already matches desired state`);
       continue;
     }
 
-    if (
-      !reviewChild.error &&
-      reviewExitCode === 2 &&
-      targetResolution === "RESOLVED" &&
-      changeResolution !== "GAP"
-    ) {
-      stopForChangeContractFailure(
-        options,
-        graph.name,
+    if (change !== "GAP" || reviewExitCode !== 2) {
+      results[index].review = "FAILED";
+      failNode(
+        options.task,
+        task,
         results,
         index,
-        item.id,
-        reviewExitCode,
-        changeResolution,
-        "Review failed but did not establish an active-change gap, so writer mutation is not authorized.",
+        `PATCH task must return CHANGE_VERIFIED/PASS or CHANGE_GAP/FAIL_VERIFICATION; got change=${change} exit=${String(reviewExitCode)}`,
+        reviewExitCode ?? 1,
       );
-    }
-
-    if (reviewChild.error || reviewExitCode !== 2 || targetResolution !== "RESOLVED") {
-      results[index] = {
-        id: item.id,
-        review: "FAILED",
-        updated: false,
-        status: "FAILED",
-        reviewExitCode,
-        updateExitCode: null,
-      };
-      const statePath = writePipelineState(
-        graph.name,
-        options.graph,
-        options.changed,
-        options.change,
-        options.changeDocs,
-        results,
-      );
-      console.error(`[figma-pipeline] STOP ${item.id} review failed terminally. Dependents will not run.`);
-      console.error(`[figma-pipeline] Pipeline state: ${statePath}`);
-      process.exit(reviewExitCode && reviewExitCode > 0 ? reviewExitCode : 1);
     }
 
     results[index].review = "NEEDS_UPDATE";
-    results[index].reviewExitCode = reviewExitCode;
-    console.log(
-      `[figma-pipeline] UPDATE ${item.id} — TARGET_RESOLVED + CHANGE_GAP: ${options.change}; starting bounded child writer`,
-    );
-
+    console.log(`[figma-pipeline] UPDATE ${module.id} — exact ${task.patch.id} Module patch gap established`);
     const beforeUpdateRuns = snapshotHarnessRuns();
-    const updateChild = spawnSync(npm, harnessArgs(item, "write", options), {
+    const updateChild = spawnSync(npm, harnessArgs(module, task, "write"), {
       cwd: root,
       env: process.env,
       stdio: "inherit",
       windowsHide: true,
     });
-
     const updateExitCode = updateChild.status;
-    const updateRunDir = newestNewHarnessRun(beforeUpdateRuns);
-    const updateSummary = reviewSummaryFromHarnessRun(updateRunDir);
-    const updateTargetResolution = targetResolutionFromSummary(updateSummary);
-    const updateChangeResolution = changeResolutionFromSummary(updateSummary, options.change);
-
+    results[index].updateExitCode = updateExitCode;
     if (updateChild.error) {
-      console.error(`[figma-pipeline] ${item.id} update failed to start: ${updateChild.error.message}`);
+      failNode(options.task, task, results, index, `update failed to start: ${updateChild.error.message}`);
     }
 
-    const updatePassed =
-      !updateChild.error &&
-      updateExitCode === 0 &&
-      updateTargetResolution === "RESOLVED" &&
-      (updateChangeResolution === "VERIFIED" || updateChangeResolution === "NOT_APPLICABLE");
+    const updateRun = newestNewHarnessRun(beforeUpdateRuns);
+    const updateSummary = reviewSummary(updateRun);
+    const updateTarget = targetResolution(updateSummary);
+    const updateChange = changeResolution(updateSummary, task.patch.label);
+
+    if (updateExitCode !== 0 || updateTarget !== "RESOLVED" || updateChange !== "VERIFIED") {
+      failNode(
+        options.task,
+        task,
+        results,
+        index,
+        `fresh post-write evidence did not verify task: target=${updateTarget} change=${updateChange} exit=${String(updateExitCode)}`,
+        updateExitCode ?? 1,
+      );
+    }
 
     results[index] = {
-      id: item.id,
+      ...results[index],
       review: "NEEDS_UPDATE",
-      updated: updatePassed,
-      status: updatePassed ? "PASS" : "FAILED",
-      reviewExitCode,
-      updateExitCode,
+      updated: true,
+      status: "PASS",
     };
-
-    if (results[index].status !== "PASS") {
-      const statePath = writePipelineState(
-        graph.name,
-        options.graph,
-        options.changed,
-        options.change,
-        options.changeDocs,
-        results,
-      );
-      console.error(
-        `[figma-pipeline] STOP ${item.id} update did not close with TARGET_RESOLVED + CHANGE_VERIFIED/CHANGE_NOT_APPLICABLE for ${options.change}. Dependents will not run.`,
-      );
-      console.error(`[figma-pipeline] Pipeline state: ${statePath}`);
-      process.exit(updateExitCode && updateExitCode > 0 ? updateExitCode : 1);
-    }
-
-    console.log(
-      `[figma-pipeline] PASS ${item.id} — ${options.change} closed by fresh independent review; only active-change mutation was authorized`,
-    );
+    console.log(`[figma-pipeline] PASS ${module.id} — ${task.patch.id} patched and independently verified`);
   }
 
-  const statePath = writePipelineState(
-    graph.name,
-    options.graph,
-    options.changed,
-    options.change,
-    options.changeDocs,
-    results,
-  );
-  console.log(`[figma-pipeline] PASS pipeline=${graph.name} active-change=${options.change}`);
+  const statePath = writePipelineState(options.task, task, results);
+  console.log(`[figma-pipeline] PASS patch=${task.patch.id} pipeline=figma`);
   console.log(`[figma-pipeline] Pipeline state: ${statePath}`);
 }
 
