@@ -8,7 +8,7 @@
 ```text
 P001-promotions planning / CAP-06     ✅
 P001-promotions Module patch graphs   ✅
-P001-promotions Figma                 🔄 requires Task Provider run
+P001-promotions Figma                 🔄 task = figma-p001-promotions
 P002-membership                       ⏭ next CAP-06 activation
 P003-business-solutions               ⏳ after Membership
 ```
@@ -67,17 +67,26 @@ Account / Engagement / Aftersales
 
 The earlier dependency PASS is not valid evidence that Promotions Figma completed. It ran as a generic Module-quality reconciliation and reported unrelated tuning rather than explicit Promotions patch evidence.
 
-Canonical execution now starts only through Task Provider:
+Canonical execution now starts only through the agent-facing Task Provider task:
 
 ```bash
-npm run task -- --pipeline figma --patch P001-promotions
+npm run task -- --task figma-p001-promotions
 ```
 
-Task Provider resolves pipeline configuration, direct Module patch nodes, dependency closure, each Module's state and exact task inputs.
+Task registry resolves that id to:
+
+```text
+pipeline = figma
+patch = P001-promotions
+```
+
+Task Provider then resolves pipeline configuration, direct Module patch nodes, dependency closure, each Module's state and exact task inputs.
 
 The caller does not supply:
 
 ```text
+pipeline id
+product patch id
 graph path
 changed seed
 active-change document list
@@ -118,4 +127,4 @@ Membership Module patch activation          = not started
 Business Solutions Module patch activation  = not started
 ```
 
-Do not infer `P001-promotions` completion from a Figma PASS that was not produced from a provider-resolved task package.
+Do not infer `P001-promotions` completion from a Figma PASS that was not produced from provider task `figma-p001-promotions`.
