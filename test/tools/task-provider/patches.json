@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "patches": [
+    {
+      "id": "P001-promotions",
+      "label": "Promotions",
+      "sequence": 1
+    },
+    {
+      "id": "P002-membership",
+      "label": "Membership",
+      "sequence": 2
+    },
+    {
+      "id": "P003-business-solutions",
+      "label": "Business Solutions",
+      "sequence": 3
+    }
+  ]
+}
