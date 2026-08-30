@@ -1,6 +1,9 @@
 # Order — Promotions Reconciliation
 
 **Status:** Active additive reconciliation — Promotions  
+**Patch node:** `P001-promotions`  
+**Parent state:** `BASE`
+
 **Extends:**
 - `02-grip-order-srs.md`
 - `03-grip-order-public-ui-ux-research.md`
@@ -53,6 +56,41 @@ arbitrary order editing
 
 Membership and Business Solutions receive separate Order reconciliation artifacts at their own roadmap CAP-06 turns.
 
-## 5. Result
+## 5. Patch execution steps
 
-Order continues to answer what was purchased and for what final amount, including stable purchase-time promotion evidence where applicable.
+Task Provider resolves this file as the complete Order transition for `P001-promotions`.
+
+```text
+1. Resolve existing Order Public/Admin canonical surfaces.
+2. Reconcile commercial breakdown so purchase-time promotion/discount evidence is visible where needed.
+3. Keep historical final totals stable after promotion expiry/edit.
+4. Preserve only purchase-time promotion evidence, never current mutable promotion configuration.
+5. Keep promotion authoring and repricing out of Order.
+6. Preserve enough allocation/net-paid evidence for later Aftersales explanation.
+7. Verify resulting Order state; do not tune unrelated fulfillment/timeline/copy/layout.
+```
+
+## 6. Desired state after `P001-promotions`
+
+```text
+Order @ P001-promotions
+
+Public/Admin
+- final commercial breakdown can show stable purchase-time promotion evidence
+- discount amount/effect is explainable
+- applied code/reference may be shown when appropriate
+- later Promotion changes never rewrite historical totals
+- current promotion status/configuration is not presented as Order-owned truth
+
+Aftersales contract
+- historical net paid amount/promotion allocation can be consumed for remedy explanation
+- current Promotions are not re-evaluated
+
+Not present yet
+- Membership BusinessContext
+- Business Solutions proposal/quotation provenance
+```
+
+## 7. Completion evidence
+
+An Order Figma patch is complete only when purchase-time promotion evidence is represented as stable historical commercial truth. Fulfillment spacing, timeline cleanup, operator copy changes, or unrelated actions are not evidence for `P001-promotions`.
