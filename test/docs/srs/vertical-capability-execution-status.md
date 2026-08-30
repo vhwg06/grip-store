@@ -1,136 +1,119 @@
-# GRIP Vertical Capability Execution — Status
+# GRIP Vertical Capability Execution — Current Checkpoint
 
-**Status:** Capability definitions prepared; canonical reconciliation activates sequentially by roadmap  
-**Depends on:** `README.md`, `vertical-capability-sequencing.md`
+**Status:** Promotions planning activated; Membership next  
+**Depends on:** `test/docs/srs/README.md`, `test/docs/srs/vertical-capability-sequencing.md`
 
-## 1. Capability source planning
-
-The source planning artifacts for the current vertical queue are prepared:
+## Current roadmap
 
 ```text
-Promotions          ✅ research / SRS / Public UIUX / Admin UIUX / impact map
-Membership          ✅ research / SRS / Public UIUX / Admin UIUX / impact map
-Business Solutions  ✅ research / SRS / Public UIUX / Admin UIUX / impact map
+Promotions          ✅ planning + CAP-06 activation
+Membership          ⏭ next activation
+Business Solutions  ⏳ queued after Membership
 ```
 
-Prepared source planning does **not** mean all three capabilities are already active in existing Module reconciliation or Figma inputs.
+## Promotions active canonical checkpoint
 
-## 2. Canonical activation checkpoint
-
-Roadmap activation is sequential:
+Current existing-Module planning inputs represent:
 
 ```text
-8. Promotions          ✅ active reconciliation
-9. Membership          ⏭ next activation
-10. Business Solutions ⏳ queued after Membership
+baseline GRIP
++
+Promotions
 ```
 
-Current canonical Module/Figma inputs represent the product through the Promotions activation point only.
-
-## 3. Active Promotions reconciliation
-
-Active Module inputs:
+Active Promotions reconciliation/audit includes:
 
 ```text
 Catalog
-└── catalog/07-promotions-reconciliation.md
+→ promotional/effective pricing projection
+→ Promotions Admin extension
 
 Checkout
-└── checkout/05-promotions-reconciliation.md
+→ coupon apply/remove/revalidation
+→ discount commercial-summary behavior
 
-Account
-└── no Promotions patch required
+Content
+→ current promotion/offer projection
+
+Order
+→ purchase-time promotion evidence
 
 Engagement
-└── Engagement/04-promotions-audit.md          // NO PATCH REQUIRED
-
-Content
-└── Content/04-promotions-reconciliation.md
-
-Order
-└── Order/05-promotions-reconciliation.md
+→ no direct Promotions patch required
 
 Aftersales
-└── Aftersales/05-promotions-audit.md          // NO DIRECT PATCH REQUIRED
-```
+→ no direct Promotions workflow patch required
 
-`figma-pipeline-dependencies.json` exposes these active Promotions reconciliation/audit documents plus the baseline Module docs.
-
-## 4. Membership source plan — not yet activated
-
-Membership remains defined by:
-
-```text
-Membership/
-├── 01-grip-membership-reference-research.md
-├── 02-grip-membership-srs.md
-├── 03-grip-membership-public-ui-ux-extension.md
-├── 04-grip-membership-admin-ui-ux-extension.md
-└── 05-membership-impact-map-and-review.md
-```
-
-At MEM-06, Membership must receive capability-specific reconciliation on top of already-active Promotions.
-
-Expected affected existing Modules from the accepted impact map include:
-
-```text
 Account
-Checkout
-Order
+→ no Promotions reconciliation required for base V1
 ```
 
-Other Modules receive only an explicit audit/reconciliation artifact if the Membership impact requires one.
+Membership and Business Solutions source planning remains prepared but is not active canonical Module reconciliation yet.
 
-Membership reconciliation docs are added to `figma-pipeline-dependencies.json` only when MEM-06 is activated.
+## Figma execution checkpoint
 
-## 5. Business Solutions source plan — not yet activated
+The next Promotions Figma dependency pass must distinguish dependency scope from patch intent.
 
-Business Solutions remains defined by:
+Canonical execution context:
 
 ```text
-BusinessSolutions/
-├── 01-grip-business-solutions-reference-research.md
-├── 02-grip-business-solutions-srs.md
-├── 03-grip-business-solutions-public-ui-ux-extension.md
-├── 04-grip-business-solutions-admin-ui-ux-extension.md
-└── 05-business-solutions-impact-map-and-review.md
+original changed Module seed = Catalog
+active change = Promotions
+active change authority = Promotions/05-promotions-impact-map-and-review.md
 ```
 
-At BUS-06, Business Solutions is reconciled on top of already-active Promotions + Membership.
+Command shape:
 
-Its accepted impact map currently identifies affected existing journeys across:
+```bash
+npm run figma:pipeline -- \
+  --graph docs/srs/figma-pipeline-dependencies.json \
+  --changed Catalog \
+  --change Promotions \
+  --change-doc docs/srs/Promotions/05-promotions-impact-map-and-review.md \
+  --max-repairs 3
+```
+
+The graph may select the full Catalog dependency closure. That closure is review scope only.
+
+For each Module, the child harness must return one of:
 
 ```text
-Account
-Catalog
-Content
-Checkout
-Order
+CHANGE_VERIFIED: Promotions
+CHANGE_GAP: Promotions
+CHANGE_NOT_APPLICABLE: Promotions
 ```
 
-Business Solutions reconciliation docs are not active Module/Figma inputs before BUS-06.
+Only `CHANGE_GAP` may authorize writer mutation.
 
-## 6. Sequencing invariant
+A successful child writer lifecycle must close with fresh reviewer evidence that Promotions is verified. General layout/copy/craft tuning without Promotions evidence does not prove the Promotions patch completed.
+
+## Membership source planning
+
+Prepared source artifacts remain available under `Membership/`:
 
 ```text
-source capability docs may exist ahead
-≠ future capability is active
+01-grip-membership-reference-research.md
+02-grip-membership-srs.md
+03-grip-membership-public-ui-ux-extension.md
+04-grip-membership-admin-ui-ux-extension.md
+05-membership-impact-map-and-review.md
 ```
 
-Do not combine several future roadmap capabilities into one cumulative Module reconciliation file merely to edit the Module once.
+They become active Module reconciliation only when Membership reaches CAP-06.
 
-Each capability owns its CAP-06 patch/reconciliation step and advances the canonical product state one roadmap step.
+## Business Solutions source planning
 
-See `vertical-capability-sequencing.md`.
+Prepared source artifacts remain available under `BusinessSolutions/` and are activated only after Membership.
 
-## 7. Final consistency pass
+## Completion meaning
 
-After Promotions, Membership, and Business Solutions have each completed their own CAP-06/CAP-07 activation, run one final product-wide consistency review across the accumulated result.
+At this checkpoint:
 
-That final pass is verification, not a reason to defer or combine the individual capability reconciliation stages.
+```text
+Promotions planning / canonical reconciliation = active
+Promotions Figma patch = requires active-change evidence from canonical figma:pipeline run
+Membership canonical activation = not started
+Business Solutions canonical activation = not started
+```
 
-## 8. Planning / Figma boundary
-
-This file describes planning activation state.
-
-Figma execution is performed by the canonical dependency pipeline using the active Module inputs in `figma-pipeline-dependencies.json`. Figma artifacts do not override planning authority.
+Do not infer Promotions Figma completion from a dependency-pipeline PASS that lacked explicit Promotions change evidence.
