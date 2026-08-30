@@ -90,3 +90,4 @@ package.json
 !/test/package.json
 !/test/artifacts/
 /test/artifacts/figma-harness/
+/test/artifacts/task-provider/
