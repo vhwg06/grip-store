@@ -40,28 +40,31 @@
 ## Task Provider
 
 - Read and obey `.agents/task-provider.md` for dependency-pipeline work.
-- The Task Provider is the public task-resolution layer. Agents consume resolved
-  tasks; they do not reconstruct dependency scope, patch intent, Module state,
-  or document arguments themselves.
-- For a Figma product patch use:
+- The Task Provider is the agent-facing task-resolution layer. Agents request a
+  task id; they do not reconstruct pipeline choice, dependency scope, patch
+  intent, Module state, or document arguments themselves.
+- For the Promotions Figma patch use:
 
   ```bash
-  npm run task -- --pipeline figma --patch <patch-id>
+  npm run task -- --task figma-p001-promotions
   ```
 
 - Do NOT ask the caller to provide or manually pass:
 
   ```text
+  pipeline id
+  product patch id
   --graph
   --changed
   --change
   --change-doc
-  Module doc lists
+  Module graph/doc lists
   Figma URL/node id
+  resolver arguments
   ```
 
-  for a dependency patch task. Repository-owned provider configuration resolves
-  those concerns.
+  for a dependency patch task. `tools/task-provider/tasks.json` and the selected
+  pipeline config resolve those concerns.
 - `figma:pipeline` is an internal executor. It accepts only a provider-generated
   `--task <resolved-task.json>` package.
 - Do not bypass Task Provider with an ad-hoc sequence of single-scope harness
@@ -89,7 +92,7 @@
   ```
 
 - The patch task document must be executable as a semantic design delta: it must
-  state the required steps/behaviors, resulting desired state, preserved
+  state required steps/behaviors, resulting desired state, preserved
   ownership/invariants, explicit non-changes, and completion evidence.
 - A Module without the requested patch node remains at its latest earlier Module
   state and receives a `COMPATIBILITY` task only.
