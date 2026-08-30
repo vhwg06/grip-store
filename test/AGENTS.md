@@ -19,6 +19,13 @@
 
 - For planning work under `docs/srs/**`, read and obey `docs/srs/README.md` before
   creating or patching Research, SRS, Public UI/UX, or Admin UI/UX artifacts.
+- For roadmap vertical capabilities, also read and obey
+  `docs/srs/vertical-capability-sequencing.md`.
+- CAP-06 reconciliation is capability-specific and activates in roadmap order.
+  Do not combine future capability semantics into the current Module patch.
+- Future capability source artifacts may exist ahead of their roadmap turn, but
+  they MUST NOT become active Module patch nodes until that capability reaches
+  CAP-06.
 - Treat new commerce/business capabilities as vertical product evolution by
   default. Do not manufacture an isolated bounded context or UI universe merely
   because the capability has a separate planning task or name.
@@ -27,119 +34,203 @@
   simplicity, and operating context of Vietnamese SMEs.
 - Public and Admin UI/UX MUST extend the affected existing GRIP UI/UX and
   journeys. Reference UI/UX is input; it is not a replacement base.
-- Patching/reconciliation happens after the new GRIP capability is defined and
-  changes only affected GRIP planning documents. Do not rewrite reference facts
-  merely because GRIP adopts a smaller scope.
+- Patching/reconciliation changes only affected GRIP planning documents. Do not
+  rewrite reference facts merely because GRIP adopts a smaller scope.
+
+## Task Provider
+
+- Read and obey `.agents/task-provider.md` for dependency-pipeline work.
+- The Task Provider is the agent-facing task-resolution layer. Agents request a
+  task id; they do not reconstruct pipeline choice, dependency scope, patch
+  intent, Module state, or document arguments themselves.
+- For the Promotions Figma patch use:
+
+  ```bash
+  npm run task -- --task figma-p001-promotions
+  ```
+
+- Do NOT ask the caller to provide or manually pass:
+
+  ```text
+  pipeline id
+  product patch id
+  --graph
+  --changed
+  --change
+  --change-doc
+  Module graph/doc lists
+  Figma URL/node id
+  resolver arguments
+  ```
+
+  for a dependency patch task. `tools/task-provider/tasks.json` and the selected
+  pipeline config resolve those concerns.
+- `figma:pipeline` is an internal executor. It accepts only a provider-generated
+  `--task <resolved-task.json>` package.
+- Do not bypass Task Provider with an ad-hoc sequence of single-scope harness
+  calls and then claim the dependency task completed.
+
+## Module patch graphs
+
+- Each logical Module owns a `module-graph.json` under its canonical SRS folder.
+- A Module graph owns Module state evolution, not cross-Module dependency scope:
+
+  ```text
+  BASE
+  → P001
+  → P002
+  → ...
+  ```
+
+- Each direct patch node MUST define:
+
+  ```text
+  patch id
+  parent Module state
+  authoritative task document
+  resulting desired-state documents
+  ```
+
+- The patch task document must be executable as a semantic design delta: it must
+  state required steps/behaviors, resulting desired state, preserved
+  ownership/invariants, explicit non-changes, and completion evidence.
+- A Module without the requested patch node remains at its latest earlier Module
+  state and receives a `COMPATIBILITY` task only.
+- Dependency reachability alone NEVER authorizes inventing a Module patch.
+- If compatibility review proves a direct Module change is necessary but the
+  Module graph has no patch node, return `DOC_GAP` and stop. Fix docs/module graph
+  first; do not let the Figma writer improvise the missing patch.
+
+## Figma dependency scope
+
+- The Figma dependency graph lives at
+  `docs/srs/figma-pipeline-dependencies.json`.
+- It is **scope-only** and contains only logical Module routing information such
+  as `id`, `scope`, `dependsOn`, and optional execution budget.
+- The dependency graph MUST NOT contain:
+
+  ```text
+  docs
+  patch reasons
+  change descriptions
+  business impact rules
+  desired state
+  writer intent
+  ```
+
+- Task Provider derives the direct patch Module set from Module graphs, then
+  computes the union dependent closure in dependency order.
+- Modules outside that resolved closure MUST NOT run.
 
 ## Figma harness execution
 
-- Canonical Figma harness sessions MUST use `figma-mcp-go` for Figma operations.
-  Do not fall back to another Figma MCP server when `figma-mcp-go` is unavailable
-  or rate-limited.
-- `npm run figma:harness -- ...` is the canonical single-scope write/repair
-  lifecycle. It may start one writer session and owns its complete repair budget.
-- `npm run figma:verify -- ...` is verification-only. It MUST NOT start or resume
-  a writer, mutate Figma, or schedule a repair.
-- `npm run figma:pipeline -- ...` is the canonical dependency update runner.
-- When the requested task is a dependency update pipeline, `figma:pipeline`
-  remains the top-level orchestration owner for the entire dependency closure.
-  Do NOT replace it with a direct single-scope `figma:harness` invocation and
-  then treat that child harness result as completion of the original task.
-- A single-scope `figma:harness` or `figma:verify` `PASS` is only a local result
-  for that Module scope. It MUST NOT be reported as dependency-pipeline `PASS`.
-- Dependency-pipeline completion means every Module in the planned dependency
-  closure has reached `PASS` under the same top-level pipeline execution and the
-  pipeline runner itself exits successfully. If any planned Module remains
-  `NOT_RUN`, the dependency pipeline is not complete.
-- If the pipeline terminates on one Module, report that terminal pipeline result
-  and the later `NOT_RUN` dependents. Do not silently continue them with ad-hoc
-  single-scope harness calls.
-- If a Module is repaired by a separate explicitly requested single-scope run
-  after a terminated dependency pipeline, continuation requires rerunning
-  `figma:pipeline` from the original `--changed` seed(s). Do not start manually
-  from the next dependency and do not infer that the prior pipeline has resumed.
-- The dependency graph lives at `docs/srs/figma-pipeline-dependencies.json`.
-- Dependency graph nodes are **logical Module scopes**, not physical Figma roots.
-  The graph decides which Module scopes must be checked after a change.
+- Canonical Figma operations MUST use `figma-mcp-go`. Do not fall back to another
+  Figma MCP server when it is unavailable or rate-limited.
+- `npm run figma:harness -- ...` is the single-scope write/repair lifecycle.
+- `npm run figma:verify -- ...` is read-only verification and MUST NOT mutate or
+  schedule repair.
+- A single-scope harness PASS is local only. It is not dependency-pipeline PASS.
+- `figma:pipeline` owns execution of the provider-resolved Module task sequence.
+- Pipeline completion requires every Module task in the resolved package to PASS
+  and the top-level executor to exit successfully. Any `NOT_RUN` means the task
+  closure is incomplete.
+
+## Resolved Module task modes
+
+### PATCH
+
+- Task Provider found a direct Module patch node for the requested product patch.
+- Reviewer/writer input is the exact Module patch task + resulting desired state,
+  not the whole historical document tree by default.
+- Reviewer summary for a resolved target must classify the patch as exactly one:
+
+  ```text
+  CHANGE_VERIFIED: <patch label>
+  CHANGE_GAP: <patch label>
+  ```
+
+- `CHANGE_NOT_APPLICABLE` is invalid for a direct PATCH task.
+- Writer permission is fail-closed and requires:
+
+  ```text
+  TARGET_RESOLVED
+  + CHANGE_GAP
+  + FAIL_VERIFICATION
+  ```
+
+- Writer may mutate only the resolved patch delta plus defects directly caused
+  by or blocking that delta.
+- Unrelated pre-existing spacing, copy, layout, gallery, responsive, composition,
+  or craft issues are outside the task. They may be non-blocking observations
+  but MUST NOT authorize mutation or be reported as patch evidence.
+- After mutation, a fresh independent reviewer must produce
+  `TARGET_RESOLVED + CHANGE_VERIFIED`. Child exit `0` alone is insufficient.
+
+### COMPATIBILITY
+
+- Task Provider found no direct Module patch node, but the Module lies in the
+  dependency closure.
+- No writer is permitted.
+- Compatible result:
+
+  ```text
+  TARGET_RESOLVED
+  + CHANGE_NOT_APPLICABLE: <patch label>
+  → PASS, zero mutation
+  ```
+
+- If review establishes that the dependency actually requires a direct Module
+  change:
+
+  ```text
+  CHANGE_GAP
+  → DOC_GAP
+  → STOP pipeline
+  → writer forbidden
+  ```
+
+## Figma target resolution
+
 - Figma is flattened at the Module-surface level. One Module may legitimately
-  map to multiple sibling top-level roots with distinct surface responsibilities,
-  for example `Catalog Public` and `Catalog Admin`.
-- The dependency pipeline MUST NOT require or accept a hard-coded Figma URL or
-  node id. For each affected graph node, use its Module identity plus the
-  canonical Figma hierarchy/identity constraints in `.agents/design-base.md`,
-  current canonical inputs, and the actual connected Figma artifact through
-  `figma-mcp-go` to resolve the existing canonical Module surface set.
-- `Catalog Public` + `Catalog Admin` is a valid resolved Catalog scope and MUST
-  NOT be classified ambiguous merely because there are two sibling roots.
-- Target ambiguity means multiple candidates compete for the same
-  `Module + Surface responsibility`, or semantic ownership cannot be established.
-- `figma:pipeline` is an update/verify path, NOT an init/rewrite path. The
-  required existing surface set for each selected Module MUST be resolvable
-  before review or mutation may continue.
-- Reviewer target-resolution summaries are part of the pipeline control
-  contract:
+  map to multiple sibling top-level roots with distinct responsibilities, e.g.
+  `Catalog Public` + `Catalog Admin`.
+- Distinct Public/Admin roots are one resolved logical Module scope, not
+  ambiguity.
+- Resolve identity by:
 
   ```text
-  TARGET_RESOLVED:   → required existing Module surface set established
-  TARGET_NOT_FOUND:  → no Module surface can be established, or a required existing surface is missing
-  TARGET_AMBIGUOUS:  → candidates compete for the same semantic surface / ownership cannot be resolved
+  Module
+  + Surface responsibility
+  + Use Case
+  + Screen responsibility
+  + State responsibility
   ```
 
-- `TARGET_NOT_FOUND`, `TARGET_AMBIGUOUS`, or an unclassifiable target-resolution
-  result MUST stop the entire dependency pipeline with zero mutation for that
-  Module and no processing of later dependents.
-- A missing required Module surface MUST NOT be treated as an ordinary
-  `FAIL_VERIFICATION` and MUST NOT trigger a writer. Do not draw/rebuild the
-  missing surface from scratch as a fallback for patch/update work.
-- Creating a missing canonical surface root requires a separate explicit
-  init/rewrite instruction. Never infer init/rewrite permission from a changed
-  planning document, dependency edge, patch request, or failed lookup.
-- Local `artifacts/figma-harness/**` are execution evidence only and MUST NOT be
-  used as a replacement canonical target registry.
-- Core rule:
+  not by node id/frame name alone.
+- Reviewer target-resolution summaries are machine-consumed:
 
   ```text
-  module changed
-  → lookup dependency graph
-  → changed module + dependents
-  → for each logical Module scope, resolve its EXISTING flattened surface set through figma-mcp-go
-     ├── TARGET_NOT_FOUND / TARGET_AMBIGUOUS → STOP, no mutation
-     └── TARGET_RESOLVED
-          → review the complete Module scope
-             ├── PASS              → no update
-             └── FAIL_VERIFICATION → run normal figma:harness write/repair lifecycle
+  TARGET_RESOLVED:
+  TARGET_NOT_FOUND:
+  TARGET_AMBIGUOUS:
   ```
 
-- Pass every canonical module whose accepted planning inputs changed with
-  `--changed`. The runner follows dependent edges recursively, deduplicates the
-  result, and processes modules in dependency order.
-- The graph decides which Module scopes must be checked; it does NOT decide which
-  Figma surfaces must be mutated.
-- Do NOT maintain a separate PATCH/VERIFY/backfill list for Figma.
-- Modules outside the changed node's dependent closure MUST NOT run.
-- Every affected Module scope is reviewed first with `figma:verify` after its
-  existing canonical surface set has been resolved through MCP.
-- Only a clean `FAIL_VERIFICATION` for a target already classified
-  `TARGET_RESOLVED` means some representation inside the Module scope needs
-  update. The writer must mutate only the affected semantic surface(s).
-- A target-resolution failure, review timeout, execution error, or other
-  terminal failure MUST stop the pipeline and MUST NOT be interpreted as
-  permission to mutate.
-- A vertical capability name or documentation folder MUST NOT create a new
-  top-level Figma surface unless product semantics establish a genuinely new
-  owning responsibility AND an explicit init/rewrite task authorizes creation.
-- A pipeline run MUST stop on the first failed target resolution, review, or
-  update. It MUST NOT continue into dependents, automatically retry, reset repair
-  budget, or create a replacement surface.
-- A write/repair invocation MUST terminate from an independent reviewer or
-  deterministic verifier state, never immediately after writer mutation.
+- `TARGET_NOT_FOUND`, `TARGET_AMBIGUOUS`, or unclassifiable target resolution is
+  terminal and must never enter a writer branch.
+- `figma:pipeline` is update/verify only. Missing canonical surface creation
+  requires a separate explicit init/rewrite task.
+- Local `artifacts/figma-harness/**` and `artifacts/task-provider/**` are execution
+  evidence only, not canonical product/Figma locator registries.
+
+## Terminal behavior
+
+- Stop on the first target-resolution failure, `DOC_GAP`, unclassifiable task
+  result, timeout, execution error, failed fresh verification, or exhausted
+  repair budget.
+- Do not automatically retry, reset repair budget, skip to a later dependent, or
+  create replacement surfaces.
 - Writer execution over an existing canonical scope MUST reconcile by semantic
-  identity before creating nodes. Re-entry or repair MUST NOT append a second
-  canonical representation for an already represented Module / Surface / Use
-  Case / Screen / State responsibility.
-- `PASS`, `FAIL_BUDGET`, `FAIL_VERIFICATION`, `TIMEOUT`, and `ERROR` are terminal
-  results for the current harness invocation.
-- Do not automatically start a new write/repair harness invocation after
-  `FAIL_BUDGET`, `TIMEOUT`, or `ERROR`. Report the terminal result and its
-  artifact directory instead. A new write run requires an explicit new
-  instruction.
+  identity before creating nodes. Re-entry/repair MUST NOT append duplicate
+  canonical Module / Surface / Use Case / Screen / State representations.
+- `PASS`, `FAIL_BUDGET`, `FAIL_VERIFICATION`, `TIMEOUT`, and `ERROR` remain
+  terminal statuses for an individual harness invocation.

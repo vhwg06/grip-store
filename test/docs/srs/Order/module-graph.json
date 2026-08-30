@@ -1,0 +1,22 @@
+{
+  "version": 1,
+  "module": "Order",
+  "base": {
+    "id": "BASE",
+    "stateDocs": [
+      "docs/srs/Order/02-grip-order-srs.md",
+      "docs/srs/Order/03-grip-order-public-ui-ux-research.md",
+      "docs/srs/Order/04-grip-order-admin-ui-ux-research.md"
+    ]
+  },
+  "patches": [
+    {
+      "id": "P001-promotions",
+      "parent": "BASE",
+      "taskDoc": "docs/srs/Order/05-promotions-reconciliation.md",
+      "stateDocs": [
+        "docs/srs/Order/05-promotions-reconciliation.md"
+      ]
+    }
+  ]
+}

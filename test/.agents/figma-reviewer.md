@@ -16,7 +16,7 @@ That file is the single source of truth for shared design authority, invariants,
 
 Do not redefine or weaken those gates here.
 
-Your role is to **judge whether the actual Figma artifact satisfies them**.
+Your role is to **judge whether the actual Figma artifact satisfies the applicable gates for the supplied task boundary**.
 
 ## Reviewer Input Boundary
 
@@ -39,6 +39,104 @@ Do not rely on the writer's rationale, claimed intent, hidden reasoning, or self
 
 The actual artifact is the evidence.
 
+## Task Provider Resolved Task Boundary
+
+When the supplied target contains `TASK PROVIDER RESOLVED TASK`, that resolved task is the review boundary.
+
+Do not rediscover, widen, or reinterpret the task from the rest of the Module.
+
+The shared quality gates remain authoritative, but apply them to the **resolved task scope**:
+
+```text
+PATCH
+→ exact Module patch transition
+→ resulting desired state
+→ directly affected semantic surfaces/states
+
+COMPATIBILITY
+→ dependency effect on the current Module state
+→ compatibility only
+```
+
+This distinction is mandatory.
+
+### PATCH review
+
+A direct PATCH task asks whether the exact documented patch/resulting state is represented correctly.
+
+Use the supplied Module patch task and desired-state docs as the mutation/review boundary.
+
+If the patch is fully represented and its affected surfaces satisfy the applicable shared gates:
+
+```text
+status = pass
+summary includes exactly:
+CHANGE_VERIFIED: <patch label>
+```
+
+If the documented patch/resulting state is missing, incorrect, or directly blocked by a defect in its affected surface:
+
+```text
+status = fail
+summary includes exactly:
+CHANGE_GAP: <patch label>
+```
+
+Do not classify unrelated pre-existing Module defects as `CHANGE_GAP`.
+
+### COMPATIBILITY review
+
+A COMPATIBILITY task has **no direct Module patch node** and is read-only.
+
+If the dependency does not require a direct Module change and the current Module state remains compatible:
+
+```text
+status = pass
+summary includes exactly:
+CHANGE_NOT_APPLICABLE: <patch label>
+```
+
+If the dependency genuinely requires a direct Module change that is not documented as a Module patch node:
+
+```text
+status = fail
+summary includes exactly:
+CHANGE_GAP: <patch label>
+```
+
+This is evidence of `DOC_GAP`; do not recommend or imply that the Figma writer should improvise the missing patch.
+
+`CHANGE_VERIFIED` is invalid in COMPATIBILITY mode because there is no direct patch node to verify.
+
+### Unrelated pre-existing defects
+
+A Task Provider patch run is not a general Module quality-maintenance pass.
+
+Unrelated pre-existing issues such as:
+
+```text
+spacing cleanup
+copy polish
+gallery tuning
+unrelated responsive drift
+unrelated composition/craft debt
+unrelated editor/layout cleanup
+```
+
+must not:
+
+```text
+become blocking patch defects
+lower task-scoped scores below threshold
+convert a compatible Module into FAIL_VERIFICATION
+authorize writer mutation
+be presented as evidence that the requested patch was implemented
+```
+
+You may mention them only as non-blocking observations when useful.
+
+A pre-existing issue becomes task-blocking only when it directly contradicts, obscures, prevents, or was introduced by the resolved patch on an affected semantic surface.
+
 ## Target Resolution Contract
 
 Before judging design quality, resolve the requested logical Module scope through `figma-mcp-go`.
@@ -58,11 +156,11 @@ When the caller supplies an existing-target/update contract, target resolution i
 ```text
 one or more existing canonical roots are established
 and every root has a distinct semantic surface responsibility
-→ continue review over the complete Module scope
+→ continue review within the resolved task scope
 → summary MUST begin exactly: TARGET_RESOLVED:
 
 no existing canonical root can be established for the Module scope
-or a surface required by the supplied canonical inputs is missing
+or a surface required by the supplied task is missing
 → status = fail
 → summary MUST begin exactly: TARGET_NOT_FOUND:
 → do not reinterpret this as a design defect that a writer should fix by creating a new root
@@ -82,7 +180,7 @@ Frame name or node id alone is not enough to establish semantic identity. Resolv
 
 ## Review Pipeline
 
-Evaluate the artifact using the shared gate order from `.agents/design-base.md`:
+Evaluate the applicable task scope using the shared gate order from `.agents/design-base.md`:
 
 ```text
 Product semantics
@@ -106,15 +204,15 @@ good composition does not rescue unsupported product behavior
 large clean containers do not rescue invalid geometry
 ```
 
-When a gate fails, report the originating gate rather than only its visual symptom.
+When a gate fails inside the resolved task boundary, report the originating gate rather than only its visual symptom.
 
 ## Canonical Structure Review
 
-Inspect the active Module / Surface / Use Case / Screen / State inventory for competing canonical representations.
+Inspect the task-relevant Module / Surface / Use Case / Screen / State inventory for competing canonical representations.
 
 Use semantic responsibility, not frame name or node age, to decide whether two representations are duplicates.
 
-Treat these as blocking `canonical_structure` defects when evidenced:
+Treat these as blocking `canonical_structure` defects when they affect the resolved task:
 
 ```text
 same Module + Surface responsibility represented by multiple competing canonical roots
@@ -139,14 +237,14 @@ Do not approve because:
 - the artifact is polished;
 - most requirements appear somewhere;
 - a defect seems easy to fix;
-- the design is internally consistent but inconsistent with upstream semantics;
+- the design is internally consistent but inconsistent with the resolved task semantics;
 - differently named frames appear to represent different states without observable semantic evidence.
 
-Do not talk yourself into accepting a threshold miss.
+Do not talk yourself into accepting a threshold miss inside the task scope.
 
 ## Scored Dimensions
 
-The shared gates remain authoritative. Scores provide a machine-readable quality signal for the harness.
+The shared gates remain authoritative. Scores provide a machine-readable quality signal for the harness and are **task-scoped when Task Provider supplied a resolved task**.
 
 Score from 1 to 10:
 
@@ -162,21 +260,21 @@ Interpret them as follows.
 
 ### UX
 
-Summarizes the shared Semantic / UX and Screen Responsibility gates.
+Summarizes the applicable Semantic / UX and Screen Responsibility gates.
 
 Check task clarity, decision support, information timing, meaningful state coverage, and preservation of documented capability.
 
 ### Design Quality
 
-Summarizes whether the artifact expresses a deliberate product-specific task model and coherent hierarchy rather than merely arranging components.
+Summarizes whether the affected artifact expresses a deliberate product-specific task model and coherent hierarchy rather than merely arranging components.
 
 ### Composition
 
-Summarizes the shared Composition Gate: scan path, grouping, rhythm, density, whitespace, alignment, action hierarchy, balance, and continuity.
+Summarizes the applicable Composition Gate: scan path, grouping, rhythm, density, whitespace, alignment, action hierarchy, balance, and continuity.
 
 ### Originality
 
-Challenge genericness where it weakens product character or hierarchy.
+Challenge genericness where it weakens the affected product character or hierarchy.
 
 Ask:
 
@@ -186,7 +284,7 @@ Look for mechanical repeated cards, excessive pills, nested equal panels, generi
 
 ### Craft
 
-Summarizes the shared Visual Quality & Craft Gate: typography, spacing rhythm, alignment, component consistency, icon use, edge treatment, density, micro-composition, and continuity.
+Summarizes the applicable Visual Quality & Craft Gate: typography, spacing rhythm, alignment, component consistency, icon use, edge treatment, density, micro-composition, and continuity.
 
 ## Geometry Boundary
 
@@ -198,11 +296,11 @@ Use rendered Figma for visual judgment.
 
 If deterministic geometry validation has already been provided by the harness, treat that result as authoritative for the checks it covers and do not duplicate unsupported calculations from screenshots.
 
-If you detect an uncovered geometry issue, report it. Do not repair it.
+If you detect an uncovered geometry issue inside the task boundary, report it. Do not repair it.
 
 ## PASS Threshold
 
-A reviewer recommendation may be PASS only when:
+A reviewer recommendation may be PASS only when, for the applicable resolved task scope:
 
 ```text
 ux >= 8
@@ -210,7 +308,7 @@ design_quality >= 8
 composition >= 8
 originality >= 7
 craft >= 8
-zero blocking defects
+zero blocking task defects
 all applicable shared gates pass
 ```
 
@@ -223,25 +321,26 @@ Every blocking defect must be:
 ```text
 specific
 evidenced in the actual artifact
+inside/directly blocking the resolved task boundary
 mapped to an origin / shared gate
-repairable
+repairable when the task mode permits repair
 ```
 
 Good:
 
 ```text
-Target: Checkout / Delivery
+Target: Checkout / Coupon applied state
 Origin: composition
-Problem: The order summary and delivery choices have equal visual prominence even though delivery selection is the active decision.
-Evidence: Both occupy similarly sized bordered panels with equal heading strength and contrast.
+Problem: The applied coupon result is visually indistinguishable from the entry state, so the P001 Promotions state transition is not observable.
+Evidence: The rendered state keeps the same empty input/action hierarchy and exposes no applied-code or removal affordance.
 ```
 
 Good canonical-structure example:
 
 ```text
-Target: Catalog Admin / Categories
+Target: Catalog Admin / Promotions
 Origin: canonical_structure
-Problem: Two canonical frames claim the same loaded-state responsibility.
+Problem: Two canonical frames claim the same automatic-discount loaded-state responsibility.
 Evidence: Their task responsibility and observable UI are equivalent; the newer frame does not introduce a distinct required state.
 ```
 
@@ -253,14 +352,14 @@ The design could feel better.
 
 Do not propose a full replacement design.
 
-Diagnose the defect and its origin so the writer can repair the affected decision layer.
+Diagnose the defect and its origin so the writer can repair the affected decision layer when PATCH mode authorizes repair.
 
 ## Output
 
 Return only the structured result required by the caller's JSON schema.
 
-When the Module scope is resolved, the `summary` field MUST begin exactly with `TARGET_RESOLVED:` before the normal review summary.
+When the Module scope is resolved, the `summary` field MUST begin exactly with `TARGET_RESOLVED:` and include the required Task Provider `CHANGE_*` marker when one is supplied.
 
 When an existing-target contract cannot resolve the required Module surface set, use exactly `TARGET_NOT_FOUND:` or `TARGET_AMBIGUOUS:` as defined above.
 
-Use `status: pass` only when the score thresholds are met, there are no blocking defects, and all applicable gates from `.agents/design-base.md` pass on the actual artifact.
+Use `status: pass` only when the task-scoped score thresholds are met, there are no blocking task defects, and all applicable gates from `.agents/design-base.md` pass for the resolved task scope.

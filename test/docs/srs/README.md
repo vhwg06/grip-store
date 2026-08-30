@@ -8,9 +8,9 @@ This phase is **not** frontend/backend implementation planning. Do not introduce
 
 GRIP grows primarily by **vertical capability expansion** over the product that already exists.
 
-A new planning topic such as Promotions, Membership, or Business Solutions does not automatically imply a new isolated bounded context, application, navigation area, or UI universe.
+A planning topic such as Promotions, Membership, or Business Solutions does not automatically imply a new isolated bounded context, application, navigation area, or UI universe.
 
-Use this model:
+Use:
 
 ```text
 existing GRIP business/domain
@@ -28,33 +28,45 @@ new capability
 → isolated Admin UI
 ```
 
-A capability becomes independently bounded only when the product semantics actually require that separation.
+A capability becomes independently bounded only when product semantics actually require that separation.
 
 ## 2. Canonical capability pipeline
 
-For each new module/capability, use this sequence:
+For each capability:
 
 ```text
-1. Reference Research
-   ↓
-2. GRIP SRS / Business-Domain Decision
-   ↓
-3. Public UI/UX
-   ↓
-4. Admin UI/UX
-   ↓
-5. Patching / Reconciliation
-   ↓
-6. Review
+CAP-01 Reference Research
+↓
+CAP-02 GRIP SRS / Business-Domain Decision
+↓
+CAP-03 Public UI/UX Extension Plan
+↓
+CAP-04 Admin UI/UX Extension Plan
+↓
+CAP-05 Build Impact Map
+↓
+CAP-06 Patch / Reconcile Affected GRIP Modules
+↓
+CAP-07 Cross-capability Review
 ```
 
-The stages are sequential in authority: research informs GRIP decisions; GRIP decisions constrain UI/UX; the resulting capability is then reconciled into affected existing GRIP documents.
+The stages are sequential in authority:
 
-## 3. Reference research rules
+```text
+research informs GRIP decisions
+→ GRIP decisions constrain UI/UX
+→ impact map decides affected Modules/docs
+→ CAP-06 creates exact Module patch transitions
+→ CAP-07 reviews through the current roadmap point
+```
 
-### 3.1 IKEA is the primary reference
+For roadmap vertical capabilities, also read `vertical-capability-sequencing.md`.
 
-For commerce/product capabilities where IKEA has relevant observable behavior, use IKEA as the **main reference** for:
+## 3. Reference research
+
+### IKEA is the primary reference
+
+Where IKEA has relevant observable behavior, use IKEA as the main reference for:
 
 - feature discovery;
 - user behavior;
@@ -63,11 +75,9 @@ For commerce/product capabilities where IKEA has relevant observable behavior, u
 - UI/UX patterns;
 - service/journey structure.
 
-IKEA is a reference pool, **not the GRIP product model**.
+IKEA is a **reference pool**, not the GRIP product model.
 
-Keep verified reference behavior intact even when GRIP chooses not to adopt it.
-
-Required separation:
+Keep the separation:
 
 ```text
 Observed reference fact
@@ -75,51 +85,47 @@ Observed reference fact
 → candidate GRIP value
 ```
 
-Never rewrite an IKEA/reference research document merely because GRIP selects a smaller scope.
+Never rewrite reference research merely because GRIP selects a smaller scope.
 
-### 3.2 Feature selection must fit Vietnamese SMEs
+### Feature selection must fit Vietnamese SMEs
 
-Feature adoption is a GRIP decision, not an IKEA-copying exercise.
-
-When deciding what enters the GRIP SRS, evaluate:
+GRIP feature adoption should consider:
 
 - usefulness for Vietnamese SME customers/operators;
 - simplicity and learnability;
-- likely operational know-how of the user;
+- likely operator know-how;
 - frequency/value of the job;
 - fit with existing GRIP capabilities;
 - whether a smaller behavior solves the same problem;
-- whether the capability creates unnecessary enterprise/e-commerce complexity.
+- whether the feature introduces unnecessary enterprise/e-commerce complexity.
 
-Use other references, especially relevant Vietnamese SME/e-commerce products, when they materially improve this decision.
-
-The intended decision model is:
+Decision model:
 
 ```text
 IKEA as main reference
 + relevant SME Vietnam evidence
-+ existing GRIP product constraints
++ existing GRIP constraints
 → GRIP feature decision
 ```
 
 Not:
 
 ```text
-IKEA has feature X
-→ GRIP must have feature X
+IKEA has X
+→ GRIP must have X
 ```
 
-## 4. GRIP SRS rules
+## 4. GRIP SRS
 
-The SRS is where GRIP decides what the product actually owns and supports.
+The SRS decides what GRIP actually owns and supports.
 
-Before writing or extending an SRS:
+Before writing/extending an SRS:
 
-1. read the relevant existing SRS files in `test/docs/srs`;
-2. identify the existing journey/domain that the new capability extends;
-3. preserve compatible existing semantics;
-4. add only the business behavior GRIP has selected;
-5. define cross-capability relationships without manufacturing breaking ownership changes.
+1. read relevant existing GRIP SRS files;
+2. identify the existing journey/domain being extended;
+3. preserve compatible semantics;
+4. add only selected GRIP behavior;
+5. define cross-capability relationships without manufacturing ownership migrations.
 
 Prefer additive vertical evolution:
 
@@ -129,21 +135,19 @@ existing behavior
 → next business model
 ```
 
-Do not manufacture a breaking boundary migration merely because a capability received a new planning name.
+Do not create breaking boundaries just because a capability has a new planning name.
 
-## 5. Public UI/UX rules — MUST extend existing GRIP UX
-
-Public UI/UX for a new capability MUST be based on the GRIP Public UI/UX that already exists.
+## 5. Public UI/UX — extend existing GRIP UX
 
 Before proposing Public UI/UX:
 
-1. read the new/updated GRIP SRS;
-2. read all affected existing Public UI/UX documents;
-3. locate the existing user journeys and surfaces the capability touches;
-4. use IKEA/reference research for useful interaction/feature patterns;
-5. extend or adapt the existing GRIP journey rather than designing a disconnected product from zero.
+1. read the accepted GRIP SRS;
+2. read affected existing Public UI/UX docs;
+3. locate existing journeys/surfaces touched by the capability;
+4. use reference UX as input;
+5. extend/adapt existing GRIP UX rather than designing a disconnected product from zero.
 
-Authority model:
+Authority:
 
 ```text
 existing GRIP Public UI/UX
@@ -152,57 +156,32 @@ existing GRIP Public UI/UX
 → next GRIP Public UI/UX
 ```
 
-Reference UI is not a replacement base for existing GRIP UI/UX.
+A capability-specific Public artifact is a **delta/extension plan**, not a replacement UI specification.
 
-Do not create a standalone Public experience for a capability when the capability naturally belongs inside existing surfaces.
-
-Examples of valid vertical extension include:
+It should identify:
 
 ```text
-promotion behavior
-→ existing Catalog / Cart / Checkout surfaces
-
-membership behavior
-→ existing Account and purchasing journeys
-
-business solution behavior
-→ existing Account / Catalog / Checkout / Order journey where applicable
-```
-
-These examples illustrate integration direction only; the actual SRS decides affected surfaces.
-
-### 5.1 Public UI/UX artifact is an extension plan
-
-A capability may still have its own Public UI/UX planning artifact so the change can be researched and reviewed in isolation.
-
-That artifact is a **delta/extension plan**, not a replacement UI specification.
-
-It must explicitly identify:
-
-```text
-existing GRIP Public documents read
-existing journeys/surfaces being extended
-new user jobs introduced by the capability
+existing GRIP Public docs read
+existing journeys/surfaces extended
+new user jobs
 reference patterns considered
-proposed additions/changes to existing GRIP UX
-surfaces intentionally left unchanged
+proposed additions/changes
+surfaces intentionally unchanged
 ```
 
-The later patching stage applies the accepted delta to the affected canonical GRIP documents.
+## 6. Admin UI/UX — extend existing GRIP UX
 
-## 6. Admin UI/UX rules — MUST extend existing GRIP UX
-
-Admin UI/UX follows the same rule.
+Admin follows the same rule.
 
 Before proposing Admin UI/UX:
 
-1. read the new/updated GRIP SRS;
-2. read affected existing Admin UI/UX documents;
-3. understand the operator's existing workflow and navigation model;
-4. add the new capability at the smallest coherent point in that workflow;
+1. read the accepted SRS;
+2. read affected existing Admin UI/UX docs;
+3. understand current operator workflow/navigation;
+4. add the new capability at the smallest coherent point;
 5. keep the workflow understandable for operators without deep e-commerce expertise.
 
-Authority model:
+Authority:
 
 ```text
 existing GRIP Admin UI/UX
@@ -211,72 +190,22 @@ existing GRIP Admin UI/UX
 → next GRIP Admin UI/UX
 ```
 
-Do not create a separate admin application/workspace just because the capability has a separate research/SRS task.
+A capability-specific Admin artifact is an extension plan, not permission to create a separate admin application/workspace.
 
-### 6.1 Admin UI/UX artifact is an extension plan
+## 7. Impact map
 
-A capability-specific Admin UI/UX artifact must state which existing Admin workflow it extends.
+Patching is driven by actual impact, not naming similarity.
 
-It must not assume that the capability deserves a new top-level navigation destination before the business and UX evidence justify one.
-
-It should identify:
-
-```text
-existing GRIP Admin documents read
-current operator workflow
-new operator job introduced
-smallest coherent insertion point
-reference UI/UX patterns considered
-proposed additions/changes
-surfaces intentionally left unchanged
-```
-
-## 7. Patching / reconciliation
-
-Patching happens **after** the new capability has enough GRIP business and UI/UX definition to know what existing documents are affected.
-
-Patching means:
-
-```text
-new GRIP capability
-+ existing GRIP SRS/UIUX
-→ extend affected journeys/surfaces
-→ reconcile stale GRIP decisions/references
-→ preserve product consistency
-```
-
-Patching does **not** mean:
-
-- deleting reference facts GRIP did not adopt;
-- rewriting research to look like the GRIP SRS;
-- inventing breaking changes between old and new modules;
-- moving ownership simply to make every capability a separate bounded context;
-- implementation work.
-
-Patch only documents that are actually affected by the new business capability.
-
-A reviewed result may legitimately be:
-
-```text
-NO PATCH REQUIRED
-```
-
-when the existing GRIP document remains consistent.
-
-### 7.1 Patching is driven by an impact map
-
-Do not predeclare that every older module must change.
-
-After SRS + Public UI/UX + Admin UI/UX are accepted, build an impact map:
+After SRS + Public UI/UX + Admin UI/UX are accepted, map:
 
 ```text
 new capability behavior
 → affected existing business journey
-→ affected canonical GRIP document
+→ affected canonical Module/document
 → exact addition/reconciliation required
 ```
 
-For every candidate document, choose one result:
+For every candidate Module/document choose:
 
 ```text
 PATCH
@@ -284,68 +213,210 @@ NO PATCH REQUIRED
 DEFER — requires a later capability decision
 ```
 
-Every `PATCH` must be traceable to an accepted GRIP business/UI decision.
+Every PATCH must trace to an accepted business/UI decision.
 
-### 7.2 Patching order
+## 8. CAP-06 = Module patch activation
 
-Patch from business authority outward:
+For roadmap verticals, CAP-06 does not create one cumulative cross-product reconciliation file.
+
+Each affected Module owns its own state graph:
 
 ```text
-SRS / business-domain docs
-→ Public UI/UX docs
-→ Admin UI/UX docs
-→ cross-document references / terminology
-→ final review
+BASE
+→ P001
+→ P002
+→ ...
 ```
 
-Do not patch UI/UX first when the underlying GRIP business behavior is still unresolved.
+Each Module patch node must identify:
 
-## 8. Review gate
+```text
+product patch id
+parent Module state
+authoritative patch task document
+resulting desired-state documents
+```
 
-Before calling a capability planning pass complete, verify:
+The task document must be self-contained enough to execute/verify the semantic transition. It must state:
+
+```text
+required steps / behaviors
+resulting desired state
+preserved ownership/invariants
+explicit non-changes
+completion evidence
+```
+
+A Module that has `NO PATCH REQUIRED` receives no patch node for that product patch.
+
+Do not create cumulative files whose meaning silently changes from:
+
+```text
+P001
+```
+
+to:
+
+```text
+P001 + P002 + P003
+```
+
+Historical patch nodes remain immutable planning checkpoints; later capabilities add later Module nodes.
+
+## 9. Patch order inside a Module
+
+Patch from business authority outward before the Module node is accepted:
+
+```text
+business/domain semantics
+→ Public UI/UX
+→ Admin UI/UX
+→ terminology/references
+→ resulting desired state
+```
+
+Do not patch UI/UX while underlying business behavior is unresolved.
+
+A later Module patch points to the latest prior patch node for that Module, not necessarily the immediately previous **product** patch.
+
+Example:
+
+```text
+Catalog
+BASE
+→ P001-promotions
+→ P003-business-solutions
+```
+
+If Catalog has no P002 Membership change, P003 may parent P001.
+
+## 10. CAP-07 review
+
+Review the product through the **current activation point**, not through every future source artifact in the repository.
+
+Verify:
 
 ```text
 Research
-- reference facts are evidence-backed;
-- IKEA/reference fact is separated from GRIP decision;
-- relevant SME Vietnam constraints were considered for feature selection.
+- evidence-backed reference facts
+- reference facts separated from GRIP decisions
+- SME Vietnam constraints considered
 
 SRS
-- selected GRIP behavior is explicit;
-- existing compatible semantics are preserved;
-- cross-capability relationships are coherent;
-- no unnecessary enterprise complexity was introduced.
+- selected behavior explicit
+- compatible semantics preserved
+- no unnecessary enterprise complexity
 
-Public UI/UX
-- based on existing GRIP Public UI/UX;
-- capability is integrated into affected journeys;
-- reference UI/UX is used as input, not as the product base.
+Public/Admin UI/UX
+- extends existing GRIP journeys
+- no disconnected UI universe
+- operator/customer flow remains coherent
 
-Admin UI/UX
-- based on existing GRIP Admin UI/UX;
-- operator workflow remains simple and coherent;
-- no isolated admin universe was invented without need.
+Module patch nodes
+- only affected Modules changed
+- parent chain valid
+- patch task is self-contained
+- desired state explicit
+- future capability semantics not leaked in
 
-Patching
-- only affected GRIP docs were changed;
-- reference research was not rewritten merely to match selected GRIP scope;
-- every patch traces to an accepted capability decision;
-- final journeys remain coherent across capabilities.
+Cross-product
+- ownership coherent
+- journeys coherent through current product patch
 ```
 
-## 9. Core principle
+## 11. Task Provider boundary
+
+Planning owns canonical Module patch graphs. Execution agents do **not** rediscover them.
+
+The agent-facing execution boundary is Task Provider:
 
 ```text
-Research broadly.
-Choose for GRIP deliberately.
-Scale vertically.
-Extend existing UI/UX.
-Patch only where the new capability actually reaches.
+agent task id
+→ Task Provider
+→ task registry
+→ pipeline + product patch
+→ pipeline config
+→ dependency graph
+→ Module graph resolver
+→ resolved task package
+→ executor
 ```
 
-## 10. Current GRIP planning roadmap
+For Promotions Figma:
 
-The current baseline planning set under `test/docs/srs` contains:
+```bash
+npm run task -- --task figma-p001-promotions
+```
+
+The agent does not supply:
+
+```text
+pipeline id
+product patch id
+dependency graph path
+changed Module seed
+change-doc list
+Module graph/doc paths
+Figma URL/node id
+```
+
+Those are provider-owned concerns.
+
+See:
+
+```text
+.agents/task-provider.md
+tools/task-provider/README.md
+```
+
+## 12. Figma dependency boundary
+
+The Figma dependency graph is **scope-only**:
+
+```text
+which logical Module scopes depend on which earlier Module scopes?
+```
+
+It does not contain docs, patch intent, desired state, or writer instructions.
+
+Task Provider:
+
+1. finds all Modules containing the selected product patch node;
+2. uses those Modules as direct dependency roots;
+3. computes the union dependent closure;
+4. resolves each Module independently.
+
+Each affected Module becomes:
+
+```text
+PATCH
+or
+COMPATIBILITY
+```
+
+### PATCH
+
+Direct Module patch node exists.
+
+Execution verifies/materializes only that Module patch + resulting desired state.
+
+### COMPATIBILITY
+
+Module is dependency-reachable but owns no direct patch node.
+
+Execution verifies compatibility only. If a direct change is actually needed:
+
+```text
+DOC_GAP
+→ STOP
+→ add the missing Module patch node first
+```
+
+Dependency reachability is never mutation permission.
+
+## 13. Current roadmap
+
+Baseline Modules:
 
 ```text
 1. Catalog
@@ -357,9 +428,15 @@ The current baseline planning set under `test/docs/srs` contains:
 7. Aftersales
 ```
 
-These are the existing GRIP business/UI-UX baseline that new work must read and extend.
+Vertical product patches:
 
-The next vertical capability queue is:
+```text
+P001-promotions
+P002-membership
+P003-business-solutions
+```
+
+Planning order:
 
 ```text
 8. Promotions
@@ -367,309 +444,32 @@ The next vertical capability queue is:
 10. Business Solutions
 ```
 
-`Business Solutions` is the combined planning direction for the business-purchasing and planning/consultation experience. It should remain one vertical capability unless later research shows a real product boundary that justifies separation.
+`Business Solutions` remains the combined business-purchasing + planning/consultation direction unless later research proves a real product boundary.
 
-The roadmap is a **planning sequence**, not proof that all ten names are independent bounded contexts.
-
-## 11. Task template for each vertical capability
-
-Use the following work breakdown for Promotions, Membership, Business Solutions, and later vertical capabilities:
+## 14. Current activation
 
 ```text
-CAP-01  Reference Research
-CAP-02  GRIP SRS / Business-Domain Decision
-CAP-03  Public UI/UX Extension Plan
-CAP-04  Admin UI/UX Extension Plan
-CAP-05  Build Impact Map
-CAP-06  Patch / Reconcile Affected GRIP Docs
-CAP-07  Cross-capability Review
+P001-promotions
+→ CAP-01..07 planning complete
+→ direct Module nodes: Catalog / Checkout / Content / Order
+→ Figma task: figma-p001-promotions
+
+P002-membership
+→ source planning prepared
+→ CAP-06 Module nodes not activated yet
+
+P003-business-solutions
+→ source planning prepared
+→ CAP-06 Module nodes not activated yet
 ```
 
-### CAP-01 — Reference Research
+Future source docs may exist, but they are not current Module state until their CAP-06 patch nodes are activated.
 
-Required behavior:
+## 15. Final product-wide consistency pass
 
-```text
-IKEA main reference
-+ other evidence where useful
-+ SME Vietnam evidence for feature-fit decisions
-```
+After each roadmap capability has completed its own Module activation/review/Figma task, run one final product-wide consistency review.
 
-Research may be broad. Do not constrain the research to only features GRIP already expects to adopt.
-
-### CAP-02 — GRIP SRS / Business-Domain Decision
-
-Required inputs:
-
-```text
-CAP-01 research
-+ all relevant existing GRIP SRS docs
-```
-
-Output decides:
-
-```text
-what GRIP adopts
-what GRIP simplifies
-what GRIP excludes
-how the capability extends existing business journeys
-which existing semantics remain unchanged
-```
-
-### CAP-03 — Public UI/UX Extension Plan
-
-Required inputs:
-
-```text
-CAP-02 SRS
-+ affected existing GRIP Public UI/UX
-+ relevant reference UI/UX research
-```
-
-Do not write from the new capability alone.
-
-### CAP-04 — Admin UI/UX Extension Plan
-
-Required inputs:
-
-```text
-CAP-02 SRS
-+ affected existing GRIP Admin UI/UX
-+ relevant reference UI/UX research
-```
-
-Prefer the smallest coherent extension to the operator's existing workflow.
-
-### CAP-05 — Build Impact Map
-
-List each existing GRIP document that may be affected and justify why.
-
-Do not patch based on naming similarity alone.
-
-### CAP-06 — Patch / Reconcile Affected GRIP Docs
-
-Apply accepted domain/UI changes vertically into the existing product documentation.
-
-Do not perform implementation work.
-
-### CAP-07 — Cross-capability Review
-
-Review the end-to-end product after patching, not just the new capability artifact.
-
-## 12. Current vertical capability plans
-
-The lists below are **inspection baselines**, not pre-approved ownership or mandatory patch lists. The SRS and extension-plan stages decide the actual impact.
-
-### 12.1 Promotions
-
-#### Research focus
-
-IKEA remains the main reference for promotion/offer behavior and UI/UX where observable.
-
-Feature selection should additionally consider simple patterns familiar to Vietnamese SMEs, especially:
-
-```text
-voucher / coupon code
-percentage discount
-fixed-amount discount
-free-shipping benefit where relevant
-minimum purchase condition
-validity period
-usage limit
-product/category applicability
-simple automatic promotion only when it adds clear value
-```
-
-Avoid defaulting to:
-
-```text
-enterprise rule DSL
-complex stacking matrix
-personalization engine
-loyalty-points system
-campaign automation suite
-```
-
-unless later product evidence requires them.
-
-#### Existing GRIP baseline to inspect
-
-Business/domain:
-
-```text
-Catalog
-Checkout
-Content
-Order
-```
-
-Public UI/UX:
-
-```text
-Catalog browse/list
-Catalog product detail
-Catalog merchandising/cart interactions
-Checkout public journey
-Order public purchase summary/detail where the SRS requires promotion evidence
-```
-
-Admin UI/UX:
-
-```text
-Catalog Admin as the primary existing commerce-management baseline
-other Admin surfaces only when the Promotions SRS creates a real operator job there
-```
-
-Known current documentation touchpoints include existing Catalog promotion/merchandising semantics and Checkout discount/coupon behavior. These are reasons to inspect the documents, not instructions to move ownership or delete existing behavior.
-
-#### Promotions pipeline
-
-```text
-PROMO-01 Research
-→ PROMO-02 GRIP Promotions business/SRS decision
-→ PROMO-03 Public UX extension plan based on existing Catalog/Checkout UX
-→ PROMO-04 Admin UX extension plan based on existing GRIP Admin UX
-→ PROMO-05 impact map
-→ PROMO-06 patch affected GRIP docs
-→ PROMO-07 end-to-end review
-```
-
-### 12.2 Membership
-
-#### Research focus
-
-IKEA Business Network is the main IKEA reference where relevant.
-
-Feature selection must be filtered through Vietnamese SME needs and should examine:
-
-```text
-business/company identity
-business profile
-owner/admin/member relationship
-invite/join/remove behavior
-simple role semantics
-business purchasing identity/context
-member/business benefits only when useful
-```
-
-Do not automatically import enterprise IAM, organization hierarchy, approval matrices, or loyalty mechanics.
-
-#### Existing GRIP baseline to inspect
-
-Business/domain:
-
-```text
-Account
-Checkout
-Order
-Promotions, when already defined and membership affects eligibility
-```
-
-Public UI/UX:
-
-```text
-Account public journey as primary base
-Checkout where business/member context changes the purchase journey
-Order only where the accepted SRS requires business/member context after purchase
-```
-
-Admin UI/UX:
-
-```text
-Account Admin/customer-management workflow as primary base
-```
-
-Required distinction:
-
-```text
-business owner/admin/member role
-≠ GRIP internal Admin access
-```
-
-#### Membership pipeline
-
-```text
-MEM-01 Research
-→ MEM-02 GRIP Membership business/SRS decision
-→ MEM-03 Public UX extension plan based on existing Account/purchasing UX
-→ MEM-04 Admin UX extension plan based on existing Account Admin UX
-→ MEM-05 impact map
-→ MEM-06 patch affected GRIP docs
-→ MEM-07 end-to-end review
-```
-
-### 12.3 Business Solutions
-
-#### Research focus
-
-Use IKEA Business as the main reference for observable business assistance, planning/consultation, quotation, and assisted-purchasing patterns.
-
-Filter features for a simple SME experience. Relevant research themes include:
-
-```text
-business need / request intake
-consultation
-planning/support
-proposed product solution
-revision
-quotation
-assisted purchasing
-company purchase context
-handoff into the normal purchase journey
-```
-
-Do not default to CRM, sales-pipeline, lead-scoring, enterprise procurement, or project-management complexity.
-
-#### Existing GRIP baseline to inspect
-
-Business/domain:
-
-```text
-Account / Membership
-Catalog
-Content
-Checkout
-Order
-```
-
-Public UI/UX:
-
-```text
-Account / Membership entry points
-Content and Catalog discovery where the accepted workflow uses them
-Checkout purchase completion
-Order post-purchase continuity
-```
-
-Admin UI/UX:
-
-```text
-existing customer/account workflow
-existing product-selection/catalog workflow
-existing checkout/order workflow
-```
-
-The Business Solutions Admin extension should add the smallest coherent operator workflow needed to support the accepted business journey; it must not create a disconnected CRM workspace by default.
-
-#### Business Solutions pipeline
-
-```text
-BUS-01 Research
-→ BUS-02 GRIP Business Solutions business/SRS decision
-→ BUS-03 Public UX extension plan based on existing GRIP journeys
-→ BUS-04 Admin UX extension plan based on existing GRIP operator journeys
-→ BUS-05 impact map
-→ BUS-06 patch affected GRIP docs
-→ BUS-07 end-to-end review
-```
-
-## 13. Final patching and consistency pass
-
-After Promotions, Membership, and Business Solutions each complete their own patch/review stage, run one final product-wide consistency pass.
-
-This is not a second redesign. It verifies that the accumulated vertical changes still form one coherent GRIP product.
-
-Review:
+This is not a second redesign. Verify:
 
 ```text
 business/domain consistency
@@ -677,37 +477,9 @@ cross-capability terminology
 Public journey continuity
 Admin workflow continuity
 navigation/entry-point consistency
-duplicate or contradictory UX guidance
-stale cross-document references
-unintentional new standalone surfaces
+duplicate/contradictory UX guidance
+stale references
+unintentional standalone surfaces
 ```
 
-Critical end-to-end journeys to verify include:
-
-```text
-Catalog
-→ Checkout
-→ Order
-→ Aftersales
-```
-
-with Promotions added where relevant, and:
-
-```text
-Account
-→ Membership
-→ Business Solutions
-→ Checkout
-→ Order
-```
-
-where the accepted SRS supports that SME journey.
-
-The goal of the final pass is:
-
-```text
-vertical capability growth
-→ one coherent business model
-→ one coherent Public experience
-→ one coherent Admin experience
-```
+Do not erase the evidence that each product patch was individually activated and verified.

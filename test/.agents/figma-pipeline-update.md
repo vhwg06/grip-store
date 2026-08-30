@@ -1,69 +1,171 @@
 # Figma Pipeline Update Contract
 
-This file is an execution contract for revisiting canonical Figma after accepted planning documents change.
+This file defines execution after Task Provider has resolved a Figma patch task.
 
-It is not product/domain authority.
+It is not product/domain authority and it is not a task resolver.
 
-## Core rule
+## Ownership model
 
 ```text
-module changed
-→ lookup dependency graph
-→ changed module + dependents, in dependency order
-→ resolve each EXISTING canonical Module surface set through figma-mcp-go
-   ├── TARGET_NOT_FOUND / TARGET_AMBIGUOUS → STOP pipeline, zero mutation
-   └── TARGET_RESOLVED                     → review that Module scope
-        ├── review PASS → no update
-        └── review FAIL_VERIFICATION → normal writer/repair lifecycle → fresh review
+Task Provider
+= resolve WHAT this run means
+= resolve direct Module patch nodes
+= resolve dependency closure
+= resolve each Module state/task mode
+
+figma:pipeline
+= execute the resolved Module task sequence
+
+child reviewer/writer
+= inspect or mutate only the supplied Module task
 ```
 
-That is the whole update model.
+Do not collapse these layers.
 
-Do not maintain a separate patch list, verify list, backfill manifest, business-impact engine, hard-coded Figma URL list, or node-id routing table inside the Figma harness.
+## Public entrypoint
 
-## Orchestration ownership and completion
+Dependency patch work starts through Task Provider using an agent-facing task id:
 
-`figma:pipeline` owns the dependency-update task from the original changed seed(s) through the entire planned dependency closure.
-
-The single-scope `figma:verify` and `figma:harness` invocations are child lifecycles used by that orchestration. Their terminal states are **local** to one Module scope.
-
-```text
-child figma:verify PASS
-≠ dependency pipeline PASS
-
-child figma:harness PASS
-≠ dependency pipeline PASS
+```bash
+npm run task -- --task figma-p001-promotions
 ```
 
-A dependency pipeline is complete only when:
+`tools/task-provider/tasks.json` resolves that id to the internal pipeline + product patch.
+
+`figma:pipeline` is internal and accepts only:
 
 ```text
-all Module scopes in the planned closure = PASS
+--task <Task Provider resolved package>
+```
+
+It must reject raw pipeline/graph/change/doc/Figma routing arguments.
+
+## Dependency graph
+
+The Figma dependency graph is scope-only:
+
+```text
+Module id
+scope
+dependsOn
+optional execution budget
+```
+
+It does not contain docs, patch reasons, business impact, desired state, or writer intent.
+
+Task Provider derives direct patch Modules from Module graphs and then computes the union dependent closure.
+
+## Module task modes
+
+Every affected Module arrives already classified by Task Provider.
+
+### PATCH
+
+The Module owns a direct node for the requested product patch.
+
+Resolved input contains:
+
+```text
+Module patch id
+parent Module state
+authoritative task document
+resulting desired-state docs
+```
+
+Reviewer must classify the patch as exactly one:
+
+```text
+CHANGE_VERIFIED: <patch label>
+CHANGE_GAP: <patch label>
+```
+
+`CHANGE_NOT_APPLICABLE` is invalid for PATCH.
+
+Writer permission requires exactly:
+
+```text
+TARGET_RESOLVED
 +
-top-level figma:pipeline exits successfully
+CHANGE_GAP
++
+FAIL_VERIFICATION
 ```
 
-If any planned Module is `NOT_RUN`, the dependency pipeline is incomplete.
+The writer may mutate only the resolved Module patch plus defects directly caused by or blocking that patch.
 
-If the top-level pipeline stops on a terminal failure:
+Unrelated pre-existing spacing, gallery, copy, composition, responsive, or craft issues are outside the task and must not authorize mutation.
+
+After writer completion the fresh independent reviewer must produce:
 
 ```text
-report the failed Module
-+ report later dependents as NOT_RUN
-+ stop
+TARGET_RESOLVED
++
+CHANGE_VERIFIED
 ```
 
-Do not replace the failed top-level pipeline with ad-hoc single-scope harness calls and then claim the original pipeline completed.
+Child exit `0` alone is not completion evidence.
 
-If a separate explicit instruction later repairs the failed Module outside the pipeline, continue the dependency task by rerunning `figma:pipeline` from the **original `--changed` seed(s)**. The rerun must re-review the repaired upstream Module and then walk the dependency closure normally. Do not manually jump to the next dependency.
+### COMPATIBILITY
 
-## Dependency node ≠ physical Figma root
+The Module is in the dependency closure but owns no direct node for the requested product patch.
 
-The dependency graph is the selector.
+Task Provider supplies its latest Module state at or before that patch.
 
-A graph node such as `Catalog` represents the logical Catalog Module scope. It does not require one wrapper/root named `Catalog`.
+This mode is read-only.
 
-Figma is flattened at the Module-surface level, so one Module may legitimately map to multiple sibling top-level roots:
+Compatible result:
+
+```text
+TARGET_RESOLVED
++
+CHANGE_NOT_APPLICABLE: <patch label>
+→ PASS
+→ zero mutation
+```
+
+If review establishes that a direct Module change is actually required:
+
+```text
+CHANGE_GAP
+→ DOC_GAP
+→ STOP pipeline
+→ writer forbidden
+```
+
+The fix is to patch docs / Module graph first, then resolve a new task package.
+
+Dependency reachability is never permission to invent an undocumented Module patch.
+
+## Task-scoped review
+
+When the Figma target contains a Task Provider resolved task boundary, reviewer gates and scores apply to the resolved task scope.
+
+For PATCH:
+
+```text
+patch semantics
++ resulting desired state
++ directly affected surfaces
+```
+
+For COMPATIBILITY:
+
+```text
+compatibility with current Module state
++ dependency effect only
+```
+
+Unrelated pre-existing quality issues may be reported as non-blocking observations, but they must not be converted into patch failure or repair work.
+
+The pipeline is not a general Figma maintenance loop.
+
+## Existing target resolution
+
+Figma update/verify is never implicit init/rewrite.
+
+Before patch evaluation, resolve the existing canonical Module surface set through `figma-mcp-go`.
+
+A logical Module may own multiple flattened sibling roots with distinct responsibilities:
 
 ```text
 Catalog
@@ -71,73 +173,19 @@ Catalog
 → Catalog Admin
 ```
 
-Those roots are not ambiguous because Public and Admin have distinct surface responsibilities.
+This is one resolved Catalog scope, not ambiguity.
 
-Ambiguity exists only when multiple candidates compete for the **same** Module + Surface responsibility, or semantic ownership cannot be established.
-
-## Existing-scope invariant
-
-`figma:pipeline` is an **update / verify** path. It is not an init or rewrite path.
-
-For every affected module, the existing canonical surface set required by the current canonical inputs must already be resolvable before review or mutation.
+Semantic identity is:
 
 ```text
-patch Catalog
-→ dependency node = Catalog
-→ MCP resolves Catalog Public + Catalog Admin
-→ TARGET_RESOLVED
-→ review/update normally
+Module
++ Surface responsibility
++ Use Case
++ Screen responsibility
++ State responsibility
 ```
 
-If no canonical surface for the Module can be established, or a surface required by the supplied canonical inputs is missing:
-
-```text
-TARGET_NOT_FOUND
-→ STOP
-→ do NOT create the missing surface from scratch
-```
-
-If multiple candidates compete for the same surface responsibility:
-
-```text
-TARGET_AMBIGUOUS
-→ STOP
-→ do not guess
-→ do not mutate
-```
-
-Creating a missing canonical surface root requires a **separate explicit init/rewrite instruction**. Missing-target recovery must never be inferred from a patch/update request.
-
-## Figma target resolution
-
-The dependency pipeline does not accept a Figma URL or node id.
-
-For each affected module, resolve the canonical Figma Module scope from:
-
-```text
-module identity from the dependency graph
-+
-canonical Figma hierarchy / identity constraints from .agents/design-base.md
-+
-current canonical inputs supplied for that graph node
-+
-actual connected Figma artifact inspected through figma-mcp-go
-```
-
-Use MCP document/page/search/node inspection as needed to establish the existing canonical surface-root set before review or mutation.
-
-The shared structural constraints are authoritative:
-
-```text
-dependency Module → one or more flattened canonical surface roots
-surface roots may be siblings
-canonical UI belongs only under the correct Module + Surface responsibility
-semantic identity = Module + Surface + Use Case + Screen + State responsibility
-```
-
-A node id, frame name, creation time, or visual similarity alone is not enough to establish semantic identity.
-
-Reviewer target-resolution summaries are machine-consumed by the dependency runner:
+Reviewer summary must begin with exactly one target marker:
 
 ```text
 TARGET_RESOLVED:
@@ -145,98 +193,71 @@ TARGET_NOT_FOUND:
 TARGET_AMBIGUOUS:
 ```
 
-`TARGET_RESOLVED` means the required existing Module scope has been established; it may contain multiple distinct surface roots.
+`TARGET_NOT_FOUND`, `TARGET_AMBIGUOUS`, or unclassifiable target resolution is terminal and must never enter a writer branch.
 
-The dependency runner is fail-closed: missing, ambiguous, or unclassifiable target resolution is terminal and must never enter the writer branch.
+A missing canonical root requires a separate explicit init/rewrite task.
 
-Local `artifacts/figma-harness/**` are execution evidence only. They are not the canonical Figma locator source and must not replace MCP inspection of the actual artifact.
+## Execution lifecycle
 
-## Existing Figma is the base
-
-Every affected graph node is reviewed against:
+For each Task Provider resolved Module task, in package order:
 
 ```text
-current canonical module planning docs
-+
-current canonical Figma surface set resolved through MCP
-```
-
-A changed document or upstream dependency does not by itself justify mutation.
-
-The reviewer decides whether the existing Figma still satisfies the current inputs.
-
-If it does, leave it unchanged.
-
-If it does not, run the normal writer/repair harness against the same resolved Module surface set and mutate only the affected semantic surface(s).
-
-## Dependency graph scope
-
-The dependency graph answers only:
-
-```text
-which later logical Figma Module scopes must be checked when this Module changes?
-```
-
-It does not redefine domain ownership, physical Figma nesting, or whether a visual update is required.
-
-## Update lifecycle
-
-For every module returned by dependency lookup:
-
-```text
-resolve existing canonical Module surface set through figma-mcp-go
-   ↓
+resolve existing canonical Module surface set
+↓
 TARGET_NOT_FOUND / TARGET_AMBIGUOUS
-   → terminal failure
-   → zero mutation
-   → stop dependents
+→ STOP
 
 TARGET_RESOLVED
-   ↓
-figma:verify over the complete Module scope
-   ↓
-PASS
-   → done, zero mutation
+↓
+read-only review
+↓
+PATCH
+├── CHANGE_VERIFIED → PASS, zero mutation
+└── CHANGE_GAP      → bounded writer → fresh review → CHANGE_VERIFIED
 
-FAIL_VERIFICATION
-   ↓
-figma:harness --mode write
-   ↓
-writer against the same resolved Module surface set
-→ mutate only affected semantic surface(s)
-→ fresh reviewer
-→ repair if required within the same budget
-→ PASS | terminal failure
+COMPATIBILITY
+├── CHANGE_NOT_APPLICABLE → PASS, zero mutation
+└── CHANGE_GAP            → DOC_GAP → STOP, writer forbidden
 ```
 
-A target-resolution failure, review execution error, timeout, or other terminal failure is not interpreted as "needs update". Stop the pipeline instead.
+The top-level pipeline stops on the first terminal failure. Later Module tasks remain `NOT_RUN`.
 
-## Canonical identity
+## Completion
 
-When update is required, reconcile the existing representation by:
+A child harness PASS is local only.
+
+The provider-resolved Figma task is complete only when:
 
 ```text
-owning Module
-+ Surface responsibility
-+ Use Case
-+ Screen responsibility
-+ State responsibility
+all resolved Module tasks = PASS
++
+figma:pipeline exits successfully
++
+Task Provider observes executor success
 ```
 
-Do not append duplicate canonical roots/screens/states merely because the planning inputs changed.
+Do not replace a terminated pipeline with ad-hoc child runs and claim the provider task completed.
 
-Distinct surface responsibilities such as Public and Admin are not duplicates.
+## Canonical reconciliation
+
+When PATCH authorizes writer mutation, reconcile the existing representation in place by semantic identity.
+
+Repeated execution of the same patch against the same state must converge and must not append duplicate canonical roots/screens/states.
 
 ## Failure rule
 
-Process dependency results in order.
-
-If target resolution, review, or update for one module fails terminally:
+Stop on:
 
 ```text
-stop
-→ do not process its later dependents
-→ do not create a missing/replacement surface root
-→ do not reset repair budget automatically
-→ do not start a hidden retry
+TARGET_NOT_FOUND
+TARGET_AMBIGUOUS
+DOC_GAP
+invalid task/change classification
+review execution failure
+writer execution failure
+fresh review that does not verify the patch
+timeout
+repair budget exhaustion
 ```
+
+Do not automatically retry, reset repair budget, continue to later dependents, or reinterpret failure as general cleanup permission.

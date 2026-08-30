@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "module": "Content",
+  "base": {
+    "id": "BASE",
+    "stateDocs": [
+      "docs/srs/Content/02-grip-content-srs.md",
+      "docs/srs/Content/03-grip-content-ui-ux-research.md"
+    ]
+  },
+  "patches": [
+    {
+      "id": "P001-promotions",
+      "parent": "BASE",
+      "taskDoc": "docs/srs/Content/04-promotions-reconciliation.md",
+      "stateDocs": [
+        "docs/srs/Content/04-promotions-reconciliation.md"
+      ]
+    }
+  ]
+}

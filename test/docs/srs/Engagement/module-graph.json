@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "module": "Engagement",
+  "base": {
+    "id": "BASE",
+    "stateDocs": [
+      "docs/srs/Engagement/02-grip-engagement-srs.md",
+      "docs/srs/Engagement/03-grip-engagement-ui-ux-research.md"
+    ]
+  },
+  "patches": []
+}

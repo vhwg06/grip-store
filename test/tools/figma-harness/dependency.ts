@@ -2,7 +2,6 @@ export interface FigmaPipelineNode {
   id: string;
   scope: string;
   dependsOn: string[];
-  docs: string[];
   maxRepairs?: number;
 }
 
@@ -15,7 +14,6 @@ export interface FigmaPipelineGraph {
 export interface FigmaPipelinePlanItem {
   id: string;
   scope: string;
-  docs: string[];
   maxRepairs: number;
 }
 
@@ -89,14 +87,13 @@ export function parseFigmaPipelineGraph(input: unknown): FigmaPipelineGraph {
 
     const scope = nonEmptyString(item.scope, `graph.nodes[${index}].scope`);
     const dependsOn = stringArray(item.dependsOn ?? [], `graph.nodes[${index}].dependsOn`, true);
-    const docs = stringArray(item.docs, `graph.nodes[${index}].docs`);
     const maxRepairs = optionalRepairBudget(item.maxRepairs, `graph.nodes[${index}].maxRepairs`);
 
-    if (new Set(docs).size !== docs.length) {
-      throw new Error(`graph node ${id} contains the same document more than once`);
+    if ("docs" in item) {
+      throw new Error(`graph node ${id} must not contain docs; the dependency graph is scope-only`);
     }
 
-    return { id, scope, dependsOn, docs, maxRepairs };
+    return { id, scope, dependsOn, maxRepairs };
   });
 
   const known = new Map(nodes.map((node) => [node.id.toLowerCase(), node.id]));
@@ -194,7 +191,6 @@ export function buildFigmaPipelinePlan(
     return {
       id: node.id,
       scope: node.scope,
-      docs: node.docs,
       maxRepairs: node.maxRepairs ?? defaultMaxRepairs,
     };
   });

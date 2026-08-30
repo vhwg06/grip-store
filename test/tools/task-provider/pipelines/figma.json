@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "id": "figma",
+  "executor": "figma:pipeline",
+  "dependencyGraph": "docs/srs/figma-pipeline-dependencies.json",
+  "patchRegistry": "tools/task-provider/patches.json",
+  "defaultMaxRepairs": 3,
+  "moduleGraphs": {
+    "Catalog": "docs/srs/catalog/module-graph.json",
+    "Checkout": "docs/srs/checkout/module-graph.json",
+    "Account": "docs/srs/Account/module-graph.json",
+    "Engagement": "docs/srs/Engagement/module-graph.json",
+    "Content": "docs/srs/Content/module-graph.json",
+    "Order": "docs/srs/Order/module-graph.json",
+    "Aftersales": "docs/srs/Aftersales/module-graph.json"
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "tasks": [
+    {
+      "id": "figma-p001-promotions",
+      "pipeline": "figma",
+      "patch": "P001-promotions"
+    },
+    {
+      "id": "figma-p002-membership",
+      "pipeline": "figma",
+      "patch": "P002-membership"
+    },
+    {
+      "id": "figma-p003-business-solutions",
+      "pipeline": "figma",
+      "patch": "P003-business-solutions"
+    }
+  ]
+}

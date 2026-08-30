@@ -39,17 +39,22 @@ Existing merchandising/pricing UI already has slots for discount, sale and flash
 
 Promotions SRS now supplies that business contract.
 
-Patch by linking the existing Catalog public pricing/merchandising behavior to the Promotions capability rather than inventing a new product-card system.
+Expected Promotions evidence includes effective promotional price treatment with regular price/savings presentation where authoritative.
 
 ### Catalog Admin UI/UX — PATCH
 
-Existing Catalog Admin currently excludes promotion management.
+Promotions adds `Khuyến mãi` as a simple commerce extension in the existing Admin shell while ProductModel editing remains unchanged.
 
-Promotions adds `Khuyến mãi` as a simple commerce extension in the existing Admin shell, while ProductModel editing remains unchanged.
+Expected evidence:
 
-### Checkout SRS — PATCH
+```text
+Mã khuyến mãi
+Giảm giá tự động
+```
 
-Checkout already has generic coupon/discount behavior. Reconcile it to the GRIP Promotions V1 rules:
+### Checkout — PATCH
+
+Checkout already has generic coupon/discount behavior. Reconcile it to Promotions V1:
 
 ```text
 one active coupon
@@ -59,29 +64,37 @@ current-context revalidation
 successful placed purchase consumes usage
 ```
 
-Do not import loyalty/reward complexity into Promotions.
+Public evidence includes:
 
-### Checkout Public UI/UX — PATCH
+```text
+coupon entry
+apply state
+remove state
+validation/error feedback
+commercial-summary discount effect
+```
 
-Extend existing focused Checkout with compact coupon entry + commercial-summary feedback.
+Checkout Admin does not own promotion authoring.
 
-No standalone Promotions customer page.
+### Account — NO PATCH REQUIRED
 
-### Checkout Admin UI/UX — NO PATCH REQUIRED
+Base Promotions V1 adds no Account-owned promotion surface, coupon wallet, or rewards center.
 
-Promotion authoring belongs in Catalog/commerce Admin, not Checkout Admin. Checkout Admin does not need promotion configuration.
+### Engagement — NO PATCH REQUIRED
 
-### Content SRS/UI — PATCH
+Saved Lists continue consuming current Catalog commerce projection. Promotions adds no Engagement-owned rule/workflow.
 
-Content may reference/promote active offers editorially but must consume promotion truth rather than authoring discount values/eligibility.
+### Content — PATCH
 
-### Order SRS — PATCH
+Content may tell an offer story and render current authoritative commerce projection where relevant, but it must not become promotion truth or rule authoring.
 
-Order needs purchase-time promotion evidence sufficient to explain final totals and later remedies.
+### Order — PATCH
 
-### Order Public/Admin UI — PATCH
+Order preserves purchase-time promotion evidence sufficient to explain final totals and later remedies. It must not expose current mutable promotion configuration as Order-owned truth.
 
-Display final discount/effect as part of historical commercial truth where useful. Do not expose current mutable promotion configuration.
+### Aftersales — NO DIRECT PATCH REQUIRED
+
+Aftersales may consume stable historical paid/promotion allocation from Order; it does not re-evaluate current Promotions or gain a Promotions workflow.
 
 ## 3. Cross-capability review
 
@@ -94,10 +107,96 @@ Catalog regular product/price truth
 
 PASS.
 
-Promotions does not require Membership for base V1; Membership may later provide eligibility context.
+Promotions does not require Membership for base V1; Membership may later add eligibility context.
 
 PASS.
 
-## 4. Patch execution
+## 4. `P001-promotions` Module patch activation
 
-Apply additive reconciliation inside the affected existing module documentation after Membership and Business Solutions are also defined, so shared files are patched once.
+PROMO-06 activates **Module-local patch nodes**, not one cumulative cross-product reconciliation file.
+
+Direct `P001-promotions` nodes:
+
+```text
+Catalog
+→ docs/srs/catalog/07-promotions-reconciliation.md
+
+Checkout
+→ docs/srs/checkout/05-promotions-reconciliation.md
+
+Content
+→ docs/srs/Content/04-promotions-reconciliation.md
+
+Order
+→ docs/srs/Order/05-promotions-reconciliation.md
+```
+
+No `P001-promotions` node exists for:
+
+```text
+Account
+Engagement
+Aftersales
+```
+
+Those Modules remain at `BASE` for P001 and may enter a Figma run only as dependency compatibility tasks.
+
+The no-patch audit artifacts remain planning evidence; they are not Module state nodes and do not authorize Figma mutation.
+
+Membership and Business Solutions source artifacts may already exist, but P002/P003 Module nodes remain absent until their own CAP-06 turns.
+
+See `../vertical-capability-sequencing.md`.
+
+## 5. Task Provider execution
+
+Agent-facing Figma execution uses only the registered task id:
+
+```bash
+npm run task -- --task figma-p001-promotions
+```
+
+Task registry resolves:
+
+```text
+figma-p001-promotions
+→ pipeline = figma
+→ patch = P001-promotions
+```
+
+Task Provider then derives:
+
+```text
+direct patch Modules = Catalog / Checkout / Content / Order
+↓
+Figma dependency closure
+↓
+per-Module resolver
+↓
+PATCH or COMPATIBILITY task
+```
+
+The caller/agent does not pass pipeline id, product patch id, graph path, changed seed, change-doc list, Module docs, or Figma node ids.
+
+For direct PATCH tasks, the Module patch document itself defines execution steps + resulting desired state. Only a verified Module patch gap may authorize writer mutation.
+
+For dependency-only COMPATIBILITY tasks, any discovered need for a direct change is a `DOC_GAP` and stops the pipeline; the Figma writer must not invent the missing patch.
+
+## 6. Promotions completion evidence
+
+`P001-promotions` is complete only when provider task `figma-p001-promotions` closes with explicit Promotions evidence for every resolved Module task.
+
+General Figma tuning is not evidence.
+
+Examples of non-evidence:
+
+```text
+spacing cleanup
+gallery polish
+unrelated copy changes
+generic composition tuning
+fulfillment/timeline cleanup
+Business Solutions blocks
+Membership context
+```
+
+PROMO-07 requires the product to remain coherent through the Promotions roadmap point only.
