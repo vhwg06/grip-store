@@ -2,18 +2,20 @@
 
 The Figma dependency runner is an **executor**, not a resolver.
 
-## Public entrypoint
+## Agent-facing entrypoint
 
-Use Task Provider:
+Use Task Provider with a task id:
 
 ```bash
-npm run task -- --pipeline figma --patch P001-promotions
+npm run task -- --task figma-p001-promotions
 ```
 
 Task Provider resolves:
 
 ```text
-pipeline config
+task id
+→ pipeline + product patch
+→ pipeline config
 → scope-only dependency graph
 → Module patch graphs
 → direct patch Module set
@@ -28,7 +30,7 @@ Then it invokes the internal executor:
 figma:pipeline --task <resolved-task.json>
 ```
 
-Do not call dependency patch execution with manually assembled `--graph`, `--changed`, `--change`, `--change-doc`, docs, or Figma node arguments.
+The agent does not assemble pipeline ids, patch ids, dependency graphs, changed seeds, document lists, or Figma routing arguments.
 
 ## Scope-only dependency graph
 
@@ -61,7 +63,7 @@ authoritative task doc
 resulting desired-state docs
 ```
 
-Task Provider resolves the Module independently at the requested product patch.
+Task Provider resolves the Module independently at the selected product patch.
 
 ### Direct node exists
 
@@ -74,7 +76,7 @@ inputs = patch task + resulting desired state
 
 ```text
 mode = COMPATIBILITY
-state = latest Module state before/at requested patch
+state = latest Module state before/at selected patch
 writer = forbidden
 ```
 
