@@ -184,14 +184,22 @@ Do not wait for Business Solutions and do not import Business Solutions request/
 Required activation sequence when Membership becomes the current roadmap capability:
 
 ```text
-existing baseline + active Promotions reconciliations
+existing Module states through P001-promotions
 → MEM-05 impact map
-→ MEM-06 Membership-specific reconciliation for Account / Checkout / Order and any required audit docs
-→ add those Membership reconciliation docs to figma-pipeline-dependencies.json
+→ MEM-06 add P002-membership nodes to affected Module graphs
+   - Account
+   - Checkout
+   - Order
+   - any additional Module only when this impact map proves PATCH
+→ each P002 Module node defines parent + self-contained patch task + resulting desired state
 → MEM-07 review through the Membership roadmap point
-→ Figma dependency update
+→ execute Task Provider task figma-p002-membership
 ```
 
-Existing Promotions reconciliation remains active. Business Solutions source artifacts remain inactive until BUS-06.
+The Figma dependency graph remains scope-only and must not receive Membership docs or patch intent.
+
+Existing `P001-promotions` Module nodes remain unchanged. Business Solutions source artifacts remain inactive until BUS-06.
+
+Task Provider task `figma-p002-membership` is reserved now but must fail closed until at least one canonical `P002-membership` Module node is activated.
 
 See `../vertical-capability-sequencing.md`.
