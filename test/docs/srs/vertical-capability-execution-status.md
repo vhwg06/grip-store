@@ -1,12 +1,13 @@
 # GRIP Vertical Capability Execution — Current Checkpoint
 
-**Status:** Promotions planning activated; Membership next  
+**Status:** Promotions planning activated; Promotions Figma patch requires active-change verification; Membership next  
 **Depends on:** `test/docs/srs/README.md`, `test/docs/srs/vertical-capability-sequencing.md`
 
 ## Current roadmap
 
 ```text
 Promotions          ✅ planning + CAP-06 activation
+Promotions Figma    🔄 requires canonical active-change pass
 Membership          ⏭ next activation
 Business Solutions  ⏳ queued after Membership
 ```
@@ -52,9 +53,11 @@ Membership and Business Solutions source planning remains prepared but is not ac
 
 ## Figma execution checkpoint
 
-The next Promotions Figma dependency pass must distinguish dependency scope from patch intent.
+A prior dependency pass cannot be used as evidence that Promotions Figma is complete because it did not carry an explicit active-change contract and its reported mutations were mostly general Figma tuning.
 
-Canonical execution context:
+The canonical Promotions Figma pass must distinguish dependency scope from patch intent.
+
+Execution context:
 
 ```text
 original changed Module seed = Catalog
@@ -75,7 +78,7 @@ npm run figma:pipeline -- \
 
 The graph may select the full Catalog dependency closure. That closure is review scope only.
 
-For each Module, the child harness must return one of:
+For each Module, the child harness must return exactly one active-change classification:
 
 ```text
 CHANGE_VERIFIED: Promotions
@@ -111,7 +114,7 @@ At this checkpoint:
 
 ```text
 Promotions planning / canonical reconciliation = active
-Promotions Figma patch = requires active-change evidence from canonical figma:pipeline run
+Promotions Figma patch = not yet proven under active-change contract
 Membership canonical activation = not started
 Business Solutions canonical activation = not started
 ```
