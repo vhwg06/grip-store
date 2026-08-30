@@ -15,6 +15,8 @@
     "test:browser": "tsx tools/run-cucumber.ts browser",
     "test:browser:non-catalog": "tsx tools/run-cucumber.ts browser-non-catalog",
     "test:figma-harness": "tsx --test tools/figma-harness/lifecycle.test.ts tools/figma-harness/supervision.test.ts tools/figma-harness/process.test.ts tools/figma-harness/dependency.test.ts",
+    "test:task-provider": "tsx --test tools/task-provider/resolver.test.ts",
+    "task": "tsx tools/run-task-provider.ts",
     "figma:harness": "tsx tools/run-figma-harness.ts",
     "figma:verify": "tsx tools/run-figma-harness.ts --mode verify",
     "figma:pipeline": "tsx tools/run-figma-pipeline.ts",
