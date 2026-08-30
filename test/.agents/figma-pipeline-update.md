@@ -24,11 +24,13 @@ Do not collapse these layers.
 
 ## Public entrypoint
 
-Dependency patch work starts through Task Provider:
+Dependency patch work starts through Task Provider using an agent-facing task id:
 
 ```bash
-npm run task -- --pipeline figma --patch P001-promotions
+npm run task -- --task figma-p001-promotions
 ```
+
+`tools/task-provider/tasks.json` resolves that id to the internal pipeline + product patch.
 
 `figma:pipeline` is internal and accepts only:
 
@@ -36,7 +38,7 @@ npm run task -- --pipeline figma --patch P001-promotions
 --task <Task Provider resolved package>
 ```
 
-It must reject raw graph/change/doc/Figma routing arguments.
+It must reject raw pipeline/graph/change/doc/Figma routing arguments.
 
 ## Dependency graph
 
