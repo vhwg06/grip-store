@@ -11,17 +11,45 @@
 - `05-promotions-reconciliation.md`
 
 **Vertical input:**
+- `../Membership/01-grip-membership-reference-research.md`
 - `../Membership/02-grip-membership-srs.md`
 - `../Membership/03-grip-membership-public-ui-ux-extension.md`
 - `../Membership/04-grip-membership-admin-ui-ux-extension.md`
+- `../Membership/05-membership-impact-map-and-review.md`
 
-## 1. Purpose
+## 1. Source traceability
+
+This patch is derived from the existing canonical Membership pipeline. Existing artifacts are inputs that must be traced; their `Final` status is not permission to skip them.
+
+```text
+MEM-01 reference research
+→ MEM-02 accepted GRIP semantics
+→ MEM-03/MEM-04 accepted Public/Admin UX
+→ MEM-05 Order = PATCH
+→ this P002 Order transition
+```
+
+Trace matrix:
+
+| P002 Order requirement | Immediate authority | Upstream trace |
+| --- | --- | --- |
+| Preserve purchase-time Business context for business-linked Orders | MEM-02 §14; MEM-05 Order SRS PATCH | MEM-01 IKEA-BN-04/05: business-linked purchase history and explicit business purchase identity |
+| Later membership/role/business-state changes never rewrite historical Orders | MEM-02 §§9-10,14 and MEM-I04; MEM-05 Order SRS PATCH | MEM-01 treats Membership as current relationship context while downstream purchase history remains distinct |
+| Public Order may show compact `Mua cho <Business>` only when useful | MEM-03 §11; MEM-05 Order Public UI/UX PATCH | MEM-01 explicit business purchase context; SME simplicity favors compact projection rather than a new Order experience |
+| Order Admin may project/filter/navigate by Business identity when operationally useful | MEM-04 §§5,8-9; MEM-05 Order Admin UI/UX PATCH | MEM-01 IKEA-BN-04: company-level purchase history is useful while Membership remains the relationship authority |
+| Order must not become a Membership-management surface | MEM-02 §§14,17; MEM-04 §§5,9; MEM-05 Order PATCH | MEM-01 separates company/member administration from purchase records |
+| Preserve P001 purchase-time Promotions evidence and totals | MEM-02 §12; MEM-05 Promotions NO PATCH REQUIRED; existing `05-promotions-reconciliation.md` | MEM-01 IKEA-BN-06 + local wholesale comparator: Membership eligibility/context does not own pricing semantics |
+| Do not activate Business Solutions provenance, approval, credit, billing/tax or wholesale behavior | MEM-02 §§15,18; MEM-05 deferred decisions | MEM-01 §§3-7 explicitly defers enterprise/commercial concerns beyond Membership |
+
+If any future Order requirement cannot be traced through this chain, it is a planning gap: return upstream and update the appropriate canonical artifact before changing this patch.
+
+## 2. Purpose
 
 Apply Membership V1 to Order on top of the active Promotions state.
 
 When a placed purchase used BusinessContext, Order preserves enough purchase-time business context to explain who the purchase was for without making Membership the owner of historical Order truth.
 
-## 2. Purchase-time BusinessContext
+## 3. Purchase-time BusinessContext
 
 A business-linked Order may preserve:
 
@@ -42,7 +70,7 @@ Business becomes inactive later
 → historical Order remains unchanged
 ```
 
-## 3. Public Order reconciliation
+## 4. Public Order reconciliation
 
 Show business-purchase context only when it helps the customer understand the Order.
 
@@ -57,7 +85,7 @@ Do not duplicate Business member management, role editing or invitation flows in
 
 Personal Orders remain visually unchanged when no BusinessContext was used.
 
-## 4. Admin Order reconciliation
+## 5. Admin Order reconciliation
 
 For business-linked Orders, Order Admin may expose useful business identity projection, filtering or navigation.
 
@@ -70,7 +98,7 @@ acting buyer/member where operationally useful
 
 Order Admin must not edit Membership relationships or current Business roles.
 
-## 5. Promotions state remains active
+## 6. Promotions state remains active
 
 Preserve the full `P001-promotions` Order state:
 
@@ -82,7 +110,7 @@ current mutable promotion config is not Order truth
 
 Business context and promotion evidence are independent purchase-time facts. Membership does not own discount semantics.
 
-## 6. Ownership boundaries
+## 7. Ownership boundaries
 
 ```text
 Membership
@@ -97,7 +125,7 @@ Order
 
 Historical Order access/visibility rules remain Order-owned.
 
-## 7. Explicit non-changes
+## 8. Explicit non-changes
 
 This Membership reconciliation does not add:
 
@@ -114,7 +142,7 @@ promotion-rule ownership
 
 Business Solutions remains inactive until `P003-business-solutions`.
 
-## 8. Patch execution steps
+## 9. Patch execution steps
 
 Task Provider resolves this file as the complete Order transition for `P002-membership`.
 
@@ -128,7 +156,7 @@ Task Provider resolves this file as the complete Order transition for `P002-memb
 7. Verify resulting Order state; do not tune unrelated copy/layout/craft.
 ```
 
-## 9. Desired state after `P002-membership`
+## 10. Desired state after `P002-membership`
 
 ```text
 Order @ P002-membership
@@ -156,6 +184,6 @@ Not present yet
 - purchase approval / company credit / wholesale pricing
 ```
 
-## 10. Completion evidence
+## 11. Completion evidence
 
 An Order Figma patch is complete only when canonical Order Public/Admin surfaces demonstrate stable purchase-time Business context where applicable while preserving P001 Promotions history and avoiding Membership-management duplication. Unrelated Order cleanup does not prove `P002-membership` is complete.
