@@ -17,6 +17,14 @@
       "stateDocs": [
         "docs/srs/Order/05-promotions-reconciliation.md"
       ]
+    },
+    {
+      "id": "P002-membership",
+      "parent": "P001-promotions",
+      "taskDoc": "docs/srs/Order/06-membership-reconciliation.md",
+      "stateDocs": [
+        "docs/srs/Order/06-membership-reconciliation.md"
+      ]
     }
   ]
 }
