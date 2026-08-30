@@ -58,7 +58,7 @@ function parseArgs(argv: string[]): Options {
       continue;
     }
     if (arg === "--help" || arg === "-h") {
-      console.log(`Internal executor usage:\n  npm run figma:pipeline -- --task <resolved-task.json>\n\nDependency patch tasks must be created through the Task Provider:\n  npm run task -- --pipeline figma --patch P001-promotions\n\nDo not pass graph, changed seed, change label, change documents, Figma URL, or Module docs directly to this executor.\n`);
+      console.log(`Internal executor usage:\n  npm run figma:pipeline -- --task <resolved-task.json>\n\nDependency patch tasks must be created through the Task Provider:\n  npm run task -- --task figma-p001-promotions\n\nDo not pass pipeline id, product patch id, graph, changed seed, change documents, Figma URL, or Module docs directly to this executor.\n`);
       process.exit(0);
     }
     die(`unknown argument: ${arg}. figma:pipeline only consumes Task Provider packages`);
