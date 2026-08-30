@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "module": "Account",
+  "base": {
+    "id": "BASE",
+    "stateDocs": [
+      "docs/srs/Account/02-grip-account-srs.md",
+      "docs/srs/Account/03-grip-account-ui-ux-research.md"
+    ]
+  },
+  "patches": []
+}
