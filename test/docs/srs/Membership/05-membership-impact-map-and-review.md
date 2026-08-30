@@ -16,9 +16,38 @@ DEFER
 
 `PATCH` means the existing GRIP planning artifact needs an additive clarification/extension. It does not mean ownership migration or implementation work.
 
-## 2. Existing docs inspected
+## 2. Pipeline trace authority
 
-Primary baseline:
+Membership activation must trace the existing canonical pipeline rather than treating earlier `Final` artifacts as skipped work.
+
+```text
+MEM-01 Reference Research
+→ MEM-02 Membership SRS
+→ MEM-03 Public UI/UX Extension
+→ MEM-04 Admin UI/UX Extension
+→ MEM-05 impact decisions in this file
+→ MEM-06 exact Module patch transitions
+→ MEM-07 provenance + cross-capability review
+```
+
+Read `../pipeline-traceability-contract.md` before deriving MEM-06.
+
+Research is evidence/input, not direct patch authority. A MEM-06 behavior must trace through an accepted GRIP SRS/UI/UX or this impact map before becoming an executable Module requirement.
+
+Existing source artifacts may be reused without rewriting them, but they must be consumed and their decisions traced.
+
+## 3. Existing docs inspected
+
+Membership pipeline authority:
+
+```text
+Membership/01-grip-membership-reference-research.md
+Membership/02-grip-membership-srs.md
+Membership/03-grip-membership-public-ui-ux-extension.md
+Membership/04-grip-membership-admin-ui-ux-extension.md
+```
+
+Primary existing GRIP baseline:
 
 ```text
 Account/02-grip-account-srs.md
@@ -33,7 +62,7 @@ Promotions/03-grip-promotions-public-ui-ux-extension.md
 Promotions/04-grip-promotions-admin-ui-ux-extension.md
 ```
 
-## 3. Impact decisions
+## 4. Impact decisions
 
 ### Account SRS — PATCH
 
@@ -53,6 +82,14 @@ Membership
 
 No business role should become an Account role.
 
+Trace:
+
+```text
+MEM-01 IKEA individual-profile/company-account distinction
+→ MEM-02 Account relationship + role separation
+→ Account PATCH
+```
+
 ### Account Public/Admin UI/UX — PATCH
 
 Reason:
@@ -67,6 +104,15 @@ Customer detail → Business membership projection
 ```
 
 No separate business portal/admin app by default.
+
+Trace:
+
+```text
+MEM-02 Membership public/operator use cases
+→ MEM-03 Account-based Public extension
+→ MEM-04 customer/business Admin extension
+→ Account Public/Admin PATCH
+```
 
 ### Checkout SRS — PATCH
 
@@ -84,9 +130,25 @@ Account identity
 
 Membership does not change cart/payment ownership.
 
+Trace:
+
+```text
+MEM-01 explicit business identity during purchase
+→ MEM-02 Checkout relationship
+→ Checkout SRS PATCH
+```
+
 ### Checkout UI/UX — PATCH
 
 When business context is used, show a compact explicit `Mua cho <Business>` summary. Do not create a separate business checkout.
+
+Trace:
+
+```text
+MEM-02 explicit BusinessContext
+→ MEM-03 business purchase context
+→ Checkout UI/UX PATCH
+```
 
 ### Order SRS — PATCH
 
@@ -103,13 +165,37 @@ acting account/member reference where useful
 
 Later membership changes never rewrite the historical Order.
 
+Trace:
+
+```text
+MEM-01 business-linked purchase-history evidence
+→ MEM-02 Order relationship + historical invariant
+→ Order SRS PATCH
+```
+
 ### Order Public UI/UX — PATCH
 
 Show business-purchase context only when it helps the user understand the Order. Do not duplicate Membership management.
 
+Trace:
+
+```text
+MEM-02 historical business context
+→ MEM-03 compact business purchase projection
+→ Order Public PATCH
+```
+
 ### Order Admin UI/UX — PATCH
 
 Allow business identity projection/filter/navigation when operationally useful. Business member management remains Membership-owned.
+
+Trace:
+
+```text
+MEM-02 operator + Order ownership boundary
+→ MEM-04 Business detail / Order navigation
+→ Order Admin PATCH
+```
 
 ### Promotions SRS/UI — NO PATCH REQUIRED
 
@@ -117,7 +203,15 @@ The Promotions SRS already establishes Membership as a future eligibility input 
 
 No additional change is required unless a specific member-only promotion is later accepted.
 
-## 4. Deferred decisions
+Trace:
+
+```text
+MEM-01 membership benefits/context ≠ pricing engine
+→ MEM-02 Promotions relationship
+→ Promotions NO PATCH REQUIRED
+```
+
+## 5. Deferred decisions
 
 ```text
 company tax code / invoice fields
@@ -130,7 +224,9 @@ per-business promotion entitlement
 
 These must be decided by Business Solutions / future purchasing requirements rather than smuggled into Membership.
 
-## 5. Cross-capability review
+MEM-06 must preserve these `DEFER` decisions as explicit non-changes.
+
+## 6. Cross-capability review
 
 ### Identity
 
@@ -175,7 +271,7 @@ Public Membership extends Account. Admin Membership extends customer/business ad
 
 PASS.
 
-## 6. Patch execution note
+## 7. Patch execution note
 
 MEM-06 must reconcile **Membership only**, on top of the already-active product state through Promotions.
 
@@ -185,14 +281,16 @@ Required activation sequence when Membership becomes the current roadmap capabil
 
 ```text
 existing Module states through P001-promotions
-→ MEM-05 impact map
+→ trace MEM-01 through MEM-04 as canonical existing inputs
+→ MEM-05 impact decisions in this file
 → MEM-06 add P002-membership nodes to affected Module graphs
    - Account
    - Checkout
    - Order
    - any additional Module only when this impact map proves PATCH
+→ every P002 task documents requirement provenance back to this impact map and upstream authority
 → each P002 Module node defines parent + self-contained patch task + resulting desired state
-→ MEM-07 review through the Membership roadmap point
+→ MEM-07 verifies provenance + consistency through the Membership roadmap point
 → execute Task Provider task figma-p002-membership
 ```
 
