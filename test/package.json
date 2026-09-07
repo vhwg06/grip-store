@@ -15,11 +15,12 @@
     "test:browser": "tsx tools/run-cucumber.ts browser",
     "test:browser:non-catalog": "tsx tools/run-cucumber.ts browser-non-catalog",
     "test:figma-harness": "tsx --test tools/figma-harness/lifecycle.test.ts tools/figma-harness/supervision.test.ts tools/figma-harness/process.test.ts tools/figma-harness/dependency.test.ts",
-    "test:task-provider": "tsx --test tools/task-provider/resolver.test.ts",
+    "test:task-provider": "tsx --test tools/task-provider/resolver.test.ts tools/task-provider/integration-resolver.test.ts",
     "task": "tsx tools/run-task-provider.ts",
     "figma:harness": "tsx tools/run-figma-harness.ts",
     "figma:verify": "tsx tools/run-figma-harness.ts --mode verify",
     "figma:pipeline": "tsx tools/run-figma-pipeline.ts",
+    "figma:integration": "tsx tools/run-figma-integration.ts",
     "report": "open artifacts/report.html",
     "validate:modules": "tsx tools/validate-modules.ts",
     "validate:openapi": "tsx tools/validate-openapi.ts"
