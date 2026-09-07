@@ -26,7 +26,9 @@ export interface IntegrationStagePlan {
 }
 
 export interface IntegrationPipelineConfig extends PipelineConfig {
-  resolver: "figma-integration";
+  workload: "figma";
+  resolver: "checkpoint";
+  policy: "product-integration";
   stagePlan: string;
 }
 
@@ -45,7 +47,6 @@ export interface ResolvedIntegrationTask {
   version: 1;
   provider: "grip-task-provider";
   pipeline: string;
-  executor: string;
   checkpoint: PatchRegistryEntry;
   dependency: {
     graph: string;
@@ -164,7 +165,9 @@ export function resolveIntegrationTask(
   stagePlan: IntegrationStagePlan,
   resolvedAt = new Date().toISOString(),
 ): ResolvedIntegrationTask {
-  if (config.resolver !== "figma-integration") fail(`integration pipeline resolver must be figma-integration`);
+  if (config.workload !== "figma" || config.resolver !== "checkpoint" || config.policy !== "product-integration") {
+    fail("integration pipeline requires workload=figma, resolver=checkpoint, policy=product-integration");
+  }
   if (!config.stagePlan?.trim()) fail("integration pipeline config requires stagePlan");
 
   const plan = validateStagePlan(stagePlan);
@@ -211,7 +214,6 @@ export function resolveIntegrationTask(
     version: 1,
     provider: "grip-task-provider",
     pipeline: config.id,
-    executor: config.executor,
     checkpoint: checkpointTask.patch,
     dependency: {
       graph: config.dependencyGraph,
