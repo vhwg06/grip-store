@@ -1,21 +1,35 @@
 # GRIP Vertical Capability Execution — Current Checkpoint
 
-**Status:** `P001-promotions` Module patch activation complete; Figma execution must run through Task Provider; Membership next  
+**Status:** Planning / Module patch activation is complete through `P003-business-solutions`; Figma realization remains task-scoped and must be proven through Task Provider.  
 **Depends on:** `test/docs/srs/README.md`, `test/docs/srs/vertical-capability-sequencing.md`
 
 ## Current roadmap
 
 ```text
-P001-promotions planning / CAP-06     ✅
-P001-promotions Module patch graphs   ✅
-P001-promotions Figma                 🔄 task = figma-p001-promotions
-P002-membership                       ⏭ next CAP-06 activation
-P003-business-solutions               ⏳ after Membership
+P001-promotions planning / CAP-06              ✅
+P001-promotions Module patch graphs            ✅
+P001-promotions Figma                          task = figma-p001-promotions
+
+P002-membership planning / CAP-06              ✅
+P002-membership Module patch graphs            ✅
+P002-membership Figma                          task = figma-p002-membership
+
+P003-business-solutions planning / CAP-06      ✅
+P003-business-solutions Module patch graphs    ✅
+P003-business-solutions Figma                  task = figma-p003-business-solutions
+
+Product Integration / Prototype                task = figma-product-integration
 ```
+
+Planning activation is not Figma execution evidence. The patch tasks must be realized/verified in roadmap order before Product Integration / Prototype is treated as ready.
 
 ## Current Module state checkpoint
 
-Direct `P001-promotions` Module nodes exist for:
+Direct product-patch ownership is Module-local.
+
+### P001-promotions
+
+Direct nodes:
 
 ```text
 Catalog
@@ -24,107 +38,139 @@ Content
 Order
 ```
 
-No direct P001 node exists for:
+### P002-membership
+
+Direct nodes:
 
 ```text
 Account
-Engagement
-Aftersales
+Checkout
+Order
 ```
 
-At the P001 checkpoint those Modules remain at their latest earlier state (`BASE` today) and are compatibility-only when dependency closure reaches them.
+Modules without P002 nodes retain their latest earlier state at the P002 checkpoint.
 
-Membership and Business Solutions source planning remains prepared but is not activated as P002/P003 Module nodes yet.
+### P003-business-solutions
 
-## Promotions desired state
+Direct nodes:
+
+```text
+Account
+Catalog
+Content
+Checkout
+Order
+```
+
+At the final registered product checkpoint, every configured Module resolves to its latest state at or before `P003-business-solutions`.
+
+Examples:
 
 ```text
 Catalog
-→ promotional/effective pricing projection
-→ Khuyến mãi / Mã khuyến mãi / Giảm giá tự động
-→ Product/Variant regular-price ownership preserved
+BASE → P001-promotions → P003-business-solutions
 
 Checkout
-→ coupon entry/apply/remove/revalidation/error states
-→ automatic discount/commercial-summary effect
-→ no Promotions checkout stage
+BASE → P001-promotions → P002-membership → P003-business-solutions
 
-Content
-→ editorial offer/product references may render authoritative current promotion projection
-→ no promotion-rule ownership
-→ no Business Solutions CTA yet
+Account
+BASE → P002-membership → P003-business-solutions
 
-Order
-→ stable purchase-time promotion evidence
-→ historical totals never follow later Promotion edits/expiry
-
-Account / Engagement / Aftersales
-→ no direct Promotions-owned UI/workflow patch
-→ compatibility verification only
+Engagement / Aftersales
+→ retain latest earlier state where no direct roadmap patch node exists
 ```
 
-## Figma execution checkpoint
+## Figma patch execution
 
-The earlier dependency PASS is not valid evidence that Promotions Figma completed. It ran as a generic Module-quality reconciliation and reported unrelated tuning rather than explicit Promotions patch evidence.
-
-Canonical execution now starts only through the agent-facing Task Provider task:
+Canonical patch execution starts only through Task Provider:
 
 ```bash
 npm run task -- --task figma-p001-promotions
+npm run task -- --task figma-p002-membership
+npm run task -- --task figma-p003-business-solutions
 ```
 
-Task registry resolves that id to:
+Task Provider resolves for each patch:
 
 ```text
 pipeline = figma
-patch = P001-promotions
+selected product patch
+→ direct Module patch nodes
+→ dependency closure
+→ each Module state
+→ PATCH / COMPATIBILITY
+→ exact task inputs
 ```
 
-Task Provider then resolves pipeline configuration, direct Module patch nodes, dependency closure, each Module's state and exact task inputs.
+The caller does not supply pipeline id, patch id, dependency graph, changed seed, Module docs, Figma target, or resolver arguments.
 
-The caller does not supply:
+A compatibility Module that actually needs a direct change returns `DOC_GAP`; writer mutation is forbidden until the canonical Module graph is fixed.
+
+## Product Integration / Prototype
+
+After P001 → P002 → P003 Figma realization has been individually verified, run:
+
+```bash
+npm run task -- --task figma-product-integration
+```
+
+Task registry resolves:
 
 ```text
-pipeline id
-product patch id
-graph path
-changed seed
-active-change document list
-Module docs
-Figma URL/node id
+pipeline = figma-integration
+checkpoint = P003-business-solutions
 ```
 
-Direct Module tasks run in `PATCH` mode. Dependency-only Modules run in `COMPATIBILITY` mode.
-
-If a compatibility Module is discovered to require a direct Promotions change, the result is `DOC_GAP`; Figma mutation is forbidden until a canonical P001 Module patch is defined.
-
-## Membership source planning
-
-Prepared artifacts remain under `Membership/`:
+The integration resolver then resolves:
 
 ```text
-01-grip-membership-reference-research.md
-02-grip-membership-srs.md
-03-grip-membership-public-ui-ux-extension.md
-04-grip-membership-admin-ui-ux-extension.md
-05-membership-impact-map-and-review.md
+full configured product scope
++
+each Module's latest state at/before P003
++
+Product Integration / Prototype stage plan
 ```
 
-They become active Module state only when P002/Membership reaches CAP-06 and the affected Module graphs receive `P002-membership` nodes.
+Internal stage DAG:
 
-## Business Solutions source planning
+```text
+D1 Flow Inventory
+→ D2 Screen Integration
+→ D3 Interaction Wiring
+→ D4 State Coverage
+  + D5 Cross-Module Integration
+  + D6 Responsive Integration
+→ D7 Prototype Validation
+→ D8 Integration Handoff
+```
 
-Prepared source artifacts remain under `BusinessSolutions/` and activate as `P003-business-solutions` Module nodes only after Membership.
+This is not `P004` and does not alter Module patch history.
+
+Integration is review-first:
+
+```text
+INTEGRATION_VERIFIED
+→ PASS, zero mutation
+
+INTEGRATION_GAP
+→ bounded integration writer
+→ fresh independent verification
+
+INTEGRATION_DOC_GAP
+→ STOP
+→ writer forbidden
+```
 
 ## Completion meaning
 
-At this checkpoint:
+Current repository planning state:
 
 ```text
-Promotions planning / Module patch activation = complete
-Promotions Figma                             = not yet proven under Task Provider execution
-Membership Module patch activation          = not started
-Business Solutions Module patch activation  = not started
+Promotions planning / Module activation          = complete
+Membership planning / Module activation          = complete
+Business Solutions planning / Module activation = complete
 ```
 
-Do not infer `P001-promotions` completion from a Figma PASS that was not produced from provider task `figma-p001-promotions`.
+Figma realization state must be established from provider-generated execution evidence, not inferred from planning activation or an older generic dependency PASS.
+
+Product Integration / Prototype is the next product-level execution boundary only after the preceding patch realizations are complete.
