@@ -86,7 +86,7 @@ function base(module: string): ModuleGraph {
   };
 }
 
-test("integration resolver resolves full product state at checkpoint without creating a synthetic patch", () => {
+test("integration resolver resolves cumulative full-product state at checkpoint without creating a synthetic patch", () => {
   const graphs: Record<string, ModuleGraph> = {
     A: {
       ...base("A"),
@@ -131,8 +131,12 @@ test("integration resolver resolves full product state at checkpoint without cre
       ["D", "P002-two"],
     ],
   );
-  assert.deepEqual(task.modules[0].inputDocs, ["a-p2-state.md"]);
+  assert.deepEqual(task.modules[0].inputDocs, ["a-base.md", "a-p1-state.md", "a-p2-state.md"]);
+  assert.deepEqual(task.modules[1].inputDocs, ["b-base.md", "b-p1-state.md"]);
+  assert.deepEqual(task.modules[2].inputDocs, ["c-base.md"]);
+  assert.deepEqual(task.modules[3].inputDocs, ["d-base.md", "d-p2-state.md"]);
   assert.equal(task.inputDocs.includes("a-p2.md"), false);
+  assert.equal(task.inputDocs.includes("a-p1.md"), false);
   assert.deepEqual(task.plan.stages.map((stage) => stage.id), ["D1", "D2", "D7"]);
 });
 
