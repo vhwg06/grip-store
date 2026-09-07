@@ -39,36 +39,47 @@
 
 ## Task Provider
 
-- Read and obey `.agents/task-provider.md` for dependency-pipeline work.
+- Read and obey `.agents/task-provider.md` for repository pipeline work.
 - The Task Provider is the agent-facing task-resolution layer. Agents request a
-  task id; they do not reconstruct pipeline choice, dependency scope, patch
-  intent, Module state, or document arguments themselves.
-- For the Promotions Figma patch use:
+  task id; they do not reconstruct pipeline choice, resolver choice, dependency
+  scope, patch/checkpoint intent, Module state, stage plan, or document arguments
+  themselves.
+- Product-patch Figma tasks are invoked only through Task Provider, for example:
 
   ```bash
   npm run task -- --task figma-p001-promotions
+  npm run task -- --task figma-p002-membership
+  npm run task -- --task figma-p003-business-solutions
+  ```
+
+- Product Integration / Prototype is invoked only through:
+
+  ```bash
+  npm run task -- --task figma-product-integration
   ```
 
 - Do NOT ask the caller to provide or manually pass:
 
   ```text
   pipeline id
-  product patch id
+  resolver id
+  product patch/checkpoint id
   --graph
   --changed
   --change
   --change-doc
   Module graph/doc lists
   Figma URL/node id
+  integration stage ids/order
   resolver arguments
   ```
 
-  for a dependency patch task. `tools/task-provider/tasks.json` and the selected
+  for a provider-owned task. `tools/task-provider/tasks.json` and the selected
   pipeline config resolve those concerns.
-- `figma:pipeline` is an internal executor. It accepts only a provider-generated
-  `--task <resolved-task.json>` package.
+- `figma:pipeline` and `figma:integration` are internal executors. They accept
+  only a provider-generated `--task <resolved-task.json>` package.
 - Do not bypass Task Provider with an ad-hoc sequence of single-scope harness
-  calls and then claim the dependency task completed.
+  calls and then claim the provider task completed.
 
 ## Module patch graphs
 
@@ -100,6 +111,9 @@
 - If compatibility review proves a direct Module change is necessary but the
   Module graph has no patch node, return `DOC_GAP` and stop. Fix docs/module graph
   first; do not let the Figma writer improvise the missing patch.
+- Product Integration / Prototype MUST NOT be encoded as a synthetic Module
+  patch such as `P004-integration`. It consumes each Module's latest resolved
+  state at the provider-selected checkpoint.
 
 ## Figma dependency scope
 
@@ -116,11 +130,15 @@
   business impact rules
   desired state
   writer intent
+  integration stage instructions
   ```
 
-- Task Provider derives the direct patch Module set from Module graphs, then
-  computes the union dependent closure in dependency order.
-- Modules outside that resolved closure MUST NOT run.
+- For product patches, Task Provider derives the direct patch Module set from
+  Module graphs, then computes the union dependent closure in dependency order.
+- For Product Integration / Prototype, Task Provider requires the selected
+  checkpoint to resolve the full configured product scope and then supplies each
+  Module's latest state at or before that checkpoint.
+- Modules outside a provider-resolved scope MUST NOT run.
 
 ## Figma harness execution
 
@@ -129,11 +147,13 @@
 - `npm run figma:harness -- ...` is the single-scope write/repair lifecycle.
 - `npm run figma:verify -- ...` is read-only verification and MUST NOT mutate or
   schedule repair.
-- A single-scope harness PASS is local only. It is not dependency-pipeline PASS.
-- `figma:pipeline` owns execution of the provider-resolved Module task sequence.
-- Pipeline completion requires every Module task in the resolved package to PASS
-  and the top-level executor to exit successfully. Any `NOT_RUN` means the task
-  closure is incomplete.
+- A single-scope harness PASS is local only. It is not provider-pipeline PASS.
+- `figma:pipeline` owns execution of provider-resolved product patch Module tasks.
+- `figma:integration` owns review-first execution of the provider-resolved
+  Product Integration / Prototype checkpoint and internal stage plan.
+- Pipeline completion requires the top-level executor to exit successfully with
+  the required fresh evidence. Do not infer provider completion from a child
+  harness exit alone.
 
 ## Resolved Module task modes
 
@@ -189,6 +209,66 @@
   → writer forbidden
   ```
 
+## Product Integration / Prototype execution
+
+- Read and obey `.agents/figma-product-integration.md`.
+- The agent-facing task is exactly:
+
+  ```bash
+  npm run task -- --task figma-product-integration
+  ```
+
+- Task Provider resolves the current product checkpoint and the pipeline-owned
+  D1-D8 stage DAG. Agents MUST NOT invoke D1-D8 as separate caller-owned task ids
+  or manually reorder them.
+- Current internal stages are:
+
+  ```text
+  D1 Flow Inventory
+  → D2 Screen Integration
+  → D3 Interaction Wiring
+  → D4 State Coverage
+    + D5 Cross-Module Integration
+    + D6 Responsive Integration
+  → D7 Prototype Validation
+  → D8 Integration Handoff
+  ```
+
+- Product integration is review-first. Reviewer summaries must begin with one of:
+
+  ```text
+  TARGET_RESOLVED:
+  TARGET_NOT_FOUND:
+  TARGET_AMBIGUOUS:
+  ```
+
+  and a resolved target must classify exactly one integration result:
+
+  ```text
+  INTEGRATION_VERIFIED: Product Integration / Prototype
+  INTEGRATION_GAP: Product Integration / Prototype
+  INTEGRATION_DOC_GAP: Product Integration / Prototype
+  ```
+
+- Writer permission requires exactly:
+
+  ```text
+  TARGET_RESOLVED
+  + INTEGRATION_GAP
+  + FAIL_VERIFICATION
+  ```
+
+- `INTEGRATION_DOC_GAP`, `TARGET_NOT_FOUND`, and `TARGET_AMBIGUOUS` are terminal;
+  writer mutation is forbidden.
+- Integration mutation is limited to documented screen-flow/prototype continuity,
+  required state reachability, cross-Module handoffs, responsive journey
+  continuity, and defects directly blocking those concerns.
+- Integration is not permission for new business behavior, ownership changes,
+  unrelated redesign/polish, speculative states, or implementation work.
+- After mutation, fresh independent review must return
+  `TARGET_RESOLVED + INTEGRATION_VERIFIED: Product Integration / Prototype`.
+  Executor exit `0` without that marker is insufficient evidence.
+
 ## Figma target resolution
 
 - Figma is flattened at the Module-surface level. One Module may legitimately
@@ -217,16 +297,16 @@
 
 - `TARGET_NOT_FOUND`, `TARGET_AMBIGUOUS`, or unclassifiable target resolution is
   terminal and must never enter a writer branch.
-- `figma:pipeline` is update/verify only. Missing canonical surface creation
-  requires a separate explicit init/rewrite task.
+- Provider Figma pipelines are update/verify only. Missing canonical surface
+  creation requires a separate explicit init/rewrite task.
 - Local `artifacts/figma-harness/**` and `artifacts/task-provider/**` are execution
   evidence only, not canonical product/Figma locator registries.
 
 ## Terminal behavior
 
-- Stop on the first target-resolution failure, `DOC_GAP`, unclassifiable task
-  result, timeout, execution error, failed fresh verification, or exhausted
-  repair budget.
+- Stop on the first target-resolution failure, `DOC_GAP`,
+  `INTEGRATION_DOC_GAP`, unclassifiable task result, timeout, execution error,
+  failed fresh verification, or exhausted repair budget.
 - Do not automatically retry, reset repair budget, skip to a later dependent, or
   create replacement surfaces.
 - Writer execution over an existing canonical scope MUST reconcile by semantic
