@@ -334,12 +334,14 @@ The agent-facing execution boundary is Task Provider:
 agent task id
 → Task Provider
 → task registry
-→ pipeline + pipeline-owned resolver
-→ product patch OR product checkpoint
 → pipeline config
-→ dependency/state resolution
+→ workload factory
+→ workload
+   ├── resolver
+   ├── execution policy
+   └── shared lifecycle
 → resolved task package
-→ executor
+→ harness / child agent
 ```
 
 Patch example:
@@ -357,8 +359,9 @@ npm run task -- --task figma-product-integration
 The agent does not supply:
 
 ```text
-pipeline id
+workload type
 resolver id
+policy id
 product patch/checkpoint id
 dependency graph path
 changed Module seed
@@ -366,9 +369,12 @@ change-doc list
 Module graph/doc paths
 Figma URL/node id
 integration stage ids/order
+harness arguments
 ```
 
 Those are provider-owned concerns.
+
+`run-task-provider.ts` stays generic. Adding a new product patch/checkpoint/policy must not create another `run-xxx.ts` unless the execution lifecycle itself is genuinely different and therefore warrants a new workload.
 
 See:
 
@@ -385,7 +391,7 @@ The Figma dependency graph is **scope-only**:
 which logical Module scopes depend on which earlier Module scopes?
 ```
 
-It does not contain docs, patch intent, desired state, or writer instructions.
+It does not contain docs, patch intent, desired state, writer instructions, or workload policy.
 
 For product patch execution, Task Provider:
 
@@ -422,7 +428,15 @@ DOC_GAP
 
 Dependency reachability is never mutation permission.
 
-For Product Integration / Prototype, the same graph is used to prove the selected checkpoint resolves the full configured product scope. The integration resolver then supplies each Module's latest state at or before that checkpoint. It does not reinterpret dependency reachability as a product patch.
+For Product Integration / Prototype, the same dependency graph is used to prove the selected checkpoint resolves the full configured product scope. The checkpoint resolver then supplies each Module's **cumulative canonical state** at or before that checkpoint:
+
+```text
+BASE stateDocs
++
+all Module patch stateDocs with sequence <= checkpoint
+```
+
+It does not reinterpret dependency reachability as a product patch and does not create a synthetic `P004`.
 
 ## 13. Current roadmap
 
@@ -492,8 +506,13 @@ Task Provider resolves:
 ```text
 pipeline = figma-integration
 checkpoint = P003-business-solutions
-→ every Module's latest state at/before P003
-→ pipeline-owned Product Integration / Prototype stage plan
+
+pipeline config
+→ workload = figma
+→ resolver = checkpoint
+→ policy = product-integration
+→ cumulative Module state at/before P003
+→ product-integration-v1 stage plan
 ```
 
 This is **not** a second redesign and it is **not** `P004`.
