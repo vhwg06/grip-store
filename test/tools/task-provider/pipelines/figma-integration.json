@@ -1,8 +1,9 @@
 {
   "version": 1,
   "id": "figma-integration",
-  "resolver": "figma-integration",
-  "executor": "figma:integration",
+  "workload": "figma",
+  "resolver": "checkpoint",
+  "policy": "product-integration",
   "dependencyGraph": "docs/srs/figma-pipeline-dependencies.json",
   "patchRegistry": "tools/task-provider/patches.json",
   "stagePlan": "tools/task-provider/plans/figma-product-integration.json",
