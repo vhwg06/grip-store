@@ -4,24 +4,23 @@ This contract defines the product-level integration phase after canonical Module
 
 It is not a new business capability, not a synthetic product patch, and not permission to redesign canonical Module behavior.
 
-## Ownership model
+## Execution ownership
 
 ```text
 Task Provider
-= resolve WHAT product checkpoint and stage plan this run means
-= resolve every Module state at that checkpoint
+= resolve WHAT task/checkpoint this run means
 
-figma:integration
-= review-first execution of the resolved product integration plan
+Figma workload
+= own the shared review → optional writer → fresh review lifecycle
 
-figma:harness writer
-= mutate only documented integration/prototype gaps
+product-integration policy
+= classify integration review results and mutation permission
 
-fresh independent reviewer
-= verify the resulting product-level continuity
+figma:harness
+= perform bounded writer/reviewer execution
 ```
 
-Do not collapse these layers.
+The Figma workload is reused by both Module patch execution and Product Integration. Product Integration differs by resolver/policy, not by a separate runner program.
 
 ## Agent-facing entrypoint
 
@@ -31,47 +30,52 @@ The caller provides only:
 npm run task -- --task figma-product-integration
 ```
 
-The caller must not manually provide:
+Pipeline configuration resolves:
 
 ```text
-pipeline id
-checkpoint patch id
-stage ids/order
-Module graph paths
-Module state documents
-Figma URL/node ids
-repair budget
+workload = figma
+resolver = checkpoint
+policy = product-integration
+checkpoint = P003-business-solutions
+stage plan = product-integration-v1
 ```
 
-Those are Task Provider / pipeline-owned concerns.
+The caller must not manually provide workload type, resolver/policy ids, checkpoint id, stage order, Module graph/docs, Figma URL/node ids, or repair budget.
 
 ## Product checkpoint
 
-The integration task resolves a product checkpoint such as:
+For every logical Module, Task Provider supplies cumulative canonical state at or before the selected checkpoint:
 
 ```text
-P003-business-solutions
+BASE stateDocs
++
+all Module patch stateDocs with sequence <= checkpoint
 ```
 
-For every logical Module, Task Provider supplies the latest Module state at or before that checkpoint.
+This is state-selection authority only. It does not mean every Module has a direct P003 node.
 
-This is a state checkpoint only. It does not mean every Module has a direct P003 node, and it must never manufacture one.
+The integration task MUST NOT:
 
-The integration pipeline does not mutate Module patch graphs or create another product state node.
+```text
+create P004-integration
+modify Module patch history
+promote patch taskDoc into new mutation authority
+invent missing business behavior
+```
 
 ## Preconditions
 
-Product integration is update/verify only.
+Product Integration is update/verify only.
 
-Before mutation, the reviewer must establish:
+Before mutation the reviewer must establish:
 
 ```text
-all required existing canonical Module surface sets can be resolved
+required existing canonical Module surface sets are resolvable
 +
-current Figma represents the provider-resolved product checkpoint closely enough to evaluate integration
+current Figma can be evaluated against the provider-resolved checkpoint
 ```
 
-Target resolution uses:
+Target identity remains:
 
 ```text
 Module
@@ -89,9 +93,7 @@ TARGET_NOT_FOUND / TARGET_AMBIGUOUS
 → writer forbidden
 ```
 
-Do not initialize or replace missing Module roots as an integration fallback.
-
-If a required journey/state/behavior is not supported by the provider-resolved canonical documents:
+If integration requires undocumented journey/state/behavior:
 
 ```text
 INTEGRATION_DOC_GAP
@@ -100,11 +102,9 @@ INTEGRATION_DOC_GAP
 → fix planning authority first
 ```
 
-Integration is not permission to invent behavior.
+## Internal stage plan
 
-## Stage plan
-
-Task Provider resolves the canonical stage DAG. The current plan is:
+Task Provider resolves the canonical D1-D8 DAG:
 
 ```text
 D1 Flow Inventory
@@ -125,11 +125,11 @@ D7 Prototype Validation
 D8 Integration Handoff
 ```
 
-The plan file owns exact stage metadata. This contract owns execution semantics.
+These are internal workload stages. Agents MUST NOT invoke them as separate caller-owned task ids or reorder them manually.
 
 ### D1 — Flow Inventory
 
-Read-only orientation inside the current run.
+Read-only orientation.
 
 Resolve documented journeys as:
 
@@ -137,9 +137,9 @@ Resolve documented journeys as:
 entry
 → screens/states
 → actions
-→ cross-Module handoffs where applicable
+→ cross-Module handoffs
 → exits
-→ exceptional/backtracking paths
+→ failure/backtracking paths
 ```
 
 Identify dead ends, orphan responsibilities, broken entry points, duplicate semantic screens, and missing prototype links.
@@ -150,35 +150,31 @@ Do not persist a second product specification merely to record the inventory.
 
 Reconcile existing canonical screens into coherent journeys.
 
-Allowed work includes only integration consequences already supported by canonical state:
+Allowed changes are integration consequences already supported by canonical state:
 
 ```text
-screen organization needed for a coherent flow
+screen organization required for a coherent flow
 canonical navigation continuity
-removal/reconciliation of true semantic duplicates inside the integration scope
-consistent shared navigation/surface composition
+reconciliation of true semantic duplicates inside integration scope
+shared navigation/surface composition needed for continuity
 ```
 
-Do not redesign product semantics, add features, or replace canonical Module ownership.
+No new product semantics or ownership migration.
 
 ### D3 — Interaction Wiring
 
-Wire prototype reactions for documented interaction responsibilities such as:
+Wire documented prototype reactions such as:
 
 ```text
-forward / continue
-back
-cancel / close
-submit / confirm
-retry
-link / CTA
-tabs
-modal / drawer / overlay transitions
+continue / back / cancel
+submit / confirm / retry
+link / CTA / tab
+overlay / modal / drawer transitions
 ```
 
 Every reaction must terminate at an existing documented responsibility/state or an explicitly allowed external exit.
 
-A visually present CTA with no meaningful destination is an integration gap.
+A visible CTA with no meaningful destination is an integration gap.
 
 ### D4 — State Coverage
 
@@ -197,13 +193,11 @@ disabled
 success
 ```
 
-These names are not a mandatory checklist. Create or wire only states justified by the resolved Module documents.
-
-Do not create speculative states for completeness aesthetics.
+These are examples, not a mandatory checklist. Do not create speculative states for completeness aesthetics.
 
 ### D5 — Cross-Module Integration
 
-Verify documented product handoffs across logical Module boundaries.
+Verify documented handoffs across logical Module boundaries.
 
 Preserve ownership:
 
@@ -213,13 +207,13 @@ navigation continuity ≠ ownership migration
 shared context ≠ new business semantics
 ```
 
-Use provider-resolved Module state as authority. If a cross-Module handoff requires undocumented behavior, return `INTEGRATION_DOC_GAP` instead of inventing it.
+If a handoff requires undocumented behavior, return `INTEGRATION_DOC_GAP`.
 
 ### D6 — Responsive Integration
 
 Review complete journeys across supported desktop/mobile representations.
 
-Responsive continuity includes, where applicable:
+Responsive continuity may include:
 
 ```text
 navigation mechanics
@@ -228,14 +222,14 @@ forms
 primary actions
 sticky behavior
 overlays
-admin tables or equivalent compact representations
+admin table/compact representation behavior
 ```
 
-Responsive is recomposition of the same documented responsibility, not scaling and not a parallel product flow.
+Responsive is recomposition of the same documented responsibility, not a parallel product flow.
 
 ### D7 — Prototype Validation
 
-A fresh independent reviewer validates the full resolved integration scope after any mutation.
+A fresh independent reviewer validates the full integration scope after any mutation.
 
 Cover:
 
@@ -253,13 +247,10 @@ The writer does not self-approve.
 
 ### D8 — Integration Handoff
 
-Execution evidence belongs under the existing artifact boundary.
-
-Persist enough evidence to identify:
+Persist execution evidence only:
 
 ```text
-provider-resolved task
-product checkpoint
+resolved task/checkpoint
 stage plan
 whether mutation occurred
 fresh verification result
@@ -268,11 +259,19 @@ terminal failure/gap when present
 
 Do not create a second canonical SRS/design specification as handoff output.
 
-## Review-first mutation gate
+## Shared review-first lifecycle
 
-Before starting a writer, run read-only verification over the full resolved integration target.
+The Figma workload owns one lifecycle for both patch and integration policies:
 
-Reviewer summary must begin with exactly one target marker:
+```text
+read-only review
+→ policy classification
+→ optional bounded writer
+→ fresh independent review
+→ workload evidence
+```
+
+For Product Integration, reviewer summary must begin with exactly one target marker:
 
 ```text
 TARGET_RESOLVED:
@@ -292,12 +291,11 @@ Interpretation:
 
 ```text
 TARGET_RESOLVED + INTEGRATION_VERIFIED + PASS
-→ task already complete
-→ zero mutation
+→ complete with zero mutation
 
 TARGET_RESOLVED + INTEGRATION_GAP + FAIL_VERIFICATION
 → bounded writer may run
-→ fresh independent review required
+→ fresh independent verification required
 
 TARGET_RESOLVED + INTEGRATION_DOC_GAP
 → STOP
@@ -308,7 +306,7 @@ TARGET_NOT_FOUND / TARGET_AMBIGUOUS
 → writer forbidden
 ```
 
-A generic visual/craft failure is not enough to authorize mutation.
+A generic visual/craft failure alone is not permission to mutate.
 
 ## Mutation boundary
 
@@ -335,11 +333,9 @@ speculative state creation
 backend/frontend/API/database work
 ```
 
-If an unrelated visual issue does not block product integration, report it as non-blocking and leave it unchanged.
-
 ## Fresh verification
 
-After writer completion, the harness reviewer must independently return:
+After writer completion, fresh review must return:
 
 ```text
 TARGET_RESOLVED
@@ -353,17 +349,17 @@ Harness exit `0` without the integration marker is insufficient completion evide
 
 ## Completion
 
-The provider task is complete only when:
+The Task Provider task completes only when the selected Figma workload policy returns success after either:
 
 ```text
-review-first gate passed with zero mutation
-OR
-bounded integration writer completed + fresh independent integration verification passed
-
-+
-figma:integration exits successfully
-+
-Task Provider observes executor success
+review-first PASS with zero mutation
 ```
 
-Do not replace a failed product integration task with ad-hoc single-screen repairs and claim the original task completed.
+or:
+
+```text
+policy-authorized writer
+→ fresh independent integration verification PASS
+```
+
+Do not replace a failed Product Integration task with ad-hoc single-screen harness calls and claim the original task completed.
