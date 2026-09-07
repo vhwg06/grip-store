@@ -40,11 +40,21 @@
 ## Task Provider
 
 - Read and obey `.agents/task-provider.md` for repository pipeline work.
-- The Task Provider is the agent-facing task-resolution layer. Agents request a
-  task id; they do not reconstruct pipeline choice, resolver choice, dependency
-  scope, patch/checkpoint intent, Module state, stage plan, or document arguments
-  themselves.
-- Product-patch Figma tasks are invoked only through Task Provider, for example:
+- `npm run task -- --task <task-id>` is the single agent-facing execution entrypoint.
+- `run-task-provider.ts` is generic. Do not add task/workload-specific branches to it.
+- Task Provider resolves:
+
+  ```text
+  task id
+  → pipeline config
+  → workload factory
+  → workload
+     ├── resolver
+     ├── policy
+     └── shared execution lifecycle
+  ```
+
+- Product-patch Figma tasks are invoked only through Task Provider:
 
   ```bash
   npm run task -- --task figma-p001-promotions
@@ -61,8 +71,9 @@
 - Do NOT ask the caller to provide or manually pass:
 
   ```text
-  pipeline id
+  workload type
   resolver id
+  policy id
   product patch/checkpoint id
   --graph
   --changed
@@ -71,13 +82,14 @@
   Module graph/doc lists
   Figma URL/node id
   integration stage ids/order
-  resolver arguments
+  harness arguments
   ```
 
-  for a provider-owned task. `tools/task-provider/tasks.json` and the selected
-  pipeline config resolve those concerns.
-- `figma:pipeline` and `figma:integration` are internal executors. They accept
-  only a provider-generated `--task <resolved-task.json>` package.
+- `tools/task-provider/tasks.json`, pipeline config, and the selected workload
+  resolve those concerns.
+- Do not create a new `run-xxx.ts` merely because a new task/policy/checkpoint is added.
+- Add a new workload implementation only when execution lifecycle semantics are
+  genuinely different.
 - Do not bypass Task Provider with an ad-hoc sequence of single-scope harness
   calls and then claim the provider task completed.
 
@@ -137,23 +149,33 @@
   Module graphs, then computes the union dependent closure in dependency order.
 - For Product Integration / Prototype, Task Provider requires the selected
   checkpoint to resolve the full configured product scope and then supplies each
-  Module's latest state at or before that checkpoint.
+  Module's cumulative state at or before that checkpoint.
 - Modules outside a provider-resolved scope MUST NOT run.
 
-## Figma harness execution
+## Figma workload execution
 
 - Canonical Figma operations MUST use `figma-mcp-go`. Do not fall back to another
   Figma MCP server when it is unavailable or rate-limited.
 - `npm run figma:harness -- ...` is the single-scope write/repair lifecycle.
 - `npm run figma:verify -- ...` is read-only verification and MUST NOT mutate or
   schedule repair.
-- A single-scope harness PASS is local only. It is not provider-pipeline PASS.
-- `figma:pipeline` owns execution of provider-resolved product patch Module tasks.
-- `figma:integration` owns review-first execution of the provider-resolved
-  Product Integration / Prototype checkpoint and internal stage plan.
-- Pipeline completion requires the top-level executor to exit successfully with
-  the required fresh evidence. Do not infer provider completion from a child
-  harness exit alone.
+- A single-scope harness PASS is local only. It is not Task Provider PASS.
+- Both product-patch and product-integration tasks use the same Figma workload
+  lifecycle:
+
+  ```text
+  review
+  → policy classify
+  → optional bounded writer
+  → fresh independent review
+  → evidence
+  ```
+
+- Patch and integration behavior differ by resolver/policy configuration, not by
+  separate runner programs.
+- Provider completion requires the workload execution to satisfy its policy and
+  return successfully. Do not infer provider completion from a child harness
+  exit alone.
 
 ## Resolved Module task modes
 
@@ -205,7 +227,7 @@
   ```text
   CHANGE_GAP
   → DOC_GAP
-  → STOP pipeline
+  → STOP workload
   → writer forbidden
   ```
 
@@ -216,6 +238,14 @@
 
   ```bash
   npm run task -- --task figma-product-integration
+  ```
+
+- Pipeline config selects:
+
+  ```text
+  workload = figma
+  resolver = checkpoint
+  policy = product-integration
   ```
 
 - Task Provider resolves the current product checkpoint and the pipeline-owned
@@ -267,7 +297,7 @@
   unrelated redesign/polish, speculative states, or implementation work.
 - After mutation, fresh independent review must return
   `TARGET_RESOLVED + INTEGRATION_VERIFIED: Product Integration / Prototype`.
-  Executor exit `0` without that marker is insufficient evidence.
+  Workload success without that marker is insufficient evidence.
 
 ## Figma target resolution
 
@@ -297,8 +327,8 @@
 
 - `TARGET_NOT_FOUND`, `TARGET_AMBIGUOUS`, or unclassifiable target resolution is
   terminal and must never enter a writer branch.
-- Provider Figma pipelines are update/verify only. Missing canonical surface
-  creation requires a separate explicit init/rewrite task.
+- Provider Figma tasks are update/verify only. Missing canonical surface creation
+  requires a separate explicit init/rewrite task.
 - Local `artifacts/figma-harness/**` and `artifacts/task-provider/**` are execution
   evidence only, not canonical product/Figma locator registries.
 
