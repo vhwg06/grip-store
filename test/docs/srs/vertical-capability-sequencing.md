@@ -95,7 +95,7 @@ P001-promotions
 → Promotions-only Module patch nodes
 → direct nodes: Catalog / Checkout / Content / Order
 → Task Provider resolves dependency closure
-→ Figma executes resolved PATCH / COMPATIBILITY tasks
+→ Figma workload executes resolved PATCH / COMPATIBILITY tasks
 ```
 
 Agent-facing execution task:
@@ -150,7 +150,7 @@ scope
 dependsOn
 ```
 
-It does not contain Module docs, current patch state, change reasons, desired state, writer intent, or integration-stage instructions.
+It does not contain Module docs, current patch state, change reasons, desired state, writer intent, workload policy, or integration-stage instructions.
 
 For patch execution, Task Provider derives direct patch Modules from Module graphs, then computes the union dependent closure.
 
@@ -172,25 +172,34 @@ Product integration:
 npm run task -- --task figma-product-integration
 ```
 
-`tools/task-provider/tasks.json` resolves caller intent into pipeline-owned routing.
-
-Patch task:
+The internal path is:
 
 ```text
-figma-p001-promotions
-→ pipeline = figma
-→ patch = P001-promotions
+task id
+→ pipeline config
+→ workload factory
+→ workload = figma
+→ resolver + policy
+→ shared review/write/fresh-review lifecycle
 ```
 
-Integration task:
+Patch config:
 
 ```text
-figma-product-integration
-→ pipeline = figma-integration
-→ checkpoint = P003-business-solutions
+resolver = patch
+policy = module-patch
 ```
 
-The agent/user does not specify pipeline id, resolver, product patch/checkpoint id, graph path, changed seed, change docs, Module docs, Figma targets, or integration-stage order.
+Product Integration config:
+
+```text
+resolver = checkpoint
+policy = product-integration
+```
+
+The caller does not specify workload type, resolver, policy, product patch/checkpoint id, graph path, changed seed, Module docs, Figma targets, integration-stage order, or harness arguments.
+
+Adding another product patch/checkpoint/policy does not justify another `run-xxx.ts`; only a genuinely different execution lifecycle justifies a new workload implementation.
 
 ## 7. PATCH vs COMPATIBILITY
 
@@ -198,13 +207,13 @@ The agent/user does not specify pipeline id, resolver, product patch/checkpoint 
 
 The Module contains the requested patch node.
 
-The Figma task verifies/materializes that exact Module transition and resulting desired state.
+The Figma workload verifies/materializes that exact Module transition and resulting desired state.
 
 ### COMPATIBILITY
 
 The Module is in dependency closure but contains no requested patch node.
 
-The Figma task only verifies compatibility against the Module's latest earlier state.
+The Figma workload only verifies compatibility against the Module's latest earlier state.
 
 If a direct change is actually required:
 
@@ -217,13 +226,11 @@ DOC_GAP
 
 The Figma agent must never invent the missing patch.
 
-These modes belong to **product patch execution**. Product Integration / Prototype instead consumes the already-resolved latest Module state at the selected checkpoint and must not manufacture patch authority.
+These modes belong to **product patch execution**. Product Integration / Prototype consumes the cumulative canonical Module state at the selected checkpoint and must not manufacture patch authority.
 
 ## 8. No future-capability leakage
 
 A patch task may materialize only its selected capability plus already-active ancestor state required for compatibility.
-
-Historical rule:
 
 ```text
 P001 execution
@@ -237,7 +244,15 @@ P003 execution
 → may rely on active P001/P002 ancestor state
 ```
 
-Product Integration / Prototype runs only at the selected final checkpoint and therefore receives each Module's state **at or before P003**. It may integrate that state but may not invent behavior beyond it.
+Product Integration / Prototype runs only at the selected final checkpoint and receives cumulative Module authority through P003:
+
+```text
+BASE stateDocs
++
+all Module patch stateDocs with sequence <= P003
+```
+
+It may integrate that state but may not invent behavior beyond it.
 
 ## 9. Product Integration / Prototype sequencing
 
@@ -247,12 +262,16 @@ After the three patch tasks have been individually realized and verified, execut
 npm run task -- --task figma-product-integration
 ```
 
-The provider resolves:
+Task Provider resolves:
 
 ```text
+pipeline = figma-integration
 checkpoint = P003-business-solutions
+→ workload = figma
+→ resolver = checkpoint
+→ policy = product-integration
 → full configured Module scope
-→ each Module's latest state at/before P003
+→ cumulative Module state through P003
 → Product Integration / Prototype internal stage DAG
 ```
 
@@ -286,4 +305,4 @@ Product Integration / Prototype
 → ready only when preceding Figma patch tasks are complete
 ```
 
-Do not infer patch execution completion from old generic Figma dependency PASS evidence that was not produced from the provider-resolved patch task boundary.
+Do not infer patch execution completion from old generic Figma dependency PASS evidence that was not produced from the provider-resolved task boundary.
