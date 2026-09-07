@@ -61,6 +61,42 @@ harness arguments
 
 Those are repository-owned routing concerns.
 
+### Minimal invocation contract
+
+A registered task id is intentionally self-sufficient at the human/agent boundary.
+
+A prompt such as:
+
+```text
+Run task `figma-product-integration` to completion.
+```
+
+is sufficient.
+
+When given a registered task id, the agent MUST:
+
+1. load and obey all applicable `AGENTS.md` files and Task Provider/workload contracts;
+2. resolve the repository-owned execution entrypoint from the task id;
+3. execute through Task Provider without asking the caller to repeat repository rules or orchestration metadata;
+4. treat the provider-resolved task package as execution authority;
+5. return the task result plus produced evidence/artifact paths and any terminal blocker.
+
+The caller MUST NOT be required to restate in the prompt:
+
+```text
+repository rules
+Task Provider rules
+workload/resolver/policy selection
+routing metadata
+mutation permissions
+completion criteria
+verification markers
+evidence requirements
+fail-closed conditions
+```
+
+Those belong to repository contracts and executable orchestration, not per-run prompt text.
+
 ## Task registry
 
 `tools/task-provider/tasks.json` maps task id to a pipeline plus the task-specific selector.
