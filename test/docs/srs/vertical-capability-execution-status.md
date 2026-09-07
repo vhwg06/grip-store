@@ -48,7 +48,7 @@ Checkout
 Order
 ```
 
-Modules without P002 nodes retain their latest earlier state at the P002 checkpoint.
+Modules without P002 nodes retain their latest earlier Module state at the P002 patch checkpoint.
 
 ### P003-business-solutions
 
@@ -62,9 +62,7 @@ Checkout
 Order
 ```
 
-At the final registered product checkpoint, every configured Module resolves to its latest state at or before `P003-business-solutions`.
-
-Examples:
+Examples of Module state history:
 
 ```text
 Catalog
@@ -77,8 +75,45 @@ Account
 BASE → P002-membership → P003-business-solutions
 
 Engagement / Aftersales
-→ retain latest earlier state where no direct roadmap patch node exists
+→ retain BASE where no direct roadmap patch node exists
 ```
+
+## Task Provider / workload model
+
+All Figma execution enters through:
+
+```bash
+npm run task -- --task <task-id>
+```
+
+Internal execution is:
+
+```text
+task id
+→ pipeline config
+→ workload factory
+→ workload = figma
+→ resolver + policy
+→ shared review/write/fresh-review lifecycle
+```
+
+There are no task-specific Figma runner programs for patch vs integration.
+
+Patch tasks use:
+
+```text
+resolver = patch
+policy = module-patch
+```
+
+Product Integration uses:
+
+```text
+resolver = checkpoint
+policy = product-integration
+```
+
+A new product patch/checkpoint/policy should remain configuration/data unless its execution lifecycle is genuinely different enough to require a new workload implementation.
 
 ## Figma patch execution
 
@@ -94,6 +129,9 @@ Task Provider resolves for each patch:
 
 ```text
 pipeline = figma
+workload = figma
+resolver = patch
+policy = module-patch
 selected product patch
 → direct Module patch nodes
 → dependency closure
@@ -102,7 +140,7 @@ selected product patch
 → exact task inputs
 ```
 
-The caller does not supply pipeline id, patch id, dependency graph, changed seed, Module docs, Figma target, or resolver arguments.
+The caller does not supply workload/resolver/policy, patch id, dependency graph, changed seed, Module docs, Figma target, or harness arguments.
 
 A compatibility Module that actually needs a direct change returns `DOC_GAP`; writer mutation is forbidden until the canonical Module graph is fixed.
 
@@ -121,15 +159,33 @@ pipeline = figma-integration
 checkpoint = P003-business-solutions
 ```
 
-The integration resolver then resolves:
+Pipeline config resolves:
+
+```text
+workload = figma
+resolver = checkpoint
+policy = product-integration
+```
+
+The checkpoint resolver then supplies:
 
 ```text
 full configured product scope
 +
-each Module's latest state at/before P003
+each Module's cumulative canonical state through P003
 +
 Product Integration / Prototype stage plan
 ```
+
+Cumulative state authority is:
+
+```text
+BASE stateDocs
++
+all Module patch stateDocs with sequence <= P003
+```
+
+It does not promote historical patch task documents into new integration mutation authority.
 
 Internal stage DAG:
 
@@ -160,6 +216,8 @@ INTEGRATION_DOC_GAP
 → STOP
 → writer forbidden
 ```
+
+Patch and integration policies share the same Figma workload lifecycle; only classification/mutation rules differ.
 
 ## Completion meaning
 
