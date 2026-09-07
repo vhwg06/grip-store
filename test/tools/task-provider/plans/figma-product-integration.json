@@ -1,0 +1,80 @@
+{
+  "version": 1,
+  "id": "product-integration-v1",
+  "label": "Product Integration / Prototype",
+  "inputDocs": [
+    ".agents/figma-product-integration.md",
+    ".agents/design-base.md",
+    "docs/srs/README.md"
+  ],
+  "stages": [
+    {
+      "id": "D1-flow-inventory",
+      "title": "Flow Inventory",
+      "mode": "ANALYZE",
+      "dependsOn": [],
+      "mutation": false,
+      "objective": "Resolve the current product journeys, entry points, exits, exceptional paths, and orphaned or dead-end screen responsibilities from canonical Figma plus the provider-resolved Module state."
+    },
+    {
+      "id": "D2-screen-integration",
+      "title": "Screen Integration",
+      "mode": "WRITE",
+      "dependsOn": ["D1-flow-inventory"],
+      "mutation": true,
+      "objective": "Reconcile existing canonical screens into coherent product flows without redesigning business behavior or creating duplicate canonical surfaces."
+    },
+    {
+      "id": "D3-interaction-wiring",
+      "title": "Interaction Wiring",
+      "mode": "WRITE",
+      "dependsOn": ["D2-screen-integration"],
+      "mutation": true,
+      "objective": "Wire canonical navigation and prototype reactions for documented actions including forward, back, cancel, submit, retry, tabs, overlays, and other existing interaction responsibilities."
+    },
+    {
+      "id": "D4-state-coverage",
+      "title": "State Coverage",
+      "mode": "WRITE",
+      "dependsOn": ["D3-interaction-wiring"],
+      "mutation": true,
+      "objective": "Ensure observable default, loading, empty, validation, failure, disabled, success, and other required states exist only where supported by canonical Module state."
+    },
+    {
+      "id": "D5-cross-module-integration",
+      "title": "Cross-Module Integration",
+      "mode": "WRITE",
+      "dependsOn": ["D3-interaction-wiring"],
+      "mutation": true,
+      "objective": "Verify and materialize documented handoffs across Module boundaries while preserving domain ownership and avoiding duplicated workflows."
+    },
+    {
+      "id": "D6-responsive-integration",
+      "title": "Responsive Integration",
+      "mode": "WRITE",
+      "dependsOn": ["D3-interaction-wiring"],
+      "mutation": true,
+      "objective": "Reconcile responsive behavior across complete journeys so navigation, density, overlays, tables, forms, and primary actions remain coherent between desktop and mobile."
+    },
+    {
+      "id": "D7-prototype-validation",
+      "title": "Prototype Validation",
+      "mode": "REVIEW",
+      "dependsOn": [
+        "D4-state-coverage",
+        "D5-cross-module-integration",
+        "D6-responsive-integration"
+      ],
+      "mutation": false,
+      "objective": "Run a fresh independent product-level review over happy paths, failure paths, backtracking, state transitions, cross-Module continuity, and responsive continuity."
+    },
+    {
+      "id": "D8-integration-handoff",
+      "title": "Integration Handoff",
+      "mode": "REPORT",
+      "dependsOn": ["D7-prototype-validation"],
+      "mutation": false,
+      "objective": "Persist execution evidence for the resolved checkpoint, stage plan, verification result, and any terminal gap without creating a second canonical product specification."
+    }
+  ]
+}
