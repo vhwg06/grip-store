@@ -1,8 +1,9 @@
 {
   "version": 1,
   "id": "figma",
-  "resolver": "figma-patch",
-  "executor": "figma:pipeline",
+  "workload": "figma",
+  "resolver": "patch",
+  "policy": "module-patch",
   "dependencyGraph": "docs/srs/figma-pipeline-dependencies.json",
   "patchRegistry": "tools/task-provider/patches.json",
   "defaultMaxRepairs": 3,
