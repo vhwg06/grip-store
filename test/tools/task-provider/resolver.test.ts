@@ -6,7 +6,9 @@ import { resolveTask, type ModuleGraph, type PatchRegistry, type PipelineConfig 
 const config: PipelineConfig = {
   version: 1,
   id: "figma",
-  executor: "figma:pipeline",
+  workload: "figma",
+  resolver: "patch",
+  policy: "module-patch",
   dependencyGraph: "graph.json",
   patchRegistry: "patches.json",
   defaultMaxRepairs: 3,

@@ -1,23 +1,13 @@
-import { spawnSync } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import { basename, resolve } from "node:path";
+import { resolve } from "node:path";
 
-import {
-  resolveTask,
-  type ModuleGraph,
-  type PatchRegistry,
-  type PipelineConfig,
-} from "./task-provider/resolver";
+import type { ModuleGraph, PatchRegistry, PipelineConfig } from "./task-provider/resolver";
+import { createWorkload } from "./task-provider/workload-factory";
+import type { TaskDefinition } from "./task-provider/workload";
 
 interface Options {
   task: string;
   dryRun: boolean;
-}
-
-interface TaskDefinition {
-  id: string;
-  pipeline: string;
-  patch: string;
 }
 
 interface TaskRegistry {
@@ -52,7 +42,7 @@ function parseArgs(argv: string[]): Options {
       continue;
     }
     if (arg === "--help" || arg === "-h") {
-      console.log(`Usage:\n  npm run task -- --task figma-p001-promotions\n\nAgent-facing boundary:\n  The caller provides only a task id.\n  The Task Provider resolves the pipeline, patch/version, pipeline configuration,\n  dependency scope, Module patch graphs, exact Module states and patch inputs.\n  Agents do not pass pipeline ids, dependency graphs, changed seeds, Figma targets,\n  document lists, Module patch paths, or resolver arguments.\n\nUse --dry-run to resolve and persist the task package without executing its pipeline.\n`);
+      console.log(`Usage:\n  npm run task -- --task <task-id>\n\nExamples:\n  npm run task -- --task figma-p001-promotions\n  npm run task -- --task figma-product-integration\n\nAgent-facing boundary:\n  The caller provides only a task id.\n  Task Provider resolves pipeline config, workload type, resolver/policy, product\n  patch/checkpoint, dependency scope, Module states, exact documents and any\n  pipeline-owned stage plan.\n  Agents do not pass workload/resolver/policy ids, dependency graphs, changed seeds,\n  Figma targets, document lists, Module graph paths, stage ids/order, or executor args.\n\nUse --dry-run to resolve and persist the task package without executing its workload.\n`);
       process.exit(0);
     }
     die(`unknown argument: ${arg}`);
@@ -82,8 +72,16 @@ function resolveTaskDefinition(registry: TaskRegistry, taskId: string): TaskDefi
   if (matches.length > 1) die(`ambiguous task id in registry: ${taskId}`);
 
   const task = matches[0];
-  if (!task.pipeline || !task.patch) die(`task ${task.id} is missing pipeline or patch routing`);
+  if (!task.pipeline?.trim()) die(`task ${task.id} is missing pipeline routing`);
   return task;
+}
+
+function loadModuleGraphs(config: PipelineConfig): Record<string, ModuleGraph> {
+  const moduleGraphs: Record<string, ModuleGraph> = {};
+  for (const [module, graphPath] of Object.entries(config.moduleGraphs)) {
+    moduleGraphs[module] = readJson<ModuleGraph>(graphPath, `${module} module graph`);
+  }
+  return moduleGraphs;
 }
 
 function run(): void {
@@ -96,75 +94,82 @@ function run(): void {
   if (config.id !== definition.pipeline) {
     die(`pipeline config id mismatch: task ${definition.id} routes to ${definition.pipeline}, config declares ${config.id}`);
   }
+  if (!config.workload?.trim()) die(`pipeline ${config.id} is missing workload type`);
 
-  const registry = readJson<PatchRegistry>(config.patchRegistry, "patch registry");
-  const dependencyInput = readJson<unknown>(config.dependencyGraph, "dependency graph");
-  const moduleGraphs: Record<string, ModuleGraph> = {};
-  for (const [module, graphPath] of Object.entries(config.moduleGraphs)) {
-    moduleGraphs[module] = readJson<ModuleGraph>(graphPath, `${module} module graph`);
-  }
-
-  let resolved;
+  let workload;
   try {
-    resolved = resolveTask(config, registry, dependencyInput, moduleGraphs, definition.patch);
+    workload = createWorkload(config.workload);
   } catch (error) {
     die(error instanceof Error ? error.message : String(error));
   }
 
-  const task = {
-    task: {
-      id: definition.id,
-      pipeline: definition.pipeline,
-      patch: definition.patch,
-    },
-    ...resolved,
-  };
+  const registry = readJson<PatchRegistry>(config.patchRegistry, "patch registry");
+  const dependencyInput = readJson<unknown>(config.dependencyGraph, "dependency graph");
+  const moduleGraphs = loadModuleGraphs(config);
 
-  for (const module of task.modules) {
-    for (const doc of module.inputDocs) {
-      if (!existsSync(resolve(root, doc))) {
-        die(`resolved input document not found for ${module.id}: ${doc}`);
-      }
-    }
+  let resolved: unknown;
+  try {
+    resolved = workload.resolve({
+      root,
+      definition,
+      config,
+      registry,
+      dependencyInput,
+      moduleGraphs,
+      readJson,
+    });
+  } catch (error) {
+    die(error instanceof Error ? error.message : String(error));
+  }
+
+  for (const doc of workload.inputDocs(resolved)) {
+    if (!existsSync(resolve(root, doc))) die(`resolved input document not found: ${doc}`);
   }
 
   const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
   const runDir = resolve(root, "artifacts", "task-provider");
   mkdirSync(runDir, { recursive: true });
   const taskPath = resolve(runDir, `${timestamp}-${definition.id}.json`);
-  writeFileSync(taskPath, `${JSON.stringify(task, null, 2)}\n`, "utf8");
+  const routing = definition.patch
+    ? { patch: definition.patch }
+    : definition.checkpoint
+      ? { checkpoint: definition.checkpoint }
+      : {};
+  const taskPackage = {
+    task: {
+      id: definition.id,
+      pipeline: definition.pipeline,
+      ...routing,
+    },
+    ...(resolved as Record<string, unknown>),
+  };
+  writeFileSync(taskPath, `${JSON.stringify(taskPackage, null, 2)}\n`, "utf8");
+
+  try {
+    workload.validateResolved({ root, taskPath, task: resolved });
+  } catch (error) {
+    die(error instanceof Error ? error.message : String(error));
+  }
 
   console.log(`[task-provider] task=${definition.id}`);
-  console.log(`[task-provider] resolved pipeline=${task.pipeline}`);
-  console.log(`[task-provider] resolved patch=${task.patch.id} (${task.patch.label})`);
-  console.log(`[task-provider] direct=${task.dependency.directPatchModules.join(", ")}`);
-  console.log(`[task-provider] affected=${task.dependency.affectedModules.join(" -> ")}`);
-  for (const module of task.modules) {
-    console.log(
-      `[task-provider] ${module.id} mode=${module.mode} state=${module.state.id}` +
-        (module.patch ? ` patch=${module.patch.id}` : ""),
-    );
-  }
+  console.log(`[task-provider] pipeline=${config.id}`);
+  console.log(`[task-provider] workload=${config.workload}`);
+  console.log(`[task-provider] resolver=${config.resolver}`);
+  console.log(`[task-provider] policy=${config.policy}`);
+  for (const line of workload.describe(resolved)) console.log(`[task-provider] ${line}`);
   console.log(`[task-provider] resolved task: ${taskPath}`);
 
   if (options.dryRun) {
-    console.log("[task-provider] DRY_RUN PASS — task resolved; executor not started.");
+    console.log("[task-provider] DRY_RUN PASS — task resolved; workload not executed.");
     return;
   }
 
-  const npm = process.platform === "win32" ? "npm.cmd" : "npm";
-  const child = spawnSync(npm, ["run", config.executor, "--", "--task", taskPath], {
-    cwd: root,
-    env: process.env,
-    stdio: "inherit",
-    windowsHide: true,
-  });
-
-  if (child.error) die(`executor ${config.executor} failed to start: ${child.error.message}`);
-  if (child.status !== 0) {
-    console.error(`[task-provider] executor=${config.executor} failed for ${basename(taskPath)}`);
-    process.exit(child.status ?? 1);
+  try {
+    workload.execute({ root, taskPath, task: resolved });
+  } catch (error) {
+    die(error instanceof Error ? error.message : String(error));
   }
+
   console.log(`[task-provider] PASS task=${definition.id}`);
 }
 

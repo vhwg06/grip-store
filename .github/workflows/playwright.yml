@@ -80,6 +80,17 @@ jobs:
       - name: Run Figma harness lifecycle regression tests
         run: npm --prefix test run test:figma-harness
 
+      - name: Run Task Provider regression tests
+        run: npm --prefix test run test:task-provider
+
+      - name: Resolve canonical Task Provider tasks
+        working-directory: test
+        run: |
+          npm run task -- --task figma-p001-promotions --dry-run
+          npm run task -- --task figma-p002-membership --dry-run
+          npm run task -- --task figma-p003-business-solutions --dry-run
+          npm run task -- --task figma-product-integration --dry-run
+
       - name: Validate modules and OpenAPI contract
         run: npm --prefix test run validate
 
@@ -179,7 +190,7 @@ jobs:
           mkdir -p artifacts
           npm run test:browser -- --parallel 1 2>&1 | tee artifacts/e2e.log
 
-      - name: Upload E2E log
+      - name: Upload Cucumber log
         if: always()
         uses: actions/upload-artifact@v4
         with:

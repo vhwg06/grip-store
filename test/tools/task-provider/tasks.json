@@ -15,6 +15,11 @@
       "id": "figma-p003-business-solutions",
       "pipeline": "figma",
       "patch": "P003-business-solutions"
+    },
+    {
+      "id": "figma-product-integration",
+      "pipeline": "figma-integration",
+      "checkpoint": "P003-business-solutions"
     }
   ]
 }

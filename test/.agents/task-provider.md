@@ -1,8 +1,8 @@
 # Task Provider Contract
 
-The Task Provider is the outer task-resolution layer for repository pipelines.
+The Task Provider is the single agent-facing execution entrypoint for repository workflows.
 
-Agents request a **task id**. They do not reconstruct pipeline choice, dependency scope, document state, patch intent, or execution arguments themselves.
+Agents request a **task id**. They do not reconstruct workload type, resolver/policy choice, dependency scope, document state, patch/checkpoint intent, stage plan, or execution arguments themselves.
 
 ## Core model
 
@@ -11,29 +11,43 @@ agent intent
 → task id
 → Task Provider
 → task registry
-→ pipeline config + product patch
-→ pipeline dependency graph
-→ Module patch graphs
+→ pipeline config
+→ workload factory
+→ workload
+   ├── resolver
+   ├── execution policy
+   └── shared workload lifecycle
 → resolved task package
-→ pipeline executor
-→ child agent / harness
+→ harness / child agent
 ```
 
-The provider owns resolution. The executor owns execution. Child agents consume resolved Module tasks.
+`run-task-provider.ts` is generic. It must not grow `if workload === ...` branches for each new task family.
+
+A workload owns execution semantics. Resolver and policy variants inside the same workload are selected from configuration.
 
 ## Agent-facing boundary
 
-For the current Promotions Figma task:
+Patch tasks:
 
 ```bash
 npm run task -- --task figma-p001-promotions
+npm run task -- --task figma-p002-membership
+npm run task -- --task figma-p003-business-solutions
 ```
 
-The agent does **not** provide:
+Product Integration / Prototype:
+
+```bash
+npm run task -- --task figma-product-integration
+```
+
+The caller does **not** provide:
 
 ```text
-pipeline id
-product patch id
+workload type
+resolver id
+policy id
+product patch/checkpoint id
 dependency graph path
 changed Module seed
 change-doc list
@@ -41,14 +55,53 @@ Module graph paths
 Module docs
 Figma URL/node id
 per-Module PATCH/COMPATIBILITY mode
-resolver arguments
+integration stage ids/order
+harness arguments
 ```
 
 Those are repository-owned routing concerns.
 
+### Minimal invocation contract
+
+A registered task id is intentionally self-sufficient at the human/agent boundary.
+
+A prompt such as:
+
+```text
+Run task `figma-product-integration` to completion.
+```
+
+is sufficient.
+
+When given a registered task id, the agent MUST:
+
+1. load and obey all applicable `AGENTS.md` files and Task Provider/workload contracts;
+2. resolve the repository-owned execution entrypoint from the task id;
+3. execute through Task Provider without asking the caller to repeat repository rules or orchestration metadata;
+4. treat the provider-resolved task package as execution authority;
+5. return the task result plus produced evidence/artifact paths and any terminal blocker.
+
+The caller MUST NOT be required to restate in the prompt:
+
+```text
+repository rules
+Task Provider rules
+workload/resolver/policy selection
+routing metadata
+mutation permissions
+completion criteria
+verification markers
+evidence requirements
+fail-closed conditions
+```
+
+Those belong to repository contracts and executable orchestration, not per-run prompt text.
+
 ## Task registry
 
-`tools/task-provider/tasks.json` maps an agent-facing task id to internal routing:
+`tools/task-provider/tasks.json` maps task id to a pipeline plus the task-specific selector.
+
+Patch example:
 
 ```text
 figma-p001-promotions
@@ -56,124 +109,229 @@ figma-p001-promotions
 → patch = P001-promotions
 ```
 
-Adding another execution task is a provider/configuration decision, not a larger agent command.
+Integration example:
+
+```text
+figma-product-integration
+→ pipeline = figma-integration
+→ checkpoint = P003-business-solutions
+```
+
+Tasks are data. Promotions, Membership, and Business Solutions do not require separate executor implementations.
 
 ## Pipeline configuration
 
-After task lookup, the selected pipeline config owns:
+Pipeline config chooses execution semantics:
 
 ```text
-executor
+workload
+resolver
+policy
 dependency graph
 patch registry
 Module graph locations
 default execution budget
+pipeline-specific inputs
 ```
 
-For Figma:
+Figma patch config:
 
 ```text
 tools/task-provider/pipelines/figma.json
+
+workload = figma
+resolver = patch
+policy   = module-patch
 ```
 
-The pipeline dependency graph remains **scope-only**. It does not own docs, patch reasons, writer intent, or product semantics.
-
-`figma:pipeline` is an internal executor and accepts only:
+Figma Product Integration config:
 
 ```text
---task <Task Provider resolved package>
+tools/task-provider/pipelines/figma-integration.json
+
+workload = figma
+resolver = checkpoint
+policy   = product-integration
+stagePlan = tools/task-provider/plans/figma-product-integration.json
 ```
 
-Do not bypass Task Provider for dependency patch work.
+Both use the same Figma workload implementation and the same review/write/fresh-review lifecycle.
 
-## Module patch graph
+## Workload factory boundary
 
-Each Module owns its own state evolution:
+`tools/task-provider/workload-factory.ts` maps a workload type to its implementation.
+
+```text
+workload = figma
+→ Figma workload
+```
+
+Add a new workload implementation only when execution lifecycle semantics are genuinely different.
+
+Do **not** add a new workload for:
+
+```text
+new product patch
+new capability name
+new checkpoint
+new Figma review policy
+```
+
+Those should normally be expressed as task/config/resolver/policy data inside the existing workload.
+
+## Figma workload decomposition
+
+The Figma workload is split into:
+
+```text
+resolver
+├── patch
+└── checkpoint
+
+execution policy
+├── module-patch
+└── product-integration
+
+shared executor
+└── review
+    → classify
+    → optional writer
+    → fresh independent review
+    → evidence
+```
+
+The lifecycle is implemented once under `tools/task-provider/workloads/figma/`.
+
+### Patch resolver + module-patch policy
+
+Patch resolution preserves Module-local state history:
 
 ```text
 BASE
-↓
-P001
-↓
-P002
-↓
-...
+→ P001
+→ P002
+→ ...
 ```
 
-A Module patch node contains:
+Task Provider:
+
+1. finds direct Module patch nodes;
+2. computes dependency closure;
+3. resolves each Module to `PATCH` or `COMPATIBILITY`;
+4. supplies exact task/state docs.
+
+`PATCH` may mutate only after:
 
 ```text
-patch id
-parent Module state
-authoritative task document
-resulting desired-state documents
+TARGET_RESOLVED
++ CHANGE_GAP
++ FAIL_VERIFICATION
 ```
 
-A Module without a node for the selected product patch does not receive an invented patch. The provider resolves its latest earlier state and emits a compatibility task.
-
-## Task resolution
-
-After `task id → pipeline + patch` is resolved:
-
-1. load the selected pipeline dependency graph;
-2. load every Module graph configured for that pipeline;
-3. find Modules that contain the direct product patch node;
-4. use those direct patch Modules as dependency lookup roots;
-5. compute the union dependent closure in dependency order;
-6. resolve each Module independently at that product patch;
-7. emit exactly one task per affected Module:
+`COMPATIBILITY` never mutates. If compatibility requires a direct change:
 
 ```text
-PATCH
-or
-COMPATIBILITY
-```
-
-### PATCH
-
-The Module has a direct patch node.
-
-The resolved package supplies only the Module patch task + resulting desired state required to execute/verify that transition.
-
-### COMPATIBILITY
-
-The Module is in dependency closure but has no direct patch node.
-
-The package supplies the Module's latest earlier state and authorizes verification only.
-
-If execution discovers that the Module actually requires a direct change:
-
-```text
-DOC_GAP
+CHANGE_GAP
+→ DOC_GAP
 → STOP
-→ add/fix the Module patch node in docs first
-→ resolve a fresh task package
 ```
 
-Never let an agent manufacture an undocumented Module patch from dependency reachability alone.
+### Checkpoint resolver + product-integration policy
+
+Product Integration / Prototype is not `P004`.
+
+```text
+figma-product-integration
+→ checkpoint = P003-business-solutions
+→ require full configured product scope
+→ project each Module to cumulative canonical state at/before P003
+→ attach D1-D8 stage plan
+```
+
+Cumulative state input means:
+
+```text
+BASE stateDocs
++
+all Module patch stateDocs with sequence <= checkpoint
+```
+
+Patch `taskDoc` is not promoted into new mutation authority.
+
+Integration is review-first:
+
+```text
+TARGET_RESOLVED + INTEGRATION_VERIFIED
+→ PASS, zero mutation
+
+TARGET_RESOLVED + INTEGRATION_GAP + FAIL_VERIFICATION
+→ bounded writer
+→ fresh review
+
+INTEGRATION_DOC_GAP
+TARGET_NOT_FOUND
+TARGET_AMBIGUOUS
+→ STOP
+→ writer forbidden
+```
+
+## Product Integration internal DAG
+
+```text
+D1 Flow Inventory
+        ↓
+D2 Screen Integration
+        ↓
+D3 Interaction Wiring
+        ↓
+ ┌──────┼──────────┐
+ ↓      ↓          ↓
+D4     D5         D6
+State  Cross      Responsive
+       Module
+ └──────┼──────────┘
+        ↓
+D7 Prototype Validation
+        ↓
+D8 Integration Handoff
+```
+
+These are internal pipeline stages, not agent-facing task ids.
 
 ## Fail-closed rules
 
-Task resolution must stop when:
+Stop when:
 
 ```text
 task id is unknown / ambiguous
-task routing is incomplete
-selected patch is unknown
-selected patch is not activated in any Module graph
-pipeline config and dependency graph disagree on Modules
+pipeline config is invalid
+workload type is unsupported
+resolver/policy combination is unsupported
+selected patch/checkpoint is unknown
 Module patch parent chain is invalid
+pipeline/dependency graph disagree
+checkpoint does not resolve full product scope
+stage plan is invalid/cyclic
 resolved input document is missing
+review classification is invalid
+fresh verification fails
+repair budget is exhausted
 ```
 
-Execution must stop when the resolved task cannot be honored exactly.
+Never fall back to an ad-hoc runner or manually reconstruct the pipeline.
 
 ## Evidence
 
-Resolved task packages are execution evidence and are written under:
+Resolved task packages:
 
 ```text
-artifacts/task-provider/
+artifacts/task-provider/**
 ```
 
-They are not product/domain authority. Canonical authority remains task/pipeline configuration, Module patch graphs, and their referenced planning docs.
+Figma workload/harness evidence:
+
+```text
+artifacts/figma-harness/**
+```
+
+Execution evidence is not product/domain authority. Canonical authority remains task/pipeline configuration, Module graphs and planning documents, plus the actual canonical Figma artifact.

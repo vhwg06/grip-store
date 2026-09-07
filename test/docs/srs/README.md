@@ -334,33 +334,47 @@ The agent-facing execution boundary is Task Provider:
 agent task id
 → Task Provider
 → task registry
-→ pipeline + product patch
 → pipeline config
-→ dependency graph
-→ Module graph resolver
+→ workload factory
+→ workload
+   ├── resolver
+   ├── execution policy
+   └── shared lifecycle
 → resolved task package
-→ executor
+→ harness / child agent
 ```
 
-For Promotions Figma:
+Patch example:
 
 ```bash
 npm run task -- --task figma-p001-promotions
 ```
 
+Product Integration / Prototype example:
+
+```bash
+npm run task -- --task figma-product-integration
+```
+
 The agent does not supply:
 
 ```text
-pipeline id
-product patch id
+workload type
+resolver id
+policy id
+product patch/checkpoint id
 dependency graph path
 changed Module seed
 change-doc list
 Module graph/doc paths
 Figma URL/node id
+integration stage ids/order
+harness arguments
 ```
 
 Those are provider-owned concerns.
+
+`run-task-provider.ts` stays generic. Adding a new product patch/checkpoint/policy must not create another `run-xxx.ts` unless the execution lifecycle itself is genuinely different and therefore warrants a new workload.
 
 See:
 
@@ -377,9 +391,9 @@ The Figma dependency graph is **scope-only**:
 which logical Module scopes depend on which earlier Module scopes?
 ```
 
-It does not contain docs, patch intent, desired state, or writer instructions.
+It does not contain docs, patch intent, desired state, writer instructions, or workload policy.
 
-Task Provider:
+For product patch execution, Task Provider:
 
 1. finds all Modules containing the selected product patch node;
 2. uses those Modules as direct dependency roots;
@@ -413,6 +427,16 @@ DOC_GAP
 ```
 
 Dependency reachability is never mutation permission.
+
+For Product Integration / Prototype, the same dependency graph is used to prove the selected checkpoint resolves the full configured product scope. The checkpoint resolver then supplies each Module's **cumulative canonical state** at or before that checkpoint:
+
+```text
+BASE stateDocs
++
+all Module patch stateDocs with sequence <= checkpoint
+```
+
+It does not reinterpret dependency reachability as a product patch and does not create a synthetic `P004`.
 
 ## 13. Current roadmap
 
@@ -448,6 +472,8 @@ Planning order:
 
 ## 14. Current activation
 
+Canonical planning / Module graph activation now exists through `P003-business-solutions`:
+
 ```text
 P001-promotions
 → CAP-01..07 planning complete
@@ -455,21 +481,56 @@ P001-promotions
 → Figma task: figma-p001-promotions
 
 P002-membership
-→ source planning prepared
-→ CAP-06 Module nodes not activated yet
+→ CAP-01..07 planning/activation complete
+→ direct Module nodes: Account / Checkout / Order
+→ Figma task: figma-p002-membership
 
 P003-business-solutions
-→ source planning prepared
-→ CAP-06 Module nodes not activated yet
+→ CAP-01..07 planning/activation complete
+→ direct Module nodes: Account / Catalog / Content / Checkout / Order
+→ Figma task: figma-p003-business-solutions
 ```
 
-Future source docs may exist, but they are not current Module state until their CAP-06 patch nodes are activated.
+Planning activation is not Figma execution evidence. Each product patch must still be realized/verified through its Task Provider task in roadmap order before the final product integration task is considered ready.
 
-## 15. Final product-wide consistency pass
+## 15. Final Product Integration / Prototype
 
-After each roadmap capability has completed its own Module activation/review/Figma task, run one final product-wide consistency review.
+After the roadmap patch tasks have been individually realized and verified, run the product-level integration task:
 
-This is not a second redesign. Verify:
+```bash
+npm run task -- --task figma-product-integration
+```
+
+Task Provider resolves:
+
+```text
+pipeline = figma-integration
+checkpoint = P003-business-solutions
+
+pipeline config
+→ workload = figma
+→ resolver = checkpoint
+→ policy = product-integration
+→ cumulative Module state at/before P003
+→ product-integration-v1 stage plan
+```
+
+This is **not** a second redesign and it is **not** `P004`.
+
+Internal stage DAG:
+
+```text
+D1 Flow Inventory
+→ D2 Screen Integration
+→ D3 Interaction Wiring
+→ D4 State Coverage
+  + D5 Cross-Module Integration
+  + D6 Responsive Integration
+→ D7 Prototype Validation
+→ D8 Integration Handoff
+```
+
+The phase verifies/materializes only integration consequences already supported by canonical product state:
 
 ```text
 business/domain consistency
@@ -477,9 +538,15 @@ cross-capability terminology
 Public journey continuity
 Admin workflow continuity
 navigation/entry-point consistency
+prototype reaction continuity
+required documented state reachability
+cross-Module handoffs
+responsive journey continuity
 duplicate/contradictory UX guidance
 stale references
 unintentional standalone surfaces
 ```
+
+If integration needs undocumented business behavior/state, return `INTEGRATION_DOC_GAP` and fix planning authority first. Do not invent it in Figma.
 
 Do not erase the evidence that each product patch was individually activated and verified.

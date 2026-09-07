@@ -35,7 +35,9 @@ export interface ModuleGraph {
 export interface PipelineConfig {
   version: 1;
   id: string;
-  executor: string;
+  workload: string;
+  resolver: string;
+  policy: string;
   dependencyGraph: string;
   patchRegistry: string;
   moduleGraphs: Record<string, string>;
@@ -64,7 +66,6 @@ export interface ResolvedTask {
   version: 1;
   provider: "grip-task-provider";
   pipeline: string;
-  executor: string;
   patch: PatchRegistryEntry;
   dependency: {
     graph: string;
@@ -137,9 +138,7 @@ function validateModuleGraph(
       fail(`module ${expectedModule} patch ${node.id} requires resulting stateDocs`);
     }
     if (node.parent !== expectedParent) {
-      fail(
-        `module ${expectedModule} patch ${node.id} parent must be ${expectedParent}, got ${node.parent}`,
-      );
+      fail(`module ${expectedModule} patch ${node.id} parent must be ${expectedParent}, got ${node.parent}`);
     }
     expectedParent = node.id;
   }
@@ -172,8 +171,14 @@ export function resolveTask(
   patchId: string,
   resolvedAt = new Date().toISOString(),
 ): ResolvedTask {
-  if (config.version !== 1 || !config.id?.trim() || !config.executor?.trim()) {
-    fail("pipeline config must be version 1 with id and executor");
+  if (
+    config.version !== 1 ||
+    !config.id?.trim() ||
+    !config.workload?.trim() ||
+    !config.resolver?.trim() ||
+    !config.policy?.trim()
+  ) {
+    fail("pipeline config must be version 1 with id, workload, resolver and policy");
   }
   if (!Number.isInteger(config.defaultMaxRepairs) || config.defaultMaxRepairs < 0 || config.defaultMaxRepairs > 10) {
     fail("pipeline defaultMaxRepairs must be an integer between 0 and 10");
@@ -242,7 +247,6 @@ export function resolveTask(
     version: 1,
     provider: "grip-task-provider",
     pipeline: config.id,
-    executor: config.executor,
     patch,
     dependency: {
       graph: config.dependencyGraph,

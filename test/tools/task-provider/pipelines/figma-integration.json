@@ -1,11 +1,12 @@
 {
   "version": 1,
-  "id": "figma",
+  "id": "figma-integration",
   "workload": "figma",
-  "resolver": "patch",
-  "policy": "module-patch",
+  "resolver": "checkpoint",
+  "policy": "product-integration",
   "dependencyGraph": "docs/srs/figma-pipeline-dependencies.json",
   "patchRegistry": "tools/task-provider/patches.json",
+  "stagePlan": "tools/task-provider/plans/figma-product-integration.json",
   "defaultMaxRepairs": 3,
   "moduleGraphs": {
     "Catalog": "docs/srs/catalog/module-graph.json",

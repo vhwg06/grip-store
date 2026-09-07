@@ -18,6 +18,7 @@
 - Do not modify files, documentation, specs, or scope unrelated to the assigned task.
 - During Figma-only work, do not inspect or modify frontend or backend code.
 - Before admin work, read the relevant `/test/modules/admin/**/README.md` and `behavior.feature`.
+- For a registered repository task id, the caller may provide only the task id / execution intent. Do not require the caller to restate repository rules, orchestration contracts, routing metadata, completion criteria, or evidence requirements in the prompt; load and obey the applicable repository contracts yourself.
 - Subagents are primarily for isolation; parallelism is secondary.
 - Assign a subagent to a bounded cognitive context, not merely to a task or file set.
 - Do not split tasks that require the same mental model when doing so would duplicate orientation cost.
