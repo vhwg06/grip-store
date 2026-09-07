@@ -136,6 +136,25 @@ function validateStagePlan(plan: IntegrationStagePlan): IntegrationStagePlan {
   return plan;
 }
 
+function cumulativeStateDocs(
+  graph: ModuleGraph,
+  checkpointSequence: number,
+  registry: PatchRegistry,
+): string[] {
+  const sequenceByPatch = new Map(registry.patches.map((patch) => [patch.id.toLowerCase(), patch.sequence]));
+  const activePatchDocs = graph.patches
+    .map((patch) => {
+      const sequence = sequenceByPatch.get(patch.id.toLowerCase());
+      if (sequence === undefined) fail(`module ${graph.module} references unknown patch ${patch.id}`);
+      return { patch, sequence };
+    })
+    .filter(({ sequence }) => sequence <= checkpointSequence)
+    .sort((left, right) => left.sequence - right.sequence)
+    .flatMap(({ patch }) => patch.stateDocs);
+
+  return unique([...graph.base.stateDocs, ...activePatchDocs]);
+}
+
 export function resolveIntegrationTask(
   config: IntegrationPipelineConfig,
   registry: PatchRegistry,
@@ -169,13 +188,19 @@ export function resolveIntegrationTask(
     );
   }
 
-  const modules: ResolvedIntegrationModule[] = checkpointTask.modules.map((module) => ({
-    id: module.id,
-    scope: module.scope,
-    maxRepairs: module.maxRepairs,
-    state: module.state,
-    inputDocs: unique(module.state.docs),
-  }));
+  const modules: ResolvedIntegrationModule[] = checkpointTask.modules.map((module) => {
+    const docs = cumulativeStateDocs(moduleGraphs[module.id], checkpointTask.patch.sequence, registry);
+    return {
+      id: module.id,
+      scope: module.scope,
+      maxRepairs: module.maxRepairs,
+      state: {
+        id: module.state.id,
+        docs,
+      },
+      inputDocs: docs,
+    };
+  });
 
   const inputDocs = unique([
     ...plan.inputDocs,
