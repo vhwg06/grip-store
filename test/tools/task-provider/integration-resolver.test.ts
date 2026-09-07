@@ -11,8 +11,9 @@ import type { ModuleGraph, PatchRegistry } from "./resolver";
 const config: IntegrationPipelineConfig = {
   version: 1,
   id: "figma-integration",
-  resolver: "figma-integration",
-  executor: "figma:integration",
+  workload: "figma",
+  resolver: "checkpoint",
+  policy: "product-integration",
   dependencyGraph: "graph.json",
   patchRegistry: "patches.json",
   stagePlan: "plan.json",
