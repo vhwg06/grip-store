@@ -1,6 +1,7 @@
 {
   "version": 1,
   "id": "figma",
+  "resolver": "figma-patch",
   "executor": "figma:pipeline",
   "dependencyGraph": "docs/srs/figma-pipeline-dependencies.json",
   "patchRegistry": "tools/task-provider/patches.json",
