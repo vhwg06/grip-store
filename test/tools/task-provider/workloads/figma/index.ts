@@ -8,9 +8,10 @@ import type { TaskWorkload, WorkloadResolveContext } from "../../workload";
 import { executeFigmaWorkload } from "./executor";
 import { modulePatchPolicy } from "./policies/module-patch";
 import { productIntegrationPolicy } from "./policies/product-integration";
+import { productQaPolicy } from "./policies/product-qa";
 
 export type FigmaResolverType = "patch" | "checkpoint";
-export type FigmaPolicyType = "module-patch" | "product-integration";
+export type FigmaPolicyType = "module-patch" | "product-integration" | "product-qa";
 
 interface FigmaPipelineConfig {
   workload: "figma";
@@ -30,7 +31,11 @@ function configOf(context: WorkloadResolveContext): WorkloadResolveContext["conf
   if (config.resolver !== "patch" && config.resolver !== "checkpoint") {
     throw new Error(`figma workload has unsupported resolver ${String(config.resolver)}`);
   }
-  if (config.policy !== "module-patch" && config.policy !== "product-integration") {
+  if (
+    config.policy !== "module-patch" &&
+    config.policy !== "product-integration" &&
+    config.policy !== "product-qa"
+  ) {
     throw new Error(`figma workload has unsupported policy ${String(config.policy)}`);
   }
   return config as WorkloadResolveContext["config"] & FigmaPipelineConfig;
@@ -50,7 +55,7 @@ function resolveCheckpoint(context: WorkloadResolveContext, config: FigmaPipelin
     throw new Error(`task ${definition.id} routed to figma checkpoint resolver must define checkpoint only`);
   }
   if (!config.stagePlan?.trim()) throw new Error(`pipeline ${context.config.id} is missing stagePlan`);
-  const stagePlan = readJson<IntegrationStagePlan>(config.stagePlan, "integration stage plan");
+  const stagePlan = readJson<IntegrationStagePlan>(config.stagePlan, "checkpoint stage plan");
   return resolveIntegrationTask(
     context.config as Parameters<typeof resolveIntegrationTask>[0],
     registry,
@@ -74,8 +79,12 @@ export const figmaWorkload: TaskWorkload<ResolvedFigmaTask> = {
     if (config.resolver === "patch" && config.policy !== "module-patch") {
       throw new Error(`figma patch resolver requires module-patch policy`);
     }
-    if (config.resolver === "checkpoint" && config.policy !== "product-integration") {
-      throw new Error(`figma checkpoint resolver requires product-integration policy`);
+    if (
+      config.resolver === "checkpoint" &&
+      config.policy !== "product-integration" &&
+      config.policy !== "product-qa"
+    ) {
+      throw new Error(`figma checkpoint resolver requires a supported checkpoint policy`);
     }
     const resolved = resolvers[config.resolver](context, config);
     return {
@@ -92,13 +101,13 @@ export const figmaWorkload: TaskWorkload<ResolvedFigmaTask> = {
     if (task.policy === "module-patch" && !("patch" in task)) {
       throw new Error("module-patch policy requires a resolved patch task");
     }
-    if (task.policy === "product-integration" && !("checkpoint" in task)) {
-      throw new Error("product-integration policy requires a resolved checkpoint task");
+    if ((task.policy === "product-integration" || task.policy === "product-qa") && !("checkpoint" in task)) {
+      throw new Error(`${task.policy} policy requires a resolved checkpoint task`);
     }
   },
 
   inputDocs(task) {
-    if (task.policy === "product-integration") {
+    if (task.policy !== "module-patch") {
       return (task as ResolvedIntegrationTask).inputDocs;
     }
     return [...new Set((task as ResolvedTask).modules.flatMap((module) => module.inputDocs))];
@@ -120,14 +129,14 @@ export const figmaWorkload: TaskWorkload<ResolvedFigmaTask> = {
       ];
     }
 
-    const integrationTask = task as ResolvedIntegrationTask;
+    const checkpointTask = task as ResolvedIntegrationTask;
     return [
-      `workload=figma policy=product-integration`,
-      `checkpoint=${integrationTask.checkpoint.id} (${integrationTask.checkpoint.label})`,
-      `plan=${integrationTask.plan.id} (${integrationTask.plan.label})`,
-      `modules=${integrationTask.dependency.modules.join(" -> ")}`,
-      ...integrationTask.modules.map((module) => `${module.id} state=${module.state.id}`),
-      ...integrationTask.plan.stages.map(
+      `workload=figma policy=${task.policy}`,
+      `checkpoint=${checkpointTask.checkpoint.id} (${checkpointTask.checkpoint.label})`,
+      `plan=${checkpointTask.plan.id} (${checkpointTask.plan.label})`,
+      `modules=${checkpointTask.dependency.modules.join(" -> ")}`,
+      ...checkpointTask.modules.map((module) => `${module.id} state=${module.state.id}`),
+      ...checkpointTask.plan.stages.map(
         (stage, index) => `stage ${index + 1}. ${stage.id} mode=${stage.mode} mutation=${String(stage.mutation)}`,
       ),
     ];
@@ -138,6 +147,10 @@ export const figmaWorkload: TaskWorkload<ResolvedFigmaTask> = {
       executeFigmaWorkload(root, taskPath, task as ResolvedTask, modulePatchPolicy);
       return;
     }
-    executeFigmaWorkload(root, taskPath, task as ResolvedIntegrationTask, productIntegrationPolicy);
+    if (task.policy === "product-integration") {
+      executeFigmaWorkload(root, taskPath, task as ResolvedIntegrationTask, productIntegrationPolicy);
+      return;
+    }
+    executeFigmaWorkload(root, taskPath, task as ResolvedIntegrationTask, productQaPolicy);
   },
 };
