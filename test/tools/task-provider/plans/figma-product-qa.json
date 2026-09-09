@@ -6,6 +6,7 @@
     ".agents/figma-product-qa.md",
     ".agents/figma-product-integration.md",
     ".agents/design-base.md",
+    "docs/srs/product-qa-design-review.md",
     "docs/srs/README.md"
   ],
   "stages": [
