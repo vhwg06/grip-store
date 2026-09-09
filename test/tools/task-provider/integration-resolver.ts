@@ -28,7 +28,7 @@ export interface IntegrationStagePlan {
 export interface IntegrationPipelineConfig extends PipelineConfig {
   workload: "figma";
   resolver: "checkpoint";
-  policy: "product-integration";
+  policy: "product-integration" | "product-qa";
   stagePlan: string;
 }
 
@@ -73,33 +73,33 @@ function unique(values: string[]): string[] {
 }
 
 function validateStagePlan(plan: IntegrationStagePlan): IntegrationStagePlan {
-  if (plan.version !== 1) fail("integration stage plan must be version 1");
-  nonEmpty(plan.id, "integration stage plan id");
-  nonEmpty(plan.label, "integration stage plan label");
+  if (plan.version !== 1) fail("checkpoint stage plan must be version 1");
+  nonEmpty(plan.id, "checkpoint stage plan id");
+  nonEmpty(plan.label, "checkpoint stage plan label");
   if (!Array.isArray(plan.inputDocs) || plan.inputDocs.length === 0) {
-    fail("integration stage plan inputDocs must be a non-empty array");
+    fail("checkpoint stage plan inputDocs must be a non-empty array");
   }
-  plan.inputDocs.forEach((doc, index) => nonEmpty(doc, `integration stage plan inputDocs[${index}]`));
+  plan.inputDocs.forEach((doc, index) => nonEmpty(doc, `checkpoint stage plan inputDocs[${index}]`));
   if (!Array.isArray(plan.stages) || plan.stages.length === 0) {
-    fail("integration stage plan stages must be a non-empty array");
+    fail("checkpoint stage plan stages must be a non-empty array");
   }
 
   const byId = new Map<string, IntegrationStage>();
   for (const [index, stage] of plan.stages.entries()) {
-    const id = nonEmpty(stage.id, `integration stage[${index}].id`);
+    const id = nonEmpty(stage.id, `checkpoint stage[${index}].id`);
     const key = id.toLowerCase();
-    if (byId.has(key)) fail(`duplicate integration stage id: ${id}`);
-    nonEmpty(stage.title, `integration stage ${id} title`);
-    nonEmpty(stage.objective, `integration stage ${id} objective`);
+    if (byId.has(key)) fail(`duplicate checkpoint stage id: ${id}`);
+    nonEmpty(stage.title, `checkpoint stage ${id} title`);
+    nonEmpty(stage.objective, `checkpoint stage ${id} objective`);
     if (!["ANALYZE", "WRITE", "REVIEW", "REPORT"].includes(stage.mode)) {
-      fail(`integration stage ${id} has unsupported mode ${String(stage.mode)}`);
+      fail(`checkpoint stage ${id} has unsupported mode ${String(stage.mode)}`);
     }
-    if (!Array.isArray(stage.dependsOn)) fail(`integration stage ${id} dependsOn must be an array`);
+    if (!Array.isArray(stage.dependsOn)) fail(`checkpoint stage ${id} dependsOn must be an array`);
     if (stage.mutation && stage.mode !== "WRITE") {
-      fail(`integration stage ${id} may mutate only in WRITE mode`);
+      fail(`checkpoint stage ${id} may mutate only in WRITE mode`);
     }
     if (!stage.mutation && stage.mode === "WRITE") {
-      fail(`integration WRITE stage ${id} must declare mutation=true`);
+      fail(`checkpoint WRITE stage ${id} must declare mutation=true`);
     }
     byId.set(key, stage);
   }
@@ -107,10 +107,10 @@ function validateStagePlan(plan: IntegrationStagePlan): IntegrationStagePlan {
   for (const stage of plan.stages) {
     const seenDependencies = new Set<string>();
     for (const dependency of stage.dependsOn) {
-      const key = nonEmpty(dependency, `integration stage ${stage.id} dependency`).toLowerCase();
-      if (key === stage.id.toLowerCase()) fail(`integration stage ${stage.id} cannot depend on itself`);
-      if (!byId.has(key)) fail(`integration stage ${stage.id} depends on unknown stage ${dependency}`);
-      if (seenDependencies.has(key)) fail(`integration stage ${stage.id} has duplicate dependency ${dependency}`);
+      const key = nonEmpty(dependency, `checkpoint stage ${stage.id} dependency`).toLowerCase();
+      if (key === stage.id.toLowerCase()) fail(`checkpoint stage ${stage.id} cannot depend on itself`);
+      if (!byId.has(key)) fail(`checkpoint stage ${stage.id} depends on unknown stage ${dependency}`);
+      if (seenDependencies.has(key)) fail(`checkpoint stage ${stage.id} has duplicate dependency ${dependency}`);
       seenDependencies.add(key);
     }
   }
@@ -124,7 +124,7 @@ function validateStagePlan(plan: IntegrationStagePlan): IntegrationStagePlan {
       const cycle = [...path.slice(cycleStart), key]
         .map((id) => byId.get(id)?.id ?? id)
         .join(" -> ");
-      fail(`integration stage plan contains a cycle: ${cycle}`);
+      fail(`checkpoint stage plan contains a cycle: ${cycle}`);
     }
     visiting.add(key);
     const stage = byId.get(key)!;
@@ -165,10 +165,14 @@ export function resolveIntegrationTask(
   stagePlan: IntegrationStagePlan,
   resolvedAt = new Date().toISOString(),
 ): ResolvedIntegrationTask {
-  if (config.workload !== "figma" || config.resolver !== "checkpoint" || config.policy !== "product-integration") {
-    fail("integration pipeline requires workload=figma, resolver=checkpoint, policy=product-integration");
+  if (
+    config.workload !== "figma" ||
+    config.resolver !== "checkpoint" ||
+    (config.policy !== "product-integration" && config.policy !== "product-qa")
+  ) {
+    fail("checkpoint pipeline requires workload=figma, resolver=checkpoint and a supported checkpoint policy");
   }
-  if (!config.stagePlan?.trim()) fail("integration pipeline config requires stagePlan");
+  if (!config.stagePlan?.trim()) fail("checkpoint pipeline config requires stagePlan");
 
   const plan = validateStagePlan(stagePlan);
   const checkpointTask = resolveTask(
@@ -187,7 +191,7 @@ export function resolveIntegrationTask(
 
   if (configuredKeys.size !== resolvedKeys.size || [...configuredKeys].some((module) => !resolvedKeys.has(module))) {
     fail(
-      `integration checkpoint ${checkpointTask.patch.id} must resolve the full configured product scope; resolved ${resolvedModules.join(", ")}`,
+      `checkpoint ${checkpointTask.patch.id} must resolve the full configured product scope; resolved ${resolvedModules.join(", ")}`,
     );
   }
 
