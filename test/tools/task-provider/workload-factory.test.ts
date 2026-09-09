@@ -146,9 +146,12 @@ test("product integration policy shares the lifecycle but keeps its own review m
   );
 });
 
-test("product QA policy loops repairable QA gaps and stops only on authority gaps", () => {
+test("product QA policy owns each repair iteration so repairable gaps continue and authority gaps stop", () => {
   const task = checkpointTask("Product QA / Design Review", "figma-product-qa");
   const [unit] = productQaPolicy.units(task);
+
+  assert.equal(productQaPolicy.maxWriteAttempts?.(task, unit), 3);
+  assert.equal(productQaPolicy.childRepairBudget?.(task, unit), 0);
 
   assert.equal(
     productQaPolicy.decideReview(
@@ -177,22 +180,32 @@ test("product QA policy loops repairable QA gaps and stops only on authority gap
     ),
     "DOC_GAP",
   );
+
   assert.equal(
-    productQaPolicy.verifyAfterWrite(
+    productQaPolicy.decideAfterWrite?.(
+      task,
+      unit,
+      "TARGET_RESOLVED: fresh review still finds repairable defect\nQA_GAP: Product QA / Design Review",
+      2,
+    ),
+    "WRITE",
+  );
+  assert.equal(
+    productQaPolicy.decideAfterWrite?.(
+      task,
+      unit,
+      "TARGET_RESOLVED: fresh review found missing authority\nQA_DOC_GAP: Product QA / Design Review",
+      2,
+    ),
+    "DOC_GAP",
+  );
+  assert.equal(
+    productQaPolicy.decideAfterWrite?.(
       task,
       unit,
       "TARGET_RESOLVED: fresh review\nQA_VERIFIED: Product QA / Design Review",
       0,
     ),
-    true,
-  );
-  assert.equal(
-    productQaPolicy.verifyAfterWrite(
-      task,
-      unit,
-      "TARGET_RESOLVED: stale gap\nQA_GAP: Product QA / Design Review",
-      2,
-    ),
-    false,
+    "PASS",
   );
 });
