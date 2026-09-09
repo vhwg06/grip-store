@@ -41,6 +41,12 @@ Product Integration / Prototype:
 npm run task -- --task figma-product-integration
 ```
 
+Product QA / Design Review:
+
+```bash
+npm run task -- --task figma-product-qa
+```
+
 The caller does **not** provide:
 
 ```text
@@ -55,7 +61,7 @@ Module graph paths
 Module docs
 Figma URL/node id
 per-Module PATCH/COMPATIBILITY mode
-integration stage ids/order
+integration/QA stage ids/order
 harness arguments
 ```
 
@@ -68,7 +74,7 @@ A registered task id is intentionally self-sufficient at the human/agent boundar
 A prompt such as:
 
 ```text
-Run task `figma-product-integration` to completion.
+Run task `figma-product-qa` to completion.
 ```
 
 is sufficient.
@@ -117,7 +123,15 @@ figma-product-integration
 → checkpoint = P003-business-solutions
 ```
 
-Tasks are data. Promotions, Membership, and Business Solutions do not require separate executor implementations.
+Product QA example:
+
+```text
+figma-product-qa
+→ pipeline = figma-product-qa
+→ checkpoint = P003-business-solutions
+```
+
+Tasks are data. Promotions, Membership, Business Solutions, Product Integration, and Product QA do not require separate runner programs.
 
 ## Pipeline configuration
 
@@ -155,7 +169,18 @@ policy   = product-integration
 stagePlan = tools/task-provider/plans/figma-product-integration.json
 ```
 
-Both use the same Figma workload implementation and the same review/write/fresh-review lifecycle.
+Figma Product QA config:
+
+```text
+tools/task-provider/pipelines/figma-product-qa.json
+
+workload = figma
+resolver = checkpoint
+policy   = product-qa
+stagePlan = tools/task-provider/plans/figma-product-qa.json
+```
+
+All three use the same Figma workload implementation and the same review/write/fresh-review lifecycle.
 
 ## Workload factory boundary
 
@@ -190,12 +215,13 @@ resolver
 
 execution policy
 ├── module-patch
-└── product-integration
+├── product-integration
+└── product-qa
 
 shared executor
 └── review
     → classify
-    → optional writer
+    → optional bounded writer
     → fresh independent review
     → evidence
 ```
@@ -298,6 +324,69 @@ D8 Integration Handoff
 
 These are internal pipeline stages, not agent-facing task ids.
 
+## Checkpoint resolver + product-qa policy
+
+Product QA / Design Review consumes the same final checkpoint after Product Integration / Prototype. It is not a new product patch.
+
+Canonical phase contract:
+
+```text
+docs/srs/product-qa-design-review.md
+```
+
+Operational contract:
+
+```text
+.agents/figma-product-qa.md
+```
+
+The policy is independent-review-first and repair-capable:
+
+```text
+TARGET_RESOLVED + QA_VERIFIED
+→ PASS
+
+TARGET_RESOLVED + QA_GAP + FAIL_VERIFICATION
+→ bounded writer/repair loop
+→ fresh independent review
+→ continue within remaining repair budget
+
+QA_DOC_GAP
+→ STOP
+→ writer forbidden for undocumented behavior
+```
+
+`QA_GAP` is **not terminal by itself**. It is a validated repairable state that feeds the existing harness loop.
+
+Before a finding may become blocking `QA_GAP`, it must survive the Product QA false-positive controls:
+
+```text
+authority/design-gate trace
+fresh current-artifact evidence
+material product impact
+scope validity
+semantic identity
+product-vs-tooling distinction
+freshness after repair
+```
+
+Preference-only polish, intentionally deferred behavior, absence of non-required states, stale observations, or duplicate claims based only on names/screenshots must not authorize mutation.
+
+## Product QA internal DAG
+
+```text
+Q1 Scope / Authority Inventory
+→ Q2 Product Semantics / Ownership Review
+→ Q3 Journey / Cross-Module Review
+→ Q4 State / Responsive / Structural Review
+→ Q5 False-Positive Challenge
+→ Q6 Bounded Product QA Repair
+→ Q7 Fresh Independent Product Review
+→ Q8 Product QA Handoff
+```
+
+The review/repair transition loops through the shared harness as needed within the configured repair budget; these stage ids are not caller-owned tasks.
+
 ## Fail-closed rules
 
 Stop when:
@@ -314,9 +403,14 @@ checkpoint does not resolve full product scope
 stage plan is invalid/cyclic
 resolved input document is missing
 review classification is invalid
-fresh verification fails
+planning/design authority is insufficient for safe repair
+TARGET_NOT_FOUND / TARGET_AMBIGUOUS
+unrecoverable execution error
 repair budget is exhausted
+fresh verification cannot establish PASS after the permitted loop
 ```
+
+Do not confuse a repairable policy gap with a terminal blocker. `CHANGE_GAP` in writable PATCH mode, `INTEGRATION_GAP`, and `QA_GAP` may enter their policy-authorized repair lifecycle.
 
 Never fall back to an ad-hoc runner or manually reconstruct the pipeline.
 
