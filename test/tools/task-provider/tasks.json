@@ -20,6 +20,11 @@
       "id": "figma-product-integration",
       "pipeline": "figma-integration",
       "checkpoint": "P003-business-solutions"
+    },
+    {
+      "id": "figma-product-qa",
+      "pipeline": "figma-product-qa",
+      "checkpoint": "P003-business-solutions"
     }
   ]
 }
