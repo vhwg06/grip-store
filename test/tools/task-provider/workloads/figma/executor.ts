@@ -13,6 +13,7 @@ import type {
   FigmaExecutionPolicy,
   FigmaExecutionResult,
   FigmaExecutionUnit,
+  ReviewDecision,
 } from "./policy";
 
 interface ReviewProbe {
@@ -66,13 +67,29 @@ function reviewSummary(runDir: string | null): string {
   }
 }
 
-function harnessArgs(unit: FigmaExecutionUnit, mode: "verify" | "write"): string[] {
+function harnessArgs(
+  unit: FigmaExecutionUnit,
+  mode: "verify" | "write",
+  repairBudget = unit.maxRepairs,
+): string[] {
   const args = ["run", mode === "verify" ? "figma:verify" : "figma:harness", "--"];
   if (mode === "write") args.push("--mode", "write");
   args.push("--scope", unit.scope, "--figma", unit.target);
   for (const doc of unit.docs) args.push("--doc", doc);
-  if (mode === "write") args.push("--max-repairs", String(unit.maxRepairs));
+  if (mode === "write") args.push("--max-repairs", String(repairBudget));
   return args;
+}
+
+function positiveInteger(value: number, label: string): number {
+  if (!Number.isInteger(value) || value < 1) throw new Error(`${label} must be a positive integer`);
+  return value;
+}
+
+function nonNegativeInteger(value: number, label: string): number {
+  if (!Number.isInteger(value) || value < 0 || value > 10) {
+    throw new Error(`${label} must be an integer between 0 and 10`);
+  }
+  return value;
 }
 
 function persistState<TTask>(
@@ -162,34 +179,72 @@ export function executeFigmaWorkload<TTask>(
       continue;
     }
     if (decision === "DOC_GAP") {
-      fail(index, `planning authority gap for ${unit.id}; writer forbidden`, "DOC_GAP");
+      fail(index, `planning/design authority gap for ${unit.id}; writer forbidden`, "DOC_GAP");
     }
     if (decision !== "WRITE") {
       fail(index, `review result for ${unit.id} does not satisfy policy ${policy.id}`);
     }
 
     results[index].review = "NEEDS_UPDATE";
-    console.log(`[figma-workload] UPDATE ${unit.id} — policy-authorized gap established`);
-    const beforeWrite = snapshotHarnessRuns(root);
-    const writeChild = spawnSync(npm, harnessArgs(unit, "write"), {
-      cwd: root,
-      env: process.env,
-      stdio: "inherit",
-      windowsHide: true,
-    });
-    results[index].updateExitCode = writeChild.status;
-    if (writeChild.error) fail(index, `writer failed to start: ${writeChild.error.message}`);
+    const maxWriteAttempts = positiveInteger(
+      policy.maxWriteAttempts?.(task, unit) ?? 1,
+      `figma policy ${policy.id} maxWriteAttempts`,
+    );
+    const childRepairBudget = nonNegativeInteger(
+      policy.childRepairBudget?.(task, unit) ?? unit.maxRepairs,
+      `figma policy ${policy.id} childRepairBudget`,
+    );
 
-    const writeRun = newestNewHarnessRun(root, beforeWrite);
-    results[index].writeRun = writeRun;
-    const writeSummary = reviewSummary(writeRun);
-    if (!policy.verifyAfterWrite(task, unit, writeSummary, writeChild.status)) {
-      fail(index, `fresh post-write review did not verify ${unit.id}`);
+    let completed = false;
+    for (let attempt = 1; attempt <= maxWriteAttempts; attempt += 1) {
+      console.log(
+        `[figma-workload] UPDATE ${unit.id} — policy-authorized gap; writer attempt ${attempt}/${maxWriteAttempts}`,
+      );
+      const beforeWrite = snapshotHarnessRuns(root);
+      const writeChild = spawnSync(npm, harnessArgs(unit, "write", childRepairBudget), {
+        cwd: root,
+        env: process.env,
+        stdio: "inherit",
+        windowsHide: true,
+      });
+      results[index].updateExitCode = writeChild.status;
+      if (writeChild.error) fail(index, `writer failed to start: ${writeChild.error.message}`);
+
+      const writeRun = newestNewHarnessRun(root, beforeWrite);
+      results[index].writeRun = writeRun;
+      const writeSummary = reviewSummary(writeRun);
+      const postWriteDecision: ReviewDecision = policy.decideAfterWrite
+        ? policy.decideAfterWrite(task, unit, writeSummary, writeChild.status)
+        : policy.verifyAfterWrite(task, unit, writeSummary, writeChild.status)
+          ? "PASS"
+          : "FAIL";
+
+      if (postWriteDecision === "PASS") {
+        results[index].updated = true;
+        results[index].status = "PASS";
+        completed = true;
+        console.log(`[figma-workload] PASS ${unit.id} — updated and independently verified`);
+        break;
+      }
+
+      if (postWriteDecision === "DOC_GAP") {
+        fail(index, `planning/design authority gap discovered after writer attempt for ${unit.id}; further writer mutation forbidden`, "DOC_GAP");
+      }
+
+      if (postWriteDecision === "WRITE") {
+        if (attempt >= maxWriteAttempts) {
+          fail(index, `repair budget exhausted for ${unit.id} after ${maxWriteAttempts} policy-owned writer attempt(s)`);
+        }
+        console.log(
+          `[figma-workload] RETRY ${unit.id} — fresh review still reports a repairable policy gap`,
+        );
+        continue;
+      }
+
+      fail(index, `fresh post-write review did not satisfy policy ${policy.id} for ${unit.id}`);
     }
 
-    results[index].updated = true;
-    results[index].status = "PASS";
-    console.log(`[figma-workload] PASS ${unit.id} — updated and independently verified`);
+    if (!completed) fail(index, `writer loop ended without terminal verification for ${unit.id}`);
   }
 
   const statePath = persistState(root, taskPath, task, policy, results, "PASS");
