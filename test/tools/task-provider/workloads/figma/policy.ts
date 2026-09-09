@@ -16,6 +16,29 @@ export interface FigmaExecutionPolicy<TTask = unknown> {
   units(task: TTask): FigmaExecutionUnit[];
   decideReview(task: TTask, unit: FigmaExecutionUnit, summary: string, exitCode: number | null): ReviewDecision;
   verifyAfterWrite(task: TTask, unit: FigmaExecutionUnit, summary: string, exitCode: number | null): boolean;
+  /**
+   * Number of independent writer invocations owned by the workload executor.
+   * Defaults to 1. Use a policy-driven outer loop when policy-specific terminal
+   * classifications must be re-evaluated after every mutation.
+   */
+  maxWriteAttempts?(task: TTask, unit: FigmaExecutionUnit): number;
+  /**
+   * Repair budget delegated to each child figma:harness writer invocation.
+   * Defaults to unit.maxRepairs. A policy-driven outer loop can set this to 0
+   * so every mutation is followed immediately by a policy-visible fresh review.
+   */
+  childRepairBudget?(task: TTask, unit: FigmaExecutionUnit): number;
+  /**
+   * Optional policy classification after a writer invocation. Defaults to
+   * verifyAfterWrite => PASS/FAIL. Returning WRITE continues the bounded outer
+   * loop; DOC_GAP stops immediately without another writer invocation.
+   */
+  decideAfterWrite?(
+    task: TTask,
+    unit: FigmaExecutionUnit,
+    summary: string,
+    exitCode: number | null,
+  ): ReviewDecision;
   evidence(task: TTask, results: FigmaExecutionResult[]): Record<string, unknown>;
 }
 

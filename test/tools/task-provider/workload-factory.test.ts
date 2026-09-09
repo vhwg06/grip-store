@@ -6,6 +6,7 @@ import type { ResolvedTask } from "./resolver";
 import { createWorkload } from "./workload-factory";
 import { modulePatchPolicy } from "./workloads/figma/policies/module-patch";
 import { productIntegrationPolicy } from "./workloads/figma/policies/product-integration";
+import { productQaPolicy } from "./workloads/figma/policies/product-qa";
 
 test("workload factory returns reusable Figma workload and rejects unknown types", () => {
   assert.equal(createWorkload("figma").type, "figma");
@@ -75,11 +76,11 @@ test("module patch policy preserves PATCH and COMPATIBILITY mutation rules", () 
   );
 });
 
-test("product integration policy shares the lifecycle but keeps its own review markers", () => {
-  const task: ResolvedIntegrationTask = {
+function checkpointTask(label: string, pipeline: string): ResolvedIntegrationTask {
+  return {
     version: 1,
     provider: "grip-task-provider",
-    pipeline: "figma-integration",
+    pipeline,
     checkpoint: { id: "P003-three", label: "Three", sequence: 3 },
     dependency: { graph: "graph.json", modules: ["A"] },
     modules: [
@@ -93,9 +94,9 @@ test("product integration policy shares the lifecycle but keeps its own review m
     ],
     plan: {
       version: 1,
-      id: "product-integration-v1",
-      label: "Product Integration / Prototype",
-      inputDocs: ["integration.md"],
+      id: pipeline,
+      label,
+      inputDocs: [`${pipeline}.md`],
       stages: [
         {
           id: "D1",
@@ -107,11 +108,14 @@ test("product integration policy shares the lifecycle but keeps its own review m
         },
       ],
     },
-    inputDocs: ["integration.md", "a-base.md", "a-p3.md"],
+    inputDocs: [`${pipeline}.md`, "a-base.md", "a-p3.md"],
     maxRepairs: 3,
     resolvedAt: "2026-01-01T00:00:00.000Z",
   };
+}
 
+test("product integration policy shares the lifecycle but keeps its own review markers", () => {
+  const task = checkpointTask("Product Integration / Prototype", "figma-integration");
   const [unit] = productIntegrationPolicy.units(task);
   assert.equal(
     productIntegrationPolicy.decideReview(
@@ -139,5 +143,69 @@ test("product integration policy shares the lifecycle but keeps its own review m
       2,
     ),
     "DOC_GAP",
+  );
+});
+
+test("product QA policy owns each repair iteration so repairable gaps continue and authority gaps stop", () => {
+  const task = checkpointTask("Product QA / Design Review", "figma-product-qa");
+  const [unit] = productQaPolicy.units(task);
+
+  assert.equal(productQaPolicy.maxWriteAttempts?.(task, unit), 3);
+  assert.equal(productQaPolicy.childRepairBudget?.(task, unit), 0);
+
+  assert.equal(
+    productQaPolicy.decideReview(
+      task,
+      unit,
+      "TARGET_RESOLVED: product reviewed\nQA_VERIFIED: Product QA / Design Review",
+      0,
+    ),
+    "PASS",
+  );
+  assert.equal(
+    productQaPolicy.decideReview(
+      task,
+      unit,
+      "TARGET_RESOLVED: repairable defect\nQA_GAP: Product QA / Design Review",
+      2,
+    ),
+    "WRITE",
+  );
+  assert.equal(
+    productQaPolicy.decideReview(
+      task,
+      unit,
+      "TARGET_RESOLVED: authority missing\nQA_DOC_GAP: Product QA / Design Review",
+      2,
+    ),
+    "DOC_GAP",
+  );
+
+  assert.equal(
+    productQaPolicy.decideAfterWrite?.(
+      task,
+      unit,
+      "TARGET_RESOLVED: fresh review still finds repairable defect\nQA_GAP: Product QA / Design Review",
+      2,
+    ),
+    "WRITE",
+  );
+  assert.equal(
+    productQaPolicy.decideAfterWrite?.(
+      task,
+      unit,
+      "TARGET_RESOLVED: fresh review found missing authority\nQA_DOC_GAP: Product QA / Design Review",
+      2,
+    ),
+    "DOC_GAP",
+  );
+  assert.equal(
+    productQaPolicy.decideAfterWrite?.(
+      task,
+      unit,
+      "TARGET_RESOLVED: fresh review\nQA_VERIFIED: Product QA / Design Review",
+      0,
+    ),
+    "PASS",
   );
 });

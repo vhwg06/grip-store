@@ -1,7 +1,7 @@
 # GRIP Vertical Capability Execution — Current Checkpoint
 
-**Status:** Planning / Module patch activation is complete through `P003-business-solutions`; Figma realization remains task-scoped and must be proven through Task Provider.  
-**Depends on:** `test/docs/srs/README.md`, `test/docs/srs/vertical-capability-sequencing.md`
+**Status:** Planning / Module patch activation is complete through `P003-business-solutions`; Figma realization, Product Integration, and Product QA remain task-scoped and must be proven through Task Provider.  
+**Depends on:** `test/docs/srs/README.md`, `test/docs/srs/vertical-capability-sequencing.md`, `test/docs/srs/product-qa-design-review.md`
 
 ## Current roadmap
 
@@ -19,9 +19,11 @@ P003-business-solutions Module patch graphs    ✅
 P003-business-solutions Figma                  task = figma-p003-business-solutions
 
 Product Integration / Prototype                task = figma-product-integration
+Product QA / Design Review                     task = figma-product-qa
+Core Harness architecture/build                next after Product QA PASS
 ```
 
-Planning activation is not Figma execution evidence. The patch tasks must be realized/verified in roadmap order before Product Integration / Prototype is treated as ready.
+Planning activation is not Figma execution evidence. The patch tasks must be realized/verified in roadmap order before Product Integration / Prototype is treated as ready. Product QA / Design Review runs only after the integrated product exists and is the final design gate before Core Harness work.
 
 ## Current Module state checkpoint
 
@@ -97,7 +99,7 @@ task id
 → shared review/write/fresh-review lifecycle
 ```
 
-There are no task-specific Figma runner programs for patch vs integration.
+There are no task-specific Figma runner programs for patch, integration, or Product QA.
 
 Patch tasks use:
 
@@ -111,6 +113,13 @@ Product Integration uses:
 ```text
 resolver = checkpoint
 policy = product-integration
+```
+
+Product QA uses:
+
+```text
+resolver = checkpoint
+policy = product-qa
 ```
 
 A new product patch/checkpoint/policy should remain configuration/data unless its execution lifecycle is genuinely different enough to require a new workload implementation.
@@ -167,7 +176,7 @@ resolver = checkpoint
 policy = product-integration
 ```
 
-The checkpoint resolver then supplies:
+The checkpoint resolver supplies:
 
 ```text
 full configured product scope
@@ -200,8 +209,6 @@ D1 Flow Inventory
 → D8 Integration Handoff
 ```
 
-This is not `P004` and does not alter Module patch history.
-
 Integration is review-first:
 
 ```text
@@ -217,7 +224,72 @@ INTEGRATION_DOC_GAP
 → writer forbidden
 ```
 
-Patch and integration policies share the same Figma workload lifecycle; only classification/mutation rules differ.
+## Product QA / Design Review
+
+After Product Integration / Prototype completes, run:
+
+```bash
+npm run task -- --task figma-product-qa
+```
+
+Task registry resolves:
+
+```text
+pipeline = figma-product-qa
+checkpoint = P003-business-solutions
+```
+
+Pipeline config resolves:
+
+```text
+workload = figma
+resolver = checkpoint
+policy = product-qa
+```
+
+The checkpoint resolver supplies the same full final product state through P003 plus the Product QA stage plan.
+
+Product QA is an independent product-level design gate with a continuation loop:
+
+```text
+QA_VERIFIED
+→ PASS
+
+QA_GAP
+→ validated repairable defect
+→ bounded writer repair
+→ fresh independent review
+→ continue within remaining repair budget
+
+QA_DOC_GAP
+→ STOP
+→ writer forbidden for undocumented behavior
+→ route canonical authority upstream
+```
+
+`QA_GAP` is therefore not terminal by itself.
+
+Before a finding may block or authorize mutation it must pass the false-positive controls in `product-qa-design-review.md`:
+
+```text
+authority/gate trace
+current artifact evidence
+material product impact
+scope validity
+semantic identity
+product-vs-tooling distinction
+freshness after repair
+```
+
+Final PASS requires fresh evidence:
+
+```text
+TARGET_RESOLVED:
++ QA_VERIFIED: Product QA / Design Review
++ successful verification exit
+```
+
+Product QA does not create `P004`, a new Module state, or a second product specification.
 
 ## Completion meaning
 
@@ -229,6 +301,13 @@ Membership planning / Module activation          = complete
 Business Solutions planning / Module activation = complete
 ```
 
-Figma realization state must be established from provider-generated execution evidence, not inferred from planning activation or an older generic dependency PASS.
+Execution state must be established from provider-generated task evidence, not inferred from planning activation or older generic dependency PASS evidence.
 
-Product Integration / Prototype is the next product-level execution boundary only after the preceding patch realizations are complete.
+Final design pipeline ordering is:
+
+```text
+P001/P002/P003 Figma realization
+→ Product Integration / Prototype
+→ Product QA / Design Review
+→ Core Harness architecture/build
+```
