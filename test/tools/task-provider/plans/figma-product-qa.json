@@ -1,0 +1,77 @@
+{
+  "version": 1,
+  "id": "product-qa-v1",
+  "label": "Product QA / Design Review",
+  "inputDocs": [
+    ".agents/figma-product-qa.md",
+    ".agents/figma-product-integration.md",
+    ".agents/design-base.md",
+    "docs/srs/README.md"
+  ],
+  "stages": [
+    {
+      "id": "Q1-scope-authority-inventory",
+      "title": "Scope / Authority Inventory",
+      "mode": "ANALYZE",
+      "dependsOn": [],
+      "mutation": false,
+      "objective": "Resolve the final product checkpoint, full configured Module scope, canonical authority, and actual integrated Figma surfaces before judging quality."
+    },
+    {
+      "id": "Q2-product-semantics",
+      "title": "Product Semantics / Ownership Review",
+      "mode": "REVIEW",
+      "dependsOn": ["Q1-scope-authority-inventory"],
+      "mutation": false,
+      "objective": "Review product semantics, capability consistency, Module ownership, and cross-Module responsibility boundaries against canonical authority."
+    },
+    {
+      "id": "Q3-journey-handoffs",
+      "title": "Journey / Cross-Module Review",
+      "mode": "REVIEW",
+      "dependsOn": ["Q2-product-semantics"],
+      "mutation": false,
+      "objective": "Review complete Public/Admin journeys, backtracking, failure/recovery, and documented cross-Module handoffs rather than isolated frames."
+    },
+    {
+      "id": "Q4-state-responsive-structure",
+      "title": "State / Responsive / Structural Review",
+      "mode": "REVIEW",
+      "dependsOn": ["Q3-journey-handoffs"],
+      "mutation": false,
+      "objective": "Review required state observability, responsive continuity, canonical structure, composition, hierarchy, and applicable product-level design gates."
+    },
+    {
+      "id": "Q5-false-positive-challenge",
+      "title": "False-Positive Challenge",
+      "mode": "ANALYZE",
+      "dependsOn": ["Q4-state-responsive-structure"],
+      "mutation": false,
+      "objective": "Challenge every candidate blocking finding for authority trace, fresh artifact evidence, material product impact, scope validity, semantic identity, and tooling-vs-product distinction before authorizing repair."
+    },
+    {
+      "id": "Q6-bounded-repair",
+      "title": "Bounded Product QA Repair",
+      "mode": "WRITE",
+      "dependsOn": ["Q5-false-positive-challenge"],
+      "mutation": true,
+      "objective": "When a validated repairable QA gap exists, repair only the existing canonical Figma representations supported by product/design authority; never invent missing semantics or broaden product scope."
+    },
+    {
+      "id": "Q7-fresh-independent-review",
+      "title": "Fresh Independent Product Review",
+      "mode": "REVIEW",
+      "dependsOn": ["Q6-bounded-repair"],
+      "mutation": false,
+      "objective": "Run a fresh independent review after repair; prior blocking observations are stale until re-observed. Continue the bounded review/repair loop until verified or a terminal blocker/budget exhaustion occurs."
+    },
+    {
+      "id": "Q8-qa-handoff",
+      "title": "Product QA Handoff",
+      "mode": "REPORT",
+      "dependsOn": ["Q7-fresh-independent-review"],
+      "mutation": false,
+      "objective": "Persist final Product QA status, mutation evidence, fresh verification evidence, and any terminal authority/target/budget blocker without creating a second canonical product specification."
+    }
+  ]
+}
