@@ -80,11 +80,6 @@ function harnessArgs(
   return args;
 }
 
-function positiveInteger(value: number, label: string): number {
-  if (!Number.isInteger(value) || value < 1) throw new Error(`${label} must be a positive integer`);
-  return value;
-}
-
 function nonNegativeInteger(value: number, label: string): number {
   if (!Number.isInteger(value) || value < 0 || value > 10) {
     throw new Error(`${label} must be an integer between 0 and 10`);
@@ -186,7 +181,7 @@ export function executeFigmaWorkload<TTask>(
     }
 
     results[index].review = "NEEDS_UPDATE";
-    const maxWriteAttempts = positiveInteger(
+    const maxWriteAttempts = nonNegativeInteger(
       policy.maxWriteAttempts?.(task, unit) ?? 1,
       `figma policy ${policy.id} maxWriteAttempts`,
     );
@@ -194,6 +189,10 @@ export function executeFigmaWorkload<TTask>(
       policy.childRepairBudget?.(task, unit) ?? unit.maxRepairs,
       `figma policy ${policy.id} childRepairBudget`,
     );
+
+    if (maxWriteAttempts === 0) {
+      fail(index, `repair budget exhausted for ${unit.id} before writer mutation`);
+    }
 
     let completed = false;
     for (let attempt = 1; attempt <= maxWriteAttempts; attempt += 1) {
