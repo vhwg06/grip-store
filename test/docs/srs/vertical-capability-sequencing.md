@@ -1,7 +1,7 @@
 # Vertical Capability Sequencing Contract
 
 **Status:** Canonical planning/execution rule  
-**Roadmap:** Promotions → Membership → Business Solutions → Product Integration / Prototype
+**Roadmap:** Promotions → Membership → Business Solutions → Product Integration / Prototype → Product QA / Design Review
 
 ## 1. Purpose
 
@@ -21,6 +21,8 @@ Source prepared ahead ≠ Module patch activated.
 
 After all product patches are activated and individually realized in Figma, Product Integration / Prototype runs as a product-state checkpoint. It is not another business capability and does not create a synthetic product patch.
 
+After Product Integration / Prototype completes, Product QA / Design Review runs as the independent full-product design gate. It consumes the same final checkpoint, may repair validated design gaps through a bounded review/repair loop, and does not create a new product patch.
+
 ## 2. Product patch sequence
 
 Current product patch registry:
@@ -35,15 +37,19 @@ P003-business-solutions
 
 This sequence identifies product evolution events. It does not say every Module changes at every product patch.
 
-Product Integration / Prototype sits **after** this registry:
+Post-patch product design pipeline:
 
 ```text
 P003 current product state
 ↓
 figma-product-integration
+↓
+figma-product-qa
+↓
+Core Harness architecture/build
 ```
 
-There is no `P004-integration`.
+There is no `P004-integration` and no `P004-product-qa`.
 
 ## 3. Module-local state graphs
 
@@ -150,11 +156,11 @@ scope
 dependsOn
 ```
 
-It does not contain Module docs, current patch state, change reasons, desired state, writer intent, workload policy, or integration-stage instructions.
+It does not contain Module docs, current patch state, change reasons, desired state, writer intent, workload policy, integration-stage instructions, or Product-QA findings.
 
 For patch execution, Task Provider derives direct patch Modules from Module graphs, then computes the union dependent closure.
 
-For Product Integration / Prototype, Task Provider uses the same graph to require that the selected checkpoint resolves the full configured product scope before execution.
+For Product Integration / Prototype and Product QA / Design Review, Task Provider uses the same graph to require that the selected checkpoint resolves the full configured product scope before execution.
 
 ## 6. Task Provider is the agent wrapper
 
@@ -170,6 +176,12 @@ Product integration:
 
 ```bash
 npm run task -- --task figma-product-integration
+```
+
+Product QA:
+
+```bash
+npm run task -- --task figma-product-qa
 ```
 
 The internal path is:
@@ -197,7 +209,14 @@ resolver = checkpoint
 policy = product-integration
 ```
 
-The caller does not specify workload type, resolver, policy, product patch/checkpoint id, graph path, changed seed, Module docs, Figma targets, integration-stage order, or harness arguments.
+Product QA config:
+
+```text
+resolver = checkpoint
+policy = product-qa
+```
+
+The caller does not specify workload type, resolver, policy, product patch/checkpoint id, graph path, changed seed, Module docs, Figma targets, stage order, or harness arguments.
 
 Adding another product patch/checkpoint/policy does not justify another `run-xxx.ts`; only a genuinely different execution lifecycle justifies a new workload implementation.
 
@@ -226,7 +245,7 @@ DOC_GAP
 
 The Figma agent must never invent the missing patch.
 
-These modes belong to **product patch execution**. Product Integration / Prototype consumes the cumulative canonical Module state at the selected checkpoint and must not manufacture patch authority.
+These modes belong to **product patch execution**. Product Integration / Prototype and Product QA / Design Review consume the cumulative canonical Module state at the selected checkpoint and must not manufacture patch authority.
 
 ## 8. No future-capability leakage
 
@@ -244,7 +263,7 @@ P003 execution
 → may rely on active P001/P002 ancestor state
 ```
 
-Product Integration / Prototype runs only at the selected final checkpoint and receives cumulative Module authority through P003:
+Product Integration / Prototype and Product QA / Design Review run only at the selected final checkpoint and receive cumulative Module authority through P003:
 
 ```text
 BASE stateDocs
@@ -252,7 +271,7 @@ BASE stateDocs
 all Module patch stateDocs with sequence <= P003
 ```
 
-It may integrate that state but may not invent behavior beyond it.
+They may integrate/review/repair that supported state but may not invent behavior beyond it.
 
 ## 9. Product Integration / Prototype sequencing
 
@@ -290,7 +309,51 @@ D1 Flow Inventory
 
 This phase is review-first and update/verify only. Missing planning authority is `INTEGRATION_DOC_GAP`; it must not be fixed by improvising behavior in Figma.
 
-## 10. Current checkpoint
+## 10. Product QA / Design Review sequencing
+
+After Product Integration / Prototype has completed, execute:
+
+```bash
+npm run task -- --task figma-product-qa
+```
+
+Task Provider resolves:
+
+```text
+pipeline = figma-product-qa
+checkpoint = P003-business-solutions
+→ workload = figma
+→ resolver = checkpoint
+→ policy = product-qa
+→ full configured Module scope
+→ cumulative Module state through P003
+→ Product QA / Design Review stage plan
+```
+
+Product QA is independent-review-first but **repair-capable**:
+
+```text
+QA_VERIFIED
+→ PASS
+
+QA_GAP
+→ bounded repair
+→ fresh independent review
+→ continue loop within repair budget
+
+QA_DOC_GAP
+→ STOP
+→ repair canonical authority upstream
+→ rerun downstream consequence + Product QA fresh
+```
+
+A repairable QA failure is not terminal merely because the initial review failed.
+
+Every blocking finding must pass the false-positive controls defined in `product-qa-design-review.md` before it may authorize writer mutation.
+
+Product QA does not create a new product capability or Module patch. Its output is a verified canonical integrated design plus execution evidence, not a second product specification.
+
+## 11. Current checkpoint
 
 ```text
 P001-promotions planning/module activation          ✅
@@ -301,8 +364,13 @@ P001/P002/P003 Figma realization
 → must be proven by their own Task Provider executions in roadmap order
 
 Product Integration / Prototype
-→ registered after P003 as task figma-product-integration
+→ task = figma-product-integration
 → ready only when preceding Figma patch tasks are complete
+
+Product QA / Design Review
+→ task = figma-product-qa
+→ runs after Product Integration / Prototype
+→ final design gate before Core Harness architecture/build
 ```
 
-Do not infer patch execution completion from old generic Figma dependency PASS evidence that was not produced from the provider-resolved task boundary.
+Do not infer patch/integration/QA execution completion from planning state or old generic Figma evidence that was not produced from the relevant provider-resolved task boundary.
