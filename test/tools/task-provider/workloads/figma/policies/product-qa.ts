@@ -2,6 +2,7 @@ import type { ResolvedIntegrationTask } from "../../../integration-resolver";
 import {
   targetResolution,
   type FigmaExecutionPolicy,
+  type ReviewDecision,
 } from "../policy";
 
 function qaResolution(
@@ -14,6 +15,15 @@ function qaResolution(
   if (upper.includes(`QA_GAP: ${expected}`)) return "GAP";
   if (upper.includes(`QA_DOC_GAP: ${expected}`)) return "DOC_GAP";
   return "UNKNOWN";
+}
+
+function decide(task: ResolvedIntegrationTask, summary: string, exitCode: number | null): ReviewDecision {
+  if (targetResolution(summary) !== "RESOLVED") return "FAIL";
+  const qa = qaResolution(summary, task.plan.label);
+  if (qa === "VERIFIED" && exitCode === 0) return "PASS";
+  if (qa === "DOC_GAP") return "DOC_GAP";
+  if (qa === "GAP" && exitCode === 2) return "WRITE";
+  return "FAIL";
 }
 
 function target(task: ResolvedIntegrationTask): string {
@@ -37,7 +47,7 @@ function target(task: ResolvedIntegrationTask): string {
     "Apply the provider-owned Product QA plan:",
     ...stageLines,
     "",
-    "A QA failure is not automatically terminal. A validated repairable QA_GAP authorizes the existing bounded review/repair/fresh-review loop.",
+    "A QA failure is not automatically terminal. A validated repairable QA_GAP authorizes the bounded review/repair/fresh-review loop.",
     "Before a candidate defect may become QA_GAP, challenge it for: canonical authority/design-gate trace, fresh artifact evidence, material product impact, in-scope validity, correct semantic identity, and tooling-vs-product distinction.",
     "Preference-only polish, intentionally deferred/out-of-scope behavior, absence of a non-required state, stale evidence, or duplicate claims based only on names/screenshots MUST NOT authorize repair.",
     "Distinct Public/Admin roots are not duplicates when they own different surface responsibilities.",
@@ -71,20 +81,25 @@ export const productQaPolicy: FigmaExecutionPolicy<ResolvedIntegrationTask> = {
   },
 
   decideReview(task, _unit, summary, exitCode) {
-    if (targetResolution(summary) !== "RESOLVED") return "FAIL";
-    const qa = qaResolution(summary, task.plan.label);
-    if (qa === "VERIFIED" && exitCode === 0) return "PASS";
-    if (qa === "DOC_GAP") return "DOC_GAP";
-    if (qa === "GAP" && exitCode === 2) return "WRITE";
-    return "FAIL";
+    return decide(task, summary, exitCode);
   },
 
   verifyAfterWrite(task, _unit, summary, exitCode) {
-    return (
-      exitCode === 0 &&
-      targetResolution(summary) === "RESOLVED" &&
-      qaResolution(summary, task.plan.label) === "VERIFIED"
-    );
+    return decide(task, summary, exitCode) === "PASS";
+  },
+
+  maxWriteAttempts(task) {
+    return task.maxRepairs;
+  },
+
+  childRepairBudget() {
+    // Product QA must expose every fresh review to the policy so QA_DOC_GAP can
+    // terminate immediately and QA_GAP can explicitly continue the outer loop.
+    return 0;
+  },
+
+  decideAfterWrite(task, _unit, summary, exitCode) {
+    return decide(task, summary, exitCode);
   },
 
   evidence(task) {
