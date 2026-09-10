@@ -1,0 +1,6 @@
+{
+  "name": "@grip/agentic-evaluation",
+  "private": true,
+  "type": "module",
+  "exports": "./src/index.js"
+}
