@@ -1,7 +1,8 @@
 export {
   EvaluationValidity,
   EvaluationVerdict,
-  MemoryKind,
+  ImplementationStatus,
+  KnowledgeKind,
   candidateKey,
   sameCandidate
 } from "./contracts.js";

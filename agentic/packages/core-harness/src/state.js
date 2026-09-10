@@ -1,6 +1,6 @@
-import { normalizeCandidate, requireText } from "./contracts.js";
+import { ImplementationStatus, candidateKey, normalizeCandidate, requireText } from "./contracts.js";
 
-export function createSession({ id, work, seedCandidate, now }) {
+export function createPersistentWorkState({ id, work, seedCandidate, now }) {
   requireText(id, "session.id");
   const candidate = normalizeCandidate(seedCandidate);
   const createdAt = now();
@@ -8,12 +8,19 @@ export function createSession({ id, work, seedCandidate, now }) {
   return {
     id,
     work: structuredClone(work),
-    candidate,
-    trajectory: [],
+    currentCandidate: candidate,
+    implementations: [
+      {
+        candidate,
+        parent: null,
+        status: ImplementationStatus.BASELINE,
+        createdAt,
+        promotedAt: createdAt
+      }
+    ],
     observations: [],
     evaluations: [],
-    interventions: [],
-    memory: [],
+    knowledge: [],
     lineage: [
       {
         kind: "BASELINE",
@@ -22,29 +29,42 @@ export function createSession({ id, work, seedCandidate, now }) {
         promotedAt: createdAt
       }
     ],
+    trajectory: [],
+    supervision: {
+      interventions: [],
+      lastInspectedEventId: null
+    },
     createdAt,
-    updatedAt: createdAt,
-    lastPromotionEventIndex: 0
+    updatedAt: createdAt
   };
 }
 
-export function publicSnapshot(session) {
+export function findImplementation(state, candidate) {
+  const key = candidateKey(candidate);
+  return state.implementations.find((item) => candidateKey(item.candidate) === key) ?? null;
+}
+
+export function publicSnapshot(state) {
   return structuredClone({
-    id: session.id,
-    work: session.work,
-    candidate: session.candidate,
-    lineage: {
-      count: session.lineage.length,
-      head: session.lineage.at(-1) ?? null
+    id: state.id,
+    work: state.work,
+    candidate: state.currentCandidate,
+    progress: {
+      implementations: state.implementations.length,
+      evaluations: state.evaluations.length,
+      observations: state.observations.length,
+      knowledge: state.knowledge.length,
+      lineage: {
+        count: state.lineage.length,
+        head: state.lineage.at(-1) ?? null
+      },
+      lastIntervention: state.supervision.interventions.at(-1) ?? null,
+      trajectory: {
+        eventCount: state.trajectory.length,
+        lastEventId: state.trajectory.at(-1)?.id ?? null
+      }
     },
-    memory: {
-      count: session.memory.length
-    },
-    createdAt: session.createdAt,
-    updatedAt: session.updatedAt,
-    trajectory: {
-      eventCount: session.trajectory.length,
-      lastEventId: session.trajectory.at(-1)?.id ?? null
-    }
+    createdAt: state.createdAt,
+    updatedAt: state.updatedAt
   });
 }

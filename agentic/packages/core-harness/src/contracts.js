@@ -10,11 +10,17 @@ export const EvaluationVerdict = Object.freeze({
   BLOCKED: "BLOCKED"
 });
 
-export const MemoryKind = Object.freeze({
+export const KnowledgeKind = Object.freeze({
+  HYPOTHESIS: "HYPOTHESIS",
   FINDING: "FINDING",
   FAILED_DIRECTION: "FAILED_DIRECTION",
-  OBSERVATION: "OBSERVATION",
   DECISION: "DECISION"
+});
+
+export const ImplementationStatus = Object.freeze({
+  BASELINE: "BASELINE",
+  WORKING: "WORKING",
+  PROMOTED: "PROMOTED"
 });
 
 export function invariant(condition, message) {
@@ -61,17 +67,33 @@ export function validateEvaluation(result) {
   });
 }
 
-export function validateMemoryRecord(record) {
-  invariant(record && typeof record === "object", "memory record is required");
-  const statement = requireText(record.statement, "memory.statement");
-  invariant(Object.values(MemoryKind).includes(record.kind), "memory kind is invalid");
-  invariant(Array.isArray(record.evidence) && record.evidence.length > 0, "persistent memory requires evidence");
+export function validateKnowledgeRecord(record) {
+  invariant(record && typeof record === "object", "knowledge record is required");
+  invariant(Object.values(KnowledgeKind).includes(record.kind), "knowledge kind is invalid");
+  const statement = requireText(record.statement, "knowledge.statement");
+  const evidence = [...(record.evidence ?? [])];
+
+  if (record.kind === KnowledgeKind.FINDING || record.kind === KnowledgeKind.FAILED_DIRECTION) {
+    invariant(evidence.length > 0, `${record.kind.toLowerCase()} requires evidence`);
+  }
 
   return Object.freeze({
     kind: record.kind,
     statement,
-    evidence: Object.freeze([...record.evidence]),
+    evidence: Object.freeze(evidence),
     scope: record.scope ?? null
+  });
+}
+
+export function validateSupervisorIntervention(value) {
+  if (value == null) return null;
+  invariant(value && typeof value === "object", "supervisor intervention must be an object or null");
+  invariant(value.verdict == null, "supervisor cannot issue correctness verdicts");
+  invariant(value.candidate == null && value.mutated == null && value.mutation == null, "supervisor cannot mutate candidate state");
+
+  return Object.freeze({
+    reason: requireText(value.reason, "supervisor intervention reason"),
+    guidance: structuredClone(value.guidance ?? null)
   });
 }
 
