@@ -23,6 +23,11 @@ export const ImplementationStatus = Object.freeze({
   PROMOTED: "PROMOTED"
 });
 
+export const CorePractice = Object.freeze({
+  CONTEXT_PROJECTION: "CONTEXT_PROJECTION",
+  SUPERVISION: "SUPERVISION"
+});
+
 export function invariant(condition, message) {
   if (!condition) throw new Error(message);
 }
@@ -94,6 +99,22 @@ export function validateSupervisorIntervention(value) {
   return Object.freeze({
     reason: requireText(value.reason, "supervisor intervention reason"),
     guidance: structuredClone(value.guidance ?? null)
+  });
+}
+
+export function validateDoseDecision(value) {
+  invariant(value && typeof value === "object", "dosage decision is required");
+  invariant(typeof value.enabled === "boolean", "dosage decision requires enabled boolean");
+  const reason = requireText(value.reason, "dosage decision reason");
+
+  if (value.enabled) {
+    invariant(value.dose != null, "enabled practice requires an explicit dose");
+  }
+
+  return Object.freeze({
+    enabled: value.enabled,
+    dose: value.enabled ? structuredClone(value.dose) : null,
+    reason
   });
 }
 

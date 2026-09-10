@@ -1,10 +1,12 @@
 export {
+  CorePractice,
   EvaluationValidity,
   EvaluationVerdict,
   ImplementationStatus,
   KnowledgeKind,
   candidateKey,
-  sameCandidate
+  sameCandidate,
+  validateDoseDecision
 } from "./contracts.js";
 export { createInMemorySessionStore } from "./store.js";
 export { validateCorePorts } from "./ports.js";

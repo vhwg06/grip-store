@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import {
+  CorePractice,
   EvaluationValidity,
   EvaluationVerdict,
   ImplementationStatus,
@@ -8,6 +9,7 @@ import {
   normalizeCandidate,
   requireText,
   sameCandidate,
+  validateDoseDecision,
   validateEvaluation,
   validateKnowledgeRecord,
   validateSupervisorIntervention
@@ -23,11 +25,12 @@ export function createCoreHarness({
   evaluator,
   sessionStore,
   supervisor,
-  contextProjector = null,
+  contextProjector,
+  dosagePolicy,
   clock = defaultClock,
   idFactory = defaultId
 }) {
-  validateCorePorts({ environment, evaluator, sessionStore, supervisor, contextProjector });
+  validateCorePorts({ environment, evaluator, sessionStore, supervisor, contextProjector, dosagePolicy });
 
   async function load(sessionId) {
     requireText(sessionId, "sessionId");
@@ -72,22 +75,52 @@ export function createCoreHarness({
       currentCandidate: structuredClone(state.currentCandidate),
       persistentMemory: structuredClone(state.persistentMemory),
       trajectory: structuredClone(state.trajectory),
-      previousInterventions: structuredClone(state.supervision.interventions)
+      supervision: structuredClone(state.supervision)
     });
   }
 
+  async function decideDose(practice, context) {
+    const raw = await dosagePolicy.decide({
+      practice,
+      context: structuredClone(context)
+    });
+    return validateDoseDecision(raw);
+  }
+
   async function inspectProgress(state, triggerEvent) {
+    const progress = progressView(state);
+    const decision = await decideDose(CorePractice.SUPERVISION, {
+      trigger: {
+        eventId: triggerEvent.id,
+        type: triggerEvent.type
+      },
+      progress
+    });
+
+    state.supervision.lastDecision = {
+      eventId: triggerEvent.id,
+      practice: CorePractice.SUPERVISION,
+      ...structuredClone(decision)
+    };
+
+    if (!decision.enabled) {
+      state.supervision.skipped += 1;
+      return Object.freeze({ decision, intervention: null });
+    }
+
+    state.supervision.inspections += 1;
+    state.supervision.lastInspectedEventId = triggerEvent.id;
     const raw = await supervisor.inspect({
       trigger: {
         eventId: triggerEvent.id,
         type: triggerEvent.type
       },
-      progress: progressView(state)
+      progress,
+      dose: structuredClone(decision.dose)
     });
 
-    state.supervision.lastInspectedEventId = triggerEvent.id;
     const intervention = validateSupervisorIntervention(raw);
-    if (!intervention) return null;
+    if (!intervention) return Object.freeze({ decision, intervention: null });
 
     const record = {
       id: idFactory(),
@@ -97,7 +130,7 @@ export function createCoreHarness({
     };
     state.supervision.interventions.push(record);
     event(state, "SUPERVISOR_REDIRECTED", { interventionId: record.id, reason: record.reason });
-    return record;
+    return Object.freeze({ decision, intervention: record });
   }
 
   function contextIndexes(state) {
@@ -109,6 +142,11 @@ export function createCoreHarness({
       lineage: Object.freeze({
         count: state.persistentMemory.lineage.length,
         head: structuredClone(state.persistentMemory.lineage.at(-1) ?? null)
+      }),
+      supervision: Object.freeze({
+        inspections: state.supervision.inspections,
+        skipped: state.supervision.skipped,
+        interventions: state.supervision.interventions.length
       }),
       trajectory: Object.freeze({
         eventCount: state.trajectory.length,
@@ -136,12 +174,18 @@ export function createCoreHarness({
 
     async context(sessionId, { problem = null } = {}) {
       const state = await load(sessionId);
+      const progress = progressView(state);
+      const decision = await decideDose(CorePractice.CONTEXT_PROJECTION, {
+        problem,
+        progress
+      });
       let projected = null;
 
-      if (contextProjector) {
+      if (decision.enabled) {
         projected = await contextProjector.project({
           problem,
-          progress: progressView(state)
+          progress,
+          dose: structuredClone(decision.dose)
         });
       }
 
@@ -152,6 +196,7 @@ export function createCoreHarness({
         latestEvaluation: structuredClone(currentEvaluation(state)),
         latestIntervention: structuredClone(state.supervision.interventions.at(-1) ?? null),
         projected: structuredClone(projected),
+        dosage: Object.freeze({ contextProjection: decision }),
         indexes: contextIndexes(state)
       });
     },
@@ -252,7 +297,7 @@ export function createCoreHarness({
         after,
         result: structuredClone(result.result ?? null)
       });
-      const intervention = await inspectProgress(state, actionEvent);
+      const supervision = await inspectProgress(state, actionEvent);
       await save(state);
 
       return Object.freeze({
@@ -260,7 +305,7 @@ export function createCoreHarness({
         mutated,
         candidate: structuredClone(after),
         result: structuredClone(result.result ?? null),
-        intervention: structuredClone(intervention)
+        supervision: structuredClone(supervision)
       });
     },
 

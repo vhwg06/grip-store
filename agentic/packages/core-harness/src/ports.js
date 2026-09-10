@@ -5,7 +5,8 @@ export function validateCorePorts({
   evaluator,
   sessionStore,
   supervisor,
-  contextProjector = null
+  contextProjector,
+  dosagePolicy
 }) {
   assertPort(environment, "observe", "environment port");
   assertPort(environment, "act", "environment port");
@@ -13,6 +14,6 @@ export function validateCorePorts({
   assertPort(sessionStore, "load", "persistent work state store port");
   assertPort(sessionStore, "save", "persistent work state store port");
   assertPort(supervisor, "inspect", "supervisor port");
-
-  if (contextProjector) assertPort(contextProjector, "project", "context projector port");
+  assertPort(contextProjector, "project", "context projector port");
+  assertPort(dosagePolicy, "decide", "dosage policy port");
 }

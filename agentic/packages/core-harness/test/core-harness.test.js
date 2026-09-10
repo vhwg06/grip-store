@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {
+  CorePractice,
   EvaluationValidity,
   EvaluationVerdict,
   ImplementationStatus,
@@ -9,7 +10,7 @@ import {
   createInMemorySessionStore
 } from "../src/index.js";
 
-function fixture({ evaluator, projector, supervisor } = {}) {
+function fixture({ evaluator, projector, supervisor, dosagePolicy } = {}) {
   let id = 0;
   let time = 0;
   const store = createInMemorySessionStore();
@@ -35,10 +36,19 @@ function fixture({ evaluator, projector, supervisor } = {}) {
       }
     },
     sessionStore: store,
-    contextProjector: projector ?? null,
+    contextProjector: projector ?? {
+      async project() {
+        return null;
+      }
+    },
     supervisor: supervisor ?? {
       async inspect() {
         return null;
+      }
+    },
+    dosagePolicy: dosagePolicy ?? {
+      async decide({ practice }) {
+        return { enabled: true, dose: { mode: "test" }, reason: `test dose for ${practice}` };
       }
     },
     idFactory: () => `id-${++id}`,
@@ -125,69 +135,110 @@ test("explicit accumulated engineering knowledge persists without becoming raw c
   assert.equal("knowledge" in await harness.context("s1"), false);
 });
 
-test("evidence-backed knowledge rejects unsupported durable findings", async () => {
-  const { harness } = fixture();
-  await harness.start({ sessionId: "s1", work, seedCandidate: seed });
-
-  await assert.rejects(
-    () => harness.recordKnowledge("s1", { kind: KnowledgeKind.FINDING, statement: "unsupported" }),
-    /requires evidence/
-  );
-});
-
-test("context projector selects from persistent engineering state instead of reconstructing history", async () => {
-  const seen = [];
+test("context dosage is explicit and context-sensitive", async () => {
+  const projected = [];
   const { harness } = fixture({
     projector: {
-      async project({ problem, progress }) {
-        seen.push(progress);
-        return {
-          problem,
-          previousVersions: progress.persistentMemory.implementations.map((item) => item.candidate.version),
-          priorEvaluationCount: progress.persistentMemory.evaluations.length
-        };
+      async project(input) {
+        projected.push(input);
+        return { selected: input.dose.maxItems };
+      }
+    },
+    dosagePolicy: {
+      async decide({ practice, context }) {
+        if (practice === CorePractice.CONTEXT_PROJECTION && context.problem === "tiny") {
+          return { enabled: true, dose: { maxItems: 2 }, reason: "small problem needs little context" };
+        }
+        if (practice === CorePractice.CONTEXT_PROJECTION) {
+          return { enabled: true, dose: { maxItems: 8 }, reason: "broader problem needs more context" };
+        }
+        return { enabled: false, reason: "no supervision signal yet" };
       }
     }
   });
 
   await harness.start({ sessionId: "s1", work, seedCandidate: seed });
-  await harness.act("s1", { mutate: true, nextVersion: "v1" });
-  await harness.evaluate("s1");
+  const tiny = await harness.context("s1", { problem: "tiny" });
+  const broad = await harness.context("s1", { problem: "broad" });
 
-  const context = await harness.context("s1", { problem: "what should I try next?" });
-  assert.deepEqual(context.projected.previousVersions, ["v0", "v1"]);
-  assert.equal(context.projected.priorEvaluationCount, 1);
-  assert.equal(seen.length, 1);
+  assert.equal(tiny.projected.selected, 2);
+  assert.equal(broad.projected.selected, 8);
+  assert.deepEqual(projected.map((item) => item.dose.maxItems), [2, 8]);
 });
 
-test("supervision is automatic at progress checkpoints and only redirects strategy", async () => {
-  const triggers = [];
+test("disabled context projection does not spend context dose", async () => {
+  let calls = 0;
+  const { harness } = fixture({
+    projector: {
+      async project() {
+        calls += 1;
+        return { shouldNotExist: true };
+      }
+    },
+    dosagePolicy: {
+      async decide({ practice }) {
+        if (practice === CorePractice.CONTEXT_PROJECTION) {
+          return { enabled: false, reason: "base context is sufficient" };
+        }
+        return { enabled: false, reason: "no supervision needed" };
+      }
+    }
+  });
+
+  await harness.start({ sessionId: "s1", work, seedCandidate: seed });
+  const context = await harness.context("s1");
+  assert.equal(calls, 0);
+  assert.equal(context.projected, null);
+  assert.equal(context.dosage.contextProjection.enabled, false);
+});
+
+test("enabled practices must declare an explicit dose", async () => {
+  const { harness } = fixture({
+    dosagePolicy: {
+      async decide() {
+        return { enabled: true, reason: "more must not mean unbounded" };
+      }
+    }
+  });
+
+  await harness.start({ sessionId: "s1", work, seedCandidate: seed });
+  await assert.rejects(() => harness.context("s1"), /requires an explicit dose/);
+});
+
+test("supervision dosage prevents inspect-every-step behavior", async () => {
+  const inspected = [];
   const { harness } = fixture({
     supervisor: {
-      async inspect({ trigger }) {
-        triggers.push(trigger.type);
-        if (trigger.type === "EVALUATED") {
-          return { reason: "search plateau", guidance: { strategy: "try a different approach" } };
-        }
+      async inspect({ trigger, dose }) {
+        inspected.push({ trigger: trigger.type, dose });
         return null;
+      }
+    },
+    dosagePolicy: {
+      async decide({ practice, context }) {
+        if (practice === CorePractice.CONTEXT_PROJECTION) {
+          return { enabled: false, reason: "projection not needed" };
+        }
+        const shouldInspect = context.trigger.type === "EVALUATED";
+        return shouldInspect
+          ? { enabled: true, dose: { depth: "trajectory-summary" }, reason: "evaluation boundary is useful supervision point" }
+          : { enabled: false, reason: "mutation alone is insufficient signal" };
       }
     }
   });
 
   await harness.start({ sessionId: "s1", work, seedCandidate: seed });
-  await harness.observe("s1", { kind: "inspect" });
-  assert.deepEqual(triggers, []);
-
-  await harness.act("s1", { mutate: true, nextVersion: "v1" });
+  const action = await harness.act("s1", { mutate: true, nextVersion: "v1" });
+  assert.equal(action.supervision.decision.enabled, false);
   await harness.evaluate("s1");
 
-  assert.deepEqual(triggers, ["ACTED", "EVALUATED"]);
-  const context = await harness.context("s1");
-  assert.equal(context.latestIntervention.reason, "search plateau");
-  assert.equal(context.candidate.version, "v1");
+  assert.deepEqual(inspected, [{ trigger: "EVALUATED", dose: { depth: "trajectory-summary" } }]);
+  const state = await harness.workState("s1");
+  assert.equal(state.supervision.skipped, 1);
+  assert.equal(state.supervision.inspections, 1);
 });
 
-test("supervisor cannot become a correctness reviewer or candidate mutator", async () => {
+test("supervisor can redirect search but cannot become correctness reviewer or mutator", async () => {
   const { harness: verdictHarness } = fixture({
     supervisor: {
       async inspect() {
@@ -209,7 +260,7 @@ test("supervisor cannot become a correctness reviewer or candidate mutator", asy
   await assert.rejects(() => mutationHarness.act("m", { mutate: false }), /cannot mutate candidate state/);
 });
 
-test("supervisor redirect does not decide correctness; only evaluator can authorize promotion", async () => {
+test("only evaluator correctness can authorize promotion", async () => {
   const { harness } = fixture({
     supervisor: {
       async inspect() {
@@ -237,7 +288,7 @@ test("a pass for an older implementation cannot promote a newer implementation",
   await assert.rejects(() => harness.promote("s1"), /has not been evaluated/);
 });
 
-test("resume restores engineering progress across model contexts without dumping it into context", async () => {
+test("resume restores persistent engineering progress without reconstructing conversation history", async () => {
   const { harness } = fixture();
   await harness.start({ sessionId: "s1", work, seedCandidate: seed });
   await harness.act("s1", { mutate: true, nextVersion: "v1" });

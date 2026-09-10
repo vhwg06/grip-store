@@ -33,8 +33,11 @@ export function createPersistentWorkState({ id, work, seedCandidate, now }) {
     },
     trajectory: [],
     supervision: {
+      inspections: 0,
+      skipped: 0,
       interventions: [],
-      lastInspectedEventId: null
+      lastInspectedEventId: null,
+      lastDecision: null
     },
     createdAt,
     updatedAt: createdAt
@@ -60,7 +63,12 @@ export function publicSnapshot(state) {
         count: state.persistentMemory.lineage.length,
         head: state.persistentMemory.lineage.at(-1) ?? null
       },
-      lastIntervention: state.supervision.interventions.at(-1) ?? null,
+      supervision: {
+        inspections: state.supervision.inspections,
+        skipped: state.supervision.skipped,
+        interventions: state.supervision.interventions.length,
+        lastDecision: state.supervision.lastDecision
+      },
       trajectory: {
         eventCount: state.trajectory.length,
         lastEventId: state.trajectory.at(-1)?.id ?? null
