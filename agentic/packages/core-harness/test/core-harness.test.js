@@ -164,6 +164,7 @@ test("context dosage is explicit and context-sensitive", async () => {
   assert.equal(tiny.projected.selected, 2);
   assert.equal(broad.projected.selected, 8);
   assert.deepEqual(projected.map((item) => item.dose.maxItems), [2, 8]);
+  assert.deepEqual(projected.map((item) => item.consumer), ["AGENT", "AGENT"]);
 });
 
 test("disabled context projection does not spend context dose", async () => {
@@ -207,10 +208,17 @@ test("enabled practices must declare an explicit dose", async () => {
 
 test("supervision dosage prevents inspect-every-step behavior", async () => {
   const inspected = [];
+  const projected = [];
   const { harness } = fixture({
+    projector: {
+      async project(input) {
+        projected.push(input);
+        return { trajectorySummary: ["evaluation plateau"] };
+      }
+    },
     supervisor: {
-      async inspect({ trigger, dose }) {
-        inspected.push({ trigger: trigger.type, dose });
+      async inspect(input) {
+        inspected.push(input);
         return null;
       }
     },
@@ -232,10 +240,36 @@ test("supervision dosage prevents inspect-every-step behavior", async () => {
   assert.equal(action.supervision.decision.enabled, false);
   await harness.evaluate("s1");
 
-  assert.deepEqual(inspected, [{ trigger: "EVALUATED", dose: { depth: "trajectory-summary" } }]);
+  assert.equal(inspected.length, 1);
+  assert.equal(inspected[0].trigger.type, "EVALUATED");
+  assert.deepEqual(inspected[0].dose, { depth: "trajectory-summary" });
+  assert.deepEqual(inspected[0].context, { trajectorySummary: ["evaluation plateau"] });
+  assert.equal("progress" in inspected[0], false);
+  assert.equal(projected.at(-1).consumer, "SUPERVISOR");
+
   const state = await harness.workState("s1");
   assert.equal(state.supervision.skipped, 1);
   assert.equal(state.supervision.inspections, 1);
+});
+
+test("dosage policy receives control summary, not raw persistent memory", async () => {
+  const seen = [];
+  const { harness } = fixture({
+    dosagePolicy: {
+      async decide(input) {
+        seen.push(input);
+        return { enabled: false, reason: "nothing needed" };
+      }
+    }
+  });
+
+  await harness.start({ sessionId: "s1", work, seedCandidate: seed });
+  await harness.act("s1", { mutate: false });
+
+  const supervisionDecision = seen.find((item) => item.practice === CorePractice.SUPERVISION);
+  assert.ok(supervisionDecision.context.control);
+  assert.equal("persistentMemory" in supervisionDecision.context.control, false);
+  assert.equal("trajectory" in supervisionDecision.context.control, false);
 });
 
 test("supervisor can redirect search but cannot become correctness reviewer or mutator", async () => {

@@ -79,6 +79,30 @@ export function createCoreHarness({
     });
   }
 
+  function controlView(state) {
+    return Object.freeze({
+      sessionId: state.id,
+      work: structuredClone(state.work),
+      currentCandidate: structuredClone(state.currentCandidate),
+      latestEvaluation: structuredClone(currentEvaluation(state)),
+      lineageHead: structuredClone(state.persistentMemory.lineage.at(-1) ?? null),
+      counts: Object.freeze({
+        implementations: state.persistentMemory.implementations.length,
+        observations: state.persistentMemory.observations.length,
+        evaluations: state.persistentMemory.evaluations.length,
+        knowledge: state.persistentMemory.knowledge.length,
+        lineage: state.persistentMemory.lineage.length,
+        trajectoryEvents: state.trajectory.length
+      }),
+      supervision: Object.freeze({
+        inspections: state.supervision.inspections,
+        skipped: state.supervision.skipped,
+        interventions: state.supervision.interventions.length,
+        lastDecision: structuredClone(state.supervision.lastDecision)
+      })
+    });
+  }
+
   async function decideDose(practice, context) {
     const raw = await dosagePolicy.decide({
       practice,
@@ -88,13 +112,13 @@ export function createCoreHarness({
   }
 
   async function inspectProgress(state, triggerEvent) {
-    const progress = progressView(state);
+    const control = controlView(state);
     const decision = await decideDose(CorePractice.SUPERVISION, {
       trigger: {
         eventId: triggerEvent.id,
         type: triggerEvent.type
       },
-      progress
+      control
     });
 
     state.supervision.lastDecision = {
@@ -108,6 +132,13 @@ export function createCoreHarness({
       return Object.freeze({ decision, intervention: null });
     }
 
+    const supervisionContext = await contextProjector.project({
+      consumer: "SUPERVISOR",
+      problem: "assess whether the current search remains productive",
+      progress: progressView(state),
+      dose: structuredClone(decision.dose)
+    });
+
     state.supervision.inspections += 1;
     state.supervision.lastInspectedEventId = triggerEvent.id;
     const raw = await supervisor.inspect({
@@ -115,7 +146,7 @@ export function createCoreHarness({
         eventId: triggerEvent.id,
         type: triggerEvent.type
       },
-      progress,
+      context: structuredClone(supervisionContext),
       dose: structuredClone(decision.dose)
     });
 
@@ -174,17 +205,17 @@ export function createCoreHarness({
 
     async context(sessionId, { problem = null } = {}) {
       const state = await load(sessionId);
-      const progress = progressView(state);
       const decision = await decideDose(CorePractice.CONTEXT_PROJECTION, {
         problem,
-        progress
+        control: controlView(state)
       });
       let projected = null;
 
       if (decision.enabled) {
         projected = await contextProjector.project({
+          consumer: "AGENT",
           problem,
-          progress,
+          progress: progressView(state),
           dose: structuredClone(decision.dose)
         });
       }
