@@ -55,12 +55,12 @@ export function createCoreHarness({
 
   function currentObservations(state) {
     const key = candidateKey(state.currentCandidate);
-    return state.observations.filter((item) => candidateKey(item.candidate) === key);
+    return state.persistentMemory.observations.filter((item) => candidateKey(item.candidate) === key);
   }
 
   function currentEvaluation(state) {
     const key = candidateKey(state.currentCandidate);
-    return [...state.evaluations]
+    return [...state.persistentMemory.evaluations]
       .reverse()
       .find((item) => candidateKey(item.candidate) === key) ?? null;
   }
@@ -70,11 +70,7 @@ export function createCoreHarness({
       sessionId: state.id,
       work: structuredClone(state.work),
       currentCandidate: structuredClone(state.currentCandidate),
-      implementations: structuredClone(state.implementations),
-      evaluations: structuredClone(state.evaluations),
-      observations: structuredClone(state.observations),
-      knowledge: structuredClone(state.knowledge),
-      lineage: structuredClone(state.lineage),
+      persistentMemory: structuredClone(state.persistentMemory),
       trajectory: structuredClone(state.trajectory),
       previousInterventions: structuredClone(state.supervision.interventions)
     });
@@ -107,12 +103,12 @@ export function createCoreHarness({
   function contextIndexes(state) {
     return Object.freeze({
       currentObservations: Object.freeze({ count: currentObservations(state).length }),
-      implementations: Object.freeze({ count: state.implementations.length }),
-      evaluations: Object.freeze({ count: state.evaluations.length }),
-      knowledge: Object.freeze({ count: state.knowledge.length }),
+      implementations: Object.freeze({ count: state.persistentMemory.implementations.length }),
+      evaluations: Object.freeze({ count: state.persistentMemory.evaluations.length }),
+      knowledge: Object.freeze({ count: state.persistentMemory.knowledge.length }),
       lineage: Object.freeze({
-        count: state.lineage.length,
-        head: structuredClone(state.lineage.at(-1) ?? null)
+        count: state.persistentMemory.lineage.length,
+        head: structuredClone(state.persistentMemory.lineage.at(-1) ?? null)
       }),
       trajectory: Object.freeze({
         eventCount: state.trajectory.length,
@@ -166,27 +162,27 @@ export function createCoreHarness({
 
     async implementationHistory(sessionId) {
       const state = await load(sessionId);
-      return structuredClone(state.implementations);
+      return structuredClone(state.persistentMemory.implementations);
     },
 
     async observations(sessionId, { currentCandidateOnly = false } = {}) {
       const state = await load(sessionId);
-      return structuredClone(currentCandidateOnly ? currentObservations(state) : state.observations);
+      return structuredClone(currentCandidateOnly ? currentObservations(state) : state.persistentMemory.observations);
     },
 
     async evaluations(sessionId) {
       const state = await load(sessionId);
-      return structuredClone(state.evaluations);
+      return structuredClone(state.persistentMemory.evaluations);
     },
 
     async knowledge(sessionId) {
       const state = await load(sessionId);
-      return structuredClone(state.knowledge);
+      return structuredClone(state.persistentMemory.knowledge);
     },
 
     async lineage(sessionId) {
       const state = await load(sessionId);
-      return structuredClone(state.lineage);
+      return structuredClone(state.persistentMemory.lineage);
     },
 
     async trajectory(sessionId, { afterEventId = null } = {}) {
@@ -214,7 +210,7 @@ export function createCoreHarness({
         request: structuredClone(request),
         value: structuredClone(result)
       };
-      state.observations.push(observation);
+      state.persistentMemory.observations.push(observation);
       event(state, "OBSERVED", { observationId: observation.id });
       await save(state);
       return structuredClone(observation);
@@ -239,7 +235,7 @@ export function createCoreHarness({
         invariant(!sameCandidate(before, after), "mutating action must return a new candidate version");
         invariant(!findImplementation(state, after), "candidate version already exists in implementation history");
         state.currentCandidate = after;
-        state.implementations.push({
+        state.persistentMemory.implementations.push({
           candidate: after,
           parent: before,
           status: ImplementationStatus.WORKING,
@@ -256,7 +252,7 @@ export function createCoreHarness({
         after,
         result: structuredClone(result.result ?? null)
       });
-      await inspectProgress(state, actionEvent);
+      const intervention = await inspectProgress(state, actionEvent);
       await save(state);
 
       return Object.freeze({
@@ -264,7 +260,7 @@ export function createCoreHarness({
         mutated,
         candidate: structuredClone(after),
         result: structuredClone(result.result ?? null),
-        intervention: structuredClone(state.supervision.interventions.at(-1) ?? null)
+        intervention: structuredClone(intervention)
       });
     },
 
@@ -288,7 +284,7 @@ export function createCoreHarness({
         at: clock(),
         ...result
       };
-      state.evaluations.push(evaluation);
+      state.persistentMemory.evaluations.push(evaluation);
       const evaluationEvent = event(state, "EVALUATED", {
         evaluationId: evaluation.id,
         validity: evaluation.validity,
@@ -308,7 +304,7 @@ export function createCoreHarness({
         at: clock(),
         ...structuredClone(validated)
       };
-      state.knowledge.push(item);
+      state.persistentMemory.knowledge.push(item);
       event(state, "KNOWLEDGE_RECORDED", { knowledgeId: item.id, kind: item.kind });
       await save(state);
       return structuredClone(item);
@@ -321,7 +317,7 @@ export function createCoreHarness({
       invariant(evaluation.validity === EvaluationValidity.VALID, "current evaluation is not valid");
       invariant(evaluation.verdict === EvaluationVerdict.PASS, "current candidate did not pass evaluation");
 
-      const head = state.lineage.at(-1);
+      const head = state.persistentMemory.lineage.at(-1);
       invariant(!sameCandidate(head.candidate, state.currentCandidate), "current candidate is already committed to lineage");
 
       const implementation = findImplementation(state, state.currentCandidate);
@@ -335,7 +331,7 @@ export function createCoreHarness({
         evaluation: evaluation.id,
         promotedAt: implementation.promotedAt
       };
-      state.lineage.push(promotion);
+      state.persistentMemory.lineage.push(promotion);
       event(state, "PROMOTED", { evaluationId: evaluation.id });
       await save(state);
       return structuredClone(promotion);

@@ -9,26 +9,28 @@ export function createPersistentWorkState({ id, work, seedCandidate, now }) {
     id,
     work: structuredClone(work),
     currentCandidate: candidate,
-    implementations: [
-      {
-        candidate,
-        parent: null,
-        status: ImplementationStatus.BASELINE,
-        createdAt,
-        promotedAt: createdAt
-      }
-    ],
-    observations: [],
-    evaluations: [],
-    knowledge: [],
-    lineage: [
-      {
-        kind: "BASELINE",
-        candidate,
-        evaluation: null,
-        promotedAt: createdAt
-      }
-    ],
+    persistentMemory: {
+      implementations: [
+        {
+          candidate,
+          parent: null,
+          status: ImplementationStatus.BASELINE,
+          createdAt,
+          promotedAt: createdAt
+        }
+      ],
+      observations: [],
+      evaluations: [],
+      knowledge: [],
+      lineage: [
+        {
+          kind: "BASELINE",
+          candidate,
+          evaluation: null,
+          promotedAt: createdAt
+        }
+      ]
+    },
     trajectory: [],
     supervision: {
       interventions: [],
@@ -41,7 +43,7 @@ export function createPersistentWorkState({ id, work, seedCandidate, now }) {
 
 export function findImplementation(state, candidate) {
   const key = candidateKey(candidate);
-  return state.implementations.find((item) => candidateKey(item.candidate) === key) ?? null;
+  return state.persistentMemory.implementations.find((item) => candidateKey(item.candidate) === key) ?? null;
 }
 
 export function publicSnapshot(state) {
@@ -50,13 +52,13 @@ export function publicSnapshot(state) {
     work: state.work,
     candidate: state.currentCandidate,
     progress: {
-      implementations: state.implementations.length,
-      evaluations: state.evaluations.length,
-      observations: state.observations.length,
-      knowledge: state.knowledge.length,
+      implementations: state.persistentMemory.implementations.length,
+      evaluations: state.persistentMemory.evaluations.length,
+      observations: state.persistentMemory.observations.length,
+      knowledge: state.persistentMemory.knowledge.length,
       lineage: {
-        count: state.lineage.length,
-        head: state.lineage.at(-1) ?? null
+        count: state.persistentMemory.lineage.length,
+        head: state.persistentMemory.lineage.at(-1) ?? null
       },
       lastIntervention: state.supervision.interventions.at(-1) ?? null,
       trajectory: {

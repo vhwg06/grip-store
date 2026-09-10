@@ -65,9 +65,9 @@ test("persistent work state is first-class while default context stays selective
   assert.equal("knowledge" in context, false);
 
   const state = await harness.workState("s1");
-  assert.equal(state.observations.length, 1);
+  assert.equal(state.persistentMemory.observations.length, 1);
   assert.equal(state.trajectory.length, 2);
-  assert.equal(state.implementations.length, 1);
+  assert.equal(state.persistentMemory.implementations.length, 1);
 });
 
 test("every mutated implementation persists across the search, not only promoted lineage", async () => {
@@ -143,8 +143,8 @@ test("context projector selects from persistent engineering state instead of rec
         seen.push(progress);
         return {
           problem,
-          previousVersions: progress.implementations.map((item) => item.candidate.version),
-          priorEvaluationCount: progress.evaluations.length
+          previousVersions: progress.persistentMemory.implementations.map((item) => item.candidate.version),
+          priorEvaluationCount: progress.persistentMemory.evaluations.length
         };
       }
     }
@@ -272,8 +272,8 @@ test("sessions keep persistent engineering state isolated", async () => {
 
   const a = await harness.workState("a");
   const b = await harness.workState("b");
-  assert.equal(a.implementations.length, 2);
-  assert.equal(a.knowledge.length, 1);
-  assert.equal(b.implementations.length, 1);
-  assert.equal(b.knowledge.length, 0);
+  assert.equal(a.persistentMemory.implementations.length, 2);
+  assert.equal(a.persistentMemory.knowledge.length, 1);
+  assert.equal(b.persistentMemory.implementations.length, 1);
+  assert.equal(b.persistentMemory.knowledge.length, 0);
 });
