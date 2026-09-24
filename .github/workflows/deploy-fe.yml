@@ -65,11 +65,21 @@ jobs:
           key: ${{ secrets.GCP_VM_SSH_KEY }}
           envs: REGISTRY_IMAGE,IMAGE_TAG,FE_PORT,GHCR_USERNAME,GHCR_TOKEN
           script: |
-            set -e
-            sudo mkdir -p /opt/grip-store-fe
-            sudo cp /tmp/template.docker-compose.yml /opt/grip-store-fe/docker-compose.yml
+            set -euo pipefail
+            mkdir -p /opt/grip-store-fe
+            cp /tmp/template.docker-compose.yml /opt/grip-store-fe/docker-compose.yml
             cd /opt/grip-store-fe
-            echo "$GHCR_TOKEN" | sudo docker login ghcr.io -u "$GHCR_USERNAME" --password-stdin
-            sudo REGISTRY_IMAGE="$REGISTRY_IMAGE" IMAGE_TAG="$IMAGE_TAG" FE_PORT="$FE_PORT" docker compose pull
-            sudo REGISTRY_IMAGE="$REGISTRY_IMAGE" IMAGE_TAG="$IMAGE_TAG" FE_PORT="$FE_PORT" docker compose up -d --remove-orphans
-            sudo docker ps --filter "name=grip-store-fe"
+            echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USERNAME" --password-stdin
+            REGISTRY_IMAGE="$REGISTRY_IMAGE" IMAGE_TAG="$IMAGE_TAG" FE_PORT="$FE_PORT" docker compose pull
+            REGISTRY_IMAGE="$REGISTRY_IMAGE" IMAGE_TAG="$IMAGE_TAG" FE_PORT="$FE_PORT" docker compose up -d --remove-orphans
+
+            for attempt in $(seq 1 30); do
+              if curl -fsS "http://127.0.0.1:${FE_PORT}/" >/dev/null; then
+                exit 0
+              fi
+              sleep 2
+            done
+
+            REGISTRY_IMAGE="$REGISTRY_IMAGE" IMAGE_TAG="$IMAGE_TAG" FE_PORT="$FE_PORT" docker compose ps
+            REGISTRY_IMAGE="$REGISTRY_IMAGE" IMAGE_TAG="$IMAGE_TAG" FE_PORT="$FE_PORT" docker compose logs --tail=200
+            exit 1
